@@ -2,17 +2,16 @@
 
 .domain-modal {
     width: 100%;
-    max-width: min(400px, var(--zns-card-width, 400px));
-    padding: calc(24px * var(--zns-space-scale, 1));
+    max-width: 100%;
+    padding: 16px 16px 18px;
     box-sizing: border-box;
     background: variables.$themeBackgroundSecondary;
-    border-top-left-radius: 32px;
-    border-top-right-radius: 32px;
+    border-radius: 28px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    gap: calc(24px * var(--zns-space-scale, 1));
+    gap: 14px;
     font-family: variables.$themeBodyFamily;
     position: relative;
     margin: 0 auto;
@@ -24,17 +23,17 @@
         border: none;
         cursor: pointer;
         display: flex;
-        height: calc(48px * var(--zns-space-scale, 1));
+        height: 36px;
         justify-content: center;
-        margin: calc(8px * var(--zns-space-scale, 1));
-        min-height: calc(48px * var(--zns-space-scale, 1));
-        min-width: calc(48px * var(--zns-space-scale, 1));
+        margin: 4px;
+        min-height: 36px;
+        min-width: 36px;
         outline: none;
-        padding: calc(8px * var(--zns-space-scale, 1));
+        padding: 6px;
         position: absolute;
         right: 0;
         top: 0;
-        width: calc(48px * var(--zns-space-scale, 1));
+        width: 36px;
         transition:
             color 0.2s variables.$smoothBezier,
             background-color 0.2s variables.$smoothBezier;
@@ -42,8 +41,8 @@
         svg {
             transition: fill 0.2s variables.$smoothBezier;
             fill: variables.$themeText;
-            height: calc(16px * var(--zns-space-scale, 1));
-            width: calc(16px * var(--zns-space-scale, 1));
+            height: 14px;
+            width: 14px;
         }
 
         &:hover {
@@ -59,8 +58,8 @@
     &__radio-group {
         width: 100%;
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-        gap: calc(12px * var(--zns-space-scale, 1));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
     }
 }
 
@@ -74,14 +73,14 @@
     font-weight: 500;
     line-height: calc(20px * var(--zns-font-scale, 1));
     letter-spacing: 0.1px;
-    margin: calc(42px * var(--zns-space-scale, 1)) auto 0;
+    margin: 28px 28px 0;
 }
 
 .domain-option--grid {
     flex-direction: column;
     justify-content: center;
     min-height: auto;
-    padding: calc(12px * var(--zns-space-scale, 1));
+    padding: 10px 8px;
 
     input[type="radio"],
     svg {
@@ -106,7 +105,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: calc(8px * var(--zns-space-scale, 1));
+    gap: 6px;
     flex: 1;
 }
 
@@ -145,10 +144,10 @@
 // Override Material Dialog styles
 :host ::ng-deep .mat-mdc-dialog-container {
     padding: 0 !important;
-    border-radius: 32px 32px 0 0 !important;
+    border-radius: 28px !important;
     overflow: hidden !important;
 }
 
 :host ::ng-deep .mat-mdc-dialog-surface {
-    border-radius: 32px 32px 0 0 !important;
+    border-radius: 28px !important;
 }

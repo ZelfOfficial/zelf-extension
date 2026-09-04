@@ -1,11 +1,13 @@
 export const environment = {
     apiUrl: "http://localhost:3050",
+    v4ApiUrl: "http://localhost:3050",
     appUrl: "https://zelf.world",
     baseUrl: "/index.html",
     captchaKey: "6LcAhbIqAAAAANEZltlDqWutQ_kcujZ7IUKIQiK1",
     includeNonPaidDomains: true,
     keysUrl: "https://keys.zelf.world",
     paymentDomainUrl: "http://localhost:3009/tags/payment",
+    paymentZelfIdUrl: "http://localhost:3009/zelf-ids/payment",
     production: false,
     testnetAddress: "",
     znsUsdPrice: 0.05,

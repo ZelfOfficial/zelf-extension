@@ -24,7 +24,7 @@ export const ZelfWalletGuard: CanActivateFn = async () => {
         }
     }
 
-    _router.navigate(["/welcome"], { replaceUrl: true });
+    _router.navigate(["/welcome-zelfid"], { replaceUrl: true });
 
     return false;
 };

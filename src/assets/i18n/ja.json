@@ -974,6 +974,7 @@
         "invalid_password": "パスワードが無効です。生体認証でのログインが必要になるまで、あと{{remaining}}回試行できます。",
         "invalid_private_key": "秘密鍵が無効です",
         "liveness_failed_description": "申し訳ありませんが、ライブネス検出に問題が発生しました。",
+        "liveness_failed_help": "ライブネスチェックに合格しませんでした。パスワードやアカウントのエラーではありません。カメラを見て、顔を中央に保ち、明るい場所で再試行してください。",
         "liveness_failed": "ライブネス検出に失敗しました",
         "Liveness_score_not_acceptable": "ライブネススコアが基準を満たしていません",
         "min_liveness_score_is": "最小ライブネススコアは：",

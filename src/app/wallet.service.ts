@@ -576,18 +576,41 @@ export class WalletService {
 
     async getCurrentWallet(): Promise<Partial<TagModel> | null> {
         const storedWallet = await this._chromeService.getItem<Partial<TagModel> | null>("wallet");
-        const rawPd = storedWallet?.publicData as Record<string, unknown> | undefined | null;
+
+        if (!this._hasStoredWalletRecord(storedWallet)) {
+            return null;
+        }
+
+        const rawPd = storedWallet.publicData as Record<string, unknown> | undefined | null;
         const healedPd = tryHealPublicDataXlmToCanonical(rawPd ?? undefined);
 
-        if (storedWallet && healedPd) {
+        if (healedPd) {
             const healed = { ...storedWallet, publicData: healedPd };
 
             await this._chromeService.setItem("wallet", healed);
 
-            return new TagModel(healed) || {};
+            return this._meaningfulWalletOrNull(new TagModel(healed));
         }
 
-        return new TagModel(storedWallet) || {};
+        return this._meaningfulWalletOrNull(new TagModel(storedWallet));
+    }
+
+    private _hasStoredWalletRecord(stored: unknown): stored is Partial<TagModel> {
+        if (!stored || stored === "") return false;
+        if (typeof stored !== "object") return false;
+        if (Array.isArray(stored)) return false;
+
+        return Object.keys(stored).length > 0;
+    }
+
+    private _meaningfulWalletOrNull(wallet: Partial<TagModel> | null | undefined): Partial<TagModel> | null {
+        if (!wallet) return null;
+
+        const hasIdentity = Boolean(
+            wallet._id || wallet.name || wallet.fullTagName || wallet.publicData?.tagName || wallet.publicData?.ethAddress
+        );
+
+        return hasIdentity ? wallet : null;
     }
 
     async getFirstWalletFromStorage(): Promise<Partial<TagModel> | null> {

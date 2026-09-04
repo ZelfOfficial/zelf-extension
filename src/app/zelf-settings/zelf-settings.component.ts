@@ -175,7 +175,7 @@ export class ZelfSettingsComponent implements OnDestroy {
             this._chromeService.clearLocalStorage();
             this._chromeService.clearSessionStorage();
 
-            this._router.navigate(["/welcome"], { replaceUrl: true });
+            this._router.navigate(["/welcome-zelfid"], { replaceUrl: true });
         });
     }
 }

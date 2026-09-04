@@ -84,9 +84,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         private readonly _tagsService: TagsService
     ) {
         const hub = this.navService.getHubDestinations();
-        this.quickDestinations = QUICK_HUB_IDS.map((id) => hub.find((d) => d.id === id)).filter(
-            (d): d is FooterNavDestination => !!d
-        );
+        this.quickDestinations = QUICK_HUB_IDS.map((id) => hub.find((d) => d.id === id)).filter((d): d is FooterNavDestination => !!d);
     }
 
     /** Short hub row labels (reference UI); falls back to footer `hubLabelKey`. */
@@ -107,6 +105,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     async ngOnInit(): Promise<void> {
         const storedHide = await this._chromeService.getItem("hideWalletBalances");
+
         this.hideBalances = storedHide === true || storedHide === "true";
 
         this._chromeService.onHideWalletBalancesChanged$.pipe(takeUntil(this._destroy$)).subscribe((hidden) => {
@@ -239,7 +238,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         const wallet = await this._walletService.getFirstWalletFromStorage();
 
         if (!wallet?.name) {
-            this._router.navigate(["/welcome"]);
+            this._router.navigate(["/welcome-zelfid"]);
             return;
         }
 
@@ -299,7 +298,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     get walletName(): string {
         const w = this.shareables.wallet;
-        return (w?.fullTagName || (w?.publicData as any)?.tagName || '') as string;
+        return (w?.fullTagName || (w?.publicData as any)?.tagName || "") as string;
     }
 
     private get _subscriptionWallet(): TagModel | null {

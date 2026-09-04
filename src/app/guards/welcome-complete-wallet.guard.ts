@@ -9,7 +9,7 @@ export const WelcomeCompleteWalletGuard: CanActivateFn = async () => {
     const wallet = await _walletService.getCurrentWallet();
 
     if (!wallet?.publicData?.ethAddress) {
-        router.navigate(["/welcome"]);
+        router.navigate(["/welcome-zelfid"]);
 
         return false;
     }

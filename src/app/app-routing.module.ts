@@ -7,18 +7,25 @@ import { LoginGuard } from "./guards/login.guard";
 import { ExternalRedirectGuard } from "./guards/external-redirect.guard";
 import { MnemonicGuard } from "./guards/mnemonic.guard";
 import { MnemonicInVaultGuard } from "./guards/mnemonic-in-vault.guard";
+import { MnemonicInVaultZelfidGuard } from "./guards/mnemonic-in-vault-zelfid.guard";
+import { MnemonicZelfidGuard } from "./guards/mnemonic-zelfid.guard";
 import { OnboardingGuard } from "./guards/onboarding.guard";
+import { OnboardingZelfidGuard } from "./guards/onboarding-zelfid.guard";
 import { PasswordGuard } from "./guards/password.guard";
+import { PasswordZelfidGuard } from "./guards/password-zelfid.guard";
 import { PopoutOnlyGuard } from "./guards/popout-only.guard";
 import { WelcomeCompleteWalletGuard } from "./guards/welcome-complete-wallet.guard";
+import { WelcomeZelfidCompleteWalletGuard } from "./guards/welcome-zelfid-complete-wallet.guard";
 import { ZelfKeysPasswordGuard } from "./guards/zelf-keys-password.guard";
 import { ZelfKeysPaymentCardGuard } from "./guards/zelf-keys-payment-card.guard";
 import { ZelfKeysResultGuard } from "./guards/zelf-keys-result.guard";
 import { ZelfKeysStartGuard } from "./guards/zelf-keys-start.guard";
+import { ZelfIdNameGuard } from "./guards/zelf-id-name.guard";
 import { ZelfNameGuard } from "./guards/zelf-name.guard";
 import { ZelfWalletGuard } from "./guards/zelf-wallet.guard";
 import { JWTResolver } from "./resolvers/jwt.resolver";
 import { SecurityBiometricsComponent } from "./security-biometrics/security-biometrics.component";
+import { SecurityZelfidBiometricsComponent } from "./security-zelfid-biometrics/security-zelfid-biometrics";
 
 const routes: Routes = [
     {
@@ -101,7 +108,7 @@ const routes: Routes = [
             {
                 path: "zelf-signals",
                 loadComponent: () => import("./shared/feature-coming-soon.component").then((m) => m.FeatureComingSoonComponent),
-                data: { titleKey: "common.zelf_signals", bodyKey: "common.zelf_signals_coming_soon" }
+                data: { titleKey: "common.zelf_signals", bodyKey: "common.zelf_signals_coming_soon" },
             },
             { path: "swap", loadComponent: () => import("./swap/swap.component").then((m) => m.SwapComponent) },
             {
@@ -181,8 +188,7 @@ const routes: Routes = [
                     },
                     {
                         path: "vault",
-                        loadComponent: () =>
-                            import("./zelf-keys/zelf-keys-vault/zelf-keys-vault.component").then((m) => m.ZelfKeysVaultComponent),
+                        loadComponent: () => import("./zelf-keys/zelf-keys-vault/zelf-keys-vault.component").then((m) => m.ZelfKeysVaultComponent),
                     },
                     { path: "passwords", pathMatch: "full", redirectTo: "vault" },
                     { path: "payment-cards", pathMatch: "full", redirectTo: "vault" },
@@ -280,9 +286,7 @@ const routes: Routes = [
             {
                 path: "find-import-mnemonic",
                 loadComponent: () =>
-                    import("./welcome-find-import-mnemonic/welcome-find-import-mnemonic.component").then(
-                        (m) => m.WelcomeFindImportMnemonicComponent
-                    ),
+                    import("./welcome-find-import-mnemonic/welcome-find-import-mnemonic.component").then((m) => m.WelcomeFindImportMnemonicComponent),
             },
             {
                 path: "find-import-claim",
@@ -334,6 +338,105 @@ const routes: Routes = [
                 loadComponent: () => import("./security-biometrics/security-biometrics.component").then((m) => m.SecurityBiometricsComponent),
                 canActivate: [PasswordGuard, MnemonicGuard],
                 canDeactivate: [(component: SecurityBiometricsComponent) => component.canNavigateAway()],
+            },
+        ],
+    },
+    {
+        path: "welcome-zelfid", // zelf id v4
+        loadComponent: () => import("./zelf-app/zelf-app.component").then((m) => m.ZelfAppComponent),
+        canActivate: [OnboardingZelfidGuard],
+        resolve: {
+            auth: JWTResolver,
+        },
+        children: [
+            {
+                path: "",
+                loadComponent: () => import("./welcome-zelfid-onboarding/welcome-zelfid-onboarding").then((m) => m.WelcomeZelfidOnboardingComponent),
+            },
+            {
+                path: "claim",
+                loadComponent: () => import("./welcome-zelfid-claim/welcome-zelfid-claim").then((m) => m.WelcomeZelfidClaimComponent),
+            },
+            {
+                path: "find",
+                loadComponent: () => import("./welcome-zelfid-find/welcome-zelfid-find").then((m) => m.WelcomeZelfidFindComponent),
+            },
+            {
+                path: "available",
+                loadComponent: () => import("./welcome-zelfid-available/welcome-zelfid-available").then((m) => m.WelcomeZelfidAvailableComponent),
+                canActivate: [ZelfIdNameGuard],
+            },
+            {
+                path: "registered",
+                loadComponent: () => import("./welcome-zelfid-registered/welcome-zelfid-registered").then((m) => m.WelcomeZelfidRegisteredComponent),
+                canActivate: [ZelfIdNameGuard],
+            },
+            {
+                path: "import",
+                loadComponent: () => import("./welcome-zelfid-import/welcome-zelfid-import").then((m) => m.WelcomeZelfidImportComponent),
+                canActivate: [ZelfIdNameGuard],
+            },
+            {
+                path: "find-import-mnemonic",
+                loadComponent: () =>
+                    import("./welcome-zelfid-find-import-mnemonic/welcome-zelfid-find-import-mnemonic").then(
+                        (m) => m.WelcomeZelfidFindImportMnemonicComponent
+                    ),
+            },
+            {
+                path: "find-import-claim",
+                loadComponent: () =>
+                    import("./welcome-zelfid-find-import-claim/welcome-zelfid-find-import-claim").then(
+                        (m) => m.WelcomeZelfidFindImportClaimComponent
+                    ),
+                canActivate: [MnemonicInVaultZelfidGuard],
+            },
+            {
+                path: "offline-import",
+                loadComponent: () =>
+                    import("./welcome-zelfid-offline-import/welcome-zelfid-offline-import").then((m) => m.WelcomeZelfidOfflineImportComponent),
+                canActivate: [ZelfIdNameGuard],
+            },
+            {
+                path: "grace",
+                loadComponent: () => import("./welcome-zelfid-grace/welcome-zelfid-grace").then((m) => m.WelcomeZelfidGraceComponent),
+                canActivate: [ZelfIdNameGuard],
+            },
+            {
+                path: "recover",
+                loadComponent: () => import("./welcome-zelfid-recover/welcome-zelfid-recover").then((m) => m.WelcomeZelfidRecoverComponent),
+                canActivate: [ZelfIdNameGuard],
+            },
+            {
+                path: "complete",
+                loadComponent: () => import("./welcome-zelfid-complete/welcome-zelfid-complete").then((m) => m.WelcomeZelfidCompleteComponent),
+                canActivate: [ZelfIdNameGuard, WelcomeZelfidCompleteWalletGuard],
+            },
+        ],
+    },
+    {
+        path: "security-zelfid",
+        loadComponent: () => import("./zelf-app/zelf-app.component").then((m) => m.ZelfAppComponent),
+        canActivate: [ZelfIdNameGuard],
+        resolve: {
+            auth: JWTResolver,
+        },
+        children: [
+            {
+                path: "",
+                loadComponent: () => import("./security-zelfid/security-zelfid").then((m) => m.SecurityZelfidComponent),
+            },
+            {
+                path: "password",
+                loadComponent: () => import("./security-zelfid-password/security-zelfid-password").then((m) => m.SecurityZelfidPasswordComponent),
+                canActivate: [MnemonicZelfidGuard],
+            },
+            {
+                path: "biometrics",
+                loadComponent: () =>
+                    import("./security-zelfid-biometrics/security-zelfid-biometrics").then((m) => m.SecurityZelfidBiometricsComponent),
+                canActivate: [PasswordZelfidGuard, MnemonicZelfidGuard],
+                canDeactivate: [(component: SecurityZelfidBiometricsComponent) => component.canNavigateAway()],
             },
         ],
     },

@@ -599,6 +599,13 @@
             }
         }
     },
+    "welcomeZelfid": {
+        "plan_free": "Names with 6 or more characters lease as a free Zelf ID. You can upgrade later.",
+        "plan_short_hold": "Names with 5 characters or fewer are unlimited only. Until payment, they stay reserved for 5 hours.",
+        "plan_unlimited": "Short names lease as unlimited.",
+        "plan_label": "Plan: {{ plan }}",
+        "hold_subtitle": "This short name is reserved for 5 hours. Purchase unlimited to keep it on mainnet."
+    },
     "settings": {
         "networks_label": "Networks",
         "security_label": "Security",
@@ -993,6 +1000,7 @@
         "invalid_password": "Invalid password. You have {{remaining}} attempts left before you will be required to login with biometrics.",
         "invalid_private_key": "Private key is invalid.",
         "liveness_failed_description": "Sorry, there seems to have been a problem with your liveness detection.",
+        "liveness_failed_help": "The live face check did not pass. This is not a password or account error. Look at the camera, keep your face centered and well lit, then try again.",
         "liveness_failed": "Liveness detection failed",
         "Liveness_score_not_acceptable": "Liveness score is not acceptable",
         "min_liveness_score_is": "The minimum liveness score is: ",

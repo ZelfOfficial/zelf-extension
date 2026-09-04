@@ -163,7 +163,7 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         const wallet = await this._walletService.getFirstWalletFromStorage();
 
         if (!wallet?.name) {
-            this._router.navigate(["/welcome"]);
+            this._router.navigate(["/welcome-zelfid"]);
 
             return;
         }

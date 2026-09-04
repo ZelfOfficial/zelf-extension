@@ -15,10 +15,12 @@ import { DomainSelectionData, DomainSelectionModalComponent } from "app/domain-s
 import { DomainService } from "app/domain.service";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { ZelfNamePipe } from "app/pipes/zelf-name.pipe";
+import { isV4Record, seedTakenOnboardingRecord } from "app/onboarding-stack";
 import { TagsService, TagModel } from "app/tags.service";
 import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
 import { WelcomeAvailableContentComponent } from "app/welcome-available/welcome-available-content.component";
+import { ZelfIdsService } from "app/zelf-ids.service";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
 
 @Component({
@@ -72,7 +74,8 @@ export class WelcomeClaimComponent implements OnInit, OnDestroy, AfterContentIni
         private _router: Router,
         private _tagsService: TagsService,
         private _vaultService: VaultService,
-        private _walletService: WalletService
+        private _walletService: WalletService,
+        private _zelfIdsService: ZelfIdsService
     ) {
         this._initForm();
     }
@@ -232,6 +235,26 @@ export class WelcomeClaimComponent implements OnInit, OnDestroy, AfterContentIni
         this.loading = false;
     }
 
+    private async _redirectIfOwnedOnV4(tagName: string, domain: string, captchaToken: string, responseData: any): Promise<boolean> {
+        try {
+            const v4ResponseData = responseData ? responseData : (await this._zelfIdsService.searchTag({ tagName, domain, captchaToken }))?.data;
+
+            if (!isV4Record(v4ResponseData)) {
+                return false;
+            }
+
+            const seeded = await seedTakenOnboardingRecord(this._zelfIdsService, v4ResponseData);
+
+            if (!seeded) return false;
+
+            await this._router.navigate(["/welcome-zelfid", "registered"]);
+
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
     async searchZelfName(event: any): Promise<any> {
         if (!this.form.get("tagName")?.valid || !this.form.get("domain")?.valid) {
             this.form.patchValue({ tagName: "" });
@@ -265,61 +288,19 @@ export class WelcomeClaimComponent implements OnInit, OnDestroy, AfterContentIni
             .then(async (response) => {
                 const isTaken = !response?.data.available;
 
-                if (this.isEnterMode) {
-                    if (isTaken) {
-                        // Enter Mode & Found -> set tag data and go straight to registered/login flow
-                        await this._existingTagName(response?.data);
-                        this.loading = false;
-                        await this.goToRegistered();
-                        return;
-                    } else {
-                        // Enter Mode & Available -> Not Found! The user thought they had it, so let them create it.
-                        this.isEnterMode = false; // Transition to normal claim flow organically
-                        this.loading = false;
-                        
-                        // Proceed exactly as Claim mode would when available
-                        await this._tagsService.setNewTagName(tagName);
-                        await this._tagsService.setDomain(domain);
-                        await this._tagsService.setTagResponse(response.data);
+                if (await this._redirectIfOwnedOnV4(tagName, domain, captchaToken, response?.data)) return;
 
-                        const availableTagData = {
-                            name: tagName,
-                            available: true,
-                            publicData: {
-                                avalancheAddress: "",
-                                blockDAGAddress: "",
-                                btcAddress: "",
-                                domain: domain,
-                                ethAddress: "",
-                                expiresAt: "",
-                                hasPassword: "false",
-                                origin: "",
-                                registeredAt: "",
-                                solanaAddress: "",
-                                suiAddress: "",
-                                tagName: tagName,
-                                type: "",
-                            },
-                        };
-
-                        await this._tagsService.setTagNameObject(availableTagData);
-                        
-                        this.availabilityChecked = true;
-                        this.isAvailable = true;
-                        this.checkedTagName = tagName;
-                        
-                        setTimeout(() => {
-                            this.step = 2;
-                        }, 800);
-                        return;
-                    }
-                }
-
-                // Standard Claim logic
                 if (isTaken) {
                     await this._existingTagName(response?.data);
+
+                    if (this.isEnterMode) {
+                        await this.goToRegistered();
+                    }
+
                     return;
                 }
+
+                this.isEnterMode = false;
 
                 await this._tagsService.setNewTagName(tagName);
                 await this._tagsService.setDomain(domain);
@@ -348,13 +329,10 @@ export class WelcomeClaimComponent implements OnInit, OnDestroy, AfterContentIni
                 await this._tagsService.setTagNameObject(availableTagData);
 
                 this.loading = false;
-
-                // Show availability inline, then auto-advance to step 2
                 this.availabilityChecked = true;
                 this.isAvailable = true;
                 this.checkedTagName = tagName;
 
-                // Auto-advance to confirm step after a brief pause
                 setTimeout(() => {
                     this.step = 2;
                 }, 800);
@@ -537,7 +515,7 @@ export class WelcomeClaimComponent implements OnInit, OnDestroy, AfterContentIni
             data: dialogData,
             disableClose: true,
             backdropClass: "zelf-backdrop",
-            panelClass: "zelf-bottom-sheet-seasalt",
+            panelClass: "zelf-bottom-sheet-compact",
         });
 
         bottomSheetRef.afterDismissed().subscribe((result: string) => {

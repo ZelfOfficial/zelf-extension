@@ -1,12 +1,43 @@
 @use "../../styles/variables";
 @use "../../styles/buttons";
 
+@mixin app-starfield {
+    background-color: #000;
+    background-image:
+        radial-gradient(1px 1px at 24% 18%, rgba(255, 255, 255, 0.55), transparent),
+        radial-gradient(1px 1px at 68% 26%, rgba(255, 255, 255, 0.4), transparent),
+        radial-gradient(1.5px 1.5px at 42% 62%, rgba(255, 255, 255, 0.45), transparent),
+        radial-gradient(1px 1px at 84% 68%, rgba(255, 255, 255, 0.35), transparent),
+        radial-gradient(1px 1px at 12% 82%, rgba(255, 255, 255, 0.4), transparent),
+        radial-gradient(1px 1px at 55% 40%, rgba(255, 255, 255, 0.28), transparent),
+        radial-gradient(1px 1px at 92% 12%, rgba(255, 255, 255, 0.3), transparent),
+        radial-gradient(1.5px 1.5px at 8% 48%, rgba(255, 255, 255, 0.38), transparent),
+        radial-gradient(1px 1px at 73% 88%, rgba(255, 255, 255, 0.32), transparent),
+        radial-gradient(2px 2px at 36% 8%, rgba(255, 255, 255, 0.22), transparent),
+        radial-gradient(1px 1px at 16% 33%, rgba(255, 255, 255, 0.42), transparent),
+        radial-gradient(1px 1px at 61% 71%, rgba(255, 255, 255, 0.26), transparent);
+    background-size:
+        280px 280px,
+        280px 280px,
+        280px 280px,
+        280px 280px,
+        280px 280px,
+        280px 280px,
+        280px 280px,
+        320px 320px,
+        320px 320px,
+        180px 220px,
+        180px 220px,
+        180px 220px;
+    background-repeat: repeat;
+}
+
 * {
     box-sizing: border-box;
 }
 
 :host {
-    background-color: variables.$themeCardBorder;
+    @include app-starfield;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -15,10 +46,9 @@
     min-width: 100%;
 }
 
-@media screen and (max-width: variables.$medium) {
-    :host {
-        background-color: variables.$themeBackgroundSecondary;
-    }
+:host-context(html.zns-theme-light) {
+    background-color: rgb(247 246 244 / var(--tw-bg-opacity, 1));
+    background-image: none;
 }
 
 .zelf-app {
@@ -26,11 +56,11 @@
     margin: 0 auto;
 
     &__desktop-bg {
+        @include app-starfield;
         position: fixed;
         inset: 0;
         z-index: 0;
         pointer-events: none;
-        background-color: variables.$themeCardBorder;
 
         @media screen and (max-width: variables.$medium) {
             display: none;
@@ -143,6 +173,11 @@
                     300px 210px,
                     300px 210px;
                 animation: falling-pattern-move 150s linear infinite;
+            }
+
+            &::before,
+            &::after {
+                display: none;
             }
 
             &::after {
@@ -347,5 +382,14 @@
             275px 6375px,
             278px 6375px,
             426.5px 6480px;
+    }
+}
+
+:host-context(html.zns-theme-light) .zelf-app__desktop-bg {
+    background-color: rgb(247 246 244 / var(--tw-bg-opacity, 1));
+    background-image: none;
+
+    @media screen and (max-width: variables.$medium) {
+        display: none;
     }
 }

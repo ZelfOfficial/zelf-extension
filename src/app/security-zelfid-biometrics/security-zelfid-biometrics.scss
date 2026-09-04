@@ -1,0 +1,176 @@
+@use "../../styles/variables";
+@use "../../styles/buttons";
+@use "../../styles/welcome-device-scale" as device-scale;
+
+:host {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: center;
+    max-width: 100%;
+    overflow-x: hidden;
+    position: relative;
+    @include device-scale.welcome-device-tokens;
+}
+
+@include device-scale.welcome-device-scale;
+
+.security-biometrics-shell {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+    overflow-x: hidden;
+    position: relative;
+    width: min(100%, calc(var(--welcome-onboarding-width) * var(--welcome-onboarding-scale)));
+
+    &__item {
+        align-items: center;
+        display: flex;
+        justify-content: center;
+        min-height: calc(var(--welcome-onboarding-height) * var(--welcome-onboarding-scale));
+        position: relative;
+        width: calc(var(--welcome-onboarding-width) * var(--welcome-onboarding-scale));
+    }
+}
+
+.zelf-card.security-biometrics {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: var(--welcome-onboarding-height);
+    left: 50%;
+    min-height: var(--welcome-onboarding-height);
+    overflow: hidden;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(var(--welcome-onboarding-scale));
+    transform-origin: center;
+    width: var(--welcome-onboarding-width);
+
+    @media screen and (max-width: variables.$medium) {
+        border-radius: calc(64px * var(--zns-space-scale, 1));
+        padding: calc(24px * var(--zns-space-scale, 1));
+        width: var(--welcome-onboarding-width);
+    }
+
+    .zelf-card__title,
+    .zelf-card__subtitle {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+    }
+
+    .zelf-card__actions {
+        flex-shrink: 0;
+        margin-top: auto;
+    }
+}
+
+.security-biometrics {
+    &__header-button {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        flex-direction: row;
+        width: 100%;
+    }
+
+    &__actions,
+    &__content {
+        margin-top: 20px;
+    }
+
+    &__form {
+        width: 100%;
+    }
+
+    &__actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        flex-direction: column;
+        flex-grow: 0;
+        flex-shrink: 0;
+        margin-top: auto;
+        width: 100%;
+    }
+
+    &__overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(8, 10, 16, 0.6);
+        backdrop-filter: blur(12px);
+        transition: opacity 0.25s variables.$smoothBezier;
+        z-index: 20;
+    }
+
+    &__overlay-card {
+        min-width: 240px;
+        max-width: 320px;
+        background: variables.$themeCard;
+        border: 1px solid variables.$themeCardBorder;
+        border-radius: 16px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        animation: overlayCardIn 0.35s variables.$smoothBezier;
+    }
+
+    &__overlay-check {
+        color: variables.$correct;
+        animation: checkmarkIn 0.4s variables.$smoothBezier 0.1s both;
+    }
+
+    &__overlay-text {
+        margin: 0;
+        text-align: center;
+        color: variables.$themeText;
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 22px;
+        animation: overlayTextIn 0.3s variables.$smoothBezier 0.15s both;
+    }
+}
+
+@keyframes overlayCardIn {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes checkmarkIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.6);
+    }
+    80% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes overlayTextIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}

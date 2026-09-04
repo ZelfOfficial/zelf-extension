@@ -297,7 +297,7 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
         const wallet = await this._walletService.getFirstWalletFromStorage();
 
         if (!wallet?.name) {
-            this._router.navigate(["/welcome"]);
+            this._router.navigate(["/welcome-zelfid"]);
 
             return;
         }
@@ -400,7 +400,7 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
     // === New Hub Header + Profile Panel (consistent with Home/zAuth/etc.) ===
 
     get walletName(): string {
-        return (this.wallet?.fullTagName || this.wallet?.publicData?.tagName || (this.shareables?.wallet?.fullTagName) || "") as string;
+        return (this.wallet?.fullTagName || this.wallet?.publicData?.tagName || this.shareables?.wallet?.fullTagName || "") as string;
     }
 
     toggleName(): void {

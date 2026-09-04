@@ -1,0 +1,56 @@
+import { Component, OnInit } from "@angular/core";
+import { MatButtonModule } from "@angular/material/button";
+import { MatDialog } from "@angular/material/dialog";
+import { ActivatedRoute, Router, RouterModule } from "@angular/router";
+import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
+import { ConfirmationDialogComponent } from "app/confirmation-dialog/confirmation-dialog.component";
+import { ZelfIdsService } from "app/zelf-ids.service";
+
+@Component({
+    imports: [RouterModule, TranslocoModule, MatButtonModule],
+    selector: "security-zelfid",
+    styleUrls: ["./security-zelfid.scss"],
+    templateUrl: "./security-zelfid.html",
+})
+export class SecurityZelfidComponent implements OnInit {
+    loading: boolean = true;
+
+    constructor(
+        private _activatedRoute: ActivatedRoute,
+        private _dialog: MatDialog,
+        private _router: Router,
+        private _translocoService: TranslocoService,
+        private _zelfIdsService: ZelfIdsService
+    ) {}
+
+    async ngOnInit(): Promise<void> {
+        await this._zelfIdsService.setMnemonicCount(0);
+
+        this.loading = false;
+    }
+
+    confirmBack(): void {
+        const dialogRef = this._dialog.open(ConfirmationDialogComponent, {
+            panelClass: "zelf-dialog",
+            backdropClass: "zelf-backdrop",
+            data: {
+                cancel: this._translocoService.translate("common.cancel"),
+                confirm: this._translocoService.translate("common.confirm"),
+                message: this._translocoService.translate("common.navigating_away_will_cancel"),
+                title: this._translocoService.translate("common.are_you_sure"),
+            },
+        });
+
+        dialogRef.afterClosed().subscribe(async (confirmed) => {
+            if (!confirmed) return;
+
+            this._router.navigate(["/welcome-zelfid"]);
+        });
+    }
+
+    async setMnemonicCount(value: 12 | 24): Promise<any> {
+        await this._zelfIdsService.setMnemonicCount(value);
+
+        this._router.navigate(["./password"], { relativeTo: this._activatedRoute });
+    }
+}

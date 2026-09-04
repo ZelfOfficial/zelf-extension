@@ -1,0 +1,455 @@
+import { CommonModule } from "@angular/common";
+import { Component, OnDestroy, OnInit } from "@angular/core";
+import { FormBuilder, ReactiveFormsModule, UntypedFormGroup, Validators } from "@angular/forms";
+import { MatButtonModule } from "@angular/material/button";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { Router, RouterModule } from "@angular/router";
+import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
+import { Buffer } from "buffer";
+import jsQR from "jsqr";
+
+import { ChromeService } from "app/chrome.service";
+import { TagModel, TagSearchResponse } from "app/tags.service";
+import { ZelfIdsService } from "app/zelf-ids.service";
+import { WalletService } from "app/wallet.service";
+import { WelcomeErrorComponent } from "../welcome-error/welcome-error.component";
+
+@Component({
+    imports: [
+        CommonModule,
+        MatButtonModule,
+        MatProgressSpinnerModule,
+        ReactiveFormsModule,
+        RouterModule,
+        TranslocoModule,
+        WelcomeErrorComponent,
+    ],
+    selector: "welcome-zelfid-find",
+    styleUrls: ["./welcome-zelfid-find.scss"],
+    templateUrl: "./welcome-zelfid-find.html",
+})
+export class WelcomeZelfidFindComponent implements OnInit, OnDestroy {
+    private _invalidTimeout!: ReturnType<typeof setTimeout>;
+
+    activeSection: "cards" | "address-input" = "cards";
+    captchaToken: string = "";
+    ethAddress: string = "";
+    errorTitle: string = "";
+    errorMessage: string = "";
+    fileBase64: string = "";
+    form!: UntypedFormGroup;
+    loading: boolean = false;
+    notFound: boolean = false;
+    searching: boolean = false;
+    zelfNameObject!: TagModel;
+    zelfProof: string = "";
+
+    constructor(
+        private _chromeService: ChromeService,
+        private _formBuilder: FormBuilder,
+        private _router: Router,
+        private _translocoService: TranslocoService,
+        private _walletService: WalletService,
+        private _zelfIdsService: ZelfIdsService
+    ) {
+        this._initForm();
+    }
+
+    async ngOnInit(): Promise<void> {
+        // Check if zelfProof is already set in the service (e.g., from welcome-grace redirect)
+        // Try TagsService first, then ZelfNameService as fallback
+        // let storedZelfProof = await this._zelfIdsService.getZelfProof();
+        // if (!storedZelfProof) return;
+        // this.zelfProof = storedZelfProof;
+        // this.loading = true;
+        // await this._previewQRCode();
+    }
+
+    ngOnDestroy(): void {
+        clearTimeout(this._invalidTimeout);
+    }
+
+    private _decodeQRCode(base64: string): void {
+        const img = new Image();
+
+        img.src = base64;
+
+        img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
+
+            if (!context) return;
+
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            context.drawImage(img, 0, 0, img.width, img.height);
+
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const extractedQRData = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "attemptBoth" });
+
+            if (extractedQRData && extractedQRData.binaryData) {
+                this._extractBinaryData(extractedQRData);
+            } else {
+                this._previewZelfIdQrBackend(base64);
+            }
+        };
+    }
+
+    private async _extractBinaryData(extractedQRData: any): Promise<any> {
+        if (!extractedQRData || !extractedQRData.binaryData) {
+            this.errorTitle = this._translocoService.translate("errors.incorrect_zelf_proof_title");
+            this.errorMessage = this._translocoService.translate("errors.incorrect_zelf_proof_message");
+            return;
+        }
+
+        const hexString = this._toHexString(extractedQRData.binaryData);
+
+        const buffer = Buffer.from(hexString.replace(/\s/g, ""), "hex");
+        const base64String = buffer.toString("base64");
+
+        await this._zelfIdsService.setZelfProof(base64String);
+
+        this.zelfProof = base64String;
+
+        await this._previewQRCode();
+    }
+
+    private _getAddressPattern(): RegExp {
+        const ethPattern = this._walletService.ETHRegex;
+        const solPattern = this._walletService.SOLRegex;
+        const btcPattern = this._walletService.BTCRegex;
+
+        return new RegExp(`(${ethPattern.source})|(${solPattern.source})|(${btcPattern.source})`);
+    }
+
+    private _handleFile(file: File): void {
+        const reader = new FileReader();
+
+        reader.onload = () => {
+            this.fileBase64 = reader.result as string;
+
+            if (typeof this.fileBase64 !== "string") return;
+
+            this._decodeQRCode(this.fileBase64);
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    private _initForm(): void {
+        const combinedPattern = this._getAddressPattern();
+
+        this.form = this._formBuilder.group({
+            publicAddress: ["", [Validators.pattern(combinedPattern)]],
+            zelfProof: [""],
+        });
+    }
+
+    /** Keeps `searching` and the publicAddress control in sync; avoid [disabled] on inputs with formControlName. */
+    private _setSearching(searching: boolean): void {
+        this.searching = searching;
+        const ctrl = this.form?.get("publicAddress");
+        if (!ctrl) return;
+        if (searching) {
+            ctrl.disable({ emitEvent: false });
+        } else {
+            ctrl.enable({ emitEvent: false });
+        }
+    }
+
+    private async _previewQRCode(): Promise<void> {
+        if (!this.zelfProof) return;
+
+        try {
+            const response = await this._zelfIdsService.previewZelfProof({ zelfProof: this.zelfProof, captchaToken: this.captchaToken, os: "DESKTOP" });
+
+            if (!response.data) {
+                this.errorTitle = this._translocoService.translate("errors.incorrect_zelf_proof_title");
+                this.errorMessage = this._translocoService.translate("errors.incorrect_zelf_proof_message");
+
+                return;
+            }
+
+            await this._processPreviewData(response.data);
+        } catch (error) {
+            console.error(error);
+            this.errorTitle = this._translocoService.translate("errors.incorrect_zelf_proof_title");
+            this.errorMessage = this._translocoService.translate("errors.incorrect_zelf_proof_message");
+        }
+    }
+
+    private async _previewZelfIdQrBackend(base64: string): Promise<void> {
+        this.loading = true;
+
+        try {
+            const response = await this._zelfIdsService.previewZelfIdQr({ zelfProofQRCode: base64, captchaToken: this.captchaToken, os: "DESKTOP" });
+
+            if (!response.data || !response.data.zelfProof) {
+                this.errorTitle = this._translocoService.translate("errors.incorrect_zelf_proof_title");
+                this.errorMessage = this._translocoService.translate("errors.incorrect_zelf_proof_message");
+
+                return;
+            }
+
+            this.zelfProof = response.data.zelfProof;
+            await this._zelfIdsService.setZelfProof(this.zelfProof);
+
+            await this._processPreviewData(response.data);
+        } catch (error) {
+            console.error(error);
+            this.errorTitle = this._translocoService.translate("errors.incorrect_zelf_proof_title");
+            this.errorMessage = this._translocoService.translate("errors.incorrect_zelf_proof_message");
+        } finally {
+            this.loading = false;
+        }
+    }
+
+    private async _processPreviewData(previewData: any): Promise<void> {
+        const preview = previewData.preview;
+        const tagName = previewData.tagName;
+        const domain = previewData.domain;
+
+        this.ethAddress = preview.publicData.ethAddress;
+
+        this.form.patchValue({ publicAddress: this.ethAddress });
+
+        preview.publicData.zelfName = `${preview.publicData.zelfName}`.toLowerCase();
+
+        this._zelfIdsService.setTagName(preview.publicData.zelfName);
+
+        this._zelfIdsService.setZelfProof(this.zelfProof);
+
+        const currentZelfNameObject = await this._queryForZelfObjectByZelfName({ tagKey: "tagName", tagName, domain });
+
+        if (currentZelfNameObject?.available) {
+            const newTagNameObject = new TagModel(previewData.preview);
+
+            this._zelfIdsService.setTagNameObject(newTagNameObject);
+        } else {
+            this._zelfIdsService.setTagNameObject(currentZelfNameObject);
+        }
+
+        this._zelfIdsService.setDomain(domain);
+        this._zelfIdsService.setTagName(tagName);
+
+        await this._redirectAfterZelfProofSearch(currentZelfNameObject);
+    }
+
+    private async _queryForZelfObjectByZelfName(params: { tagKey: string; tagName: string; domain: string }): Promise<any> {
+        this._setSearching(true);
+
+        try {
+            return await this._queryZNS(params.tagKey, params.tagName, params.domain);
+        } catch (error) {
+            this._setNotFound();
+        } finally {
+            this._setSearching(false);
+        }
+    }
+
+    private async _queryForZelfObject(query: string): Promise<any> {
+        this._setSearching(true);
+
+        try {
+            let zelfNameObject: TagModel | null = null;
+
+            if (this._walletService.ETHRegex.test(query)) {
+                zelfNameObject = await this._queryZNS("ethAddress", query, "zelf");
+            } else if (this._walletService.SOLRegex.test(query)) {
+                zelfNameObject = await this._queryZNS("solanaAddress", query, "zelf");
+            } else if (this._walletService.BTCRegex.test(query)) {
+                zelfNameObject = await this._queryZNS("btcAddress", query, "zelf");
+            }
+
+            return zelfNameObject;
+        } catch (error) {
+            this._setNotFound();
+        } finally {
+            this._setSearching(false);
+        }
+    }
+
+    async _queryZNS(key: string, value: string, domain: string): Promise<any> {
+        try {
+            const response = await this._zelfIdsService.searchTag(
+                key === "tagName" ? { tagName: value, domain, os: "DESKTOP" } : { [key]: value, domain, os: "DESKTOP" }
+            );
+
+            if (!response.data) return null;
+
+            if (response.data?.available) return response.data;
+
+            const zelfNameObject = new TagModel(response.data.tagObject);
+
+            this.loading = false;
+
+            return zelfNameObject;
+        } catch (error) {
+            console.error({ error });
+
+            this.loading = false;
+
+            return null;
+        }
+    }
+
+    // In this flow - we don't know who owns the name
+    private async _redirectAfterTextSearch(zelfNameObject: TagModel | any): Promise<void> {
+        if (!zelfNameObject || zelfNameObject?.available) {
+            this._router.navigate(["/welcome-zelfid/available"]);
+
+            return;
+        }
+
+        // Set tagResponse before redirecting to welcome-grace
+        if (zelfNameObject && (zelfNameObject.publicData?.isInGracePeriod || zelfNameObject.publicData?.isExpired)) {
+            const tagResponse: TagSearchResponse = {
+                ipfs: [],
+                arweave: [],
+                available: false,
+                tagName: zelfNameObject.tagName,
+                domain: zelfNameObject.domain,
+                tagObject: zelfNameObject as TagModel,
+            };
+
+            await this._zelfIdsService.setTagResponse(tagResponse);
+
+            this._router.navigate(["/welcome-zelfid/grace"]);
+        } else {
+            this._router.navigate(["/welcome-zelfid/registered"]);
+        }
+    }
+
+    // In this flow, we know who owns a zelfproof to the name, but it may have been taken if they let the grace period expire
+    private async _redirectAfterZelfProofSearch(tagObject: TagModel | any): Promise<void> {
+        const ownedByThisUser = tagObject.ethAddress === this.ethAddress;
+
+        if (ownedByThisUser && (tagObject.publicData?.isInGracePeriod || tagObject.publicData?.isExpired)) {
+            // Set tagResponse before redirecting to welcome-grace
+            if (tagObject) {
+                const tagResponse: TagSearchResponse = {
+                    ipfs: [],
+                    arweave: [],
+                    available: false,
+                    tagName: tagObject.tagName,
+                    domain: tagObject.domain,
+                    tagObject: tagObject as TagModel,
+                };
+
+                await this._zelfIdsService.setTagResponse(tagResponse);
+            }
+            this._router.navigate(["/welcome-zelfid/grace"]);
+        } else if (!ownedByThisUser) {
+            this._zelfIdsService.setTagNameObject(tagObject);
+
+            this._zelfIdsService.setDomain(tagObject.domain);
+
+            this._zelfIdsService.setTagName(tagObject.tagName);
+
+            this._zelfIdsService.setZelfProof(tagObject.zelfProof);
+
+            this._zelfIdsService.setTagResponse({
+                ipfs: [],
+                arweave: [],
+                available: false,
+                tagName: tagObject.tagName,
+                tagObject: tagObject as TagModel,
+            });
+
+            this._router.navigate(["/welcome-zelfid/recover"]);
+        } else {
+            this._router.navigate(["/welcome-zelfid/registered"]);
+        }
+    }
+
+    private _setNotFound(): void {
+        this.notFound = true;
+
+        this._invalidTimeout = setTimeout(() => {
+            this.notFound = false;
+        }, 5000);
+    }
+
+    private _toHexString(byteArray: any): string {
+        return Array.from(byteArray, (byte: any) => {
+            return ("0" + (byte & 0xff).toString(16)).slice(-2);
+        }).join("");
+    }
+
+    async clearError(): Promise<void> {
+        await this._chromeService.removeItem("zelfIdName");
+        await this._chromeService.removeItem("zelfIdObject");
+        await this._chromeService.removeItem("zelfIdProof");
+
+        this.errorMessage = "";
+        this.errorTitle = "";
+        this.ethAddress = "";
+        this.zelfProof = "";
+
+        this.form.reset();
+        this._setSearching(false);
+    }
+
+    clearNotFound(): void {
+        clearTimeout(this._invalidTimeout);
+
+        this.notFound = false;
+    }
+
+    backToCards(): void {
+        this.activeSection = "cards";
+        this.clearError();
+        this.clearNotFound();
+    }
+
+    fileBrowseHandler(event: Event): void {
+        const files = (event.target as HTMLInputElement).files;
+
+        if (!files?.length) return;
+
+        const file = files[0];
+
+        this._handleFile(file);
+    }
+    async pastedAddress(event: ClipboardEvent): Promise<void> {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (this.searching) return;
+
+        const query = event.clipboardData?.getData("text");
+
+        if (!query) return;
+
+        const combinedPattern = this._getAddressPattern();
+
+        if (!combinedPattern.test(query)) return;
+
+        this.ethAddress = "";
+
+        this.form.patchValue({ publicAddress: query }, { emitEvent: false });
+
+        const zelfNameObject = await this._queryForZelfObject(query);
+
+        if (!zelfNameObject) return;
+
+        await this._redirectAfterTextSearch(zelfNameObject);
+    }
+
+    async searchAddress(): Promise<void> {
+        if (this.searching || this.form.invalid) return;
+
+        const query = this.form.value.publicAddress;
+
+        if (!query) return;
+
+        this.ethAddress = "";
+
+        const zelfNameObject = await this._queryForZelfObject(query);
+
+        if (!zelfNameObject) return;
+
+        await this._redirectAfterTextSearch(zelfNameObject);
+    }
+}

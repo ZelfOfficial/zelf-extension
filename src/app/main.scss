@@ -771,6 +771,26 @@ h3 {
     }
 }
 
+.zelf-bottom-sheet-compact.mat-bottom-sheet-container,
+.zelf-bottom-sheet-compact.mat-bottom-sheet-container-medium,
+.zelf-bottom-sheet-compact.mat-bottom-sheet-container-large,
+.zelf-bottom-sheet-compact.mat-bottom-sheet-container-xlarge,
+.zelf-bottom-sheet-compact .mat-bottom-sheet-container {
+    background-color: variables.$themeBackgroundSecondary !important;
+    border-radius: 28px !important;
+    box-sizing: border-box !important;
+    color: variables.$themeText;
+    height: auto !important;
+    margin: 0 auto 24px !important;
+    max-height: none !important;
+    max-width: min(360px, calc(100vw - 32px)) !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    width: min(360px, calc(100vw - 32px)) !important;
+}
+
 .zelf-botton-sheet-full {
     width: 100vw !important;
 
@@ -1707,7 +1727,6 @@ svg.zelf-logo {
 
 .zelf-logo--wordmark {
     align-items: center;
-    display: inline-flex;
     height: 56px;
     overflow: hidden;
     width: 124px;

@@ -1,0 +1,339 @@
+import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
+import { Subject, takeUntil } from "rxjs";
+
+import { CommonModule } from "@angular/common";
+import { Component, OnDestroy, OnInit } from "@angular/core";
+import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from "@angular/forms";
+import { MatBottomSheet } from "@angular/material/bottom-sheet";
+import { MatButtonModule } from "@angular/material/button";
+import { ActivatedRoute, Router, RouterModule } from "@angular/router";
+
+import { ChromeService } from "app/chrome.service";
+import { HttpWrapperService } from "app/http-wrapper.service";
+import { ReserveDoneSheetComponent } from "app/reserve-done-sheet/reserve-done-sheet.component";
+import { ErrorService } from "app/services/error.service";
+import { TagFlow, TagModel } from "app/tags.service";
+import { ZelfIdsService } from "app/zelf-ids.service";
+import { VaultService } from "app/vault.service";
+import { WalletService } from "app/wallet.service";
+import { WelcomeErrorComponent } from "app/welcome-error/welcome-error.component";
+import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
+import { BiometricsGeneralComponent } from "../biometrics-general/biometrics.component";
+
+@Component({
+    imports: [
+        BiometricsGeneralComponent,
+        CommonModule,
+        MatButtonModule,
+        ReactiveFormsModule,
+        RouterModule,
+        TranslocoModule,
+        WelcomeErrorComponent,
+        ZelfLoaderComponent,
+    ],
+    selector: "security-zelfid-biometrics",
+    styleUrls: ["./security-zelfid-biometrics.scss"],
+    templateUrl: "./security-zelfid-biometrics.html",
+})
+export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
+    private unsubscriber$: Subject<void> = new Subject<void>();
+    private _canNavigate: boolean = true;
+
+    errorMessage: string = "";
+    errorTitle: string = "";
+    flow: TagFlow = "";
+    form!: UntypedFormGroup;
+    isNew: boolean = false;
+    loading: boolean = true;
+    apiLoading: boolean = false;
+    apiSuccess: boolean = false;
+    newTagName: string = "";
+    returnState: string = "";
+    showBiometrics: boolean = true;
+    tagObject: TagModel = new TagModel();
+    zelfProof: string = "";
+
+    constructor(
+        private _activatedRoute: ActivatedRoute,
+        private _bottomSheet: MatBottomSheet,
+        private _chromeService: ChromeService,
+        private _errorService: ErrorService,
+        private _formBuilder: FormBuilder,
+        private _httpWrapperService: HttpWrapperService,
+        private _router: Router,
+        private _zelfIdsService: ZelfIdsService,
+        private _translocoService: TranslocoService,
+        private _vaultService: VaultService,
+        private _walletService: WalletService
+    ) {
+        this.form = this._formBuilder.group({
+            hideBiometricsCheckbox: [false],
+        });
+
+        this._activatedRoute.snapshot.queryParams?.return && (this.returnState = this._activatedRoute.snapshot.queryParams.return);
+
+        this._activatedRoute.queryParams.pipe(takeUntil(this.unsubscriber$)).subscribe(async (params) => {
+            params?.return && (this.returnState = params.return);
+        });
+    }
+
+    async ngOnInit(): Promise<void> {
+        let savedFlow = await this._zelfIdsService.getFlow();
+
+        if (!savedFlow) {
+            const { wallet, wallets } = await this._walletService.getAllWalletsFromStorage();
+            savedFlow = !!wallet?.name || wallets?.length ? "unlock" : "create";
+        }
+
+        this.flow = savedFlow;
+
+        this.newTagName = await this._zelfIdsService.getNewTagName();
+
+        this.showBiometrics = (await this._chromeService.getItem("hideBiometricsMessage")) || false;
+
+        this.zelfProof = await this._zelfIdsService.getZelfProof();
+
+        const tagObject = await this._zelfIdsService.getTagNameObject();
+
+        if (tagObject) this.tagObject = new TagModel(tagObject);
+
+        this.isNew = this.flow === "create" || this.flow === "import" || (this.flow === "recover" && this.tagObject?.available);
+
+        this.loading = false;
+    }
+
+    ngOnDestroy(): void {
+        this.unsubscriber$.next();
+        this.unsubscriber$.complete();
+    }
+
+    private async _showSuccessAndContinue(callback: () => Promise<void> | void): Promise<void> {
+        this.apiLoading = false;
+        this.apiSuccess = true;
+
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+
+        await callback();
+    }
+
+    get apiLoadingTextKey(): string {
+        switch (this.flow) {
+            case "create":
+                return "security.creating_wallet";
+            case "import":
+                return "security.importing_wallet";
+            case "recover":
+                return "security.recovering_wallet";
+            default:
+                return "security.retrieving_vault";
+        }
+    }
+
+    get apiSuccessTextKey(): string {
+        switch (this.flow) {
+            case "create":
+            case "import":
+            case "recover":
+                return "security.wallet_created";
+            default:
+                return "security.vault_unlocked";
+        }
+    }
+
+    async _createTag(payload: any): Promise<void> {
+        const mnemonicCount = (await this._zelfIdsService.getMnemonicCount()) || 12;
+
+        this._zelfIdsService
+            .leaseTag({
+                ...payload,
+                type: "create",
+                wordsCount: mnemonicCount,
+            })
+            .then(async (response) => {
+                const tagObject = response.data?.tagObject;
+                const pgp = response.data?.pgp;
+
+                await this._chromeService.removeItem("zelfIdFlow");
+                await this._chromeService.removeItem("newZelfIdName");
+
+                const newWallet = new TagModel({ ...tagObject, pgp });
+                await this._walletService.switchWallet(newWallet);
+                await this._showSuccessAndContinue(() => this._redirect());
+            })
+            .catch(this.onBiometricsFailed);
+    }
+
+    private async _decryptTag(payload: any): Promise<void> {
+        const zelfProof = await this._zelfIdsService.getZelfProof();
+        const userFingerprint = this._walletService.getUserFingerprint();
+
+        this._zelfIdsService
+            .decryptTag({
+                ...payload,
+                zelfProof,
+                identifier: userFingerprint.hash,
+            })
+            .then(async (response) => {
+                await this._chromeService.removeItem("zelfIdFlow");
+                await this._chromeService.removeItem("newZelfIdName");
+
+                const newWallet = new TagModel(response.data);
+                await this._walletService.switchWallet(newWallet);
+                await this._showSuccessAndContinue(() => this._redirect());
+            })
+            .catch(this.onBiometricsFailed);
+    }
+
+    private async _importTag(payload: any): Promise<void> {
+        this._zelfIdsService
+            .leaseTag({
+                ...payload,
+                mnemonic: await this._httpWrapperService.encryptMessage(this._vaultService.mnemonic),
+                type: "import",
+            })
+            .then(async (response) => {
+                this._vaultService.mnemonic = "";
+
+                const tagObject = response.data?.tagObject;
+                const pgp = response.data?.pgp;
+
+                await this._chromeService.removeItem("zelfIdFlow");
+                await this._chromeService.removeItem("newZelfIdName");
+
+                const newWallet = new TagModel({ ...tagObject, pgp });
+                await this._walletService.switchWallet(newWallet);
+                await this._showSuccessAndContinue(() => this._redirect());
+            })
+            .catch(this.onBiometricsFailed);
+    }
+
+    private async _tagLeaseRecovery(payload: any): Promise<void> {
+        this._zelfIdsService
+            .leaseRecovery({
+                ...payload,
+                zelfProof: this.zelfProof,
+                newTagName: this.newTagName,
+            })
+            .then(async (response) => {
+                const tagObject = response.data?.tagObject;
+                const pgp = response.data?.pgp;
+
+                await this._chromeService.removeItem("zelfIdFlow");
+                await this._chromeService.removeItem("zelfIdName");
+                await this._chromeService.removeItem("newZelfIdName");
+
+                const newWallet = new TagModel({ ...tagObject, pgp });
+                await this._walletService.switchWallet(newWallet);
+                await this._showSuccessAndContinue(() => {
+                    this._bottomSheet.open(ReserveDoneSheetComponent, {
+                        backdropClass: "zelf-backdrop",
+                        panelClass: "zelf-bottom-sheet",
+                        data: { zelfName: newWallet.fullTagName, domain: newWallet.domain },
+                    });
+                });
+            })
+            .catch(this.onBiometricsFailed);
+    }
+
+    private async _redirect(): Promise<void> {
+        if (this.returnState) {
+            let cleanReturn = this.returnState;
+            if (cleanReturn.includes("?")) {
+                cleanReturn = cleanReturn.split("?")[0];
+            }
+
+            const left = await this._router.navigate([cleanReturn], { replaceUrl: true });
+
+            if (!left) {
+                await this._router.navigate(["/home"], { replaceUrl: true });
+            }
+
+            return;
+        }
+
+        const left = await this._router.navigate(["/welcome-zelfid/complete"]);
+
+        if (!left) {
+            await this._router.navigate(["/home"], { replaceUrl: true });
+        }
+    }
+
+    canNavigateAway(): boolean {
+        return this.apiSuccess || this._canNavigate;
+    }
+
+    canNavigateAwayHandler(canNavigate: boolean = false): void {
+        this._canNavigate = canNavigate;
+    }
+
+    goBack(): void {
+        this.errorTitle = "";
+        this.errorMessage = "";
+
+        if (this._vaultService.securityType !== "withoutPassword") {
+            this._vaultService.password = "";
+        }
+
+        if (this.returnState) {
+            let cleanReturn = this.returnState;
+            if (cleanReturn.includes("?")) {
+                cleanReturn = cleanReturn.split("?")[0];
+            }
+            this._router.navigate([cleanReturn]);
+        } else this._router.navigate(["/security-zelfid/password"]);
+    }
+
+    onBiometricsFailed = (exception: any): void => {
+        this.apiLoading = false;
+        this.apiSuccess = false;
+
+        const errorKey = this._errorService.resolveErrorKey(exception);
+
+        if (this._errorService.isLivenessError(errorKey)) {
+            this.errorTitle = this._translocoService.translate("errors.liveness_failed");
+            this.errorMessage = this._translocoService.translate("errors.liveness_failed_help");
+            return;
+        }
+
+        this.errorTitle = this._translocoService.translate("errors.generic_title");
+        this.errorMessage = this._errorService.translateErrorMessage(errorKey, "errors.generic_identity");
+    };
+
+    onBiometricsScanned = async (encryptedImage: string): Promise<void> => {
+        this.apiLoading = true;
+        this.apiSuccess = false;
+
+        const referralTagName = await this._zelfIdsService.getReferral();
+
+        const domain = await this._zelfIdsService.getDomain();
+
+        const tagName =
+            this.flow === "create" || this.flow === "import" ? await this._zelfIdsService.getNewTagName() : await this._zelfIdsService.getTagName();
+
+        const payload: any = {
+            faceBase64: encryptedImage,
+            os: "DESKTOP",
+            password: await this._httpWrapperService.encryptMessage(this._vaultService.password),
+            securityType: this._vaultService.securityType,
+            referralTagName,
+            domain,
+            tagName,
+        };
+
+        if (this.flow === "create") {
+            this._createTag(payload);
+        } else if (this.flow === "import") {
+            this._importTag(payload);
+        } else if (this.flow === "recover") {
+            this._tagLeaseRecovery(payload);
+        } else {
+            this._decryptTag(payload);
+        }
+    };
+
+    async startBiometrics(): Promise<void> {
+        this._chromeService.setItem("hideBiometricsMessage", this.form.controls.hideBiometricsCheckbox.value);
+
+        this.showBiometrics = true;
+    }
+}

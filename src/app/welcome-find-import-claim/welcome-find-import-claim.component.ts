@@ -14,8 +14,10 @@ import { DomainLicense } from "app/core/models/domain.type";
 import { DomainSelectionData, DomainSelectionModalComponent } from "app/domain-selection-modal/domain-selection-modal.component";
 import { DomainService } from "app/domain.service";
 import { ZelfNamePipe } from "app/pipes/zelf-name.pipe";
+import { isV4Record, seedTakenOnboardingRecord } from "app/onboarding-stack";
 import { TagsService } from "app/tags.service";
 import { VaultService } from "app/vault.service";
+import { ZelfIdsService } from "app/zelf-ids.service";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
 
 @Component({
@@ -55,7 +57,8 @@ export class WelcomeFindImportClaimComponent implements OnInit, OnDestroy, After
         private _formBuilder: FormBuilder,
         private _router: Router,
         private _tagsService: TagsService,
-        private _vaultService: VaultService
+        private _vaultService: VaultService,
+        private _zelfIdsService: ZelfIdsService
     ) {
         this._initForm();
     }
@@ -201,6 +204,24 @@ export class WelcomeFindImportClaimComponent implements OnInit, OnDestroy, After
         this.loading = false;
     }
 
+    private async _redirectIfOwnedOnV4(tagName: string, domain: string, captchaToken: string): Promise<boolean> {
+        try {
+            const v4Response = await this._zelfIdsService.searchTag({ tagName, domain, captchaToken });
+
+            if (!isV4Record(v4Response?.data)) return false;
+
+            const seeded = await seedTakenOnboardingRecord(this._zelfIdsService, v4Response.data);
+
+            if (!seeded) return false;
+
+            await this._router.navigate(["/welcome-zelfid", "registered"]);
+
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
     async searchZelfName(event: any): Promise<any> {
         if (!this.form.get("tagName")?.valid || !this.form.get("domain")?.valid) {
             this.form.patchValue({ tagName: "" });
@@ -233,6 +254,8 @@ export class WelcomeFindImportClaimComponent implements OnInit, OnDestroy, After
             .searchTag({ tagName, domain: domain, captchaToken: captchaToken })
             .then(async (response) => {
                 const isTaken = !response?.data.available;
+
+                if (await this._redirectIfOwnedOnV4(tagName, domain, captchaToken)) return;
 
                 if (isTaken) {
                     await this._existingTagName(response?.data);
@@ -323,7 +346,7 @@ export class WelcomeFindImportClaimComponent implements OnInit, OnDestroy, After
             data: dialogData,
             disableClose: true,
             backdropClass: "zelf-backdrop",
-            panelClass: "zelf-bottom-sheet-seasalt",
+            panelClass: "zelf-bottom-sheet-compact",
         });
 
         bottomSheetRef.afterDismissed().subscribe((result: string) => {

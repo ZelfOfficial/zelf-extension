@@ -21,8 +21,7 @@ export class AuthService {
         private _chromeService: ChromeService,
         private _httpClient: HttpClient,
         private _walletService: WalletService
-    ) {
-    }
+    ) {}
 
     private async _requestAuthToken(
         fingerprint: string,
@@ -107,11 +106,7 @@ export class AuthService {
         return { tagName, domain, ethAddress };
     }
 
-    private async _persistSession(
-        token: string,
-        expiresAt: number,
-        sessionIdentifier: string
-    ): Promise<void> {
+    private async _persistSession(token: string, expiresAt: number, sessionIdentifier: string): Promise<void> {
         this._accessToken = token;
         this._accessTokenExpiresAt = expiresAt;
 

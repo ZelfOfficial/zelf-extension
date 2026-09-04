@@ -76,6 +76,6 @@ export class ZelfAppComponent implements AfterViewInit, OnDestroy {
         this._vaultService.password = "";
 
         if (this.canGoHome) this._router.navigate(["/home"]);
-        else this._router.navigate(["/welcome"]);
+        else this._router.navigate(["/welcome-zelfid"]);
     }
 }

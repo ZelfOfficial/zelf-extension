@@ -1,11 +1,13 @@
 export const environment = {
     apiUrl: "https://v3.zelf.world",
+    v4ApiUrl: "https://v4.zelf.world",
     appUrl: "https://zelf.world",
     baseUrl: "/",
     captchaKey: "",
     includeNonPaidDomains: false,
     keysUrl: "https://keys.zelf.world",
     paymentDomainUrl: "https://zelf.world/tags/payment",
+    paymentZelfIdUrl: "https://zelf.world/zelf-ids/payment",
     production: true,
     testnetAddress: "",
     znsUsdPrice: 0.05,

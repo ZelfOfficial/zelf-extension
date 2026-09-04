@@ -44,7 +44,7 @@ export class SecurityComponent implements OnInit {
         dialogRef.afterClosed().subscribe(async (confirmed) => {
             if (!confirmed) return;
 
-            this._router.navigate(["/welcome"]);
+            this._router.navigate(["/welcome-zelfid"]);
         });
     }
 

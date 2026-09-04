@@ -10,6 +10,10 @@ The extension does **not** ship **Zelf Chat** (no chat routes, components, or se
 - **Deep** screens (detail/form/result) hide the hub header and show footer **+ Add** instead of AI.
 - Register deep paths in `src/app/services/shell-layout.service.ts`. Rule: `.cursor/rules/extension-shell-layout.mdc`.
 
+## Zelf ID onboarding cards
+
+Phone-sized 402×852 scaled cards, iPad paper margins, compact domain sheet, and claim/registered/password layout tweaks: **`.cursor/skills/zelfid-onboarding-cards/SKILL.md`**. Use that skill when restyling `/welcome-zelfid` or `/security-zelfid` screens.
+
 ## Verifying extension changes (Cursor / agents)
 
 - **Always use `npm run watch`** when checking that the extension compiles after edits. It runs the dev Chrome extension builder in **watch** mode (`ng run zelf-extension:builder:dev_chrome --watch`) and is the default verification workflow.

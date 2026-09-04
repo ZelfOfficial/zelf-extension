@@ -11,7 +11,7 @@ export const OnboardingGuard: CanActivateFn = async () => {
 
     if (isExtension) {
         if (isSidePanel) {
-            _chromeService.openFullPage("welcome");
+            _chromeService.openFullPage("welcome-zelfid");
 
             await chrome.sidePanel.setOptions({
                 path: "index.html",
@@ -22,7 +22,7 @@ export const OnboardingGuard: CanActivateFn = async () => {
         }
 
         if (isPopout) {
-            _chromeService.openFullPage("welcome");
+            _chromeService.openFullPage("welcome-zelfid");
 
             return false;
         }

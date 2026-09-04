@@ -1,0 +1,249 @@
+@use "../../styles/variables";
+@use "../../styles/buttons";
+@use "../../styles/elements";
+@use "../../styles/welcome-device-scale" as device-scale;
+
+:host {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: center;
+    max-width: 100%;
+    overflow-x: hidden;
+    @include device-scale.welcome-device-tokens;
+}
+
+@include device-scale.welcome-device-scale;
+
+.welcome-registered-shell {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+    overflow-x: hidden;
+    position: relative;
+    width: min(100%, calc(var(--welcome-onboarding-width) * var(--welcome-onboarding-scale)));
+
+    &__item {
+        align-items: center;
+        display: flex;
+        justify-content: center;
+        min-height: calc(var(--welcome-onboarding-height) * var(--welcome-onboarding-scale));
+        position: relative;
+        width: calc(var(--welcome-onboarding-width) * var(--welcome-onboarding-scale));
+    }
+}
+
+.zelf-card.welcome-registered {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: var(--welcome-onboarding-height);
+    left: 50%;
+    min-height: var(--welcome-onboarding-height);
+    overflow: hidden;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(var(--welcome-onboarding-scale));
+    transform-origin: center;
+    width: var(--welcome-onboarding-width);
+
+    @media screen and (max-width: variables.$medium) {
+        border-radius: calc(64px * var(--zns-space-scale, 1));
+        padding: calc(24px * var(--zns-space-scale, 1));
+        width: var(--welcome-onboarding-width);
+    }
+
+    .qr-code {
+        flex-shrink: 0;
+        max-height: 168px;
+        max-width: 168px;
+        min-height: 168px;
+        min-width: 168px;
+    }
+
+    .zelf-card__actions {
+        flex-shrink: 0;
+        margin-top: auto;
+    }
+}
+
+.welcome-registered {
+    display: flex;
+    justify-content: flex-start;
+    gap: calc(16px * var(--zns-space-scale, 1));
+    overflow: hidden;
+
+    &__header-button {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        flex-direction: row;
+        width: 100%;
+    }
+
+    &__content {
+        align-items: center;
+        flex: 1 1 auto;
+        gap: calc(12px * var(--zns-space-scale, 1));
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    &__details {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        gap: calc(8px * var(--zns-space-scale, 1));
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+        width: 100%;
+    }
+
+    &__addresses {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        flex: 0 1 auto;
+        gap: calc(8px * var(--zns-space-scale, 1));
+        margin-top: calc(8px * var(--zns-space-scale, 1));
+        min-height: 0;
+
+        &--expanded {
+            flex: 1 1 auto;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+    }
+
+    &__show-more {
+        appearance: none;
+        background: transparent;
+        border: 0;
+        color: variables.$themeText;
+        cursor: pointer;
+        flex-shrink: 0;
+        font-family: variables.$themeBodyFamily;
+        font-size: calc(13px * var(--zns-font-scale, 1));
+        font-weight: 600;
+        letter-spacing: 0.2px;
+        line-height: 18px;
+        margin-top: 4px;
+        padding: 4px 0;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+
+    &__subtitle {
+        font-weight: 400;
+    }
+
+    &__chip {
+        margin-top: calc(8px * var(--zns-space-scale, 1));
+    }
+
+    &__date {
+        &-row {
+            margin: 16px 0;
+            align-items: center;
+            display: flex;
+            flex-direction: row;
+            gap: 12px;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        &-column {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            text-align: center;
+            width: 100%;
+        }
+
+        &-title {
+            color: variables.$themeTextSecondary;
+            font-size: 11px;
+            font-family: variables.$themeBodyFamily;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            line-height: 16px;
+            margin: 0;
+        }
+
+        &-text__inner-row {
+            display: inline-flex;
+            flex-direction: row;
+            gap: 4px;
+            align-items: center;
+            justify-content: center;
+
+            svg {
+                margin-bottom: 2px;
+            }
+        }
+
+        &-text {
+            color: variables.$themeText;
+            font-family: variables.$themeBodyFamily;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.1px;
+            line-height: 20px;
+            margin: 0 !important;
+        }
+    }
+}
+
+.address-row {
+    background-color: variables.$themeCardBorder;
+    border-radius: 16px;
+    height: 48px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &__inner {
+        display: flex;
+        flex-direction: row;
+        padding: 0 12px;
+        gap: 8px;
+        flex: 1 1 auto;
+        justify-content: center;
+        align-items: center;
+    }
+
+    &__logo {
+        min-height: 32px;
+        min-width: 32px;
+        max-height: 32px;
+        max-width: 32px;
+        border-radius: 32px;
+        object-fit: contain;
+        display: flex;
+        justify-self: flex-start;
+    }
+
+    &__label {
+        color: variables.$themeTextSecondary;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        justify-self: flex-start;
+        flex: 1 1 40%;
+    }
+
+    &__value {
+        color: variables.$themeText;
+        font-family: monospace;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        flex: 1 1 40%;
+        justify-content: flex-end;
+    }
+}

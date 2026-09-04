@@ -974,6 +974,7 @@
         "invalid_password": "Hindi valid ang password. May {{remaining}} pang pagtatangka bago ka kailangang mag-login gamit ang biometrics.",
         "invalid_private_key": "Hindi valid ang private key.",
         "liveness_failed_description": "Paumanhin, may problema sa pag-detect ng iyong liveness.",
+        "liveness_failed_help": "Hindi pumasa ang live face check. Hindi ito error sa password o account. Tumingin sa camera, panatilihing nakasentro at maliwanag ang mukha, tapos subukan ulit.",
         "liveness_failed": "Nabigo ang pag-detect ng liveness",
         "Liveness_score_not_acceptable": "Hindi katanggap-tanggap ang liveness score",
         "min_liveness_score_is": "Ang minimum na liveness score ay: ",

@@ -1,0 +1,96 @@
+@use "../../styles/variables";
+@use "../../styles/buttons";
+
+:host {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: center;
+}
+
+.welcome-available {
+    min-height: 75vh;
+    display: flex;
+    justify-content: flex-start;
+
+    &__header {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        position: relative;
+    }
+
+    &__back {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    &__identity {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: calc(8px * var(--zns-space-scale, 1));
+        padding: calc(24px * var(--zns-space-scale, 1)) 0;
+    }
+
+    &__divider {
+        width: 100%;
+        height: 1px;
+        background-color: variables.$themeCardBorder;
+        flex-shrink: 0;
+    }
+
+    &__subtitle {
+        font-family: variables.$themeBodyFamily;
+        font-weight: 500;
+        font-size: calc(14px * var(--zns-font-scale, 1));
+        line-height: calc(20px * var(--zns-font-scale, 1));
+        letter-spacing: 0.1px;
+        text-align: center;
+        color: variables.$themeTextSecondary;
+    }
+
+    &__form {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: calc(16px * var(--zns-space-scale, 1));
+    }
+
+    &__top {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-sizing: border-box;
+    }
+
+    &__buttons {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: calc(8px * var(--zns-space-scale, 1));
+        width: 100%;
+        padding-bottom: calc(8px * var(--zns-space-scale, 1));
+
+        // Ensure disabled buttons always show readable text regardless of Material overrides
+        ::ng-deep .zelf-button--primary[disabled] {
+            opacity: 1 !important;
+            background-color: variables.$themeBorder !important;
+            color: variables.$themeTextSecondary !important;
+        }
+
+        ::ng-deep .zelf-button--outlined[disabled] {
+            opacity: 1 !important;
+            border-color: variables.$themeBorder !important;
+            color: variables.$themeTextMuted !important;
+            background-color: transparent !important;
+        }
+    }
+}

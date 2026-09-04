@@ -974,6 +974,7 @@
         "invalid_password": "Mot de passe invalide. Il vous reste {{remaining}} tentatives avant de devoir vous connecter avec la biométrie.",
         "invalid_private_key": "La clé privée n'est pas valide.",
         "liveness_failed_description": "Désolé, il semble y avoir eu un problème avec votre détection de vivacité.",
+        "liveness_failed_help": "La vérification de vivacité n'a pas réussi. Ce n'est pas une erreur de mot de passe ni de compte. Regardez la caméra, gardez le visage centré et bien éclairé, puis réessayez.",
         "liveness_failed": "La détection de vivacité a échoué",
         "Liveness_score_not_acceptable": "Le score de vivacité n'est pas acceptable",
         "min_liveness_score_is": "Le score minimum de vivacité est : ",

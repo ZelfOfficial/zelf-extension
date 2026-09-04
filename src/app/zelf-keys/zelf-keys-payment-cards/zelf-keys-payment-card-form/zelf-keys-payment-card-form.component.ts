@@ -68,7 +68,7 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
         const wallet = await this._walletService.getFirstWalletFromStorage();
 
         if (!wallet?.name) {
-            this.router.navigate(["/welcome"]);
+            this.router.navigate(["/welcome-zelfid"]);
 
             return;
         }

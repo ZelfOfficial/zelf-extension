@@ -981,6 +981,7 @@
         "invalid_password": "Senha inválida. Você tem {{remaining}} tentativas restantes antes de precisar fazer login com biometria.",
         "invalid_private_key": "Chave privada inválida.",
         "liveness_failed_description": "Desculpe, parece que houve um problema com sua detecção de vivacidade.",
+        "liveness_failed_help": "A verificação de vivacidade não foi aprovada. Isso não é um erro de senha nem de conta. Olhe para a câmera, mantenha o rosto centralizado e bem iluminado e tente novamente.",
         "liveness_failed": "Falha na detecção de vivacidade",
         "Liveness_score_not_acceptable": "Pontuação de vivacidade não aceitável",
         "min_liveness_score_is": "A pontuação mínima de vivacidade é: ",

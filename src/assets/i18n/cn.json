@@ -974,6 +974,7 @@
         "invalid_password": "密码无效。在需要使用生物识别登录之前，您还有{{remaining}}次尝试机会。",
         "invalid_private_key": "私钥无效。",
         "liveness_failed_description": "抱歉，您的活体检测似乎出现了问题。",
+        "liveness_failed_help": "活体检测未通过。这不是密码或账户错误。请看向摄像头，保持面部居中且光线充足，然后重试。",
         "liveness_failed": "活体检测失败",
         "Liveness_score_not_acceptable": "活体检测分数不可接受",
         "min_liveness_score_is": "最低活体检测分数为：",

@@ -1,14 +1,13 @@
 import { debounce, DebouncedFunc } from "lodash";
 import { Subject, take, takeUntil } from "rxjs";
 
-import { CommonModule, NgFor, NgIf, NgTemplateOutlet } from "@angular/common";
+import { CommonModule } from "@angular/common";
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
-import { MatIconModule } from "@angular/material/icon";
 import { MatMenuModule } from "@angular/material/menu";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { Router, RouterLink, RouterModule } from "@angular/router";
+import { Router, RouterModule } from "@angular/router";
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 
 import { ChromeService } from "app/chrome.service";
@@ -17,26 +16,12 @@ import { CtaSheetComponent } from "app/cta-sheet/cta-sheet.component";
 import { FirstLetterPipe } from "app/pipes/first-letter.pipe";
 import { TimerPipe } from "app/pipes/timer.pipe";
 import { WalletService } from "app/wallet.service";
-import { ZelfNameService } from "app/zelf-name-service.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { TagModel, TagsService, TagSearchResponse } from "app/tags.service";
 import { environment } from "environments/environment";
 
 @Component({
-    imports: [
-        CommonModule,
-        FirstLetterPipe,
-        MatIconModule,
-        MatMenuModule,
-        NgFor,
-        NgIf,
-        NgTemplateOutlet,
-        RouterLink,
-        RouterModule,
-        TimerPipe,
-        TranslocoModule,
-        ZelfLoaderComponent,
-    ],
+    imports: [CommonModule, FirstLetterPipe, MatMenuModule, RouterModule, TimerPipe, TranslocoModule, ZelfLoaderComponent],
     selector: "manage-domains",
     styleUrls: ["./manage-domains.component.scss"],
     templateUrl: "./manage-domains.component.html",
@@ -59,7 +44,6 @@ export class ManageDomainsComponent implements OnInit, OnDestroy {
         private _snackBar: MatSnackBar,
         private _translocoService: TranslocoService,
         private _walletService: WalletService,
-        private _zelfNameService: ZelfNameService,
         private _tagsService: TagsService
     ) {
         this._loadWalletsDebounced = debounce(this._loadWallets, 1000);
@@ -77,6 +61,10 @@ export class ManageDomainsComponent implements OnInit, OnDestroy {
         this.unsubscriber$.complete();
     }
 
+    /**
+     * Initializes the wallets list and refreshes the wallets.
+     * @returns void
+     */
     private _initLoadWallets = async (): Promise<void> => {
         if (this.loading) return;
 
@@ -90,6 +78,10 @@ export class ManageDomainsComponent implements OnInit, OnDestroy {
         this._chromeService.onWalletsChanged$.pipe(takeUntil(this.unsubscriber$)).subscribe(this._loadWalletsDebounced);
     };
 
+    /**
+     * Loads the wallets list and refreshes the wallets.
+     * @returns void
+     */
     private _loadWallets = () => {
         if (this.loading) return;
 
@@ -102,6 +94,12 @@ export class ManageDomainsComponent implements OnInit, OnDestroy {
         });
     };
 
+    /**
+     * Opens the delete confirmation dialog.
+     * @param isLastWallet - Whether the wallet is the last wallet.
+     * @param wallet - The wallet to delete.
+     * @returns void
+     */
     private _openDeleteConfirmationDialog(isLastWallet: boolean, wallet: Partial<TagModel> = {}): void {
         let message = "";
 
@@ -130,7 +128,7 @@ export class ManageDomainsComponent implements OnInit, OnDestroy {
                 this._chromeService.clearLocalStorage();
                 this._chromeService.clearSessionStorage();
 
-                this._router.navigate(["/welcome"], { replaceUrl: true });
+                this._router.navigate(["/welcome-zelfid"], { replaceUrl: true });
 
                 return;
             }
@@ -178,6 +176,11 @@ export class ManageDomainsComponent implements OnInit, OnDestroy {
         });
     }
 
+    /**
+     * Opens the CTASheet.
+     * @param wallet - The wallet to open the CTASheet for.
+     * @returns void
+     */
     private _openCTASheet(wallet: Partial<TagModel>): void {
         const bottomSheetRef = this._bottomSheet.open(CtaSheetComponent, {
             backdropClass: "zelf-backdrop",
@@ -194,10 +197,18 @@ export class ManageDomainsComponent implements OnInit, OnDestroy {
         });
     }
 
+    /**
+     * Refreshes the wallets.
+     * @returns void
+     */
     private _refreshWallets = async (): Promise<void> => {
         await this._tagsService.refreshAllTagsPublicData(this.wallets as TagModel[], true);
     };
 
+    /**
+     * Sets the wallets.
+     * @returns void
+     */
     private async _setWallets(): Promise<void> {
         const { wallet, wallets } = await this._walletService.getAllWalletsFromStorage();
         const seenWallets = new Set<string>();
@@ -222,6 +233,11 @@ export class ManageDomainsComponent implements OnInit, OnDestroy {
         this._changeDetectorRef.detectChanges();
     }
 
+    /**
+     * Downloads the ZelfProof.
+     * @param wallet - The wallet to download the ZelfProof for.
+     * @returns void
+     */
     downloadZelfProof(wallet: Partial<TagModel>): void {
         if (!wallet.name) return;
 
@@ -232,6 +248,11 @@ export class ManageDomainsComponent implements OnInit, OnDestroy {
         link.click();
     }
 
+    /**
+     * Navigates to the domain.
+     * @param wallet - The wallet to navigate to the domain for.
+     * @returns void
+     */
     goToDomain(wallet: Partial<TagModel>): void {
         if (this.showDetails(wallet)) {
             this._openCTASheet(wallet);
@@ -242,6 +263,11 @@ export class ManageDomainsComponent implements OnInit, OnDestroy {
         this._router.navigate(["/domain"], { queryParams: { zelfName: wallet.tagName } });
     }
 
+    /**
+     * Navigates to the purchase.
+     * @param wallet - The wallet to navigate to the purchase for.
+     * @returns void
+     */
     goToPurchase(wallet: Partial<TagModel>): void {
         const name = wallet?.tagName || wallet?.publicData?.tagName || wallet?.name || "";
         const domain = wallet.publicData?.domain || "zelf";
@@ -254,6 +280,11 @@ export class ManageDomainsComponent implements OnInit, OnDestroy {
         });
     }
 
+    /**
+     * Navigates to the recovery.
+     * @param wallet - The wallet to navigate to the recovery for.
+     * @returns void
+     */
     async goToRecovery(wallet: Partial<TagModel>): Promise<void> {
         const tagModel = wallet as TagModel;
 
@@ -275,7 +306,7 @@ export class ManageDomainsComponent implements OnInit, OnDestroy {
         await this._walletService.setWalletsToColdStorage();
 
         if (isAvailable) {
-            this._router.navigate(["/welcome/find"]);
+            this._router.navigate(["/welcome-zelfid/find"]);
 
             return;
         }
@@ -293,9 +324,14 @@ export class ManageDomainsComponent implements OnInit, OnDestroy {
             await this._tagsService.setTagResponse(tagResponse);
         }
 
-        this._router.navigate(["/welcome/grace"]);
+        this._router.navigate(["/welcome-zelfid/grace"]);
     }
 
+    /**
+     * Deletes the ZelfProof.
+     * @param wallet - The wallet to delete the ZelfProof for.
+     * @returns void
+     */
     async deleteZelfProof(wallet: Partial<TagModel>): Promise<void> {
         if (!wallet.name) return;
 
@@ -306,6 +342,11 @@ export class ManageDomainsComponent implements OnInit, OnDestroy {
         this._openDeleteConfirmationDialog(isLastWallet);
     }
 
+    /**
+     * Shows the details.
+     * @param wallet - The wallet to show the details for.
+     * @returns boolean
+     */
     showDetails(wallet: Partial<TagModel>): boolean {
         return Boolean(
             wallet.publicData?.isFullyExpired ||

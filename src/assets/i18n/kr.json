@@ -974,6 +974,7 @@
         "invalid_password": "유효하지 않은 비밀번호입니다. 생체 인증으로 로그인해야 하기 전에 {{remaining}}번의 시도 기회가 남았습니다.",
         "invalid_private_key": "개인키가 유효하지 않습니다.",
         "liveness_failed_description": "죄송합니다. 생체 감지에 문제가 있었습니다.",
+        "liveness_failed_help": "생체 검증에 통과하지 못했습니다. 비밀번호나 계정 오류가 아닙니다. 카메라를 보고 얼굴을 가운데에 두고 밝은 곳에서 다시 시도하세요.",
         "liveness_failed": "생체 감지 실패",
         "Liveness_score_not_acceptable": "생체 점수가 허용되지 않습니다",
         "min_liveness_score_is": "최소 생체 점수는: ",

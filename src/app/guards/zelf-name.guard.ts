@@ -17,7 +17,7 @@ export const ZelfNameGuard: CanActivateFn = async () => {
     const zelfName = await _zelfNameService.getZelfName();
 
     if (!zelfNameObject?.ethAddress && !zelfName) {
-        router.navigate(["/welcome"]);
+        router.navigate(["/welcome-zelfid"]);
 
         return false;
     }

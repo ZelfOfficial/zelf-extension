@@ -1,0 +1,131 @@
+@use "../../styles/variables";
+@use "../../styles/buttons";
+@use "../../styles/welcome-device-scale" as device-scale;
+
+:host {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: center;
+    max-width: 100%;
+    overflow-x: hidden;
+    @include device-scale.welcome-device-tokens;
+}
+
+@include device-scale.welcome-device-scale;
+
+.welcome-complete-shell {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+    overflow-x: hidden;
+    position: relative;
+    width: min(100%, calc(var(--welcome-onboarding-width) * var(--welcome-onboarding-scale)));
+
+    &__item {
+        align-items: center;
+        display: flex;
+        justify-content: center;
+        min-height: calc(var(--welcome-onboarding-height) * var(--welcome-onboarding-scale));
+        position: relative;
+        width: calc(var(--welcome-onboarding-width) * var(--welcome-onboarding-scale));
+    }
+}
+
+.zelf-card.welcome-complete {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: var(--welcome-onboarding-height);
+    left: 50%;
+    min-height: var(--welcome-onboarding-height);
+    overflow: hidden;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(var(--welcome-onboarding-scale));
+    transform-origin: center;
+    width: var(--welcome-onboarding-width);
+
+    @media screen and (max-width: variables.$medium) {
+        border-radius: calc(64px * var(--zns-space-scale, 1));
+        padding: calc(24px * var(--zns-space-scale, 1));
+        width: var(--welcome-onboarding-width);
+    }
+
+    .qr-code {
+        display: block;
+        flex-shrink: 0;
+        height: 168px;
+        max-height: 168px;
+        max-width: 168px;
+        min-height: 168px;
+        min-width: 168px;
+        object-fit: contain;
+        width: 168px;
+    }
+
+    .zelf-card__pretitle,
+    .zelf-card__title {
+        max-width: 100%;
+    }
+
+    .zelf-card__content {
+        align-items: stretch;
+        flex: 1 1 auto;
+        justify-content: flex-start;
+        min-height: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        width: 100%;
+    }
+
+    .zelf-card__actions {
+        flex-shrink: 0;
+        margin-top: auto;
+    }
+
+    mnemonic {
+        display: block;
+        min-height: 0;
+        width: 100%;
+    }
+}
+
+.welcome-complete {
+    // Global .zelf-card__header uses overflow: hidden, which clips the last glyph when
+    // nowrap title is a few px wider than the box; show the full tag name here.
+    &__header.zelf-card__header {
+        flex-shrink: 0;
+        overflow: visible;
+    }
+
+    &__header-button {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        flex-direction: row;
+        width: 100%;
+    }
+
+    &__actions {
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        margin-top: auto;
+        width: 100%;
+    }
+
+    &__header {
+        .welcome-complete__tag-title {
+            box-sizing: border-box;
+            max-width: 100%;
+            overflow: visible;
+            padding-inline: 4px;
+            text-align: center;
+            white-space: nowrap;
+            width: 100%;
+        }
+    }
+}

@@ -599,6 +599,13 @@
             }
         }
     },
+    "welcomeZelfid": {
+        "plan_free": "Los nombres de 6 caracteres o más se reservan como Zelf ID gratuito. Puedes mejorar el plan después.",
+        "plan_short_hold": "Los nombres de 5 caracteres o menos son solo unlimited. Hasta el pago, quedan reservados 5 horas.",
+        "plan_unlimited": "Los nombres cortos se reservan como unlimited.",
+        "plan_label": "Plan: {{ plan }}",
+        "hold_subtitle": "Este nombre corto está reservado por 5 horas. Compra unlimited para dejarlo en mainnet."
+    },
     "settings": {
         "networks_label": "Redes",
         "security_label": "Seguridad",
@@ -985,6 +992,7 @@
         "invalid_password": "Contraseña inválida. Te quedan {{remaining}} intentos antes de que debas iniciar sesión con biometría.",
         "invalid_private_key": "La clave privada no es válida.",
         "liveness_failed_description": "Lo sentimos, parece que hubo un problema con tu detección de autenticidad.",
+        "liveness_failed_help": "La prueba de autenticidad en vivo no se superó. Esto no es un error de contraseña ni de cuenta. Mira a la cámara, centra el rostro con buena luz e inténtalo de nuevo.",
         "liveness_failed": "Detección de autenticidad fallida",
         "Liveness_score_not_acceptable": "La puntuación de autenticidad no es aceptable",
         "min_liveness_score_is": "La puntuación mínima de autenticidad es: ",

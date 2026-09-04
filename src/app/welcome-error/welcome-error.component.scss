@@ -1,5 +1,6 @@
 @use "../../styles/variables";
 @use "../../styles/buttons";
+@use "../../styles/welcome-device-scale" as device-scale;
 
 :host {
     align-items: center;
@@ -7,12 +8,57 @@
     flex-direction: column;
     flex-grow: 1;
     justify-content: center;
+    max-width: 100%;
+    overflow-x: hidden;
+    @include device-scale.welcome-device-tokens;
 }
 
-// Tall card + justify-content:start leaves error copy hugging the header; grow a
-// main column and center icon + copy + CTA as one block in the remaining height.
+@include device-scale.welcome-device-scale;
+
+.welcome-error-shell {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+    overflow-x: hidden;
+    position: relative;
+    width: min(100%, calc(var(--welcome-onboarding-width) * var(--welcome-onboarding-scale)));
+
+    &__item {
+        align-items: center;
+        display: flex;
+        justify-content: center;
+        min-height: calc(var(--welcome-onboarding-height) * var(--welcome-onboarding-scale));
+        position: relative;
+        width: calc(var(--welcome-onboarding-width) * var(--welcome-onboarding-scale));
+    }
+}
+
 .zelf-card.welcome-error {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: var(--welcome-onboarding-height);
     justify-content: flex-start;
+    left: 50%;
+    min-height: var(--welcome-onboarding-height);
+    overflow: hidden;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(var(--welcome-onboarding-scale));
+    transform-origin: center;
+    width: var(--welcome-onboarding-width);
+
+    @media screen and (max-width: variables.$medium) {
+        border-radius: calc(64px * var(--zns-space-scale, 1));
+        padding: calc(24px * var(--zns-space-scale, 1));
+        width: var(--welcome-onboarding-width);
+    }
+
+    .zelf-card__actions {
+        flex-shrink: 0;
+        margin-top: auto;
+    }
 }
 
 .welcome-error {
@@ -27,9 +73,9 @@
     &__main {
         align-items: center;
         display: flex;
-        flex: 1;
+        flex: 1 1 auto;
         flex-direction: column;
-        justify-content: center;
+        justify-content: flex-start;
         min-height: 0;
         width: 100%;
         gap: calc(24px * var(--zns-space-scale, 1));
@@ -37,11 +83,18 @@
 
     &__content {
         display: flex;
+        flex: 1 1 auto;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
         text-align: center;
         padding: 0 calc(24px * var(--zns-space-scale, 1));
         gap: calc(16px * var(--zns-space-scale, 1));
+        min-height: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     &__icon-container {
@@ -66,6 +119,8 @@
         font-weight: 700;
         margin: 0;
         letter-spacing: -0.01em;
+        max-width: 100%;
+        overflow-wrap: anywhere;
     }
 
     &__message {
@@ -76,5 +131,6 @@
         line-height: 1.5;
         margin: 0;
         max-width: 280px;
+        overflow-wrap: anywhere;
     }
 }

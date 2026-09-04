@@ -1,0 +1,34 @@
+import { inject } from "@angular/core";
+import { type CanActivateFn } from "@angular/router";
+import { ChromeService } from "../chrome.service";
+
+export const OnboardingZelfidGuard: CanActivateFn = async () => {
+    const _chromeService = inject(ChromeService);
+
+    const isExtension = _chromeService.isExtension;
+    const isPopout = _chromeService.isPopout;
+    const isSidePanel = _chromeService.isSidePanel;
+
+    if (isExtension) {
+        if (isSidePanel) {
+            _chromeService.openFullPage("welcome-zelfid");
+
+            await chrome.sidePanel.setOptions({
+                path: "index.html",
+                enabled: false,
+            });
+
+            return false;
+        }
+
+        if (isPopout) {
+            _chromeService.openFullPage("welcome-zelfid");
+
+            return false;
+        }
+
+        return true;
+    }
+
+    return true;
+};
