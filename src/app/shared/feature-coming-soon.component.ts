@@ -40,53 +40,53 @@ import { TranslocoModule } from "@jsverse/transloco";
             min-height: 100vh;
             background: variables.$themeCard;
             color: variables.$themeText;
+        }
 
-            &__header {
-                display: flex;
-                align-items: center;
-                padding: calc(16px * var(--zns-space-scale, 1));
-                border-bottom: 1px solid variables.$themeBorder;
-            }
+        .feature-coming-soon__header {
+            display: flex;
+            align-items: center;
+            padding: calc(16px * var(--zns-space-scale, 1));
+            border-bottom: 1px solid variables.$themeBorder;
+        }
 
-            &__title {
-                flex: 1;
-                text-align: center;
-                font-weight: 600;
-                font-size: calc(16px * var(--zns-font-scale, 1));
-                margin: 0;
-            }
+        .feature-coming-soon__title {
+            flex: 1;
+            text-align: center;
+            font-weight: 600;
+            font-size: calc(16px * var(--zns-font-scale, 1));
+            margin: 0;
+        }
 
-            &__spacer {
-                width: 40px; /* matches button width to center title */
-            }
+        .feature-coming-soon__spacer {
+            width: 40px;
+        }
 
-            &__content {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                padding: calc(32px * var(--zns-space-scale, 1));
-                text-align: center;
-            }
+        .feature-coming-soon__content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: calc(32px * var(--zns-space-scale, 1));
+            text-align: center;
+        }
 
-            &__icon-wrapper {
-                margin-bottom: calc(24px * var(--zns-space-scale, 1));
-                color: variables.$themeTextMuted;
-            }
+        .feature-coming-soon__icon-wrapper {
+            margin-bottom: calc(24px * var(--zns-space-scale, 1));
+            color: variables.$themeTextMuted;
+        }
 
-            &__heading {
-                font-size: calc(24px * var(--zns-font-scale, 1));
-                font-weight: 700;
-                margin-bottom: calc(8px * var(--zns-space-scale, 1));
-            }
+        .feature-coming-soon__heading {
+            font-size: calc(24px * var(--zns-font-scale, 1));
+            font-weight: 700;
+            margin-bottom: calc(8px * var(--zns-space-scale, 1));
+        }
 
-            &__description {
-                font-size: calc(16px * var(--zns-font-scale, 1));
-                color: variables.$themeTextMuted;
-                max-width: 300px;
-                line-height: 1.5;
-            }
+        .feature-coming-soon__description {
+            font-size: calc(16px * var(--zns-font-scale, 1));
+            color: variables.$themeTextMuted;
+            max-width: 300px;
+            line-height: 1.5;
         }
     `]
 })

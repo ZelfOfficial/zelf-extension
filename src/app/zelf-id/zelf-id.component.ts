@@ -33,37 +33,35 @@ import { RouterLink } from "@angular/router";
             justify-content: center;
         }
 
-        .zelf-id {
-            &__header {
-                width: 100%;
-                display: flex;
-                align-items: center;
-                padding: 0 0 calc(12px * var(--zns-space-scale, 1));
-                border-bottom: 1px solid variables.$themeBorder;
-            }
+        .zelf-id__header {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            padding: 0 0 calc(12px * var(--zns-space-scale, 1));
+            border-bottom: 1px solid variables.$themeBorder;
+        }
 
-            &__title {
-                flex: 1;
-                text-align: center;
-                font-weight: 600;
-                font-size: calc(16px * var(--zns-font-scale, 1));
-                margin: 0;
-                color: variables.$themeText;
-            }
+        .zelf-id__title {
+            flex: 1;
+            text-align: center;
+            font-weight: 600;
+            font-size: calc(16px * var(--zns-font-scale, 1));
+            margin: 0;
+            color: variables.$themeText;
+        }
 
-            &__spacer {
-                width: calc(40px * var(--zns-space-scale, 1));
-                flex-shrink: 0;
-            }
+        .zelf-id__spacer {
+            width: calc(40px * var(--zns-space-scale, 1));
+            flex-shrink: 0;
+        }
 
-            &__body {
-                flex: 1;
-                width: 100%;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-            }
+        .zelf-id__body {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
     `],
 })
