@@ -91,10 +91,8 @@ export class DappSignComponent implements OnInit {
     }
 
     async ngOnInit(): Promise<void> {
-        const urlParams = new URLSearchParams(window.location.search);
         this.requestId =
-            urlParams.get("requestId") ||
-            this._activatedRoute.snapshot.queryParams?.requestId ||
+            this._getRequestId() ||
             sessionStorage.getItem("pending_sign_request_id") ||
             "";
 
@@ -481,6 +479,17 @@ export class DappSignComponent implements OnInit {
         }
 
         return null;
+    }
+
+    private _getRequestId(): string {
+        const hashQuery = window.location.hash.includes("?") ? window.location.hash.split("?").slice(1).join("?") : "";
+
+        return (
+            new URLSearchParams(hashQuery).get("requestId") ||
+            this._activatedRoute.snapshot.queryParamMap.get("requestId") ||
+            new URLSearchParams(window.location.search).get("requestId") ||
+            ""
+        );
     }
 
     private _extractHostname(origin: string): string {

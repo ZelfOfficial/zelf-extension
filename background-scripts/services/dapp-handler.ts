@@ -381,10 +381,8 @@ export class DappHandler {
                     break;
 
                 case "DAPP_APPROVAL_RESULT":
+                    await this._handleApprovalResult(payload);
                     sendResponse({ success: true });
-                    void this._handleApprovalResult(payload).catch((error) => {
-                        Logger.error("Failed to process dApp approval result:", error);
-                    });
                     break;
 
                 case "DAPP_SIGNING_RESULT":
@@ -509,7 +507,7 @@ export class DappHandler {
         }
 
         // Coalesce: join an existing in-flight connect queue for this origin.
-        if (this._tryCoalesceConnect(origin, requestId, tabId)) return;
+        if (await this._tryCoalesceConnect(origin, requestId, tabId)) return;
 
         // No existing connect in-flight — register as the leader and open the UI.
         this.pendingConnectsByOrigin.set(origin, [{ requestId, tabId }]);
@@ -785,8 +783,7 @@ export class DappHandler {
         const pending = await this._getPendingRequest(requestId);
 
         if (!pending) {
-            Logger.warn(`No pending dApp approval request found for ${requestId}`);
-            return;
+            throw new Error(`No pending dApp approval request found for ${requestId}`);
         }
 
         if (approved && accounts) {
@@ -799,16 +796,26 @@ export class DappHandler {
             });
         }
 
+        const approvedChainId = chainId || pending.chainId || 1404;
         const responsePayload = approved && accounts
-            ? { result: accounts }
+            ? { result: accounts, chainId: approvedChainId }
             : { error: { code: 4001, message: "User rejected the request" } };
 
         this._removePendingRequest(requestId);
 
-        void this._notifyTab(pending.tabId, "DAPP_PROVIDER_RESPONSE", { requestId, ...responsePayload });
+        const delivered = await this._notifyTab(pending.tabId, "DAPP_PROVIDER_RESPONSE", {
+            requestId,
+            ...responsePayload,
+        });
+        if (!delivered) {
+            await this._broadcastProviderResponseByOrigin(pending.origin, {
+                requestId,
+                ...responsePayload,
+            });
+        }
 
         // Fan out the same outcome to any coalesced requests for this origin.
-        void this._resolveCoalescedConnects(pending.origin, responsePayload);
+        await this._resolveCoalescedConnects(pending.origin, responsePayload);
     }
 
     /**
@@ -1153,7 +1160,7 @@ export class DappHandler {
      * @param requestId - New request ID to potentially queue.
      * @param tabId     - Tab ID of the new request.
      */
-    private _tryCoalesceConnect(origin: string, requestId: string, tabId?: number): boolean {
+    private async _tryCoalesceConnect(origin: string, requestId: string, tabId?: number): Promise<boolean> {
         const existing = this.pendingConnectsByOrigin.get(origin);
         if (!existing || existing.length === 0) return false;
 
@@ -1162,6 +1169,7 @@ export class DappHandler {
         if (this.pendingRequests.has(leaderRequestId)) {
             // Genuine in-flight connect — join the queue.
             existing.push({ requestId, tabId });
+            await this._focusOrReopenApprovalWindow(leaderRequestId, existing[0].tabId);
             return true;
         }
 
@@ -1169,6 +1177,25 @@ export class DappHandler {
         Logger.warn(`[DappHandler] Stale coalesced connect for ${origin}, clearing and opening fresh UI`);
         this.pendingConnectsByOrigin.delete(origin);
         return false;
+    }
+
+    /**
+     * Brings an existing approval popup to the front. If the service worker
+     * restarted and lost its window map, reopens the UI for the leader request.
+     */
+    private async _focusOrReopenApprovalWindow(requestId: string, tabId?: number): Promise<void> {
+        const windowEntry = Array.from(this.approvalWindows.entries()).find(([, id]) => id === requestId);
+
+        if (windowEntry) {
+            try {
+                await chrome.windows.update(windowEntry[0], { focused: true });
+                return;
+            } catch {
+                this.approvalWindows.delete(windowEntry[0]);
+            }
+        }
+
+        await this._openApprovalUI("connect", requestId, tabId);
     }
 
     /**
@@ -1185,10 +1212,34 @@ export class DappHandler {
         if (!coalesced || coalesced.length === 0) return;
 
         for (const entry of coalesced) {
-            void this._notifyTab(entry.tabId, "DAPP_PROVIDER_RESPONSE", {
+            await this._notifyTab(entry.tabId, "DAPP_PROVIDER_RESPONSE", {
                 requestId: entry.requestId,
                 ...responsePayload,
             });
+        }
+    }
+
+    private async _broadcastProviderResponseByOrigin(
+        targetOrigin: string,
+        payload: Record<string, any>
+    ): Promise<void> {
+        const tabs = this.browserApi.tabs as any;
+        if (!tabs?.query || !tabs?.sendMessage) return;
+
+        const allTabs = await tabs.query({});
+        for (const tab of allTabs) {
+            if (!tab.id || !tab.url || tab.url.startsWith("chrome-extension://")) continue;
+
+            try {
+                if (new URL(tab.url).origin === targetOrigin) {
+                    await tabs.sendMessage(tab.id, {
+                        type: "DAPP_PROVIDER_RESPONSE",
+                        payload,
+                    });
+                }
+            } catch {
+                // Ignore tabs without the provider bridge.
+            }
         }
     }
 

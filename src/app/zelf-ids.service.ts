@@ -20,6 +20,7 @@ import {
     TagType,
     ZelfProofPreviewRequest,
 } from "./tags.service";
+import { applyPreviewSecurity, type ProofPreview } from "./onboarding-stack";
 import { VaultService } from "./vault.service";
 
 export type ZelfIdPlan = "free" | "premium" | "unlimited" | "";
@@ -37,7 +38,7 @@ export interface ZelfIdPrice {
 
 export interface ZelfIdSearchResponse extends TagSearchResponse {
     price?: ZelfIdPrice;
-    preview?: unknown;
+    preview?: ProofPreview;
     zelfIDObject?: TagSearchResponse["tagObject"];
 }
 
@@ -288,30 +289,15 @@ export class ZelfIdsService {
         if (!record) return null;
 
         const tagModel = new TagModel(record);
-        const preview = (response as ZelfIdSearchResponse).preview as { publicData?: { st?: string; hasPassword?: string }; passwordLayer?: string } | undefined;
+        const preview = (response as ZelfIdSearchResponse).preview as ProofPreview | undefined;
 
-        this._mergePreviewSecurity(tagModel, preview);
+        this.mergePreviewSecurity(tagModel, preview);
 
         return tagModel;
     }
 
-    private _mergePreviewSecurity(
-        tagModel: TagModel,
-        preview?: { publicData?: { st?: string; hasPassword?: string }; passwordLayer?: string; st?: string } | null
-    ): void {
-        if (!preview) return;
-
-        const st = preview.publicData?.st || preview.st;
-        const hasPassword =
-            preview.publicData?.hasPassword ||
-            (preview.passwordLayer ? `${Boolean(preview.passwordLayer === "WithPassword")}` : "");
-
-        if (!st && !hasPassword) return;
-
-        tagModel.updatePublicData({
-            ...(st ? { st } : {}),
-            ...(hasPassword ? { hasPassword } : {}),
-        });
+    mergePreviewSecurity(tagModel: TagModel, preview?: ProofPreview | null): void {
+        applyPreviewSecurity(tagModel, preview);
     }
 
     resolvePlanHint(response?: ZelfIdSearchResponse | null, tagName?: string): { plan: ZelfIdPlan; allowedPlans: ZelfIdPlan[]; isShortName: boolean } {

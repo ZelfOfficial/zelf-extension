@@ -59,6 +59,7 @@ export interface DecryptedPasswordData {
 
 export class BackgroundCredentialManager {
     private readonly API_BASE_URL = environment.apiBaseUrl;
+    private readonly ZELF_KEYS_API_BASE_URL = environment.zelfKeysApiBaseUrl;
     private readonly ZELF_KEYS_ROUTE = `/api/zelf-keys`;
 
     private static instance: BackgroundCredentialManager;
@@ -362,7 +363,7 @@ export class BackgroundCredentialManager {
 
         if (!accessToken) throw new Error("No valid JWT token available");
 
-        const url = `${this.API_BASE_URL}${endpoint}`;
+        const url = `${this.ZELF_KEYS_API_BASE_URL}${endpoint}`;
 
         const options: RequestInit = {
             method,

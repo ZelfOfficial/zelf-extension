@@ -11,6 +11,7 @@ import {
 import { environment } from "../environments/environment";
 import { ChromeService } from "./chrome.service";
 import { HttpWrapperService } from "./http-wrapper.service";
+import { applyPreviewSecurity, type ProofPreview } from "./onboarding-stack";
 import { VaultService } from "./vault.service";
 import { WalletService } from "./wallet.service";
 
@@ -191,6 +192,7 @@ export interface TagSearchResponse {
     tagName: string;
     domain?: string;
     tagObject?: TagStorageData | TagModel;
+    preview?: ProofPreview;
 }
 
 @Injectable({
@@ -411,8 +413,15 @@ export class TagsService {
     createTagModelFromSearchResponse(response: TagSearchResponse): TagModel | null {
         if (!response.tagObject) return null;
 
-        // tagObject contains the selected/best record (Arweave priority)
-        return new TagModel(response.tagObject);
+        const tagModel = new TagModel(response.tagObject);
+
+        this.mergePreviewSecurity(tagModel, response.preview);
+
+        return tagModel;
+    }
+
+    mergePreviewSecurity(tagModel: TagModel, preview?: ProofPreview | null): void {
+        applyPreviewSecurity(tagModel, preview);
     }
 
     // Variable Management Methods

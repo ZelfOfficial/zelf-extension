@@ -1,3 +1,13 @@
+/** Keep explicit `"true"` / `"false"`; missing metadata stays empty so unlock can preview. */
+export function readPublicDataHasPassword(source?: { hasPassword?: unknown } | null): string {
+    const value = source?.hasPassword;
+
+    if (value === true || value === "true") return "true";
+    if (value === false || value === "false") return "false";
+
+    return "";
+}
+
 /** Legacy `publicData` key from older builds / API payloads; migrated into `xlmAddress`. */
 export const LEGACY_XLM_PUBLIC_DATA_KEY = "stellarAddress" as const;
 
@@ -151,7 +161,7 @@ export class TagPublicDataModel {
         this.dotAddress = readPublicDataDotAddress(data as Record<string, unknown>);
         this.ksmAddress = readPublicDataKsmAddress(data as Record<string, unknown>);
         this.tagName = data.tagName || "";
-        this.hasPassword = data.hasPassword || "false";
+        this.hasPassword = readPublicDataHasPassword(data);
         this.type = data.type || "";
         this.origin = data.origin || "";
         this.registeredAt = data.registeredAt || "";
@@ -282,7 +292,7 @@ export class TagModel {
             domain: extractedDomain,
             ethAddress: data.publicData?.ethAddress || "",
             expiresAt: data.publicData?.expiresAt || "",
-            hasPassword: data.publicData?.hasPassword || "false",
+            hasPassword: readPublicDataHasPassword(data.publicData),
             origin: data.publicData?.origin || "",
             registeredAt: data.publicData?.registeredAt || "",
             solanaAddress: data.publicData?.solanaAddress || "",

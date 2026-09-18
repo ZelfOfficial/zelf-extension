@@ -57,6 +57,45 @@ export class SolanaService {
     }
 
     /**
+     * Get ZNS balance with backend API (/api/solana/address) and RPC fallback.
+     * Matches the robust retrieval in rewards.component.ts.
+     */
+    async getZnsBalance(ownerAddress: string): Promise<number> {
+        let amount = 0;
+
+        try {
+            const response = await this.getWalletDetails(ownerAddress, { source: "oklink" });
+            const tokens = response?.data?.tokenHoldings?.tokens ?? response?.tokenHoldings?.tokens ?? [];
+            const znsToken = Array.isArray(tokens)
+                ? tokens.find(
+                      (t: any) =>
+                          (t.symbol || "").toUpperCase() === "ZNS" ||
+                          t.tokenAddress === SolanaService.ZNS_MINT_ADDRESS ||
+                          t.contractAddress === SolanaService.ZNS_MINT_ADDRESS ||
+                          t.mint === SolanaService.ZNS_MINT_ADDRESS
+                  )
+                : null;
+            amount = znsToken?.amount ?? znsToken?.balance ?? 0;
+        } catch (err) {
+            console.warn("Backend API for ZNS balance failed, preparing RPC fallback", err);
+        }
+
+        const numericAmount = typeof amount === "number" ? amount : parseFloat(String(amount)) || 0;
+
+        // Fallback to RPC if backend returned 0 (due to error, timeout, or pending sync)
+        if (numericAmount === 0) {
+            try {
+                const rpcAmount = await this.getZnsBalanceViaRpc(ownerAddress);
+                if (rpcAmount > 0) return rpcAmount;
+            } catch (rpcErr) {
+                console.warn("RPC fallback for ZNS balance failed", rpcErr);
+            }
+        }
+
+        return numericAmount;
+    }
+
+    /**
      * Get ZNS token balance for a wallet via Solana RPC.
      * ownerAddress = the holder's Solana wallet (the one that holds the tokens), not the minter.
      * Uses getTokenAccountsByOwner to find any token account holding ZNS for this wallet.
@@ -65,6 +104,7 @@ export class SolanaService {
     async getZnsBalanceViaRpc(ownerAddress: string): Promise<number> {
         try {
             const connection = await this._connectionReady;
+
             const mint = new PublicKey(SolanaService.ZNS_MINT_ADDRESS);
             const owner = new PublicKey(ownerAddress);
             const mintStr = SolanaService.ZNS_MINT_ADDRESS;

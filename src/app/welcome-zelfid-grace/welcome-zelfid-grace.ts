@@ -41,7 +41,7 @@ export class WelcomeZelfidGraceComponent extends CopyToClipboardBase implements 
         const tagResponse = await this._zelfIdsService.getTagResponse();
 
         if (tagResponse?.tagObject) {
-            this.tagNameObject = new TagModel(tagResponse?.tagObject);
+            this.tagNameObject = this._zelfIdsService.createTagModelFromSearchResponse(tagResponse) || new TagModel(tagResponse.tagObject);
         } else {
             this.tagNameObject = new TagModel();
         }
@@ -83,14 +83,20 @@ export class WelcomeZelfidGraceComponent extends CopyToClipboardBase implements 
                 return;
             }
 
-            const tagNameObject = new TagModel(response.data.tagObject);
+            const tagNameObject = this._zelfIdsService.createTagModelFromSearchResponse(response.data);
 
-            // Update the component's tagNameObject with fresh data
-            if (response.data.tagObject) {
-                this.tagNameObject = tagNameObject;
+            if (!tagNameObject) {
+                this.loading = false;
+                return;
             }
 
-            const isOwnedByUser = tagNameObject.zelfProof === this.tagNameObject.zelfProof;
+            const previousProof = this.zelfProof || this.tagNameObject?.zelfProof;
+            this.tagNameObject = tagNameObject;
+            await this._zelfIdsService.setTagNameObject(tagNameObject);
+            await this._zelfIdsService.setZelfProof(tagNameObject.zelfProof || this.zelfProof || "");
+            await this._zelfIdsService.setTagResponse(response.data);
+
+            const isOwnedByUser = Boolean(previousProof) && tagNameObject.zelfProof === previousProof;
 
             if (!isOwnedByUser && tagNameObject.publicData?.expiresAt && new Date(tagNameObject.publicData.expiresAt) < new Date()) {
                 this._router.navigate(["/welcome-zelfid/recover"]);

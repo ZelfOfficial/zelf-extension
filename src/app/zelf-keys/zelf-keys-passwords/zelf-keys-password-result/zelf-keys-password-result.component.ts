@@ -45,6 +45,12 @@ export class ZelfKeysPasswordResultComponent extends CopyToClipboardBase impleme
             await this.zelfKeysDataService.clearCache();
 
             this.apiResult = apiResult as ZelfKeyPasswordResult;
+            if (typeof chrome !== "undefined" && chrome.runtime) {
+                chrome.runtime.sendMessage({
+                    type: "ZELF_KEYS_OPERATION_COMPLETE",
+                    payload: { status: "completed" },
+                });
+            }
         }
 
         const passwordData = this.dataPassingService.getData("passwords");

@@ -306,6 +306,19 @@
             "retry": "Intentar de Nuevo",
             "title": "Desencriptar {{ type }}",
             "unlock": "Desbloquear",
+            "verified": "Verificado en Zelf",
+            "copy_password": "Copiar contraseña",
+            "extension_only": "Esta contraseña permanece dentro de la extensión Zelf.",
+            "done": "Listo",
+            "create_heading": "Nueva Contraseña",
+            "create_title": "Cifrar Nueva Contraseña",
+            "create_processing": "Cifrando en Zelf...",
+            "create_master_password": "Contraseña maestra (si está habilitada)",
+            "verify_create": "Verificar con Rostro",
+            "delete_title": "¿Eliminar esta contraseña?",
+            "delete_description": "Esto elimina el registro cifrado. Verifica tu rostro para continuar.",
+            "delete_master_password": "Contraseña maestra (si está activada)",
+            "verify_delete": "Verificar y eliminar",
             "types": {
                 "credit_card": "Tarjeta de Pago",
                 "note": "Nota",
@@ -2054,5 +2067,8 @@
         "estimated_gas_fee": "Tarifa de gas estimada",
         "estimating": "Estimando...",
         "unable_to_estimate": "No se puede estimar"
+    },
+    "superapp": {
+        "connecting_with": "Conectando con {{appName}}"
     }
 }

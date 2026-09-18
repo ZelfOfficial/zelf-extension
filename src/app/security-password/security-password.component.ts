@@ -9,9 +9,11 @@ import { TranslocoModule } from "@jsverse/transloco";
 
 import { CaptchaService } from "app/captcha.service";
 import { ChromeService } from "app/chrome.service";
+import { previewProofSecurity, proofRequiresPassword } from "app/onboarding-stack";
 import { PasswordStrengthComponent } from "app/password-strength/password-strength.component";
 import { TagModel, TagsService } from "app/tags.service";
 import { VaultService } from "app/vault.service";
+import { ZelfIdsService } from "app/zelf-ids.service";
 import { ZelfFlow } from "app/zelf-name-service.service";
 
 export type SecurityOption = "securePassword" | "pin" | "withoutPassword" | null;
@@ -54,6 +56,7 @@ export class SecurityPasswordComponent implements OnInit, OnDestroy {
         private _formBuilder: FormBuilder,
         private _router: Router,
         private _tagsService: TagsService,
+        private _zelfIdsService: ZelfIdsService,
         private _vaultService: VaultService
     ) {
         this._vaultService.password = "";
@@ -72,32 +75,60 @@ export class SecurityPasswordComponent implements OnInit, OnDestroy {
 
         this.tagName = (await this._tagsService.getTagName()) || (await this._tagsService.getNewTagName());
         this.domain = await this._tagsService.getDomain();
-        this.tagModel = await this._tagsService.getTagNameObject();
+        const storedTag = await this._tagsService.getTagNameObject();
+        this.tagModel = storedTag instanceof TagModel ? storedTag : new TagModel(storedTag || {});
         this.tagResponse = await this._tagsService.getTagResponse();
 
         this.isNew = this.flow === "create" || this.flow === "import" || (this.flow === "recover" && !this.tagModel?.available);
 
-        // Security Type Detection for Unlock Flow
         if (!this.isNew && this.tagModel?.publicData) {
-            const publicData = this.tagModel.publicData as any;
+            const skipped = await this._resolveUnlockSecurity();
 
-            // Handle No Password
-            if (String(publicData.hasPassword) === "false") {
-                this._vaultService.password = "NO_PASSWORD_PLACEHOLDER";
-                this._vaultService.securityType = "withoutPassword";
-                this._chromeService.setItem("noPasswordRequired", "true");
-                this._navigateToBiometrics();
-                return;
-            }
-
-            // Handle PIN
-            if (publicData.st === "pin") {
-                this.isPinUnlock = true;
-                this.pinDigits = ["", "", "", "", "", ""];
-            }
+            if (skipped) return;
         }
 
         this._initForm();
+    }
+
+    private async _resolveUnlockSecurity(): Promise<boolean> {
+        const publicData = this.tagModel.publicData as { hasPassword?: string; st?: string };
+        let requiresPassword = publicData?.hasPassword === "true" ? true : undefined;
+        let zelfProof = "";
+
+        try {
+            zelfProof = (await this._tagsService.getZelfProof()) || this.tagModel?.zelfProof || "";
+        } catch {
+            zelfProof = this.tagModel?.zelfProof || "";
+        }
+
+        if (requiresPassword !== true && zelfProof) {
+            const preview = await previewProofSecurity(
+                zelfProof,
+                (proof) => this._zelfIdsService.previewZelfProof({ zelfProof: proof, os: "DESKTOP" }),
+                (proof) => this._tagsService.previewZelfProof({ zelfProof: proof, os: "DESKTOP" })
+            );
+
+            if (preview) {
+                this._tagsService.mergePreviewSecurity(this.tagModel, preview);
+                await this._tagsService.setTagNameObject(this.tagModel);
+                requiresPassword = proofRequiresPassword(preview.passwordLayer, this.tagModel.publicData?.hasPassword);
+            }
+        }
+
+        if (requiresPassword === false) {
+            this._vaultService.password = "NO_PASSWORD_PLACEHOLDER";
+            this._vaultService.securityType = "withoutPassword";
+            this._chromeService.setItem("noPasswordRequired", "true");
+            this._navigateToBiometrics();
+            return true;
+        }
+
+        if (this.tagModel.publicData?.st === "pin") {
+            this.isPinUnlock = true;
+            this.pinDigits = ["", "", "", "", "", ""];
+        }
+
+        return false;
     }
 
     ngOnDestroy(): void {

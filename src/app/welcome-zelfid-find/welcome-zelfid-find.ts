@@ -9,7 +9,7 @@ import { Buffer } from "buffer";
 import jsQR from "jsqr";
 
 import { ChromeService } from "app/chrome.service";
-import { TagModel, TagSearchResponse } from "app/tags.service";
+import { TagModel } from "app/tags.service";
 import { ZelfIdsService } from "app/zelf-ids.service";
 import { WalletService } from "app/wallet.service";
 import { WelcomeErrorComponent } from "../welcome-error/welcome-error.component";
@@ -222,18 +222,55 @@ export class WelcomeZelfidFindComponent implements OnInit, OnDestroy {
 
         const currentZelfNameObject = await this._queryForZelfObjectByZelfName({ tagKey: "tagName", tagName, domain });
 
-        if (currentZelfNameObject?.available) {
-            const newTagNameObject = new TagModel(previewData.preview);
+        const mergedTag = currentZelfNameObject?.available
+            ? this._zelfIdsService.createTagModelFromSearchResponse({
+                  ipfs: [],
+                  arweave: [],
+                  available: false,
+                  tagName,
+                  domain,
+                  tagObject: previewData.preview,
+                  preview,
+              })
+            : this._zelfIdsService.createTagModelFromSearchResponse({
+                  ipfs: [],
+                  arweave: [],
+                  available: false,
+                  tagName,
+                  domain,
+                  tagObject: currentZelfNameObject,
+                  preview,
+              }) || currentZelfNameObject;
 
-            this._zelfIdsService.setTagNameObject(newTagNameObject);
-        } else {
-            this._zelfIdsService.setTagNameObject(currentZelfNameObject);
+        if (mergedTag) {
+            await this._persistFoundTag(mergedTag, this.zelfProof);
         }
 
         this._zelfIdsService.setDomain(domain);
         this._zelfIdsService.setTagName(tagName);
 
-        await this._redirectAfterZelfProofSearch(currentZelfNameObject);
+        await this._redirectAfterZelfProofSearch(mergedTag || currentZelfNameObject);
+    }
+
+    private async _persistFoundTag(tagModel: TagModel, zelfProof?: string): Promise<void> {
+        const tagName = tagModel.tagName || tagModel.publicData?.tagName || tagModel.name;
+        const domain = tagModel.publicData?.domain || tagModel.domain || "zelf";
+
+        if (tagName) {
+            await this._zelfIdsService.setTagName(String(tagName).toLowerCase());
+        }
+
+        await this._zelfIdsService.setDomain(domain);
+        await this._zelfIdsService.setTagNameObject(tagModel);
+        await this._zelfIdsService.setZelfProof(zelfProof || tagModel.zelfProof || "");
+        await this._zelfIdsService.setTagResponse({
+            ipfs: [],
+            arweave: [],
+            available: false,
+            tagName: tagName || "",
+            domain,
+            tagObject: tagModel,
+        });
     }
 
     private async _queryForZelfObjectByZelfName(params: { tagKey: string; tagName: string; domain: string }): Promise<any> {
@@ -280,7 +317,7 @@ export class WelcomeZelfidFindComponent implements OnInit, OnDestroy {
 
             if (response.data?.available) return response.data;
 
-            const zelfNameObject = new TagModel(response.data.tagObject);
+            const zelfNameObject = this._zelfIdsService.createTagModelFromSearchResponse(response.data) || new TagModel(response.data.tagObject);
 
             this.loading = false;
 
@@ -302,19 +339,9 @@ export class WelcomeZelfidFindComponent implements OnInit, OnDestroy {
             return;
         }
 
-        // Set tagResponse before redirecting to welcome-grace
+        await this._persistFoundTag(zelfNameObject);
+
         if (zelfNameObject && (zelfNameObject.publicData?.isInGracePeriod || zelfNameObject.publicData?.isExpired)) {
-            const tagResponse: TagSearchResponse = {
-                ipfs: [],
-                arweave: [],
-                available: false,
-                tagName: zelfNameObject.tagName,
-                domain: zelfNameObject.domain,
-                tagObject: zelfNameObject as TagModel,
-            };
-
-            await this._zelfIdsService.setTagResponse(tagResponse);
-
             this._router.navigate(["/welcome-zelfid/grace"]);
         } else {
             this._router.navigate(["/welcome-zelfid/registered"]);
@@ -325,38 +352,13 @@ export class WelcomeZelfidFindComponent implements OnInit, OnDestroy {
     private async _redirectAfterZelfProofSearch(tagObject: TagModel | any): Promise<void> {
         const ownedByThisUser = tagObject.ethAddress === this.ethAddress;
 
-        if (ownedByThisUser && (tagObject.publicData?.isInGracePeriod || tagObject.publicData?.isExpired)) {
-            // Set tagResponse before redirecting to welcome-grace
-            if (tagObject) {
-                const tagResponse: TagSearchResponse = {
-                    ipfs: [],
-                    arweave: [],
-                    available: false,
-                    tagName: tagObject.tagName,
-                    domain: tagObject.domain,
-                    tagObject: tagObject as TagModel,
-                };
+        if (tagObject && !tagObject.available) {
+            await this._persistFoundTag(tagObject, this.zelfProof || tagObject.zelfProof);
+        }
 
-                await this._zelfIdsService.setTagResponse(tagResponse);
-            }
+        if (ownedByThisUser && (tagObject.publicData?.isInGracePeriod || tagObject.publicData?.isExpired)) {
             this._router.navigate(["/welcome-zelfid/grace"]);
         } else if (!ownedByThisUser) {
-            this._zelfIdsService.setTagNameObject(tagObject);
-
-            this._zelfIdsService.setDomain(tagObject.domain);
-
-            this._zelfIdsService.setTagName(tagObject.tagName);
-
-            this._zelfIdsService.setZelfProof(tagObject.zelfProof);
-
-            this._zelfIdsService.setTagResponse({
-                ipfs: [],
-                arweave: [],
-                available: false,
-                tagName: tagObject.tagName,
-                tagObject: tagObject as TagModel,
-            });
-
             this._router.navigate(["/welcome-zelfid/recover"]);
         } else {
             this._router.navigate(["/welcome-zelfid/registered"]);

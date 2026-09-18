@@ -45,8 +45,7 @@ export class DappConnectComponent implements OnInit, OnDestroy {
     ) {}
 
     async ngOnInit(): Promise<void> {
-        const urlParams = new URLSearchParams(window.location.search);
-        this.requestId = urlParams.get("requestId") || this._activatedRoute.snapshot.queryParams?.requestId || "";
+        this.requestId = this._getRequestId();
 
         if (!this.requestId) {
             this._router.navigate(["/home"]);
@@ -95,7 +94,6 @@ export class DappConnectComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         window.removeEventListener("beforeunload", this._beforeUnloadHandler);
-        this._rejectIfNoUserAction();
     }
 
     private _rejectIfNoUserAction(): void {
@@ -199,7 +197,10 @@ export class DappConnectComponent implements OnInit, OnDestroy {
         });
 
         try {
-            await sendPromise;
+            const response = await sendPromise;
+            if (!response?.success) {
+                throw new Error(response?.error || "The connection approval could not be delivered.");
+            }
             window.close();
         } catch (error) {
             console.error("Error sending approval:", error);
@@ -252,6 +253,17 @@ export class DappConnectComponent implements OnInit, OnDestroy {
         }
 
         return null;
+    }
+
+    private _getRequestId(): string {
+        const hashQuery = window.location.hash.includes("?") ? window.location.hash.split("?").slice(1).join("?") : "";
+
+        return (
+            new URLSearchParams(hashQuery).get("requestId") ||
+            this._activatedRoute.snapshot.queryParamMap.get("requestId") ||
+            new URLSearchParams(window.location.search).get("requestId") ||
+            ""
+        );
     }
 
     private _extractHostname(origin: string): string {

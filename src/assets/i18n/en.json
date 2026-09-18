@@ -306,6 +306,19 @@
             "retry": "Retry",
             "title": "{{ type }} Decryption",
             "unlock": "Continue to Biometrics",
+            "verified": "Verified in Zelf",
+            "copy_password": "Copy password",
+            "extension_only": "This password stays inside the Zelf extension.",
+            "done": "Done",
+            "create_heading": "New Password",
+            "create_title": "Encrypt New Password",
+            "create_processing": "Encrypting in Zelf...",
+            "create_master_password": "Master password (if enabled)",
+            "verify_create": "Verify with Face",
+            "delete_title": "Delete this password?",
+            "delete_description": "This removes the encrypted record. Verify your face to continue.",
+            "delete_master_password": "Master password (if enabled)",
+            "verify_delete": "Verify and delete",
             "types": {
                 "credit_card": "Payment Card",
                 "note": "Note",
@@ -2059,5 +2072,8 @@
         "unable_to_estimate": "Unable to estimate",
         "data": "Data",
         "biometric_required": "Biometric verification required to sign"
+    },
+    "superapp": {
+        "connecting_with": "Connecting with {{appName}}"
     }
 }

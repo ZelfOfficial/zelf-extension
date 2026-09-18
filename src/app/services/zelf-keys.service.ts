@@ -64,7 +64,7 @@ export interface ListRequest {
     providedIn: "root",
 })
 export class ZelfKeysService {
-    private readonly baseUrl: string = environment.apiUrl;
+    private readonly baseUrl: string = environment.v4ApiUrl;
     private readonly apiPath: string = "/api/zelf-keys";
 
     constructor(
@@ -238,11 +238,14 @@ export class ZelfKeysService {
      * @returns Promise with the deletion response
      */
     async delete(id: string, faceBase64: string, masterPassword: string): Promise<any> {
+        const token = await this._authService.checkAccessToken();
         const url = `${this.baseUrl}${this.apiPath}/delete/${id}`;
 
         return this._httpWrapper.sendRequest("put", url, {
             faceBase64,
             masterPassword,
+        }, {
+            headers: { Authorization: `Bearer ${token}` },
         });
     }
 

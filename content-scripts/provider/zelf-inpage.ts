@@ -63,7 +63,11 @@ class ZelfProvider implements EIP1193Provider {
                 return this._sendToContentScript("DAPP_GET_ACCOUNTS", { method });
 
             case "eth_requestAccounts":
-                return this._sendToContentScript("DAPP_REQUEST_ACCOUNTS", { method, params });
+                return this._sendToContentScript("DAPP_REQUEST_ACCOUNTS", {
+                    method,
+                    params,
+                    chainId: (params as any)?.[0]?.chainId,
+                });
 
             case "eth_sendTransaction":
                 return this._sendToContentScript("DAPP_SEND_TRANSACTION", { method, params });
@@ -229,6 +233,14 @@ class ZelfProvider implements EIP1193Provider {
                     pending.reject(error);
                 } else {
                     const result = payload?.result;
+                    const approvedChainId = payload?.chainId;
+
+                    if (approvedChainId != null) {
+                        this.chainId =
+                            typeof approvedChainId === "number"
+                                ? `0x${approvedChainId.toString(16)}`
+                                : approvedChainId;
+                    }
 
                     if (
                         Array.isArray(result) &&

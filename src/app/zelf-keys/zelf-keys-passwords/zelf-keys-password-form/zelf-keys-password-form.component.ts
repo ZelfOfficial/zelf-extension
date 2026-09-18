@@ -154,7 +154,7 @@ export class PasswordFormComponent implements OnInit {
 
             if (!solanaAddress) return;
 
-            this.znsBalance = await this._solanaService.getZnsBalanceViaRpc(solanaAddress);
+            this.znsBalance = await this._solanaService.getZnsBalance(solanaAddress);
         } catch {
             this.znsBalance = 0;
         } finally {

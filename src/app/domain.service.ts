@@ -44,7 +44,7 @@ export class DomainService {
                     reserved: ["www", "api", "admin", "support", "help", "google"],
                     customRules: [],
                     payment: {
-                        methods: ["coinbase", "crypto", "stripe"],
+                        methods: ["crypto", "stripe"],
                         currencies: ["BTC", "ETH", "USDC", "BDAG", "ZNS", "AVAX"],
                         discounts: { yearly: 0.1, lifetime: 0.2 },
                         rewardPrice: 10,
