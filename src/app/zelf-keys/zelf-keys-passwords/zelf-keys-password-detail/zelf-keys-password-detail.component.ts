@@ -1,17 +1,27 @@
 import { CommonModule } from "@angular/common";
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
+import { MatBottomSheet } from "@angular/material/bottom-sheet";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { FormsModule } from "@angular/forms";
 import { Router, RouterModule } from "@angular/router";
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { Subject, takeUntil } from "rxjs";
 
 import { CopyToClipboardBase } from "app/base/copy-to-clipboard/copy-to-clipboard.base";
+import { HttpWrapperService } from "app/http-wrapper.service";
 import { ZelfKeysService } from "app/services/zelf-keys.service";
+import { WalletService } from "app/wallet.service";
 import { ChromeService } from "../../../chrome.service";
 import { PopoutDecryptorComponent } from "../../../popout-decryptor/popout-decryptor.component";
 import { PasswordDataService } from "../../../services/password-data.service";
 import { PopoutCommunicationService, PopoutDecryptionResult } from "../../../services/popout-communication.service";
 import { ScrollToSectionService } from "../../../services/scroll-to-section.service";
+import { ZelfKeysDataService } from "../../../services/zelf-keys-data.service";
+import {
+    BiometricResult,
+    BiometricsBottomSheetComponent,
+    BiometricsBottomSheetData,
+} from "../../shared/biometrics-bottom-sheet/biometrics-bottom-sheet.component";
 
 interface ZelfKeyPasswordRecord {
     id: string;
@@ -19,8 +29,11 @@ interface ZelfKeyPasswordRecord {
     zelfProof: string;
     publicData: {
         category: string;
+        alias?: string;
+        folder?: string;
         timestamp: number;
         username: string;
+        v?: string;
         website: string;
         zelfName: string;
     };
@@ -39,7 +52,7 @@ interface DecryptedPasswordData {
 }
 
 @Component({
-    imports: [CommonModule, TranslocoModule, RouterModule, PopoutDecryptorComponent],
+    imports: [CommonModule, FormsModule, TranslocoModule, RouterModule, PopoutDecryptorComponent],
     selector: "zelf-keys-password-detail",
     styleUrls: ["./zelf-keys-password-detail.component.scss"],
     templateUrl: "./zelf-keys-password-detail.component.html",
@@ -48,6 +61,9 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
     private _destroy$ = new Subject<void>();
 
     decryptedData: DecryptedPasswordData | null = null;
+    confirmingDelete = false;
+    deleteMasterPassword = "";
+    deleting = false;
     decrypting = false;
     error: string | null = null;
     isPopout = false;
@@ -55,14 +71,19 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
     showBiometrics = false;
     showPassword = false;
     showPopoutDecryptor = false;
+    hasMasterPassword = false;
     zelfKeyPasswordRecord: ZelfKeyPasswordRecord | null = null;
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
+        private _bottomSheet: MatBottomSheet,
+        private _httpWrapperService: HttpWrapperService,
         private _passwordDataService: PasswordDataService,
         private _popoutCommunicationService: PopoutCommunicationService,
         private _router: Router,
         private _scrollToSectionService: ScrollToSectionService,
+        private _walletService: WalletService,
+        private _zelfKeysDataService: ZelfKeysDataService,
         public _chromeService: ChromeService,
         public _snackBar: MatSnackBar,
         public _translocoService: TranslocoService
@@ -75,6 +96,8 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
     }
 
     async ngOnInit(): Promise<void> {
+        const wallet = await this._walletService.getCurrentWallet();
+        this.hasMasterPassword = wallet?.hasPassword || false;
         this._loadPasswordData();
     }
 
@@ -96,6 +119,7 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
             type: "password",
             zelfProof: this.zelfKeyPasswordRecord.zelfProof || "",
             publicData: {
+                v: this.zelfKeyPasswordRecord.publicData?.v,
                 title: this.zelfKeyPasswordRecord.publicData?.website || "Password",
                 username: this.zelfKeyPasswordRecord.publicData?.username || "",
                 website: this.zelfKeyPasswordRecord.publicData?.website || "",
@@ -211,6 +235,55 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
         this._passwordDataService.clearCurrentPassword();
 
         this._router.navigate(["/zelf-keys/vault"]);
+    }
+
+    onDeleteClick(): void {
+        this.confirmingDelete = true;
+        this.deleteMasterPassword = "";
+    }
+
+    onCancelDelete(): void {
+        this.confirmingDelete = false;
+        this.deleteMasterPassword = "";
+    }
+
+    async onConfirmDelete(): Promise<void> {
+        if (!this.zelfKeyPasswordRecord || this.deleting) return;
+        if (this.hasMasterPassword && !this.deleteMasterPassword.trim()) return;
+
+        this.deleting = true;
+
+        const masterPassword = this.hasMasterPassword
+            ? await this._httpWrapperService.encryptMessage(this.deleteMasterPassword)
+            : "";
+        const data: BiometricsBottomSheetData = {
+            itemData: {
+                ...this.zelfKeyPasswordRecord,
+                masterPassword,
+            },
+            itemType: "password",
+            mode: "delete",
+        };
+
+        const bottomSheetRef = this._bottomSheet.open(BiometricsBottomSheetComponent, {
+            data,
+            backdropClass: "zelf-backdrop",
+            panelClass: "zelf-bottom-sheet-biometrics",
+        });
+
+        bottomSheetRef.afterDismissed().subscribe(async (result: BiometricResult | undefined) => {
+            this.deleting = false;
+            this.deleteMasterPassword = "";
+
+            if (!result?.deleted) {
+                this._changeDetectorRef.detectChanges();
+                return;
+            }
+
+            this._passwordDataService.clearCurrentPassword();
+            await this._zelfKeysDataService.refresh("native-delete-password");
+            await this._router.navigate(["/zelf-keys/vault"]);
+        });
     }
 
     onCopyPassword(): void {

@@ -1,6 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from "@angular/core";
 import { FlexLayoutModule } from "@angular/flex-layout";
+import { FormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
@@ -18,6 +19,9 @@ import { ZelfKeysService } from "app/services/zelf-keys.service";
 import { TagModel } from "app/tags.service";
 import { ThemeService } from "app/theme.service";
 import { VaultService } from "app/vault.service";
+import { SuperappPendingKeysOperation, ZelfKeysOperationAction } from "@shared/types/superapp.types";
+import { SolanaService } from "app/solana.service";
+import { environment } from "environments/environment";
 import { PopoutCommunicationService } from "../services/popout-communication.service";
 import { WalletService } from "../wallet.service";
 
@@ -31,6 +35,7 @@ export interface BiometricData {
     imports: [
         CommonModule,
         FlexLayoutModule,
+        FormsModule,
         MatButtonModule,
         MatProgressBarModule,
         MatProgressSpinnerModule,
@@ -55,6 +60,8 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
     private _destroy$ = new Subject<void>();
     private _intervals: any = {};
     private _takePicture$ = new Subject<void>();
+    private _biometricsInitialized = false;
+    private _pendingSuperappOperation: SuperappPendingKeysOperation | null = null;
 
     aspectRatio = 0.75;
 
@@ -87,6 +94,14 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
 
     lastFace: any;
     record: any = {};
+    superappAction: ZelfKeysOperationAction | null = null;
+    superappAppName = "";
+    superappResult: Record<string, any> | null = null;
+    awaitingMasterPassword = false;
+    checkingZns = false;
+    znsCheckFailed = false;
+    masterPassword = "";
+    showMasterPassword = false;
 
     response = {
         base64Image: "",
@@ -103,6 +118,7 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         private _httpWrapperService: HttpWrapperService,
         private _popoutCommunicationService: PopoutCommunicationService,
         private _router: Router,
+        private _solanaService: SolanaService,
         private _themeService: ThemeService,
         private _translocoService: TranslocoService,
         private _vaultService: VaultService,
@@ -111,15 +127,23 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
     ) {
         this._getRecordForDecryptingFromService();
         this._initializeDecryptionData();
-        this._initializeBiometrics();
     }
 
     async ngOnInit(): Promise<void> {
         this._getRecordForDecryptingFromService();
+        await this._loadPendingSuperappOperation();
 
-        await this._setWallet();
+        const hasWallet = await this._setWallet();
+        if (!hasWallet) return;
 
         this._setupCloseMessageListener();
+
+        if (this.superappAction === "create") {
+            await this._gateCreateOnZnsBalance();
+            return;
+        }
+
+        await this._continueSecureFlow();
     }
 
     ngOnDestroy(): void {
@@ -155,22 +179,142 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         return this.record?.type || "password";
     }
 
+    get operationContext(): string {
+        if (this.superappAction === "create") {
+            return (
+                this._pendingSuperappOperation?.draft?.alias ||
+                this._pendingSuperappOperation?.draft?.website ||
+                this._pendingSuperappOperation?.cardDraft?.alias ||
+                this._pendingSuperappOperation?.cardDraft?.cardName ||
+                this._pendingSuperappOperation?.cardDraft?.bankName ||
+                ""
+            );
+        }
+        return this.record?.publicData?.title || this.record?.publicData?.website || this.record?.publicData?.cardName || "";
+    }
+
+    get isCardReveal(): boolean {
+        return this.recordType === "credit_card" || this.recordType === "payment-card";
+    }
+
+    get maskedCardNumber(): string {
+        const lastFour = this.superappResult?.number?.replace(/\D/g, "").slice(-4) || this.record?.publicData?.lastFour || "";
+        return lastFour ? `•••• •••• •••• ${lastFour}` : "•••• •••• •••• ••••";
+    }
+
+    get cardExpiry(): string {
+        const month = this.superappResult?.expiryMonth || "";
+        const year = this.superappResult?.expiryYear || "";
+        if (month && year) return `${month}/${String(year).slice(-2)}`;
+        return this.record?.publicData?.expires || "";
+    }
+
+    get processingLabel(): string {
+        return this.superappAction === "create"
+            ? this._translocoService.translate("zelf_keys.popout_decryptor.create_processing")
+            : this._translocoService.translate("zelf_keys.popout_decryptor.processing");
+    }
+
     get takePicture$(): Observable<void> {
         return this._takePicture$.asObservable();
     }
 
-    private async _setWallet(): Promise<any> {
+    async continueToBiometrics(): Promise<void> {
+        if (!this.masterPassword.trim()) return;
+
+        this.awaitingMasterPassword = false;
+        await this._initializeBiometrics();
+        this._changeDetectorRef.detectChanges();
+    }
+
+    toggleMasterPasswordVisibility(): void {
+        this.showMasterPassword = !this.showMasterPassword;
+    }
+
+    private async _setWallet(): Promise<boolean> {
         const wallet = await this._walletService.getFirstWalletFromStorage();
 
         if (!wallet?.name) {
             this._router.navigate(["/welcome-zelfid"]);
 
-            return;
+            return false;
         }
 
         this.wallet = wallet;
 
         this._changeDetectorRef.detectChanges();
+        return true;
+    }
+
+    private async _continueSecureFlow(): Promise<void> {
+        const needsMasterPassword = Boolean(
+            this.superappAction && this.superappAction !== "reveal" && this.wallet.hasPassword
+        );
+        this.awaitingMasterPassword = needsMasterPassword;
+        if (!this.awaitingMasterPassword) {
+            await this._initializeBiometrics();
+        }
+        this._changeDetectorRef.detectChanges();
+    }
+
+    private async _gateCreateOnZnsBalance(): Promise<void> {
+        this.checkingZns = true;
+        this.znsCheckFailed = false;
+        this.error = null;
+        this._changeDetectorRef.detectChanges();
+
+        const result = await this._checkCreateZnsBalance();
+        this.checkingZns = false;
+
+        if (result === "ok") {
+            await this._continueSecureFlow();
+            return;
+        }
+
+        if (result === "insufficient") {
+            const message = this._translocoService.translate("zelf_keys.popout_decryptor.insufficient_zns", {
+                amount: environment.zelfKeysPasswordSaveZns,
+            });
+            this.error = message;
+            this._changeDetectorRef.detectChanges();
+            await this._notifySuperappOperation("failed", message);
+            return;
+        }
+
+        this.znsCheckFailed = true;
+        this.error = this._translocoService.translate("zelf_keys.popout_decryptor.zns_check_failed");
+        this._changeDetectorRef.detectChanges();
+    }
+
+    private async _checkCreateZnsBalance(): Promise<"ok" | "insufficient" | "error"> {
+        const solanaAddress = this.wallet?.publicData?.solanaAddress;
+        if (!solanaAddress) return "error";
+
+        try {
+            await this._solanaService.getConnection();
+            const first = await this._readZnsBalance(solanaAddress);
+            if (first >= environment.zelfKeysPasswordSaveZns) return "ok";
+
+            await this._wait(2000);
+            const second = await this._readZnsBalance(solanaAddress);
+            if (second >= environment.zelfKeysPasswordSaveZns) return "ok";
+
+            return "insufficient";
+        } catch {
+            return "error";
+        }
+    }
+
+    private async _readZnsBalance(solanaAddress: string): Promise<number> {
+        const balance = await this._solanaService.getZnsBalance(solanaAddress);
+        if (typeof balance !== "number" || Number.isNaN(balance)) {
+            throw new Error("Invalid ZNS balance");
+        }
+        return balance;
+    }
+
+    private _wait(ms: number): Promise<void> {
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     private _checkVideoStreamReady(): void {
@@ -322,6 +466,11 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
     private async _emitBiometricCapture(): Promise<void> {
         try {
             const base64Data = this.response.base64Image.split(",")[1];
+            if (this.superappAction) {
+                await this._executeSuperappOperation(base64Data);
+                return;
+            }
+
             const result = await this._retrieveEncryptedRecord(base64Data);
 
             this._handleDecryptionSuccess(result);
@@ -330,6 +479,105 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
 
             this._handleError(error);
         }
+    }
+
+    private async _executeSuperappOperation(faceBase64: string): Promise<void> {
+        if (!this._pendingSuperappOperation || !this.superappAction) {
+            throw new Error("Missing SuperApp operation");
+        }
+
+        if (this.superappAction === "create") {
+            const item =
+                this._pendingSuperappOperation?.kind === "credit_card"
+                    ? await this._createSuperappCard(faceBase64)
+                    : await this._createSuperappPassword(faceBase64);
+            await this._notifySuperappOperation("completed", undefined, item);
+            this._closeDecryptor();
+            return;
+        }
+
+        if (this.superappAction === "delete") {
+            await this._deleteSuperappPassword(faceBase64);
+            await this._notifySuperappOperation("completed");
+            this._closeDecryptor();
+            return;
+        }
+
+        const result = await this._retrieveEncryptedRecord(faceBase64);
+        this.superappResult = result?.data || result;
+        this.response.isLoading = false;
+        this._stopCamera();
+        this._changeDetectorRef.detectChanges();
+    }
+
+    private async _createSuperappPassword(faceBase64: string): Promise<unknown> {
+        const draft = this._pendingSuperappOperation?.draft;
+        if (!draft || !this.wallet?.zelfProof) {
+            throw new Error("Missing password draft or wallet proof");
+        }
+
+        const encryptedFace = await this._httpWrapperService.encryptMessage(faceBase64);
+        const encryptedPassword = await this._httpWrapperService.encryptMessage(draft.password);
+        const encryptedMasterPassword = this.wallet.hasPassword
+            ? await this._httpWrapperService.encryptMessage(this.masterPassword)
+            : undefined;
+
+        const response = await this._zelfKeysService.storePasswordWithAuth({
+            website: draft.website,
+            username: draft.username,
+            password: encryptedPassword,
+            alias: draft.alias || undefined,
+            folder: draft.folder || undefined,
+            insideFolder: Boolean(draft.folder),
+            faceBase64: encryptedFace,
+            masterPassword: encryptedMasterPassword,
+            zelfProof: this.wallet.zelfProof,
+            name: draft.website,
+        });
+
+        return response?.data?.data || response?.data || response;
+    }
+
+    private async _createSuperappCard(faceBase64: string): Promise<unknown> {
+        const draft = this._pendingSuperappOperation?.cardDraft;
+        if (!draft || !this.wallet?.zelfProof) {
+            throw new Error("Missing card draft or wallet proof");
+        }
+
+        const encryptedFace = await this._httpWrapperService.encryptMessage(faceBase64);
+        const encryptedCardNumber = await this._httpWrapperService.encryptMessage(draft.cardNumber);
+        const encryptedCvv = await this._httpWrapperService.encryptMessage(draft.cvv);
+        const encryptedMasterPassword = this.wallet.hasPassword
+            ? await this._httpWrapperService.encryptMessage(this.masterPassword)
+            : undefined;
+
+        const response = await this._zelfKeysService.storeCreditCard({
+            cardName: draft.cardName,
+            cardNumber: encryptedCardNumber,
+            expiryMonth: draft.expiryMonth,
+            expiryYear: draft.expiryYear,
+            cvv: encryptedCvv,
+            bankName: draft.bankName,
+            alias: draft.alias || undefined,
+            folder: draft.folder || undefined,
+            insideFolder: Boolean(draft.folder),
+            faceBase64: encryptedFace,
+            masterPassword: encryptedMasterPassword,
+            zelfProof: this.wallet.zelfProof,
+        });
+
+        return response?.data?.data || response?.data || response;
+    }
+
+    private async _deleteSuperappPassword(faceBase64: string): Promise<void> {
+        const itemId = this._pendingSuperappOperation?.itemId;
+        if (!itemId) {
+            throw new Error("Missing password item");
+        }
+
+        const encryptedFace = await this._httpWrapperService.encryptMessage(faceBase64);
+        const encryptedMasterPassword = await this._httpWrapperService.encryptMessage(this.masterPassword || "");
+        await this._zelfKeysService.delete(itemId, encryptedFace, encryptedMasterPassword);
     }
 
     private _getCenterAndRadius(
@@ -369,6 +617,41 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         this.record = this._normalizeDecryptionRecord(popoutData);
     }
 
+    private async _loadPendingSuperappOperation(): Promise<void> {
+        if (typeof chrome === "undefined" || !chrome.storage?.session) return;
+
+        const stored = await chrome.storage.session.get("superapp_pending_keys_operation");
+        const pending = stored?.superapp_pending_keys_operation as SuperappPendingKeysOperation | undefined;
+        if (!pending) return;
+
+        if (pending.expiresAt < Date.now()) {
+            await chrome.storage.session.remove("superapp_pending_keys_operation");
+            this.error = this._translocoService.translate("zelf_keys.popout_decryptor.request_expired");
+            return;
+        }
+
+        if (pending.action === "create" && !pending.draft && !pending.cardDraft) {
+            this.error = this._translocoService.translate("zelf_keys.popout_decryptor.missing_request");
+            return;
+        }
+        if (pending.action !== "create" && !pending.record) {
+            this.error = this._translocoService.translate("zelf_keys.popout_decryptor.missing_request");
+            return;
+        }
+
+        this._pendingSuperappOperation = pending;
+        this.superappAction = pending.action;
+        this.superappAppName = pending.appName || pending.draft?.appName || pending.cardDraft?.appName || "Zelf SuperApp";
+
+        if (pending.record) {
+            this.record = this._normalizeDecryptionRecord({
+                ...pending.record,
+                requestId: pending.requestId,
+                source: "superapp",
+            });
+        }
+    }
+
     private _normalizeDecryptionRecord(data: any): Record<string, any> {
         if (!data) return {};
 
@@ -379,6 +662,7 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
             ...data,
             type,
             zelfProof,
+            v: data.v || data.publicData?.v,
             publicData: data.publicData || {},
         };
     }
@@ -405,6 +689,7 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
 
         const errorKey = this._errorService.resolveErrorKey(error);
         const translatedMessage = this._errorService.translateErrorMessage(errorKey);
+        const isLivenessError = this._errorService.isLivenessError(errorKey);
 
         if (errorKey.includes("failed_to_decrypt") || errorKey.includes("encryption_key_didnt_match")) {
             this._logIdentifierDiagnostics(errorKey);
@@ -414,7 +699,7 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         this.response.isLoading = false;
         this.response.base64Image = "";
 
-        if (this._errorService.isLivenessError(errorKey)) {
+        if (isLivenessError) {
             this.error = null;
             this.errorFace = {
                 icon: "face",
@@ -433,9 +718,16 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
 
         this._resetBiometricSession();
         this._changeDetectorRef.detectChanges();
+
+        if (this.superappAction && this.superappAction !== "reveal") {
+            void this._notifySuperappOperation("failed", rawMessage || translatedMessage);
+        }
     }
 
     private async _initializeBiometrics(): Promise<void> {
+        if (this._biometricsInitialized) return;
+        this._biometricsInitialized = true;
+
         try {
             this._walletService.faceapi$.pipe(takeUntil(this._destroy$)).subscribe(async (isLoaded) => {
                 if (!isLoaded) return;
@@ -512,11 +804,13 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
             const base64Data = faceBase64.includes(",") ? faceBase64.split(",")[1] : faceBase64;
             const { publicKey: clientPublicKey, privateKey: clientPrivateKey } = await this._vaultService.generateEphemeralKeyPair();
 
+            const versionHint = this.record.v || this.record.publicData?.v;
             const payload = {
                 faceBase64: await this._httpWrapperService.encryptMessage(base64Data),
                 type: this.record.type,
                 zelfProof: this.record.zelfProof,
                 clientPublicKey,
+                ...(versionHint != null && String(versionHint).trim() ? { v: String(versionHint) } : {}),
             };
 
             const response = await this._zelfKeysService.retrieve(payload);
@@ -561,8 +855,6 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
                 data: resultData,
             };
         } catch (error) {
-            this._handleError(error);
-
             throw error;
         }
     }
@@ -581,6 +873,47 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         } catch (error) {
             console.error("Error sending decryption result to background:", error);
         }
+    }
+
+    private async _notifySuperappOperation(
+        status: "completed" | "cancelled" | "failed",
+        error?: string,
+        item?: unknown
+    ): Promise<void> {
+        if (!this.superappAction || typeof chrome === "undefined" || !chrome.runtime) return;
+
+        await chrome.runtime.sendMessage({
+            type: "ZELF_KEYS_OPERATION_COMPLETE",
+            payload: {
+                status,
+                ...(error ? { error } : {}),
+                ...(item ? { item } : {}),
+            },
+        });
+    }
+
+    async copySuperappPassword(): Promise<void> {
+        const password = this.superappResult?.password;
+        if (!password) return;
+
+        await navigator.clipboard.writeText(password);
+    }
+
+    async copySuperappCardField(field: "number" | "cvv" | "expiry"): Promise<void> {
+        const value =
+            field === "expiry"
+                ? this.cardExpiry
+                : field === "number"
+                  ? this.superappResult?.number
+                  : this.superappResult?.cvv;
+        if (!value) return;
+        await navigator.clipboard.writeText(String(value));
+    }
+
+    async finishSuperappReveal(): Promise<void> {
+        await this._notifySuperappOperation("completed");
+        this.superappResult = null;
+        this._closeDecryptor();
     }
 
     private _drawCrop(
@@ -847,16 +1180,26 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         this._handleError(error);
     }
 
-    onBiometricsCancel(): void {
+    async onBiometricsCancel(): Promise<void> {
+        if (this.superappAction) {
+            await this._notifySuperappOperation("cancelled");
+            this._closeDecryptor();
+            return;
+        }
+
         this._handleError({ message: "User cancelled decryption" });
     }
 
-    onCancel(): void {
-        this.onBiometricsCancel();
+    async onCancel(): Promise<void> {
+        await this.onBiometricsCancel();
     }
 
     onRetry(): void {
         this.error = null;
+        if (this.znsCheckFailed && this.superappAction === "create") {
+            void this._gateCreateOnZnsBalance();
+            return;
+        }
         this._resetBiometricSession();
     }
 

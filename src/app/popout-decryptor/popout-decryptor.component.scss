@@ -102,6 +102,19 @@
         justify-content: center;
     }
 
+    &__loading--zns {
+        position: absolute;
+        inset: 0;
+        z-index: 120;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: calc(12px * var(--zns-space-scale, 1));
+        margin: 0;
+        background: variables.$themeBackground;
+    }
+
     &__loading,
     &__error {
         padding: calc(20px * var(--zns-space-scale, 1));
@@ -638,6 +651,98 @@
 
     100% {
         transform: translate3d(2%, -3%, 0) scale(1.05);
+    }
+}
+
+.superapp-reveal {
+    position: absolute;
+    inset: 0;
+    z-index: 110;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 28px 22px;
+    text-align: center;
+    background:
+        radial-gradient(90% 60% at 50% 0%, color-mix(in oklab, variables.$correct 12%, transparent), transparent 70%),
+        variables.$themeBackground;
+
+    &__icon {
+        display: grid;
+        width: 60px;
+        height: 60px;
+        place-items: center;
+        border-radius: 50%;
+        background: color-mix(in oklab, variables.$correct 14%, variables.$themeCard);
+        color: variables.$correct;
+        font-size: 30px;
+    }
+
+    &__eyebrow,
+    &__username,
+    &__note {
+        margin: 0;
+        color: variables.$themeTextSecondary;
+    }
+
+    &__eyebrow {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    h2 {
+        margin: 2px 0 0;
+        color: variables.$themeText;
+        font-family: variables.$themeTitleFamily;
+        font-size: 22px;
+    }
+
+    &__username {
+        font-size: 13px;
+    }
+
+    &__secret {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        min-height: 54px;
+        margin-top: 10px;
+        padding: 0 8px 0 14px;
+        border: 1px solid variables.$themeBorder;
+        border-radius: 16px;
+        background: variables.$themeCard;
+
+        code {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            color: variables.$themeText;
+            font-size: 14px;
+            text-align: left;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        button {
+            display: grid;
+            width: 38px;
+            height: 38px;
+            place-items: center;
+            border: 0;
+            border-radius: 12px;
+            background: variables.$themeBackgroundSecondary;
+            color: variables.$themeText;
+            cursor: pointer;
+        }
+    }
+
+    &__note {
+        margin-bottom: 16px;
+        font-size: 11px;
     }
 }
 

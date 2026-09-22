@@ -6,12 +6,15 @@ import {
     ZelfBridgeRequest,
     ZelfBridgeResponse,
     ZelfKeysOperationAction,
+    ZelfKeysCardMetadata,
+    ZelfKeysItemKind,
     ZelfKeysPasswordList,
     ZelfKeysPasswordMetadata,
     ZelfSession,
+    SuperappPendingKeysOperation,
 } from "@shared/types/superapp.types";
 import { DEFAULT_WEB_APP_NAME, PENDING_CONNECT_KEY, SuperappPendingConnect } from "@shared/utils/superapp-connect";
-import { sanitizeSuperappPassword } from "@shared/utils/superapp-keys";
+import { sanitizeSuperappCard, sanitizeSuperappPassword } from "@shared/utils/superapp-keys";
 import { BackgroundCredentialManager } from "./background-credential-manager";
 import { BrowserApiUtil } from "./browser-api-util";
 
@@ -34,33 +37,6 @@ const ADDRESS_FIELDS: Array<[string, string]> = [
     ["polkadot", "dotAddress"],
     ["kusama", "ksmAddress"],
 ];
-
-interface PendingKeysOperation {
-    requestId: string;
-    action: ZelfKeysOperationAction;
-    origin: string;
-    appName?: string;
-    draft?: {
-        website: string;
-        username: string;
-        password: string;
-        folder?: string | null;
-        appName?: string;
-    };
-    itemId?: string;
-    record?: {
-        id: string;
-        type: "password";
-        zelfProof: string;
-        publicData: {
-            title: string;
-            website: string;
-            username: string;
-        };
-    };
-    uiTabId?: number;
-    expiresAt: number;
-}
 
 export class SuperappHandler {
     private static instance: SuperappHandler;
@@ -198,11 +174,17 @@ export class SuperappHandler {
             case "ZELF_KEYS_LIST_PASSWORDS":
                 return this.ok(id, await this.listPasswords());
             case "ZELF_KEYS_OPEN_CREATE_PASSWORD":
-                return this.ok(id, await this.openKeysOperation(id, "create", sender, message.payload));
+                return this.ok(id, await this.openKeysOperation(id, "create", sender, message.payload, "password"));
             case "ZELF_KEYS_OPEN_REVEAL_PASSWORD":
-                return this.ok(id, await this.openKeysOperation(id, "reveal", sender, message.payload));
+                return this.ok(id, await this.openKeysOperation(id, "reveal", sender, message.payload, "password"));
             case "ZELF_KEYS_OPEN_DELETE_PASSWORD":
-                return this.ok(id, await this.openKeysOperation(id, "delete", sender, message.payload));
+                return this.ok(id, await this.openKeysOperation(id, "delete", sender, message.payload, "password"));
+            case "ZELF_KEYS_OPEN_CREATE_CARD":
+                return this.ok(id, await this.openKeysOperation(id, "create", sender, message.payload, "credit_card"));
+            case "ZELF_KEYS_OPEN_REVEAL_CARD":
+                return this.ok(id, await this.openKeysOperation(id, "reveal", sender, message.payload, "credit_card"));
+            case "ZELF_KEYS_OPEN_DELETE_CARD":
+                return this.ok(id, await this.openKeysOperation(id, "delete", sender, message.payload, "credit_card"));
             default:
                 return this.fail(id, "UNSUPPORTED", `Unsupported method ${message.type}`);
         }
@@ -230,7 +212,8 @@ export class SuperappHandler {
         requestId: string,
         action: ZelfKeysOperationAction,
         sender: chrome.runtime.MessageSender,
-        payload?: unknown
+        payload: unknown,
+        kind: ZelfKeysItemKind
     ): Promise<{ requestId: string; action: ZelfKeysOperationAction; opened: boolean }> {
         await this.ensureKeysSession();
         if (!sender.origin) {
@@ -240,19 +223,47 @@ export class SuperappHandler {
         const payloadRecord = this.asRecord(payload);
         const appName = this.firstString(payloadRecord.appName) || DEFAULT_WEB_APP_NAME;
 
-        const pending: PendingKeysOperation = {
+        const pending: SuperappPendingKeysOperation = {
             requestId,
             action,
+            kind,
             origin: sender.origin,
             appName,
             expiresAt: Date.now() + KEYS_OPERATION_TTL_MS,
         };
 
-        if (action === "create") {
+        if (action === "create" && kind === "credit_card") {
+            const draftRecord = this.asRecord(payloadRecord.draft || payload);
+            const cardName = this.firstString(draftRecord.cardName);
+            const cardNumber = this.firstString(draftRecord.cardNumber).replace(/\s+/g, "");
+            const expiryMonth = this.firstString(draftRecord.expiryMonth);
+            const expiryYear = this.firstString(draftRecord.expiryYear);
+            const cvv = this.firstString(draftRecord.cvv);
+            const bankName = this.firstString(draftRecord.bankName);
+            const alias = this.firstString(draftRecord.alias) || null;
+            const folder = this.firstString(draftRecord.folder) || null;
+            const draftAppName = this.firstString(draftRecord.appName) || appName;
+            if (!cardName || !cardNumber || !expiryMonth || !expiryYear || !cvv || !bankName) {
+                throw new Error("Missing required card fields");
+            }
+            pending.cardDraft = {
+                cardName,
+                cardNumber,
+                expiryMonth,
+                expiryYear,
+                cvv,
+                bankName,
+                alias,
+                folder,
+                appName: draftAppName,
+            };
+            pending.appName = draftAppName;
+        } else if (action === "create") {
             const draftRecord = this.asRecord(payloadRecord.draft || payload);
             const website = this.firstString(draftRecord.website);
             const username = this.firstString(draftRecord.username);
             const password = this.firstString(draftRecord.password);
+            const alias = this.firstString(draftRecord.alias) || null;
             const folder = this.firstString(draftRecord.folder) || null;
             const draftAppName = this.firstString(draftRecord.appName) || appName;
             if (!website || !username || !password) {
@@ -262,6 +273,7 @@ export class SuperappHandler {
                 website,
                 username,
                 password,
+                alias,
                 folder,
                 appName: draftAppName,
             };
@@ -269,31 +281,42 @@ export class SuperappHandler {
         } else {
             const itemId = this.firstString(payloadRecord.itemId);
             if (!itemId) {
-                throw new Error("Password item id is required");
+                throw new Error(kind === "credit_card" ? "Card item id is required" : "Password item id is required");
             }
-            const response = await this.credentialManager.listStoredPasswords();
+            const response =
+                kind === "credit_card"
+                    ? await this.credentialManager.listStoredCards()
+                    : await this.credentialManager.listStoredPasswords();
             const rawItems = Array.isArray(response?.data?.data) ? response.data.data : [];
             const rawRecord = rawItems.find((item) => this.firstString(item?.id, item?.cid) === itemId);
             const zelfProof = this.firstString(rawRecord?.zelfProof);
             if (!rawRecord || !zelfProof) {
-                throw new Error("Password record not found");
+                throw new Error(kind === "credit_card" ? "Card record not found" : "Password record not found");
             }
             const publicData = this.asRecord(rawRecord.publicData);
+            const card = this.parseCard(publicData.card);
             pending.itemId = itemId;
             pending.record = {
                 id: itemId,
-                type: "password",
+                type: kind,
                 zelfProof,
+                v: this.firstString(publicData.v) || undefined,
                 publicData: {
-                    title: this.firstString(publicData.alias, publicData.website) || "Password",
+                    title:
+                        this.firstString(publicData.alias, card.name, publicData.website) ||
+                        (kind === "credit_card" ? "Payment card" : "Password"),
                     website: this.firstString(publicData.website),
                     username: this.firstString(publicData.username),
+                    cardName: this.firstString(card.name),
+                    bankName: this.firstString(card.bankName),
+                    lastFour: this.lastFourFrom(card.number),
+                    expires: this.firstString(card.expires),
                 },
             };
         }
 
         await chrome.storage.session.set({ [PENDING_KEYS_OPERATION_KEY]: pending });
-        const opened = await this.openKeysUi(action, pending, sender);
+        const opened = await this.openKeysUi(action, pending);
         if (!opened) {
             await chrome.storage.session.remove(PENDING_KEYS_OPERATION_KEY);
             throw new Error("Failed to open Zelf Keys extension UI");
@@ -306,8 +329,7 @@ export class SuperappHandler {
 
     private async openKeysUi(
         action: ZelfKeysOperationAction,
-        pending: PendingKeysOperation,
-        sender?: chrome.runtime.MessageSender
+        pending: SuperappPendingKeysOperation
     ): Promise<boolean> {
         const runtime = this.browserApi.runtime as { getURL?: (path: string) => string } | undefined;
         if (!runtime?.getURL) {
@@ -316,36 +338,8 @@ export class SuperappHandler {
 
         const url = runtime.getURL(`index.html#/popout-decryptor?from=superapp&action=${action}`);
 
-        // 1. If the extension popup is already open, navigate it directly
-        if (chrome.extension?.getViews) {
-            try {
-                const popupViews = chrome.extension.getViews({ type: "popup" });
-                if (popupViews.length > 0) {
-                    popupViews[0].location.href = url;
-                    return true;
-                }
-            } catch (err) {
-                Logger.warn("[SuperappHandler] Failed to navigate open popup view:", err);
-            }
-        }
-
-        // 2. Attempt to open the toolbar popup directly (preferred popup UX)
-        const actionApi = this.browserApi.action as { openPopup?: (options?: { windowId?: number }) => Promise<void> } | undefined;
-        if (actionApi?.openPopup) {
-            try {
-                const targetWindowId = sender?.tab?.windowId;
-                if (targetWindowId != null) {
-                    await actionApi.openPopup({ windowId: targetWindowId });
-                } else {
-                    await actionApi.openPopup();
-                }
-                return true;
-            } catch (error) {
-                Logger.warn("[SuperappHandler] action.openPopup failed, falling back to popup window:", error);
-            }
-        }
-
-        // 3. If a previous fallback popup window is still open, reuse it
+        // Camera and password entry need a stable, focused surface. Reuse the
+        // dedicated keys popup instead of relying on the toolbar popup.
         if (this.keysWindowId != null) {
             try {
                 const tabs = await chrome.tabs.query({ windowId: this.keysWindowId });
@@ -359,7 +353,7 @@ export class SuperappHandler {
             }
         }
 
-        // 4. Fallback: open as a compact popup window with extension popup dimensions (375x640)
+        // Open with extension-card dimensions while leaving room for the app banner.
         const { left, top } = await this.getPopupPosition();
         const created = await chrome.windows.create({
             url,
@@ -376,7 +370,7 @@ export class SuperappHandler {
 
     private async completeKeysOperation(payload: unknown): Promise<void> {
         const stored = await chrome.storage.session.get(PENDING_KEYS_OPERATION_KEY);
-        const pending = stored[PENDING_KEYS_OPERATION_KEY] as PendingKeysOperation | undefined;
+        const pending = stored[PENDING_KEYS_OPERATION_KEY] as SuperappPendingKeysOperation | undefined;
         if (!pending || pending.expiresAt < Date.now()) {
             await chrome.storage.session.remove(PENDING_KEYS_OPERATION_KEY);
             return;
@@ -385,7 +379,8 @@ export class SuperappHandler {
         const result = this.asRecord(payload);
         const status = this.firstString(result.status);
         const normalizedStatus = ["completed", "cancelled", "failed"].includes(status) ? status : "completed";
-        const sanitizedItem = sanitizeSuperappPassword(result.item);
+        const sanitizedItem =
+            pending.kind === "credit_card" ? sanitizeSuperappCard(result.item) : sanitizeSuperappPassword(result.item);
         await chrome.storage.session.remove(PENDING_KEYS_OPERATION_KEY);
         this.broadcastKeysOperation(
             pending,
@@ -404,7 +399,8 @@ export class SuperappHandler {
                 // The user may already have closed the extension tab.
             }
         }
-        if (this.keysWindowId != null) {
+        // Reveal stays open until the popup closes itself (Done / Cancel).
+        if (pending.action !== "reveal" && this.keysWindowId != null) {
             try {
                 await chrome.windows.remove(this.keysWindowId);
             } catch {
@@ -417,7 +413,7 @@ export class SuperappHandler {
 
     private async cancelPendingKeysOperation(closedTabId?: number): Promise<void> {
         const stored = await chrome.storage.session.get(PENDING_KEYS_OPERATION_KEY);
-        const pending = stored[PENDING_KEYS_OPERATION_KEY] as PendingKeysOperation | undefined;
+        const pending = stored[PENDING_KEYS_OPERATION_KEY] as SuperappPendingKeysOperation | undefined;
         if (!pending || (closedTabId != null && pending.uiTabId !== closedTabId)) {
             return;
         }
@@ -427,17 +423,17 @@ export class SuperappHandler {
 
     private async cleanupExpiredKeysOperation(): Promise<void> {
         const stored = await chrome.storage.session.get(PENDING_KEYS_OPERATION_KEY);
-        const pending = stored[PENDING_KEYS_OPERATION_KEY] as PendingKeysOperation | undefined;
+        const pending = stored[PENDING_KEYS_OPERATION_KEY] as SuperappPendingKeysOperation | undefined;
         if (pending && pending.expiresAt < Date.now()) {
             await chrome.storage.session.remove(PENDING_KEYS_OPERATION_KEY);
         }
     }
 
     private broadcastKeysOperation(
-        pending: PendingKeysOperation,
+        pending: SuperappPendingKeysOperation,
         status: "opened" | "completed" | "cancelled" | "failed",
         error?: string,
-        item?: ZelfKeysPasswordMetadata
+        item?: ZelfKeysPasswordMetadata | ZelfKeysCardMetadata
     ): void {
         this.broadcastEvent({
             type: "ZELF_KEYS_OPERATION",
@@ -668,6 +664,33 @@ export class SuperappHandler {
         }
 
         return null;
+    }
+
+    private parseCard(value: unknown): Record<string, string> {
+        if (typeof value === "string") {
+            try {
+                const parsed = JSON.parse(value);
+                return {
+                    name: this.firstString((parsed as Record<string, unknown>)?.name),
+                    bankName: this.firstString((parsed as Record<string, unknown>)?.bankName),
+                    expires: this.firstString((parsed as Record<string, unknown>)?.expires),
+                    number: this.firstString((parsed as Record<string, unknown>)?.number),
+                };
+            } catch {
+                return { name: "", bankName: "", expires: "", number: "" };
+            }
+        }
+        const record = this.asRecord(value);
+        return {
+            name: this.firstString(record.name),
+            bankName: this.firstString(record.bankName),
+            expires: this.firstString(record.expires),
+            number: this.firstString(record.number),
+        };
+    }
+
+    private lastFourFrom(number: string): string {
+        return number.replace(/\D/g, "").slice(-4);
     }
 
     private asRecord(value: unknown): Record<string, unknown> {

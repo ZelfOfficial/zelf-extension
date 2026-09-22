@@ -28,7 +28,7 @@
                 <div class="card-details">
                     <div class="card-holder">
                         <span class="label">{{ t("zelf_keys.payment_cards.labels.card_holder") }}</span>
-                        <span class="value">{{ decryptedData?.name || t("zelf_keys.payment_cards.placeholders.card_holder_upper") }}</span>
+                        <span class="value">{{ getCardHolderName() }}</span>
                     </div>
                     <div class="card-expiry">
                         <span class="label">{{ t("zelf_keys.payment_cards.labels.expires") }}</span>
@@ -38,6 +38,14 @@
             </div>
         </div>
 
+        <div class="payment-card-detail__meta" *ngIf="paymentCard?.publicData?.alias || paymentCard?.publicData?.folder">
+            <span *ngIf="paymentCard?.publicData?.alias">{{ paymentCard?.publicData?.alias }}</span>
+            <span *ngIf="paymentCard?.publicData?.folder">
+                <span class="material-symbols-outlined">folder</span>
+                {{ paymentCard?.publicData?.folder }}
+            </span>
+        </div>
+
         <!-- Decrypt Button -->
         <div class="payment-card-detail__decrypt-section" *ngIf="!isDecrypted && !showBiometrics">
             <button class="zelf-button zelf-button--primary zelf-button--wide" (click)="onDecryptClick()" [disabled]="isLoading">
@@ -45,6 +53,43 @@
                 <span *ngIf="isLoading">{{ t("zelf_keys.payment_cards.decrypt.decrypting") }}</span>
             </button>
         </div>
+
+        <button type="button" class="payment-card-detail__delete-trigger" (click)="onDeleteClick()" *ngIf="!confirmingDelete">
+            <span class="material-symbols-outlined">delete</span>
+            {{ t("zelf_keys.vault.delete") }}
+        </button>
+
+        <section class="payment-card-detail__delete-panel" *ngIf="confirmingDelete">
+            <div>
+                <strong>{{ t("zelf_keys.vault.delete_confirm") }}</strong>
+                <p>{{ t("zelf_keys.vault.delete_description") }}</p>
+            </div>
+            <div class="zelf-input zelf-input--wide" *ngIf="hasMasterPassword">
+                <input
+                    type="password"
+                    class="zelf-input__control zelf-input__control--floating-label"
+                    [(ngModel)]="deleteMasterPassword"
+                    id="deleteCardMasterPassword"
+                    autocomplete="current-password"
+                />
+                <label for="deleteCardMasterPassword" class="zelf-input__floating-label">
+                    {{ t("billing.passwords.form.master_password.label") }}
+                </label>
+            </div>
+            <div class="payment-card-detail__delete-actions">
+                <button type="button" class="zelf-button zelf-button--outlined" (click)="onCancelDelete()" [disabled]="deleting">
+                    {{ t("zelf_keys.popout_decryptor.cancel") }}
+                </button>
+                <button
+                    type="button"
+                    class="zelf-button payment-card-detail__delete-confirm"
+                    (click)="onConfirmDelete()"
+                    [disabled]="deleting || (hasMasterPassword && !deleteMasterPassword.trim())"
+                >
+                    {{ deleting ? t("zelf_keys.vault.deleting") : t("zelf_keys.vault.delete") }}
+                </button>
+            </div>
+        </section>
 
         <!-- Error State -->
         <div *ngIf="error" class="payment-card-detail__error">
@@ -78,8 +123,8 @@
                 <p class="zelf-action-row__value">{{ paymentCard.publicData.folder || t("zelf_keys.common.no_folder") }}</p>
             </div>
 
-            <div class="payment-card-detail__image-row">
-                <h4 class="payment-card-detail__section-title">{{ t("zelf_keys.payment_cards.zelfproof.title") }}</h4>
+            <details class="payment-card-detail__image-row payment-card-detail__proof">
+                <summary>{{ t("zelf_keys.payment_cards.zelfproof.title") }}</summary>
                 <div class="payment-card-detail__image-container">
                     <img
                         [src]="paymentCard.url"
@@ -101,7 +146,7 @@
                         </div>
                     </button>
                 </div>
-            </div>
+            </details>
         </div>
 
         <!-- Decrypted Content Section -->

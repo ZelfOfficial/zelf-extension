@@ -16,6 +16,8 @@ export interface VaultItem {
     type: "password" | "card";
     title: string;
     subtitle: string;
+    alias: string;
+    folder: string;
     raw: any;
 }
 
@@ -36,7 +38,8 @@ export class ZelfKeysVaultComponent implements OnInit, OnDestroy {
     loading = true;
     error: string | null = null;
     searchControl = new FormControl("");
-    showFilter = false;
+    folderControl = new FormControl("");
+    noteCount = 0;
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
@@ -126,6 +129,7 @@ export class ZelfKeysVaultComponent implements OnInit, OnDestroy {
             this.allItems = [];
             this.filteredItems = [];
             this.searchControl.setValue("", { emitEvent: false });
+            this.folderControl.setValue("", { emitEvent: false });
             this.loading = true;
 
             const wallet = await this._walletService.getCurrentWallet();
@@ -152,7 +156,7 @@ export class ZelfKeysVaultComponent implements OnInit, OnDestroy {
         if (data && this._zelfKeysDataService.dataOwnerTag !== expectedTag) {
             this.allItems = [];
             this.filteredItems = [];
-            this.showFilter = false;
+            this.noteCount = 0;
             void this._reinitForCurrentWallet("vault-stale-data");
             return;
         }
@@ -160,7 +164,7 @@ export class ZelfKeysVaultComponent implements OnInit, OnDestroy {
         if (!data) {
             this.allItems = [];
             this.filteredItems = [];
-            this.showFilter = false;
+            this.noteCount = 0;
             this._changeDetectorRef.detectChanges();
             return;
         }
@@ -169,19 +173,23 @@ export class ZelfKeysVaultComponent implements OnInit, OnDestroy {
             type: "password" as const,
             title: this._getPasswordTitle(p),
             subtitle: this._getPasswordSubtitle(p),
+            alias: p.publicData?.alias || p.alias || "",
+            folder: p.publicData?.folder || p.folder || "",
             raw: p,
         }));
 
         const cards: VaultItem[] = (data.paymentCards || []).map((c: any) => ({
             type: "card" as const,
-            title: c.cardName || c.publicData?.cardName || this._translocoService.translate("zelf_keys.data_card.untitled"),
-            subtitle: this._getMaskedCardNumber(c.cardNumber || c.publicData?.card || ""),
+            title: this._getCardTitle(c),
+            subtitle: this._getCardSubtitle(c),
+            alias: c.publicData?.alias || c.alias || "",
+            folder: c.publicData?.folder || c.folder || "",
             raw: c,
         }));
 
         this.allItems = [...passwords, ...cards];
-        this.filteredItems = [...this.allItems];
-        this.showFilter = this.allItems.length > 5;
+        this.noteCount = data.notes?.length || 0;
+        this._filterItems();
         this._changeDetectorRef.detectChanges();
     }
 
@@ -199,20 +207,45 @@ export class ZelfKeysVaultComponent implements OnInit, OnDestroy {
     }
 
     private _setupSearchFilter(): void {
-        this.searchControl.valueChanges.pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$)).subscribe((term) => {
-            this._filterItems(term || "");
+        this.searchControl.valueChanges.pipe(debounceTime(200), distinctUntilChanged(), takeUntil(this.destroy$)).subscribe(() => this._filterItems());
+        this.folderControl.valueChanges.pipe(distinctUntilChanged(), takeUntil(this.destroy$)).subscribe(() => this._filterItems());
+    }
+
+    private _filterItems(): void {
+        const lower = (this.searchControl.value || "").trim().toLowerCase();
+        const folder = this.folderControl.value || "";
+
+        this.filteredItems = this.allItems.filter((item) => {
+            const matchesFolder = !folder || item.folder === folder;
+            const matchesSearch =
+                !lower ||
+                item.title.toLowerCase().includes(lower) ||
+                item.subtitle.toLowerCase().includes(lower) ||
+                item.alias.toLowerCase().includes(lower) ||
+                item.folder.toLowerCase().includes(lower);
+
+            return matchesFolder && matchesSearch;
         });
     }
 
-    private _filterItems(term: string): void {
-        if (!term.trim()) {
-            this.filteredItems = [...this.allItems];
-            return;
-        }
+    get totalCount(): number {
+        return this.allItems.length + this.noteCount;
+    }
 
-        const lower = term.toLowerCase();
+    get passwordCount(): number {
+        return this.allItems.filter((item) => item.type === "password").length;
+    }
 
-        this.filteredItems = this.allItems.filter((item) => item.title.toLowerCase().includes(lower) || item.subtitle.toLowerCase().includes(lower));
+    get cardCount(): number {
+        return this.allItems.filter((item) => item.type === "card").length;
+    }
+
+    get folders(): string[] {
+        return [...new Set(this.allItems.map((item) => item.folder).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    }
+
+    getItemMark(item: VaultItem): string {
+        return (item.title.trim().charAt(0) || (item.type === "card" ? "C" : "K")).toUpperCase();
     }
 
     private _getPasswordTitle(password: any): string {
@@ -253,6 +286,38 @@ export class ZelfKeysVaultComponent implements OnInit, OnDestroy {
         if (cleaned.length < 4) return "•••• " + cleaned;
         const last4 = cleaned.slice(-4);
         return "•••• •••• •••• " + last4;
+    }
+
+    private _getCardMetadata(card: any): Record<string, string> {
+        const metadata = card?.publicData?.card;
+
+        if (metadata && typeof metadata === "object") return metadata;
+        if (typeof metadata !== "string") return {};
+
+        try {
+            return JSON.parse(metadata);
+        } catch {
+            return {};
+        }
+    }
+
+    private _getCardTitle(card: any): string {
+        const metadata = this._getCardMetadata(card);
+
+        return (
+            metadata["bankName"] ||
+            card.cardName ||
+            card.publicData?.cardName ||
+            this._translocoService.translate("zelf_keys.data_card.untitled")
+        );
+    }
+
+    private _getCardSubtitle(card: any): string {
+        const metadata = this._getCardMetadata(card);
+        const last4 = metadata["last4"];
+
+        if (last4) return `•••• •••• •••• ${last4}`;
+        return this._getMaskedCardNumber(card.cardNumber || "");
     }
 
     onItemClick(item: VaultItem): void {

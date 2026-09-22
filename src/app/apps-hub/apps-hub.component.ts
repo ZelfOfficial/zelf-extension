@@ -1,4 +1,4 @@
-import { NgFor } from "@angular/common";
+import { NgFor, NgIf } from "@angular/common";
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from "@angular/router";
@@ -7,9 +7,10 @@ import { filter, Subject, takeUntil } from "rxjs";
 
 import { FooterNavigationService, FooterNavDestination } from "../zelf-footer/footer-navigation.service";
 import { LanguageComponent } from "../language/language.component";
+import { getAppBuildDate, getAppVersion } from "../../environments/version";
 
 @Component({
-    imports: [NgFor, MatButtonModule, RouterLink, RouterLinkActive, TranslocoModule, LanguageComponent],
+    imports: [NgFor, NgIf, MatButtonModule, RouterLink, RouterLinkActive, TranslocoModule, LanguageComponent],
     selector: "apps-hub",
     styleUrls: ["./apps-hub.component.scss"],
     templateUrl: "./apps-hub.component.html",
@@ -19,6 +20,14 @@ export class AppsHubComponent implements OnInit, OnDestroy {
 
     currentUrl: string = "";
     readonly hubDestinations: FooterNavDestination[];
+
+    get appVersion(): string {
+        return getAppVersion();
+    }
+
+    get buildDate(): string {
+        return getAppBuildDate();
+    }
 
     constructor(
         private readonly _router: Router,

@@ -8,6 +8,9 @@ export const BRIDGE_METHODS = [
     "ZELF_KEYS_OPEN_CREATE_PASSWORD",
     "ZELF_KEYS_OPEN_REVEAL_PASSWORD",
     "ZELF_KEYS_OPEN_DELETE_PASSWORD",
+    "ZELF_KEYS_OPEN_CREATE_CARD",
+    "ZELF_KEYS_OPEN_REVEAL_CARD",
+    "ZELF_KEYS_OPEN_DELETE_CARD",
 ] as const;
 
 export type ZelfBridgeMethod = (typeof BRIDGE_METHODS)[number];
@@ -71,15 +74,69 @@ export interface ZelfKeysPasswordList {
     totalCount: number;
 }
 
+export interface ZelfKeysCardMetadata {
+    id: string;
+    alias: string | null;
+    cardName: string;
+    bankName: string;
+    lastFour: string;
+    expires: string;
+    folder: string | null;
+    createdAt: string | null;
+    updatedAt: string | null;
+}
+
 export type ZelfKeysOperationAction = "create" | "reveal" | "delete";
 export type ZelfKeysOperationStatus = "opened" | "completed" | "cancelled" | "failed";
+export type ZelfKeysItemKind = "password" | "credit_card";
 
 export interface ZelfKeysCreateDraft {
     website: string;
     username: string;
     password: string;
+    alias?: string | null;
     folder?: string | null;
     appName?: string;
+}
+
+export interface ZelfKeysCardCreateDraft {
+    cardName: string;
+    cardNumber: string;
+    expiryMonth: string;
+    expiryYear: string;
+    cvv: string;
+    bankName: string;
+    alias?: string | null;
+    folder?: string | null;
+    appName?: string;
+}
+
+export interface SuperappPendingKeysOperation {
+    requestId: string;
+    action: ZelfKeysOperationAction;
+    kind: ZelfKeysItemKind;
+    origin: string;
+    appName?: string;
+    draft?: ZelfKeysCreateDraft;
+    cardDraft?: ZelfKeysCardCreateDraft;
+    itemId?: string;
+    record?: {
+        id: string;
+        type: ZelfKeysItemKind;
+        zelfProof: string;
+        v?: string;
+        publicData: {
+            title: string;
+            website?: string;
+            username?: string;
+            cardName?: string;
+            bankName?: string;
+            lastFour?: string;
+            expires?: string;
+        };
+    };
+    uiTabId?: number;
+    expiresAt: number;
 }
 
 export interface ZelfKeysOperationResult {
@@ -93,7 +150,7 @@ export interface ZelfKeysOperationEvent {
     action: ZelfKeysOperationAction;
     status: ZelfKeysOperationStatus;
     error?: string;
-    item?: ZelfKeysPasswordMetadata;
+    item?: ZelfKeysPasswordMetadata | ZelfKeysCardMetadata;
 }
 
 export interface ZelfBridgeEvent {

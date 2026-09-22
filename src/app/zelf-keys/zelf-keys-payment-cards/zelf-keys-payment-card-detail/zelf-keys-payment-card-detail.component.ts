@@ -1,12 +1,14 @@
 import { CommonModule } from "@angular/common";
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
+import { FormsModule } from "@angular/forms";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { Router } from "@angular/router";
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { Subject, takeUntil } from "rxjs";
 
-import { ZelfKeysService } from "app/services/zelf-keys.service";
+import { HttpWrapperService } from "app/http-wrapper.service";
+import { WalletService } from "app/wallet.service";
 import { CopyToClipboardBase } from "../../../base/copy-to-clipboard/copy-to-clipboard.base";
 import { ChromeService } from "../../../chrome.service";
 import { DecryptedPaymentCardData, PaymentCardItem } from "../../../models/zelf-key-item.model";
@@ -14,9 +16,15 @@ import { PopoutDecryptorComponent } from "../../../popout-decryptor/popout-decry
 import { PaymentCardDataService } from "../../../services/payment-card-data.service";
 import { PopoutCommunicationService, PopoutDecryptionResult } from "../../../services/popout-communication.service";
 import { ScrollToSectionService } from "../../../services/scroll-to-section.service";
+import { ZelfKeysDataService } from "../../../services/zelf-keys-data.service";
+import {
+    BiometricResult,
+    BiometricsBottomSheetComponent,
+    BiometricsBottomSheetData,
+} from "../../shared/biometrics-bottom-sheet/biometrics-bottom-sheet.component";
 
 @Component({
-    imports: [CommonModule, TranslocoModule, PopoutDecryptorComponent],
+    imports: [CommonModule, FormsModule, TranslocoModule, PopoutDecryptorComponent],
     selector: "zelf-keys-payment-card-detail",
     styleUrls: ["./zelf-keys-payment-card-detail.component.scss"],
     templateUrl: "./zelf-keys-payment-card-detail.component.html",
@@ -25,6 +33,9 @@ export class ZelfKeysPaymentCardDetailComponent extends CopyToClipboardBase impl
     private _destroy$ = new Subject<void>();
 
     decryptedData: DecryptedPaymentCardData | null = null;
+    confirmingDelete = false;
+    deleteMasterPassword = "";
+    deleting = false;
     error: string | null = null;
     isDecrypted = false;
     isLoading = false;
@@ -34,15 +45,18 @@ export class ZelfKeysPaymentCardDetailComponent extends CopyToClipboardBase impl
     showCardNumber = false;
     showCvv = false;
     showPopoutDecryptor = false;
+    hasMasterPassword = false;
 
     constructor(
         private _bottomSheet: MatBottomSheet,
         private _changeDetectorRef: ChangeDetectorRef,
+        private _httpWrapperService: HttpWrapperService,
         private _paymentCardDataService: PaymentCardDataService,
         private _popoutCommunicationService: PopoutCommunicationService,
         private _router: Router,
         private _scrollToSectionService: ScrollToSectionService,
-        private _zelfKeysService: ZelfKeysService,
+        private _walletService: WalletService,
+        private _zelfKeysDataService: ZelfKeysDataService,
         protected _chromeService: ChromeService,
         protected _snackBar: MatSnackBar,
         protected _translocoService: TranslocoService
@@ -54,7 +68,9 @@ export class ZelfKeysPaymentCardDetailComponent extends CopyToClipboardBase impl
         this._initSubscriptions();
     }
 
-    ngOnInit(): void {
+    async ngOnInit(): Promise<void> {
+        const wallet = await this._walletService.getCurrentWallet();
+        this.hasMasterPassword = wallet?.hasPassword || false;
         this.loadPaymentCardData();
     }
 
@@ -78,6 +94,13 @@ export class ZelfKeysPaymentCardDetailComponent extends CopyToClipboardBase impl
             }
         }
         return this._translocoService.translate("zelf_keys.data_types.payment_card");
+    }
+
+    getCardHolderName(): string {
+        if (this.decryptedData?.name) return this.decryptedData.name;
+
+        const cardData = this._parseJsonSafely(this.paymentCard?.publicData?.card || "");
+        return cardData.name || this._translocoService.translate("zelf_keys.payment_cards.placeholders.card_holder_upper");
     }
 
     loadPaymentCardData(): void {
@@ -159,6 +182,7 @@ export class ZelfKeysPaymentCardDetailComponent extends CopyToClipboardBase impl
             zelfProof: (this.paymentCard as any).zelfProof || this.paymentCard?.publicData?.zelfProof || "",
             publicData: {
                 title: this.getCardBankName(),
+                v: this.paymentCard.publicData?.v,
                 website: "Payment Card",
             },
         };
@@ -195,6 +219,53 @@ export class ZelfKeysPaymentCardDetailComponent extends CopyToClipboardBase impl
 
     onBackToList(): void {
         this._router.navigate(["/zelf-keys/vault"]);
+    }
+
+    onDeleteClick(): void {
+        this.confirmingDelete = true;
+        this.deleteMasterPassword = "";
+    }
+
+    onCancelDelete(): void {
+        this.confirmingDelete = false;
+        this.deleteMasterPassword = "";
+    }
+
+    async onConfirmDelete(): Promise<void> {
+        if (!this.paymentCard || this.deleting) return;
+        if (this.hasMasterPassword && !this.deleteMasterPassword.trim()) return;
+
+        this.deleting = true;
+        const masterPassword = this.hasMasterPassword
+            ? await this._httpWrapperService.encryptMessage(this.deleteMasterPassword)
+            : "";
+        const data: BiometricsBottomSheetData = {
+            itemData: {
+                ...this.paymentCard,
+                masterPassword,
+            },
+            itemType: "payment-card",
+            mode: "delete",
+        };
+        const bottomSheetRef = this._bottomSheet.open(BiometricsBottomSheetComponent, {
+            data,
+            backdropClass: "zelf-backdrop",
+            panelClass: "zelf-bottom-sheet-biometrics",
+        });
+
+        bottomSheetRef.afterDismissed().subscribe(async (result: BiometricResult | undefined) => {
+            this.deleting = false;
+            this.deleteMasterPassword = "";
+
+            if (!result?.deleted) {
+                this._changeDetectorRef.detectChanges();
+                return;
+            }
+
+            this._paymentCardDataService.clearCurrentPaymentCard();
+            await this._zelfKeysDataService.refresh("native-delete-card");
+            await this._router.navigate(["/zelf-keys/vault"]);
+        });
     }
 
     onCopyCardName(): void {
@@ -295,11 +366,8 @@ export class ZelfKeysPaymentCardDetailComponent extends CopyToClipboardBase impl
         if (this.paymentCard?.publicData?.card) {
             try {
                 const cardData = this._parseJsonSafely(this.paymentCard.publicData.card);
-                if (cardData.number) {
-                    const number = cardData.number.replace(/\s/g, "");
-                    const lastFour = number.slice(-4);
-                    return `•••• •••• •••• ${lastFour}`;
-                }
+                if (cardData.last4) return `•••• •••• •••• ${cardData.last4}`;
+                if (cardData.number) return `•••• •••• •••• ${cardData.number.replace(/\s/g, "").slice(-4)}`;
             } catch {
                 // Fall through to generic pattern
             }

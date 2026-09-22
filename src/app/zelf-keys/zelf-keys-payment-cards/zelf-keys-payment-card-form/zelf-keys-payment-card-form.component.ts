@@ -10,6 +10,7 @@ import { WalletService } from "app/wallet.service";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { ChromeService } from "../../../chrome.service";
 import { DataPassingService } from "../../../services/data-passing.service";
+import { environment } from "../../../../environments/environment";
 import {
     BiometricResult,
     BiometricsBottomSheetComponent,
@@ -24,14 +25,15 @@ import {
 })
 export class ZelfKeysPaymentCardFormComponent implements OnInit {
     cardData = {
-        bankName: "Chase Bank",
-        cardName: "John Doe",
-        cardNumber: "4111111111111111",
-        cvv: "123",
-        expiryMonth: "12",
-        expiryYear: "2026",
-        folder: "Personal",
-        insideFolder: true,
+        alias: "",
+        bankName: environment.production ? "" : "Chase Bank",
+        cardName: environment.production ? "" : "John Doe",
+        cardNumber: environment.production ? "" : "4111111111111111",
+        cvv: environment.production ? "" : "123",
+        expiryMonth: environment.production ? "" : "12",
+        expiryYear: environment.production ? "" : "2026",
+        folder: "",
+        insideFolder: false,
         masterPassword: "",
         useMasterPassword: false,
     };
@@ -139,6 +141,7 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
         // Backend expects: cardName, cardNumber, expiryMonth, expiryYear, cvv, bankName
         // Encrypt sensitive data before storing
         this.transformedCardData = {
+            alias: this.cardData.alias.trim(),
             cardName: this.cardData.cardName,
             cardNumber: await this._httpWrapperService.encryptMessage(this.cardData.cardNumber),
             expiryMonth: this.cardData.expiryMonth.padStart(2, "0"), // Ensure 2 digits

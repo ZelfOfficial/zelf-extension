@@ -30,11 +30,8 @@
                 </div>
             </div>
 
-            <!-- Image Display -->
-            <div *ngIf="getZelfProofQRCodeUrl()" class="payment-card-result__image-section">
-                <div class="payment-card-result__image-header">
-                    <h3 class="payment-card-result__image-title">{{ t("zelf_keys.payment_card_result.image.title") }}</h3>
-                </div>
+            <details *ngIf="getZelfProofQRCodeUrl()" class="payment-card-result__image-section payment-card-result__technical">
+                <summary>{{ t("zelf_keys.payment_card_result.image.title") }}</summary>
                 <div class="payment-card-result__image-container">
                     <img
                         [src]="getZelfProofQRCodeUrl()"
@@ -56,7 +53,7 @@
                         </div>
                     </button>
                 </div>
-            </div>
+            </details>
 
             <!-- NFT Information -->
             <div *ngIf="result?.NFT" class="payment-card-result__section">
@@ -106,9 +103,8 @@
                 </div>
             </div>
 
-            <!-- IPFS Information -->
-            <div *ngIf="result?.ipfs" class="payment-card-result__section">
-                <h3 class="payment-card-result__section-title">{{ t("zelf_keys.payment_card_result.ipfs.title") }}</h3>
+            <details *ngIf="result?.ipfs" class="payment-card-result__section payment-card-result__technical">
+                <summary>{{ t("zelf_keys.payment_card_result.ipfs.title") }}</summary>
                 <div class="payment-card-result__ipfs-content">
                     <div class="zelf-action-row" *ngIf="getIpfsHash() !== 'N/A'">
                         <p class="zelf-action-row__label">{{ t("zelf_keys.payment_card_result.ipfs.labels.hash") }}</p>
@@ -131,11 +127,13 @@
                         <p class="zelf-action-row__value">{{ getIpfsUploadTimestamp() ? (getIpfsUploadTimestamp() | date: "medium") : "N/A" }}</p>
                     </div>
                 </div>
-            </div>
+            </details>
 
-            <!-- Security Information -->
-            <div *ngIf="result?.zelfProof || result?.zelfProofQRCode || result?.zelfQR" class="payment-card-result__section">
-                <h3 class="payment-card-result__section-title">{{ t("zelf_keys.payment_card_result.zelfproof.title") }}</h3>
+            <details
+                *ngIf="result?.zelfProof || result?.zelfProofQRCode || result?.zelfQR"
+                class="payment-card-result__section payment-card-result__technical"
+            >
+                <summary>{{ t("zelf_keys.payment_card_result.zelfproof.title") }}</summary>
                 <div class="payment-card-result__security-content">
                     <div *ngIf="result?.zelfProof" class="zelf-action-row">
                         <p class="zelf-action-row__label">{{ t("zelf_keys.payment_card_result.zelfproof.labels.string") }}</p>
@@ -154,7 +152,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </details>
 
             <!-- Walrus Information -->
             <div *ngIf="result?.walrus" class="payment-card-result__section">

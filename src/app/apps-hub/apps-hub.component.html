@@ -57,5 +57,11 @@
                 </div>
             </a>
         </div>
+
+        <div class="apps-hub__version">
+            <span class="apps-hub__version-text">v{{ appVersion }}</span>
+            <span class="apps-hub__version-dot" *ngIf="buildDate">•</span>
+            <span class="apps-hub__version-date" *ngIf="buildDate">{{ buildDate }}</span>
+        </div>
     </div>
 </div>

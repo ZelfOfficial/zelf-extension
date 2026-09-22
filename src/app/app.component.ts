@@ -3,6 +3,7 @@ import { Router } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
 
 import { DEFAULT_WEB_APP_NAME, PENDING_CONNECT_KEY, SuperappPendingConnect } from "@shared/utils/superapp-connect";
+import { SuperappPendingKeysOperation } from "@shared/types/superapp.types";
 import { ChromeService } from "./chrome.service";
 import { AutofillDataService } from "./services/autofill-data.service";
 import { AutofillIntegrationService } from "./services/autofill-integration.service";
@@ -20,7 +21,7 @@ import { WalletService } from "./wallet.service";
             <zelf-loader [diameter]="120" [absolute]="false"></zelf-loader>
         </div>
         <div class="superapp-connect-banner" *ngIf="connectingAppName">
-            {{ "superapp.connecting_with" | transloco: { appName: connectingAppName } }}
+            {{ (isKeysOperation ? "superapp.working_with" : "superapp.connecting_with") | transloco: { appName: connectingAppName } }}
         </div>
         <div class="flex flex-col flex-auto">
             <router-outlet></router-outlet>
@@ -33,6 +34,7 @@ export class AppComponent implements OnInit, OnDestroy {
     isPopout: boolean = false;
     isLoading$!: any;
     connectingAppName: string | null = null;
+    isKeysOperation = false;
 
     constructor(
         private _appLoadingService: AppLoadingService,
@@ -76,8 +78,11 @@ export class AppComponent implements OnInit, OnDestroy {
     private async checkForPendingKeysOperation(): Promise<void> {
         if (typeof chrome === "undefined" || !chrome.storage?.session) return;
         const stored = await chrome.storage.session.get("superapp_pending_keys_operation");
-        const pending = stored?.superapp_pending_keys_operation;
+        const pending = stored?.superapp_pending_keys_operation as SuperappPendingKeysOperation | undefined;
         if (!pending || pending.expiresAt < Date.now()) return;
+
+        this.isKeysOperation = true;
+        this.connectingAppName = pending.appName || pending.draft?.appName || DEFAULT_WEB_APP_NAME;
 
         if (window.location.hash.includes("popout-decryptor")) return;
 

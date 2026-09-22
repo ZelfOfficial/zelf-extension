@@ -105,16 +105,45 @@
     }
 }
 
+.payment-card-form {
+    padding: 8px 4px 24px;
+
+    .form-header {
+        margin-bottom: 16px;
+
+        h2 {
+            font-family: variables.$themeTitleFamily;
+            letter-spacing: -0.04em;
+        }
+    }
+
+    .form-content {
+        .form-section {
+            margin-bottom: 14px;
+        }
+
+        .form-actions {
+            position: sticky;
+            bottom: 0;
+            z-index: 3;
+            margin-top: 14px;
+            padding: 10px 0 4px;
+            border-top: 0;
+            background: variables.$themeBackground;
+        }
+    }
+}
+
 .card-preview {
     background: linear-gradient(135deg, variables.$themeButton 0%, variables.$themeButtonHover 100%);
     border-radius: 16px;
-    padding: 24px;
+    padding: 18px;
     color: variables.$themeButtonText;
     box-shadow: 0 4px 20px variables.$themeShadow;
     transition: all 0.2s ease;
     position: relative;
     overflow: hidden;
-    min-height: 200px;
+    min-height: 150px;
 
     /**
      * Brand preview styles will be the only styles that shouldn't use variables.
@@ -148,7 +177,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 24px;
+        margin-bottom: 18px;
 
         .card-type {
             font-size: 12px;
@@ -189,7 +218,7 @@
         font-size: 20px;
         font-weight: 600;
         letter-spacing: 2px;
-        margin-bottom: 24px;
+        margin-bottom: 18px;
         font-family: variables.$themeMonospaceFamily;
         text-align: center;
     }

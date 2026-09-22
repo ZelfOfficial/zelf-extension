@@ -1,7 +1,7 @@
 @use "../../../../styles/variables";
 
 .payment-card-result {
-    padding: 0 24px 24px;
+    padding: 0 4px 24px;
     display: flex;
     align-items: flex-start;
     justify-content: center;
@@ -21,6 +21,7 @@
             }
 
             .payment-card-result__title {
+                font-family: variables.$themeTitleFamily;
                 font-size: 24px;
                 font-weight: 600;
                 color: variables.$themeText;
@@ -57,6 +58,7 @@
     }
 
     &__title {
+        font-family: variables.$themeTitleFamily;
         font-size: 24px;
         font-weight: 600;
         color: variables.$themeText;
@@ -77,8 +79,26 @@
         background: variables.$themeBackgroundSecondary;
         border: 1px solid variables.$themeBorder;
         border-radius: 12px;
-        padding: 24px;
-        margin: 24px 0;
+        padding: 14px;
+        margin: 16px 0;
+    }
+
+    &__technical {
+        summary {
+            padding: 12px 14px;
+            border: 1px solid variables.$themeCardBorder;
+            border-radius: 12px;
+            background: variables.$themeBackgroundSecondary;
+            color: variables.$themeText;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        &[open] summary {
+            margin-bottom: 10px;
+        }
     }
 
     &__security {

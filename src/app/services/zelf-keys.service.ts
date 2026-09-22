@@ -10,11 +10,13 @@ export interface StorePasswordRequest {
     website: string; // Website name (e.g., "Stripe")
     username: string; // Account name (e.g., "miguel@verifik.co")
     password: string; // Password
+    alias?: string;
     folder?: string;
     insideFolder?: boolean;
     notes?: string;
     faceBase64: string; // Encrypted face image from biometrics
-    masterPassword: string; // Wallet master password (encrypted)
+    masterPassword?: string; // Wallet master password (encrypted)
+    zelfProof?: string;
 }
 
 /**
@@ -38,6 +40,7 @@ export interface RetrieveRequest {
     faceBase64: string; // Encrypted face image from biometrics
     clientPublicKey: string; // Ephemeral client public key for transport encryption
     type?: string;
+    v?: string | number;
     password?: string; // Optional ZelfProof password
 }
 
@@ -216,6 +219,7 @@ export class ZelfKeysService {
         cardNumber: string;
         expiryMonth: string;
         expiryYear: string;
+        alias?: string;
         folder?: string;
         insideFolder?: boolean;
         cvv?: string;

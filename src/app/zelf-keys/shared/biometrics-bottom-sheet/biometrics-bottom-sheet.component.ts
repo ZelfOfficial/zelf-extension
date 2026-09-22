@@ -13,13 +13,14 @@ import { VaultService } from "app/vault.service";
 export interface BiometricResult {
     faceBase64: string;
     password: string;
+    deleted?: boolean;
     retrievedData?: DecryptedItemData;
 }
 
 export interface BiometricsBottomSheetData {
     itemData: any;
     itemType: string;
-    mode: "encrypt" | "decrypt";
+    mode: "encrypt" | "decrypt" | "delete";
 }
 
 @Component({
@@ -34,7 +35,7 @@ export class BiometricsBottomSheetComponent implements OnInit {
     isLoading: boolean = false;
     itemData: any;
     itemType: string;
-    mode: "encrypt" | "decrypt";
+    mode: "encrypt" | "decrypt" | "delete";
     wallet: any;
 
     constructor(
@@ -110,6 +111,7 @@ export class BiometricsBottomSheetComponent implements OnInit {
                 break;
             case "password":
                 const passwordPayload = {
+                    alias: this.itemData.alias,
                     faceBase64: faceBase64,
                     folder: this.itemData.folder,
                     insideFolder: this.itemData.insideFolder,
@@ -126,6 +128,7 @@ export class BiometricsBottomSheetComponent implements OnInit {
                 break;
             case "payment-card":
                 const cardPayload = {
+                    alias: this.itemData.alias,
                     bankName: this.itemData.bankName,
                     cardName: this.itemData.cardName,
                     cardNumber: this.itemData.cardNumber,
@@ -153,11 +156,13 @@ export class BiometricsBottomSheetComponent implements OnInit {
 
         const { publicKey: clientPublicKey, privateKey: clientPrivateKey } = await this._vaultService.generateEphemeralKeyPair();
 
+        const versionHint = this.itemData?.publicData?.v || this.itemData?.v;
         const payload = {
             zelfProof: this.itemData.zelfProof,
             faceBase64: faceBase64,
             type: this.itemType,
             clientPublicKey,
+            ...(versionHint != null && String(versionHint).trim() ? { v: String(versionHint) } : {}),
         };
 
         const response = await this._zelfKeysService.retrieve(payload);
@@ -174,8 +179,16 @@ export class BiometricsBottomSheetComponent implements OnInit {
         return response;
     }
 
+    private async _deleteData(faceBase64: string, masterPassword: string): Promise<any> {
+        const id = this.itemData?.id || this.itemData?.identifier;
+
+        if (!id) throw new Error("No item ID available for deletion.");
+
+        return this._zelfKeysService.delete(id, faceBase64, masterPassword || "");
+    }
+
     getTitle(): string {
-        const actionKey = this.mode === "encrypt" ? "encrypt" : "decrypt";
+        const actionKey = this.mode === "encrypt" ? "encrypt" : this.mode === "delete" ? "delete" : "decrypt";
 
         switch (this.itemType) {
             case "payment-card":
@@ -243,6 +256,28 @@ export class BiometricsBottomSheetComponent implements OnInit {
     }
 
     async onBiometricsSuccess(biometricData: any): Promise<void> {
+        if (this.mode === "delete") {
+            try {
+                this.isLoading = true;
+                this.errorMessage = "";
+                this._changeDetectorRef.detectChanges();
+
+                await this._deleteData(biometricData.faceBase64, biometricData.password || this.itemData?.masterPassword || "");
+                this._bottomSheetRef.dismiss({ ...biometricData, deleted: true });
+            } catch (error: any) {
+                console.error(`Error deleting ${this.itemType} data:`, error);
+                this.isLoading = false;
+                this.errorMessage =
+                    error?.error?.error ||
+                    error?.error?.message ||
+                    error?.message ||
+                    this._translocoService.translate("zelf_keys.vault.delete_failed");
+                this._changeDetectorRef.detectChanges();
+            }
+
+            return;
+        }
+
         if (this.mode === "decrypt") {
             try {
                 this.isLoading = true;

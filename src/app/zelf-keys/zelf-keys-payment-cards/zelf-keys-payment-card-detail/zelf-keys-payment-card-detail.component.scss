@@ -322,3 +322,116 @@
         }
     }
 }
+
+.payment-card-detail {
+    &__content {
+        gap: 16px;
+        padding-bottom: 24px;
+    }
+
+    &__card-wrapper {
+        gap: 10px;
+    }
+
+    .card-preview {
+        min-height: 146px;
+        padding: 18px;
+        box-shadow: 0 8px 24px variables.$themeShadow;
+    }
+
+    &__meta {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+
+        > span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: variables.$themeBackgroundSecondary;
+            color: variables.$themeTextSecondary;
+            font-size: 11px;
+        }
+
+        .material-symbols-outlined {
+            font-size: 14px;
+        }
+    }
+
+    &__delete-trigger {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 11px;
+        border: 1px solid rgba(220, 54, 46, 0.24);
+        border-radius: 12px;
+        background: transparent;
+        color: variables.$error;
+        font-family: variables.$themeBodyFamily;
+        font-weight: 600;
+        cursor: pointer;
+
+        .material-symbols-outlined {
+            font-size: 18px;
+        }
+    }
+
+    &__delete-panel {
+        display: grid;
+        gap: 12px;
+        padding: 14px;
+        border: 1px solid rgba(220, 54, 46, 0.24);
+        border-radius: 14px;
+        background: variables.$errorLight;
+
+        strong {
+            color: variables.$errorDark;
+            font-family: variables.$themeTitleFamily;
+        }
+
+        p {
+            margin: 4px 0 0;
+            color: variables.$themeTextSecondary;
+            font-size: 12px;
+        }
+    }
+
+    &__delete-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    &__delete-confirm {
+        border: 0;
+        background: variables.$error;
+        color: variables.$white;
+    }
+
+    &__proof {
+        summary {
+            padding: 12px 14px;
+            border: 1px solid variables.$themeCardBorder;
+            border-radius: 12px;
+            background: variables.$themeBackgroundSecondary;
+            color: variables.$themeText;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        &[open] summary {
+            margin-bottom: 10px;
+        }
+    }
+
+    &__info-section,
+    &__decrypted-section {
+        border-radius: 14px;
+    }
+}

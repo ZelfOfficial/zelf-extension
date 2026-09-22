@@ -231,6 +231,14 @@ module.exports = createBuilder((options, context) => {
             const angularTarget = await context.getTargetOptions(targetSpec);
             const outputPath = path.resolve(context.workspaceRoot, angularTarget.outputPath);
 
+            // Sync version across package.json, manifests, and version.ts
+            try {
+                const { syncVersions } = require(path.resolve(context.workspaceRoot, "scripts/sync-versions.js"));
+                syncVersions();
+            } catch (syncErr) {
+                log.warn(`Version sync skipped: ${syncErr.message}`);
+            }
+
             // Set environment - default to production if not specified
             process.env.NODE_ENV = options.mode || "production";
             process.env.WEBPACK_OUTPUT_PATH = outputPath;

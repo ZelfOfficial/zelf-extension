@@ -8,12 +8,14 @@ export interface ZelfKeyItem {
 }
 
 export interface ZelfKeyPublicData {
+    alias?: string;
     typ?: string;
     folder?: string;
     category?: string;
     zelfName?: string;
     timestamp?: string;
     zelfProof?: string;
+    v?: string;
 }
 
 export interface NotePublicData extends ZelfKeyPublicData {

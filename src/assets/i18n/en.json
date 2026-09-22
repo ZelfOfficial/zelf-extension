@@ -3,6 +3,38 @@
         "dashboard": {
             "wallet": "WALLET"
         },
+        "vault": {
+            "eyebrow": "ZELF KEYS",
+            "title": "Your private vault",
+            "subtitle": "Find and open your encrypted essentials.",
+            "trust": "Secrets and biometric actions stay inside Zelf.",
+            "stats_label": "Vault totals",
+            "stat_total": "Items",
+            "stat_passwords": "Passwords",
+            "stat_cards": "Cards",
+            "stat_notes": "Notes",
+            "add_password": "Add password",
+            "add_card": "Add card",
+            "search": "Search vault",
+            "filter_folder": "Filter by folder",
+            "all_folders": "All folders",
+            "refresh": "Refresh vault",
+            "loading": "Opening your private vault…",
+            "load_error": "We couldn't open your vault",
+            "retry": "Try again",
+            "empty_title": "Your vault is ready",
+            "empty_description": "Add a password or payment card to protect it with your face.",
+            "add_first": "Add your first password",
+            "no_results": "Nothing found",
+            "no_results_description": "Try another search or folder.",
+            "alias": "Alias",
+            "alias_placeholder": "Personal, Work, Main…",
+            "delete": "Delete item",
+            "delete_confirm": "Delete this item permanently?",
+            "delete_description": "Verify with your face to remove it from your vault.",
+            "deleting": "Deleting…",
+            "delete_failed": "We couldn't delete this item. Please try again."
+        },
         "common": {
             "qr_code": "QR Code",
             "no_folder": "No folder",
@@ -276,6 +308,9 @@
             "decrypt_note": "Verify Identity to Decrypt Note",
             "encrypt_password": "Verify Identity to Encrypt Password",
             "decrypt_password": "Verify Identity to Decrypt Password",
+            "delete_payment_card": "Verify Identity to Delete Payment Card",
+            "delete_note": "Verify Identity to Delete Note",
+            "delete_password": "Verify Identity to Delete Password",
             "instructions": {
                 "payment_card": "Please verify your face to decrypt your payment card",
                 "note": "Please verify your face to decrypt your note",
@@ -297,6 +332,7 @@
             "master_password_placeholder": "Enter your master password",
             "master_password_title": "Verify your identity",
             "master_password_subtitle": "Enter your master password to securely decrypt this {{ type }}.",
+            "master_password_action_subtitle": "Enter your Zelf ID password, then verify with your face to continue.",
             "show_password": "Show password",
             "hide_password": "Hide password",
             "security_note": "End-to-end encrypted. Only you can unlock it.",
@@ -308,7 +344,11 @@
             "unlock": "Continue to Biometrics",
             "verified": "Verified in Zelf",
             "copy_password": "Copy password",
+            "copy_card_number": "Copy card number",
+            "copy_expiry": "Copy expiry",
+            "copy_cvv": "Copy CVV",
             "extension_only": "This password stays inside the Zelf extension.",
+            "card_extension_only": "This card number and CVV stay inside the Zelf extension.",
             "done": "Done",
             "create_heading": "New Password",
             "create_title": "Encrypt New Password",
@@ -319,6 +359,11 @@
             "delete_description": "This removes the encrypted record. Verify your face to continue.",
             "delete_master_password": "Master password (if enabled)",
             "verify_delete": "Verify and delete",
+            "request_expired": "This request expired. Return to SuperApp and try again.",
+            "missing_request": "The secure request is incomplete. Return to SuperApp and try again.",
+            "insufficient_zns": "You need at least {{amount}} ZNS to save this password.",
+            "checking_zns": "Checking ZNS balance...",
+            "zns_check_failed": "Could not confirm your ZNS balance. Check the connection and try again.",
             "types": {
                 "credit_card": "Payment Card",
                 "note": "Note",
@@ -990,7 +1035,7 @@
         "ERR_LIVENESS_FACE_CLOSE_TO_BORDER": "Face is too close to the border",
         "ERR_LIVENESS_FAILED": "Liveness detection failed",
         "ERR_UNPROCESSABLE_CONTENT": "Zelf ID QR could not be decrypted",
-        "ERR_VERIFICATION_FAILED": "Liveness detection failed",
+        "ERR_VERIFICATION_FAILED": "Your face did not match this password. Center your face and try again.",
         "error_closing_popup": "Error closing window",
         "error_initializing_biometrics": "Error initializing biometrics",
         "error_sending_decryption_result_to_background": "Error communicating with extension",
@@ -2074,6 +2119,7 @@
         "biometric_required": "Biometric verification required to sign"
     },
     "superapp": {
-        "connecting_with": "Connecting with {{appName}}"
+        "connecting_with": "Connecting with {{appName}}",
+        "working_with": "Working securely with {{appName}}"
     }
 }

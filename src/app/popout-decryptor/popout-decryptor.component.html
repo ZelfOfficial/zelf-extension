@@ -1,6 +1,106 @@
 <div class="password-decryptor" *transloco="let t">
+    <section *ngIf="checkingZns" class="password-decryptor__loading password-decryptor__loading--zns" role="status">
+        <mat-spinner diameter="30"></mat-spinner>
+        <p>{{ t("zelf_keys.popout_decryptor.checking_zns") }}</p>
+    </section>
+
+    <form *ngIf="awaitingMasterPassword && !checkingZns" class="master-password-sheet" (ngSubmit)="continueToBiometrics()">
+        <div class="master-password-sheet__aurora"></div>
+        <div class="master-password-sheet__body">
+            <div class="master-password-sheet__badge" aria-hidden="true">
+                <span class="master-password-sheet__badge-ring master-password-sheet__badge-ring--outer"></span>
+                <span class="master-password-sheet__badge-ring master-password-sheet__badge-ring--inner"></span>
+                <span class="master-password-sheet__badge-core">
+                    <span class="material-symbols-outlined">encrypted</span>
+                </span>
+            </div>
+            <h2 class="master-password-sheet__title">{{ t("zelf_keys.popout_decryptor.master_password_title") }}</h2>
+            <p class="master-password-sheet__subtitle">{{ t("zelf_keys.popout_decryptor.master_password_action_subtitle") }}</p>
+            <div *ngIf="operationContext" class="master-password-sheet__context">
+                <span class="material-symbols-outlined">language</span>
+                <span class="master-password-sheet__context-text">{{ operationContext }}</span>
+            </div>
+            <label class="master-password-sheet__field">
+                <span class="material-symbols-outlined master-password-sheet__field-icon">lock</span>
+                <input
+                    class="master-password-sheet__input"
+                    [type]="showMasterPassword ? 'text' : 'password'"
+                    [(ngModel)]="masterPassword"
+                    name="masterPassword"
+                    autocomplete="current-password"
+                    [placeholder]="t('zelf_keys.popout_decryptor.master_password_placeholder')"
+                    required
+                    autofocus
+                />
+                <button
+                    type="button"
+                    class="master-password-sheet__toggle"
+                    (click)="toggleMasterPasswordVisibility()"
+                    [attr.aria-label]="t(showMasterPassword ? 'zelf_keys.popout_decryptor.hide_password' : 'zelf_keys.popout_decryptor.show_password')"
+                >
+                    <span class="material-symbols-outlined">{{ showMasterPassword ? "visibility_off" : "visibility" }}</span>
+                </button>
+            </label>
+            <span class="master-password-sheet__hint">
+                <span class="material-symbols-outlined">verified_user</span>
+                {{ t("zelf_keys.popout_decryptor.security_note") }}
+            </span>
+        </div>
+        <div class="master-password-sheet__actions">
+            <button type="submit" class="master-password-sheet__cta" [disabled]="!masterPassword.trim()">
+                <span class="material-symbols-outlined">face</span>
+                {{ t("zelf_keys.popout_decryptor.unlock") }}
+            </button>
+            <button type="button" class="master-password-sheet__ghost" (click)="onCancel()">
+                {{ t("zelf_keys.popout_decryptor.cancel") }}
+            </button>
+        </div>
+    </form>
+
+    <section *ngIf="superappResult" class="superapp-reveal">
+        <span class="material-symbols-outlined superapp-reveal__icon">verified_user</span>
+        <p class="superapp-reveal__eyebrow">{{ t("zelf_keys.popout_decryptor.verified") }}</p>
+        <ng-container *ngIf="isCardReveal; else passwordReveal">
+            <h2>{{ superappResult.cardName || record.publicData?.cardName || operationContext }}</h2>
+            <p class="superapp-reveal__username">{{ record.publicData?.bankName }} · {{ maskedCardNumber }}</p>
+            <div class="superapp-reveal__secret">
+                <code>{{ superappResult.number }}</code>
+                <button type="button" (click)="copySuperappCardField('number')" [attr.aria-label]="t('zelf_keys.popout_decryptor.copy_card_number')">
+                    <span class="material-symbols-outlined">content_copy</span>
+                </button>
+            </div>
+            <div class="superapp-reveal__secret">
+                <code>{{ cardExpiry }}</code>
+                <button type="button" (click)="copySuperappCardField('expiry')" [attr.aria-label]="t('zelf_keys.popout_decryptor.copy_expiry')">
+                    <span class="material-symbols-outlined">content_copy</span>
+                </button>
+            </div>
+            <div class="superapp-reveal__secret">
+                <code>{{ superappResult.cvv }}</code>
+                <button type="button" (click)="copySuperappCardField('cvv')" [attr.aria-label]="t('zelf_keys.popout_decryptor.copy_cvv')">
+                    <span class="material-symbols-outlined">content_copy</span>
+                </button>
+            </div>
+            <p class="superapp-reveal__note">{{ t("zelf_keys.popout_decryptor.card_extension_only") }}</p>
+        </ng-container>
+        <ng-template #passwordReveal>
+            <h2>{{ superappResult.website || operationContext }}</h2>
+            <p class="superapp-reveal__username">{{ superappResult.username }}</p>
+            <div class="superapp-reveal__secret">
+                <code>{{ superappResult.password }}</code>
+                <button type="button" (click)="copySuperappPassword()" [attr.aria-label]="t('zelf_keys.popout_decryptor.copy_password')">
+                    <span class="material-symbols-outlined">content_copy</span>
+                </button>
+            </div>
+            <p class="superapp-reveal__note">{{ t("zelf_keys.popout_decryptor.extension_only") }}</p>
+        </ng-template>
+        <button type="button" class="master-password-sheet__cta" (click)="finishSuperappReveal()">
+            {{ t("zelf_keys.popout_decryptor.done") }}
+        </button>
+    </section>
+
     <!-- Compact Header -->
-    <div class="password-decryptor__header">
+    <div class="password-decryptor__header" *ngIf="!checkingZns && !awaitingMasterPassword && !superappResult">
         <button
             type="button"
             class="password-decryptor__back"
@@ -17,7 +117,7 @@
     </div>
 
     <!-- Camera Container - Takes up most of the space -->
-    <div class="password-decryptor__camera-container">
+    <div class="password-decryptor__camera-container" *ngIf="!checkingZns && !awaitingMasterPassword && !superappResult">
         <!-- Loading State -->
         <div *ngIf="camera.isLoading" class="password-decryptor__loading">
             <mat-spinner diameter="30"></mat-spinner>
@@ -88,7 +188,7 @@
             <!-- Processing State - Overlay on camera -->
             <div *ngIf="response.isLoading" class="password-decryptor__processing">
                 <mat-spinner diameter="28"></mat-spinner>
-                <p>{{ t("zelf_keys.popout_decryptor.processing") }}</p>
+                <p>{{ processingLabel }}</p>
             </div>
         </div>
     </div>

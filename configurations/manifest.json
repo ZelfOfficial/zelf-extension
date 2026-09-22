@@ -16,7 +16,7 @@
         "offscreen",
         "notifications"
     ],
-    "version": "2.1.28",
+    "version": "2.1.29",
     "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6icjtqmO4CXiry++pIsK0jV4gax9i04VW4PEGdr3hcb2K5sW2quvhsC6BEfXxAPt15g9C6A+7V2QRsPvJ/IxbxBu21tpy9C0P/9kzq4Nbw/UJL46vJF9lh5OfWUdabEBf90Fg1zCVgGZkd1DWGFXCXWdBJwstxMDd+69IMfJCkrQHGDP7950zS0xM7ABjv3cKLQxHCpybGarAHf1iU7aL6hlD+2iTwS0SCUnsytLbkrnFc0EkFTaeKlNLIzCBoOHTXg0rzTIwR/VuMmrYiU4ouSiafk++WFnbQOZ9SMS/0jZnQz6DTfO3ap5vvryHRjhUiEH+UFlFi45UMaG5NvGnwIDAQAB",
     "action": {
         "default_popup": "index.html",
@@ -88,5 +88,6 @@
     },
     "content_security_policy": {
         "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; img-src 'self' https: data: blob:;"
-    }
+    },
+    "version_name": "2.1.29 (2026-09-21 8:22 pm)"
 }

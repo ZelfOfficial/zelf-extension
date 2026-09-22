@@ -336,11 +336,19 @@ export class BackgroundCredentialManager {
     }
 
     public async listStoredPasswords(): Promise<ZelfKeysListResponse> {
+        return this.listStoredCategory("password");
+    }
+
+    public async listStoredCards(): Promise<ZelfKeysListResponse> {
+        return this.listStoredCategory("credit_card");
+    }
+
+    public async listStoredCategory(category: "password" | "credit_card"): Promise<ZelfKeysListResponse> {
         const accessToken = await this.getAccessToken();
 
         if (!accessToken) throw new Error("Unable to authenticate with ZelfKey API");
 
-        return this.makeApiCall("GET", `${this.ZELF_KEYS_ROUTE}/list?category=password`);
+        return this.makeApiCall("GET", `${this.ZELF_KEYS_ROUTE}/list?category=${category}`);
     }
 
     public async getPasswords(website: string): Promise<PasswordEntry[]> {

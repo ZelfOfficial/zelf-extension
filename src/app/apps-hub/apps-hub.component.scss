@@ -194,4 +194,28 @@ $apps-hub-coral-icon-filter: brightness(0) saturate(100%) invert(47%) sepia(93%)
             justify-content: flex-start;
         }
     }
+
+    &__version {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: calc(6px * var(--zns-space-scale, 1));
+        padding-top: calc(2px * var(--zns-space-scale, 1));
+        padding-bottom: 0;
+    }
+
+    &__version-text,
+    &__version-date,
+    &__version-dot {
+        font-size: calc(11px * var(--zns-font-scale, 1));
+        font-weight: 500;
+        color: variables.$themeTextMuted;
+        letter-spacing: 0.03em;
+        user-select: text;
+    }
+
+    &__version-dot {
+        opacity: 0.5;
+    }
 }

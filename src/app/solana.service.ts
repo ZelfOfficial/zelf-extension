@@ -84,12 +84,8 @@ export class SolanaService {
 
         // Fallback to RPC if backend returned 0 (due to error, timeout, or pending sync)
         if (numericAmount === 0) {
-            try {
-                const rpcAmount = await this.getZnsBalanceViaRpc(ownerAddress);
-                if (rpcAmount > 0) return rpcAmount;
-            } catch (rpcErr) {
-                console.warn("RPC fallback for ZNS balance failed", rpcErr);
-            }
+            const rpcAmount = await this.getZnsBalanceViaRpc(ownerAddress);
+            if (rpcAmount > 0) return rpcAmount;
         }
 
         return numericAmount;
@@ -136,7 +132,7 @@ export class SolanaService {
                 return 0;
             }
             console.warn("Solana RPC ZNS balance error:", error);
-            return 0;
+            throw error;
         }
     }
 

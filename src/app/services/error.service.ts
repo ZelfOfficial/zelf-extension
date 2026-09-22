@@ -13,6 +13,9 @@ export class ErrorService {
 
     private readonly API_MESSAGE_TO_KEY: Record<string, string> = {
         "FACE IS NOT CENTRAL, PLEASE USE AN IMAGE WITH A CENTRAL FACE.": "face_not_central",
+        "VERIFICATION FAILED": "ERR_VERIFICATION_FAILED",
+        "VERIFICATION FAILED.": "ERR_VERIFICATION_FAILED",
+        "500:ERR_VERIFICATION_FAILED": "ERR_VERIFICATION_FAILED",
     };
 
     resolveErrorKey(error: unknown): string {
@@ -69,6 +72,13 @@ export class ErrorService {
             return withoutStatus;
         }
 
-        return withoutStatus.toLowerCase().replace(/\s+/g, "_");
+        const mapped = this.API_MESSAGE_TO_KEY[withoutStatus];
+        if (mapped) {
+            return mapped;
+        }
+
+        const slug = withoutStatus.toLowerCase().replace(/\s+/g, "_").replace(/\.+$/, "");
+
+        return slug === "verification_failed" ? "ERR_VERIFICATION_FAILED" : slug;
     }
 }

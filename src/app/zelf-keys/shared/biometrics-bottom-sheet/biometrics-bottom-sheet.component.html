@@ -40,12 +40,12 @@
             <data-biometrics
                 (biometricsCancel)="onBiometricsCancel()"
                 (biometricsSuccess)="onBiometricsSuccess($event)"
-                [isDecryptMode]="mode === 'decrypt'"
+                [isDecryptMode]="mode !== 'encrypt'"
                 [itemData]="itemData"
             ></data-biometrics>
 
             <div *ngIf="isLoading" class="biometrics-bottom-sheet__loading">
-                <p>{{ t("zelf_keys.biometrics.storing") }}</p>
+                <p>{{ mode === "delete" ? t("zelf_keys.vault.deleting") : t("zelf_keys.biometrics.storing") }}</p>
             </div>
         </ng-container>
     </div>

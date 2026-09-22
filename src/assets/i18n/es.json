@@ -297,6 +297,7 @@
             "master_password_placeholder": "Ingrese su contraseña maestra si tiene una",
             "master_password_title": "Verifica tu identidad",
             "master_password_subtitle": "Ingresa tu contraseña maestra para desencriptar de forma segura este {{ type }}.",
+            "master_password_action_subtitle": "Ingresa la contraseña de tu Zelf ID y luego verifica tu rostro para continuar.",
             "show_password": "Mostrar contraseña",
             "hide_password": "Ocultar contraseña",
             "security_note": "Cifrado de extremo a extremo. Solo tú puedes desbloquearlo.",
@@ -308,7 +309,11 @@
             "unlock": "Desbloquear",
             "verified": "Verificado en Zelf",
             "copy_password": "Copiar contraseña",
+            "copy_card_number": "Copiar número de tarjeta",
+            "copy_expiry": "Copiar vencimiento",
+            "copy_cvv": "Copiar CVV",
             "extension_only": "Esta contraseña permanece dentro de la extensión Zelf.",
+            "card_extension_only": "El número y el CVV permanecen dentro de la extensión Zelf.",
             "done": "Listo",
             "create_heading": "Nueva Contraseña",
             "create_title": "Cifrar Nueva Contraseña",
@@ -319,6 +324,11 @@
             "delete_description": "Esto elimina el registro cifrado. Verifica tu rostro para continuar.",
             "delete_master_password": "Contraseña maestra (si está activada)",
             "verify_delete": "Verificar y eliminar",
+            "request_expired": "Esta solicitud expiró. Regresa a SuperApp e inténtalo de nuevo.",
+            "missing_request": "La solicitud segura está incompleta. Regresa a SuperApp e inténtalo de nuevo.",
+            "insufficient_zns": "Necesitas al menos {{amount}} ZNS para guardar esta contraseña.",
+            "checking_zns": "Comprobando el saldo de ZNS...",
+            "zns_check_failed": "No se pudo confirmar tu saldo de ZNS. Revisa la conexión e inténtalo de nuevo.",
             "types": {
                 "credit_card": "Tarjeta de Pago",
                 "note": "Nota",
@@ -982,7 +992,7 @@
         "ERR_LIVENESS_FACE_CLOSE_TO_BORDER": "El rostro está demasiado cerca del borde",
         "ERR_LIVENESS_FAILED": "La detección de autenticidad ha fallado",
         "ERR_UNPROCESSABLE_CONTENT": "No se pudo descifrar el Zelf ID QR",
-        "ERR_VERIFICATION_FAILED": "La detección de autenticidad ha fallado",
+        "ERR_VERIFICATION_FAILED": "Tu rostro no coincide con esta contraseña. Centra tu cara e inténtalo de nuevo.",
         "error_closing_popup": "Error closing window",
         "error_initializing_biometrics": "Error initializing biometrics",
         "error_sending_decryption_result_to_background": "Error communicating with extension",
@@ -2069,6 +2079,7 @@
         "unable_to_estimate": "No se puede estimar"
     },
     "superapp": {
-        "connecting_with": "Conectando con {{appName}}"
+        "connecting_with": "Conectando con {{appName}}",
+        "working_with": "Trabajando de forma segura con {{appName}}"
     }
 }

@@ -274,3 +274,270 @@
         transform: rotate(360deg);
     }
 }
+
+/* Compact editorial vault language shared with SuperApp. */
+.vault {
+    &__content {
+        gap: calc(12px * var(--zns-space-scale, 1));
+    }
+
+    &__header {
+        padding: 0 calc(2px * var(--zns-space-scale, 1));
+
+        h1 {
+            margin: 0;
+            color: variables.$themeText;
+            font-family: variables.$themeTitleFamily;
+            font-size: calc(28px * var(--zns-font-scale, 1));
+            letter-spacing: -0.045em;
+            line-height: 1.05;
+        }
+    }
+
+    &__eyebrow {
+        margin: 0 0 calc(4px * var(--zns-space-scale, 1));
+        color: variables.$secondaryColor;
+        font-family: variables.$themeBodyFamily;
+        font-size: calc(10px * var(--zns-font-scale, 1));
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+    }
+
+    &__subtitle,
+    &__trust {
+        color: variables.$themeTextSecondary;
+        font-family: variables.$themeBodyFamily;
+        font-size: calc(11px * var(--zns-font-scale, 1));
+    }
+
+    &__subtitle {
+        margin: calc(5px * var(--zns-space-scale, 1)) 0 0;
+    }
+
+    &__trust {
+        display: flex;
+        align-items: center;
+        gap: calc(5px * var(--zns-space-scale, 1));
+        margin: calc(5px * var(--zns-space-scale, 1)) 0 0;
+
+        .material-symbols-outlined {
+            color: variables.$secondaryColor;
+            font-size: calc(15px * var(--zns-font-scale, 1));
+        }
+    }
+
+    &__stats {
+        display: grid;
+        grid-template-columns: 1.15fr repeat(3, 1fr);
+        gap: calc(6px * var(--zns-space-scale, 1));
+    }
+
+    &__stat {
+        display: flex;
+        min-width: 0;
+        min-height: calc(58px * var(--zns-space-scale, 1));
+        flex-direction: column;
+        justify-content: center;
+        padding: calc(8px * var(--zns-space-scale, 1));
+        border: 1px solid variables.$themeCardBorder;
+        border-radius: calc(13px * var(--zns-space-scale, 1));
+        background: variables.$themeCard;
+
+        strong {
+            color: variables.$themeText;
+            font-family: variables.$themeTitleFamily;
+            font-size: calc(21px * var(--zns-font-scale, 1));
+            line-height: 1;
+        }
+
+        span {
+            margin-top: calc(4px * var(--zns-space-scale, 1));
+            overflow: hidden;
+            color: variables.$themeTextMuted;
+            font-family: variables.$themeBodyFamily;
+            font-size: calc(9px * var(--zns-font-scale, 1));
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        &--total {
+            background: variables.$themeBackgroundSecondary;
+        }
+
+        &--soon {
+            opacity: 0.72;
+        }
+    }
+
+    &__actions {
+        gap: calc(7px * var(--zns-space-scale, 1));
+    }
+
+    &__add-btn {
+        min-height: calc(38px * var(--zns-space-scale, 1));
+        border-radius: calc(11px * var(--zns-space-scale, 1));
+        font-size: calc(11px * var(--zns-font-scale, 1));
+
+        .material-symbols-outlined {
+            font-size: calc(17px * var(--zns-font-scale, 1));
+        }
+    }
+
+    &__browser {
+        display: flex;
+        min-height: 0;
+        flex: 1 1 auto;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid variables.$themeCardBorder;
+        border-radius: calc(18px * var(--zns-space-scale, 1));
+        background: variables.$themeCard;
+    }
+
+    &__toolbar {
+        display: flex;
+        align-items: center;
+        gap: calc(6px * var(--zns-space-scale, 1));
+        padding: calc(8px * var(--zns-space-scale, 1));
+        border-bottom: 1px solid variables.$themeCardBorder;
+    }
+
+    &__search {
+        min-width: 0;
+        flex: 1;
+    }
+
+    &__search-input {
+        min-height: calc(36px * var(--zns-space-scale, 1));
+        padding-top: calc(8px * var(--zns-space-scale, 1));
+        padding-bottom: calc(8px * var(--zns-space-scale, 1));
+        border-radius: calc(10px * var(--zns-space-scale, 1));
+        background: variables.$themeBackgroundSecondary;
+    }
+
+    &__folder {
+        position: relative;
+        display: flex;
+        align-items: center;
+        max-width: calc(108px * var(--zns-space-scale, 1));
+        color: variables.$themeTextSecondary;
+
+        .material-symbols-outlined {
+            position: absolute;
+            left: calc(9px * var(--zns-space-scale, 1));
+            z-index: 1;
+            font-size: calc(16px * var(--zns-font-scale, 1));
+            pointer-events: none;
+        }
+
+        select {
+            width: 100%;
+            min-height: calc(36px * var(--zns-space-scale, 1));
+            padding: 0 calc(22px * var(--zns-space-scale, 1)) 0 calc(29px * var(--zns-space-scale, 1));
+            overflow: hidden;
+            border: 0;
+            border-radius: calc(10px * var(--zns-space-scale, 1));
+            outline: 0;
+            background: variables.$themeBackgroundSecondary;
+            color: variables.$themeTextSecondary;
+            font-family: variables.$themeBodyFamily;
+            font-size: calc(10px * var(--zns-font-scale, 1));
+            text-overflow: ellipsis;
+        }
+    }
+
+    &__icon-btn {
+        width: calc(36px * var(--zns-space-scale, 1));
+        height: calc(36px * var(--zns-space-scale, 1));
+        border-radius: calc(10px * var(--zns-space-scale, 1));
+
+        .material-symbols-outlined {
+            font-size: calc(19px * var(--zns-font-scale, 1));
+        }
+    }
+
+    &__list {
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+    }
+
+    &__row {
+        width: 100%;
+        min-height: calc(58px * var(--zns-space-scale, 1));
+        padding: calc(9px * var(--zns-space-scale, 1)) calc(11px * var(--zns-space-scale, 1));
+        border: 0;
+        border-bottom: 1px solid variables.$themeCardBorder;
+        background: transparent;
+        text-align: left;
+
+        &:last-child {
+            border-bottom: 0;
+        }
+    }
+
+    &__row-mark {
+        display: grid;
+        width: calc(36px * var(--zns-space-scale, 1));
+        height: calc(36px * var(--zns-space-scale, 1));
+        flex: 0 0 auto;
+        place-items: center;
+        border-radius: calc(11px * var(--zns-space-scale, 1));
+        background: linear-gradient(145deg, variables.$secondaryColor, #b33fd6);
+        color: variables.$white;
+        font-family: variables.$themeTitleFamily;
+        font-size: calc(15px * var(--zns-font-scale, 1));
+
+        &--card {
+            background: linear-gradient(145deg, variables.$primaryColor, #50535c);
+        }
+    }
+
+    &__row-folder {
+        max-width: calc(72px * var(--zns-space-scale, 1));
+        padding: calc(3px * var(--zns-space-scale, 1)) calc(7px * var(--zns-space-scale, 1));
+        overflow: hidden;
+        border-radius: 999px;
+        background: variables.$themeBackgroundSecondary;
+        color: variables.$themeTextSecondary;
+        font-family: variables.$themeBodyFamily;
+        font-size: calc(9px * var(--zns-font-scale, 1));
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__row-chevron {
+        font-size: calc(18px * var(--zns-font-scale, 1));
+    }
+
+    &__empty {
+        flex: 1;
+        justify-content: center;
+        padding: calc(30px * var(--zns-space-scale, 1)) calc(20px * var(--zns-space-scale, 1));
+
+        strong {
+            color: variables.$themeText;
+            font-family: variables.$themeTitleFamily;
+            font-size: calc(17px * var(--zns-font-scale, 1));
+        }
+    }
+
+    &__empty-icon,
+    &__state-symbol {
+        color: variables.$secondaryColor;
+        font-size: calc(34px * var(--zns-font-scale, 1));
+    }
+
+    &__empty-action {
+        padding: calc(9px * var(--zns-space-scale, 1)) calc(14px * var(--zns-space-scale, 1));
+        border: 0;
+        border-radius: calc(10px * var(--zns-space-scale, 1));
+        background: variables.$themeButton;
+        color: variables.$themeButtonText;
+        font-family: variables.$themeBodyFamily;
+        font-size: calc(11px * var(--zns-font-scale, 1));
+        font-weight: 600;
+        cursor: pointer;
+    }
+}
