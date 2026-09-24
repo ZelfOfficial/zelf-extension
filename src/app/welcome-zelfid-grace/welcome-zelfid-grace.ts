@@ -1,3 +1,4 @@
+import { parseTagExpiry } from "@shared/utils/tag-expiry";
 import { DatePipe, NgIf, NgTemplateOutlet } from "@angular/common";
 import { Component, OnInit } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
@@ -98,7 +99,7 @@ export class WelcomeZelfidGraceComponent extends CopyToClipboardBase implements 
 
             const isOwnedByUser = Boolean(previousProof) && tagNameObject.zelfProof === previousProof;
 
-            if (!isOwnedByUser && tagNameObject.publicData?.expiresAt && new Date(tagNameObject.publicData.expiresAt) < new Date()) {
+            if (!isOwnedByUser && tagNameObject.publicData?.expiresAt && parseTagExpiry(tagNameObject.publicData.expiresAt) < new Date()) {
                 this._router.navigate(["/welcome-zelfid/recover"]);
 
                 return;

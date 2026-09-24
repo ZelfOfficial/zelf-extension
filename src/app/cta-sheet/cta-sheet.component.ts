@@ -1,3 +1,4 @@
+import { parseTagExpiry } from "@shared/utils/tag-expiry";
 import { NgClass, NgFor, NgIf, NgSwitch, NgSwitchCase, NgSwitchDefault, NgTemplateOutlet, UpperCasePipe } from "@angular/common";
 import { ChangeDetectorRef, Component, Inject, OnDestroy } from "@angular/core";
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef } from "@angular/material/bottom-sheet";
@@ -137,7 +138,7 @@ export class CtaSheetComponent implements OnDestroy {
         if (!dateToCompare) return 0;
 
         const now = new Date();
-        const expirationDate = new Date(dateToCompare);
+        const expirationDate = parseTagExpiry(dateToCompare);
 
         const diff = expirationDate.getTime() - now.getTime();
         return diff;
