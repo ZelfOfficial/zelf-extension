@@ -1,3 +1,5 @@
+import { parseTagExpiry } from "@shared/utils/tag-expiry";
+
 /** Keep explicit `"true"` / `"false"`; missing metadata stays empty so unlock can preview. */
 export function readPublicDataHasPassword(source?: { hasPassword?: unknown } | null): string {
     const value = source?.hasPassword;
@@ -173,7 +175,7 @@ export class TagPublicDataModel {
 
     get isExpired(): boolean {
         if (!this.expiresAt) return false;
-        return new Date(this.expiresAt) < new Date();
+        return parseTagExpiry(this.expiresAt) <= new Date();
     }
 
     get isExpiringSoon(): boolean {
@@ -190,13 +192,13 @@ export class TagPublicDataModel {
     get isInGracePeriod(): boolean {
         if (this.type !== "mainnet" || !this.gracePeriod) return false;
         const now = new Date();
-        return now < this.gracePeriod && now > new Date(this.expiresAt || "");
+        return now < this.gracePeriod && now > parseTagExpiry(this.expiresAt || "");
     }
 
     private _calculateGracePeriod(): Date | null {
         if (this.type !== "mainnet") return null;
 
-        const gracePeriod = new Date(this.expiresAt || "");
+        const gracePeriod = parseTagExpiry(this.expiresAt || "");
         gracePeriod.setDate(gracePeriod.getDate() + 30);
 
         return gracePeriod;
@@ -204,7 +206,7 @@ export class TagPublicDataModel {
 
     private _timeRemaining(): number {
         if (!this.expiresAt) return 0;
-        const expiresAtTime = new Date(this.expiresAt || "").getTime();
+        const expiresAtTime = parseTagExpiry(this.expiresAt || "").getTime();
         return expiresAtTime - Date.now();
     }
 
