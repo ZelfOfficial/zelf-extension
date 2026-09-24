@@ -113,7 +113,8 @@
                             "@polkadot/wasm-crypto-wasm",
                             "@ton/core",
                             "@ton/crypto",
-                            "@ton/ton"
+                            "@ton/ton",
+                            "ed25519-hd-key"
                         ]
                     },
                     "configurations": {

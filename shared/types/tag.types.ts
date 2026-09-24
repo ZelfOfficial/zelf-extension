@@ -87,6 +87,17 @@ export function readPublicDataKsmAddress(pd: Record<string, unknown> | null | un
     return s.trim();
 }
 
+/** API / IPFS `publicData` uses `tonAddress`; `toncoinAddress` and short chunk key `ton` are fallbacks. */
+export function readPublicDataTonAddress(pd: Record<string, unknown> | null | undefined): string {
+    if (!pd) return "";
+    const m = withMergedAddressChunkFields(pd);
+    const primary = m.tonAddress;
+    const alt = (m as Record<string, string>).toncoinAddress;
+    const short = (m as Record<string, string>).ton;
+    const s = (typeof primary === "string" ? primary : "") || (typeof alt === "string" ? alt : "") || (typeof short === "string" ? short : "");
+    return s.trim();
+}
+
 export interface TagPublicData {
     btcAddress: string;
     domain: string;
@@ -147,7 +158,7 @@ export class TagPublicDataModel {
         this.solanaAddress = data.solanaAddress || "";
         this.xlmAddress = readPublicDataXlmAddress(data as Record<string, unknown>);
         this.suiAddress = data.suiAddress || "";
-        this.tonAddress = data.tonAddress || "";
+        this.tonAddress = readPublicDataTonAddress(data as Record<string, unknown>);
         this.dotAddress = readPublicDataDotAddress(data as Record<string, unknown>);
         this.ksmAddress = readPublicDataKsmAddress(data as Record<string, unknown>);
         this.tagName = data.tagName || "";

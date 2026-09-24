@@ -26,7 +26,7 @@ import { PolygonService } from "./polygon.service";
 import { StellarService } from "./stellar.service";
 import { SuiService } from "./sui.service";
 import { TonService } from "./ton.service";
-import { readPublicDataDotAddress, readPublicDataKsmAddress, readPublicDataXlmAddress } from "@shared/types/tag.types";
+import { readPublicDataDotAddress, readPublicDataKsmAddress, readPublicDataTonAddress, readPublicDataXlmAddress } from "@shared/types/tag.types";
 import { TagModel } from "app/tags.service";
 import { SubstrateRelayService } from "./substrate-relay.service";
 
@@ -58,6 +58,10 @@ export class BlockchainTransactionsService {
 
     private _getKsmAddress(wallet: Partial<TagModel> | null | undefined): string {
         return readPublicDataKsmAddress(wallet?.publicData as Record<string, unknown> | undefined);
+    }
+
+    private _getTonAddress(wallet: Partial<TagModel> | null | undefined): string {
+        return readPublicDataTonAddress(wallet?.publicData as Record<string, unknown> | undefined);
     }
 
     private _processTransactions(responses: any): Transaction[] {
@@ -267,8 +271,8 @@ export class BlockchainTransactionsService {
                     ? from(this._suiService.getWalletDetails(wallet.publicData?.suiAddress)).pipe(catchError(() => of(null)))
                     : of(null),
             ton:
-                isEnabled("ton") && wallet.publicData?.tonAddress
-                    ? from(this._tonService.getWalletDetails(wallet.publicData?.tonAddress)).pipe(catchError(() => of(null)))
+                isEnabled("ton") && this._getTonAddress(wallet)
+                    ? from(this._tonService.getWalletDetails(this._getTonAddress(wallet))).pipe(catchError(() => of(null)))
                     : of(null),
             polkadot:
                 isEnabled("polkadot") && dotAddr
@@ -331,10 +335,9 @@ export class BlockchainTransactionsService {
             }
         }
 
-        if (wallet.publicData?.tonAddress) {
-            if (token === "TON") {
-                observable = forkJoin({ ton: from(this._tonService.getWalletDetails(wallet.publicData?.tonAddress)) });
-            }
+        const tonAddress = this._getTonAddress(wallet);
+        if (tonAddress && token === "TON") {
+            observable = forkJoin({ ton: from(this._tonService.getWalletDetails(tonAddress)) });
         }
 
         const xlmAddr = this._getXlmAddress(wallet);
@@ -437,8 +440,8 @@ export class BlockchainTransactionsService {
                     ? from(this._suiService.requestTransactionHistory(wallet.publicData?.suiAddress, pagination)).pipe(catchError(() => of(null)))
                     : of(null),
             ton:
-                isEnabled("ton") && wallet.publicData?.tonAddress
-                    ? from(this._tonService.requestTransactionHistory(wallet.publicData?.tonAddress, pagination)).pipe(catchError(() => of(null)))
+                isEnabled("ton") && this._getTonAddress(wallet)
+                    ? from(this._tonService.requestTransactionHistory(this._getTonAddress(wallet), pagination)).pipe(catchError(() => of(null)))
                     : of(null),
         }).pipe(map((responses) => this._processTransactions(responses)));
     }
