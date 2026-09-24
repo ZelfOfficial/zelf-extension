@@ -8,6 +8,7 @@ import { environment } from "environments/environment";
 import {
     readPublicDataDotAddress,
     readPublicDataKsmAddress,
+    readPublicDataTonAddress,
     tryHealPublicDataXlmToCanonical,
     type PGP,
 } from "@shared/types/tag.types";
@@ -184,7 +185,7 @@ export class WalletService {
                 assetSrc = "./assets/networks/sui.svg";
                 break;
             case "TON":
-                assetSrc = "./assets/networks/ton.png";
+                assetSrc = "./assets/networks/ton.svg";
                 break;
             case "BNB":
             case "BSC":
@@ -1142,7 +1143,7 @@ export class WalletService {
         } else if (tokenType === "SUI" || tokenType === "SUI_TOKEN") {
             address = wallet?.publicData?.suiAddress || "";
         } else if (tokenType === "TON" || tokenType === "ton") {
-            address = wallet?.publicData?.tonAddress || "";
+            address = readPublicDataTonAddress(wallet?.publicData as Record<string, unknown> | undefined);
         } else if (tokenType === "XLM" || tokenType === "STELLAR") {
             address = wallet?.publicData?.xlmAddress || "";
         }
@@ -1223,15 +1224,6 @@ export class WalletService {
             });
         }
 
-        if (_wallet?.publicData?.tonAddress) {
-            networks.push({
-                address: _wallet?.publicData?.tonAddress,
-                image: this.getAssetImage("TON"),
-                name: "Ton",
-                symbol: "TON",
-            });
-        }
-
         if (_wallet?.publicData?.xlmAddress) {
             networks.push({
                 address: _wallet?.publicData?.xlmAddress || "",
@@ -1244,6 +1236,7 @@ export class WalletService {
         const pdForSubstrate = _wallet?.publicData as Record<string, unknown> | null | undefined;
         const dotAddr = readPublicDataDotAddress(pdForSubstrate);
         const ksmAddr = readPublicDataKsmAddress(pdForSubstrate);
+        const tonAddr = readPublicDataTonAddress(pdForSubstrate);
         if (dotAddr) {
             networks.push({
                 address: dotAddr,
@@ -1259,6 +1252,15 @@ export class WalletService {
                 image: this.getAssetImage("KSM"),
                 name: "Kusama",
                 symbol: "KSM",
+            });
+        }
+
+        if (tonAddr) {
+            networks.push({
+                address: tonAddr,
+                image: this.getAssetImage("TON"),
+                name: "TON",
+                symbol: "TON",
             });
         }
 

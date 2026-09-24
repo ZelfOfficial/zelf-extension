@@ -10,7 +10,7 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { CopyToClipboardBase } from "app/base/copy-to-clipboard/copy-to-clipboard.base";
 import { ChromeService } from "app/chrome.service";
-import { readPublicDataDotAddress, readPublicDataKsmAddress } from "@shared/types/tag.types";
+import { readPublicDataDotAddress, readPublicDataKsmAddress, readPublicDataTonAddress } from "@shared/types/tag.types";
 import { TagModel, TagsService } from "app/tags.service";
 import { ReceiveGenerateSubstrateModalComponent } from "app/receive-qr/receive-generate-substrate-modal/receive-generate-substrate-modal.component";
 import { SUBSTRATE_ADDRESS_PLACEHOLDER, WalletService } from "app/wallet.service";
@@ -188,8 +188,8 @@ export class ReceiveQrComponent extends CopyToClipboardBase implements OnInit, O
             this.name = "Sui";
             this.symbol = "SUI";
         } else if (network === "ton") {
-            this.address = this.wallet.publicData?.tonAddress || "";
-            this.name = "Ton";
+            this.address = readPublicDataTonAddress(this.wallet.publicData as Record<string, unknown> | null | undefined);
+            this.name = "TON";
             this.symbol = "TON";
         } else if (network === "solana") {
             this.address = this.wallet.publicData?.solanaAddress || "";
