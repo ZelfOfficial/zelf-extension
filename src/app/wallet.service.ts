@@ -194,6 +194,9 @@ export class WalletService {
             case "MATIC":
                 assetSrc = "./assets/networks/pol.png";
                 break;
+            case "OP":
+                assetSrc = "./assets/networks/optimism.svg";
+                break;
             case "BTC":
                 assetSrc = "./assets/networks/btc.png";
                 break;
@@ -1215,6 +1218,12 @@ export class WalletService {
                     image: this.getAssetImage("MATIC"),
                     name: "Polygon",
                     symbol: "MATIC",
+                },
+                {
+                    address: _wallet?.publicData?.ethAddress,
+                    image: this.getAssetImage("OP"),
+                    name: "Optimism",
+                    symbol: "ETH",
                 }
             );
         }

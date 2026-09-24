@@ -40,7 +40,7 @@ export interface DeriveKeyResult {
 
 const CHAIN_ID_TO_NETWORK: Record<number, string> = {
     1: "ethereum",
-    10: "ethereum",
+    10: "optimism",
     42161: "ethereum",
     8453: "ethereum",
     43114: "avalanche",
@@ -51,6 +51,7 @@ const CHAIN_ID_TO_NETWORK: Record<number, string> = {
 
 const NETWORK_TO_CHAIN_ID: Record<string, number> = {
     ethereum: 1,
+    optimism: 10,
     avalanche: 43114,
     polygon: 137,
     binance: 56,
