@@ -322,7 +322,7 @@ export class TagModel {
     }
 
     get displayTonAddress(): string {
-        return this._parseAddress(this.tonAddress);
+        return this._parseAddress(this.publicData?.tonAddress);
     }
 
     get displayAvalancheAddress(): string {
