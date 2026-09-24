@@ -21,6 +21,7 @@ export interface NetworkPermissions {
     ETH?: boolean;
     KSM?: boolean;
     POL?: boolean;
+    OP?: boolean;
     SOL?: boolean;
     SUI?: boolean;
     TON?: boolean;
@@ -74,6 +75,7 @@ export class AssetService {
             BTC: false,
             ETH: true,
             POL: true,
+            OP: true,
             SOL: true,
             SUI: true,
             TON: false,
@@ -91,6 +93,7 @@ export class AssetService {
             ETH: true,
             KSM: true,
             POL: true,
+            OP: true,
             SOL: true,
             SUI: true,
             TON: false,
@@ -150,6 +153,8 @@ export class AssetService {
                     return "BNB";
                 case "Polygon":
                     return "MATIC";
+                case "Optimism":
+                    return "ETH";
                 case "Stellar":
                     return "XLM";
                 case "Polkadot":
@@ -166,6 +171,7 @@ export class AssetService {
             case "Ethereum":
             case "Avalanche":
             case "Polygon":
+            case "Optimism":
                 return "ERC-20";
             case "Binance":
                 return "BEP-20";
@@ -189,6 +195,7 @@ export class AssetService {
             Bitcoin: ["BTC", "BITCOIN"],
             Ethereum: ["ETH", "ETHEREUM"],
             Polygon: ["MATIC", "POLYGON", "POL"],
+            Optimism: ["ETH", "ETHEREUM"],
             Solana: ["SOL", "SOLANA"],
             Stellar: ["XLM", "STELLAR"],
             Sui: ["SUI", "SUI-TOKEN"],
@@ -325,6 +332,7 @@ export class AssetService {
                     (network === "Ton" && !permissions.TON) ||
                     (network === "Binance" && !permissions.BNB) ||
                     (network === "Polygon" && !permissions.POL) ||
+                    (network === "Optimism" && !permissions.OP) ||
                     (network === "Stellar" && !permissions.XLM) ||
                     (network === "Polkadot" && !permissions.DOT) ||
                     (network === "Kusama" && !permissions.KSM)
@@ -386,6 +394,10 @@ export class AssetService {
 
         if (response?.polygon?.data?.tokenHoldings?.tokens && (!permissions || permissions.POL)) {
             tokens = this.processTokens("Polygon", response.polygon.data.tokenHoldings.tokens, tokens, permissions);
+        }
+
+        if (response?.optimism?.data?.tokenHoldings?.tokens && (!permissions || permissions.OP)) {
+            tokens = this.processTokens("Optimism", response.optimism.data.tokenHoldings.tokens, tokens, permissions);
         }
 
         if (response?.sui?.data?.tokenHoldings?.tokens && (!permissions || permissions.SUI)) {

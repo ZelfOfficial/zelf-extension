@@ -58,7 +58,7 @@ export class RpcProviderService {
             case "arbitrum":
                 return "https://arb1.arbitrum.io/rpc";
             case "optimism":
-                return "https://mainnet.optimism.io";
+                return environment.optimismRpc.mainnet;
             case "base":
                 return "https://mainnet.base.org";
             case "blockdag":
