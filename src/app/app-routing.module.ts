@@ -95,7 +95,8 @@ const routes: Routes = [
             },
             {
                 path: "zelf-id",
-                loadComponent: () => import("./zelf-id/zelf-id.component").then((m) => m.ZelfIdComponent),
+                redirectTo: "wallet-manage",
+                pathMatch: "full",
             },
             {
                 path: "zelf-ai",

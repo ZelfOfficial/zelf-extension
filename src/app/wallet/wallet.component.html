@@ -11,7 +11,7 @@
         </div>
 
         <div class="wallet__col2">
-            <p class="wallet__title">{{ t("common.zelf_wallet") }}</p>
+            <p class="wallet__title">{{ t("common.zelf_id") }}</p>
         </div>
 
         <div class="wallet__col3 wallet__col3--spacer" aria-hidden="true"></div>
@@ -37,14 +37,14 @@
                             {{ t("wallet_status." + getWalletStatus()) }}
                         </div>
 
-                        <h2 class="zelf-card__title wallet__tag-title">{{ wallet.fullTagName }}</h2>
+                        <h2 class="zelf-card__title wallet__tag-title">{{ wallet.fullTagName | uppercase }}</h2>
 
                         <div
                             class="wallet__quick-actions"
                             fxLayout="row wrap"
                             fxLayoutAlign="center center"
                             fxLayoutGap="16px"
-                            *ngIf="showDownloadQrButton || showSeedPhraseButton || showArnsButton"
+                            *ngIf="showDownloadQrButton || showSeedPhraseButton || showZelfLinkButton || showSyncButton"
                         >
                             <div class="zelf-action-button" *ngIf="showDownloadQrButton">
                                 <div
@@ -57,7 +57,7 @@
                                     <div class="zelf-action-button__icon-box">
                                         <span class="material-symbols-outlined" aria-hidden="true">download</span>
                                     </div>
-                                    <div class="zelf-action-button__text">{{ t("wallet.action_download") }}</div>
+                                    <div class="zelf-action-button__text">{{ t("common.download_qr") }}</div>
                                 </div>
                             </div>
                             <div class="zelf-action-button" *ngIf="showSeedPhraseButton">
@@ -69,12 +69,12 @@
                                     (keydown.enter)="openSeedPhraseSheet()"
                                 >
                                     <div class="zelf-action-button__icon-box">
-                                        <span class="material-symbols-outlined" aria-hidden="true">key</span>
+                                        <span class="material-symbols-outlined" aria-hidden="true">lock</span>
                                     </div>
-                                    <div class="zelf-action-button__text">{{ t("wallet.action_unlock") }}</div>
+                                    <div class="zelf-action-button__text">{{ t("common.seed_phrase") }}</div>
                                 </div>
                             </div>
-                            <div class="zelf-action-button" *ngIf="showArnsButton">
+                            <div class="zelf-action-button" *ngIf="showZelfLinkButton">
                                 <div
                                     class="zelf-action-button__icon"
                                     role="button"
@@ -85,7 +85,22 @@
                                     <div class="zelf-action-button__icon-box">
                                         <span class="material-symbols-outlined" aria-hidden="true">public</span>
                                     </div>
-                                    <div class="zelf-action-button__text">{{ t("common.my_arns") }}</div>
+                                    <div class="zelf-action-button__text">{{ t("common.zelf_link") }}</div>
+                                </div>
+                            </div>
+                            <div class="zelf-action-button" *ngIf="showSyncButton">
+                                <div
+                                    class="zelf-action-button__icon"
+                                    role="button"
+                                    tabindex="0"
+                                    [attr.aria-busy]="syncing"
+                                    (click)="syncWallet()"
+                                    (keydown.enter)="syncWallet()"
+                                >
+                                    <div class="zelf-action-button__icon-box">
+                                        <span class="material-symbols-outlined" aria-hidden="true">cloud_sync</span>
+                                    </div>
+                                    <div class="zelf-action-button__text">{{ t("wallet.action_sync") }}</div>
                                 </div>
                             </div>
                         </div>
@@ -159,9 +174,9 @@
         </div>
     </div>
 
-    <div class="zelf-card__actions wallet__actions">
-        <button mat-flat-button class="zelf-button zelf-button--primary zelf-button--wide" [routerLink]="['/manage-domains']">
-            {{ t("common.manage_domains") }}
+    <div class="zelf-card__actions wallet__actions" *ngIf="showExtendSubscriptionButton">
+        <button mat-flat-button class="zelf-button zelf-button--primary zelf-button--wide" (click)="extendRegistration()">
+            {{ t("common.extend_registration") }}
         </button>
     </div>
 
