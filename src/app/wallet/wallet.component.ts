@@ -5,7 +5,7 @@ import { FlexLayoutModule } from "@angular/flex-layout";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
 import { MatButtonModule } from "@angular/material/button";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
-import { RouterLink, RouterModule } from "@angular/router";
+import { Router, RouterLink, RouterModule } from "@angular/router";
 
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 
@@ -18,6 +18,7 @@ import { TagModel, TagsService } from "app/tags.service";
 import { VaultService } from "app/vault.service";
 import { Network, WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
+import { environment } from "environments/environment";
 
 @Component({
     imports: [
@@ -45,11 +46,13 @@ export class WalletComponent extends CopyToClipboardBase implements OnInit, OnDe
     networks: Network[] = [];
     parameters: any = {};
     selectedTab: string = "addresses";
+    syncing: boolean = false;
     wallet: Partial<TagModel> = {};
 
     constructor(
         private _bottomSheet: MatBottomSheet,
         private _destroyRef: DestroyRef,
+        private _router: Router,
         private _vaultService: VaultService,
         private _walletService: WalletService,
         private _tagsService: TagsService,
@@ -73,6 +76,8 @@ export class WalletComponent extends CopyToClipboardBase implements OnInit, OnDe
 
         await this._chromeService.removeItem("parameters");
 
+        const shouldOpenSeedPhraseSheet = this.parameters.openSeedPhraseSheet === true;
+
         if (this.parameters.openMyArnsBottomSheet) this.openMyArnsBottomSheet();
 
         await this._updateWallet();
@@ -80,14 +85,24 @@ export class WalletComponent extends CopyToClipboardBase implements OnInit, OnDe
         await this._initNetworks();
 
         this.loading = false;
+
+        if (shouldOpenSeedPhraseSheet) this.openSeedPhraseSheet();
     }
 
     ngOnDestroy(): void {
         this._vaultService.mnemonic = "";
     }
 
-    get showArnsButton(): boolean {
+    get showZelfLinkButton(): boolean {
         return !!this.wallet?.fullTagName && this.wallet?.publicData?.type === "mainnet";
+    }
+
+    get showSyncButton(): boolean {
+        return !!this.wallet?.fullTagName;
+    }
+
+    get showExtendSubscriptionButton(): boolean {
+        return !!this.wallet?.fullTagName;
     }
 
     get showDownloadQrButton(): boolean {
@@ -154,6 +169,31 @@ export class WalletComponent extends CopyToClipboardBase implements OnInit, OnDe
             backdropClass: "zelf-backdrop",
             panelClass: "zelf-bottom-sheet",
             data: { wallet: this.wallet },
+        });
+    }
+
+    async syncWallet(): Promise<void> {
+        if (this.syncing || !this.wallet?.fullTagName) return;
+
+        this.syncing = true;
+
+        try {
+            await this._updateWallet();
+            await this._initNetworks();
+        } finally {
+            this.syncing = false;
+        }
+    }
+
+    extendRegistration(): void {
+        const tagName = (this.wallet as TagModel)?.tagName;
+        const domain = (this.wallet as TagModel)?.publicData?.domain;
+        const duration = 1;
+
+        this._router.navigate(["/external-link"], {
+            queryParams: {
+                externalUrl: `${environment.paymentDomainUrl}?tagname=${tagName}&domain=${domain}&duration=${duration}`,
+            },
         });
     }
 
