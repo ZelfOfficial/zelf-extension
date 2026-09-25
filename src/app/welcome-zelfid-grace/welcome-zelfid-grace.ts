@@ -62,7 +62,12 @@ export class WelcomeZelfidGraceComponent extends CopyToClipboardBase implements 
 
     private async _queryZNS(zelfName: string): Promise<void> {
         try {
-            const response = await this._zelfIdsService.searchTag({ tagName: zelfName, domain: this.domain, captchaToken: this.captchaToken });
+            const response = await this._zelfIdsService.previewTag({
+                tagName: zelfName,
+                domain: this.domain,
+                os: "DESKTOP",
+                captchaToken: this.captchaToken,
+            });
 
             if (!response.data) {
                 this._router.navigate(["/welcome-zelfid/available"]);
