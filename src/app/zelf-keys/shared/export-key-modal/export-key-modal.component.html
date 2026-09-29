@@ -1,0 +1,115 @@
+<div class="privy-modal" *transloco="let t">
+    <!-- Header -->
+    <div class="privy-modal__top">
+        <div>
+            <h2 class="privy-modal__title">
+                {{ mode === 'single' ? t('zelf_keys.vault.export_item') : t('zelf_keys.vault.export_title') }}
+            </h2>
+            <p class="privy-modal__subtitle">
+                {{ state === 'ready' 
+                    ? t('zelf_keys.vault.export_ready_count', { count: decryptedCredentials.length }) 
+                    : t('zelf_keys.vault.export_biometrics_explain', { count: items.length }) 
+                }}
+            </p>
+        </div>
+        <button type="button" class="privy-modal__close" (click)="onClose()" [attr.aria-label]="t('zelf_keys.common.close')">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </div>
+
+    <!-- State 1: Locked -->
+    <div *ngIf="state === 'locked'" class="privy-modal__content">
+        <div *ngIf="hasMasterPassword" class="privy-modal__field">
+            <label class="privy-modal__label" for="exportMasterPass">
+                {{ t('zelf_keys.vault.master_password_label') }}
+            </label>
+            <input
+                type="password"
+                id="exportMasterPass"
+                [(ngModel)]="masterPassword"
+                [placeholder]="t('zelf_keys.vault.master_password_placeholder')"
+                class="privy-modal__input"
+                autocomplete="current-password"
+            />
+        </div>
+
+        <button
+            type="button"
+            class="privy-modal__primary-btn"
+            (click)="onStartUnlock()"
+            [disabled]="hasMasterPassword && !masterPassword.trim()"
+        >
+            <span class="material-symbols-outlined">face</span>
+            {{ t('zelf_keys.vault.export_scan_face_btn') }}
+        </button>
+
+        <p class="privy-modal__footnote">
+            {{ t('zelf_keys.vault.export_local_only') }}
+        </p>
+    </div>
+
+    <!-- State 2: Decrypting -->
+    <div *ngIf="state === 'decrypting'" class="privy-modal__content privy-modal__content--center">
+        <div class="privy-modal__spinner"></div>
+        <h3 class="privy-modal__progress-title">{{ t('zelf_keys.vault.export_decrypting_title') }}</h3>
+        <p class="privy-modal__progress-detail">{{ progressText }}</p>
+
+        <div class="privy-modal__bar-track">
+            <div class="privy-modal__bar-fill" [style.width.%]="progressPercent"></div>
+        </div>
+        <span class="privy-modal__percent">{{ progressPercent }}%</span>
+    </div>
+
+    <!-- State 3: Ready to Export -->
+    <div *ngIf="state === 'ready'" class="privy-modal__content">
+        <!-- Format Picker (Privy clean select) -->
+        <div class="privy-modal__field">
+            <div class="privy-modal__field-header">
+                <label class="privy-modal__label">{{ t('zelf_keys.vault.export_format_label') }}</label>
+                <span class="privy-modal__tag">.{{ selectedFormatOption.extension }}</span>
+            </div>
+            <select
+                class="privy-modal__select"
+                [ngModel]="selectedFormat"
+                (ngModelChange)="onFormatChange($event)"
+            >
+                <option *ngFor="let opt of formats" [value]="opt.id">
+                    {{ opt.name }}
+                </option>
+            </select>
+        </div>
+
+        <!-- Inset Preview Box -->
+        <div class="privy-modal__preview">
+            <pre class="privy-modal__code"><code>{{ previewContent }}</code></pre>
+        </div>
+
+        <!-- Failure note if any -->
+        <p *ngIf="failedCount > 0" class="privy-modal__warning">
+            {{ t('zelf_keys.vault.export_failed_count', { count: failedCount }) }}
+        </p>
+
+        <!-- Actions -->
+        <div class="privy-modal__actions">
+            <button
+                type="button"
+                class="privy-modal__secondary-btn"
+                (click)="onCopy()"
+                [disabled]="decryptedCredentials.length === 0"
+            >
+                <span class="material-symbols-outlined">{{ copied ? 'check' : 'content_copy' }}</span>
+                {{ copied ? t('zelf_keys.vault.copied') : t('zelf_keys.vault.copy_to_clipboard') }}
+            </button>
+
+            <button
+                type="button"
+                class="privy-modal__primary-btn privy-modal__primary-btn--flex"
+                (click)="onDownload()"
+                [disabled]="decryptedCredentials.length === 0"
+            >
+                <span class="material-symbols-outlined">download</span>
+                {{ t('zelf_keys.vault.download_file') }}
+            </button>
+        </div>
+    </div>
+</div>

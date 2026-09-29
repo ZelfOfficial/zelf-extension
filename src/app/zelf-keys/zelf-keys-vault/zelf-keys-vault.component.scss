@@ -330,8 +330,8 @@
 
     &__stats {
         display: grid;
-        grid-template-columns: 1.15fr repeat(3, 1fr);
-        gap: calc(6px * var(--zns-space-scale, 1));
+        grid-template-columns: repeat(3, 1fr);
+        gap: calc(8px * var(--zns-space-scale, 1));
     }
 
     &__stat {
@@ -340,7 +340,7 @@
         min-height: calc(58px * var(--zns-space-scale, 1));
         flex-direction: column;
         justify-content: center;
-        padding: calc(8px * var(--zns-space-scale, 1));
+        padding: calc(8px * var(--zns-space-scale, 1)) calc(12px * var(--zns-space-scale, 1));
         border: 1px solid variables.$themeCardBorder;
         border-radius: calc(13px * var(--zns-space-scale, 1));
         background: variables.$themeCard;
@@ -348,7 +348,7 @@
         strong {
             color: variables.$themeText;
             font-family: variables.$themeTitleFamily;
-            font-size: calc(21px * var(--zns-font-scale, 1));
+            font-size: calc(22px * var(--zns-font-scale, 1));
             line-height: 1;
         }
 
@@ -357,17 +357,13 @@
             overflow: hidden;
             color: variables.$themeTextMuted;
             font-family: variables.$themeBodyFamily;
-            font-size: calc(9px * var(--zns-font-scale, 1));
+            font-size: calc(11px * var(--zns-font-scale, 1));
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
         &--total {
             background: variables.$themeBackgroundSecondary;
-        }
-
-        &--soon {
-            opacity: 0.72;
         }
     }
 

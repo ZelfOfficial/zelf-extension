@@ -1,0 +1,164 @@
+<div class="privy-modal" *transloco="let t">
+    <!-- Header -->
+    <div class="privy-modal__top">
+        <div>
+            <h2 class="privy-modal__title">{{ t('zelf_keys.vault.import_title') }}</h2>
+            <p class="privy-modal__subtitle">
+                {{ state === 'preview' 
+                    ? t('zelf_keys.vault.import_selected_count', { selected: selectedCount, total: credentials.length }) 
+                    : t('zelf_keys.vault.import_subtitle') 
+                }}
+            </p>
+        </div>
+        <button type="button" class="privy-modal__close" (click)="onClose()" [attr.aria-label]="t('zelf_keys.common.close')">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </div>
+
+    <!-- State 1: Select / Drop File -->
+    <div *ngIf="state === 'select_file'" class="privy-modal__content">
+        <!-- Dropzone -->
+        <div
+            *ngIf="!pasteMode"
+            class="privy-modal__dropzone"
+            [class.privy-modal__dropzone--active]="isDragging"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave($event)"
+            (drop)="onDrop($event)"
+        >
+            <span class="material-symbols-outlined privy-modal__drop-icon">download</span>
+            <p class="privy-modal__drop-text">{{ t('zelf_keys.vault.import_drop_title') }}</p>
+            <p class="privy-modal__drop-sub">{{ t('zelf_keys.vault.import_drop_subtitle') }}</p>
+
+            <label class="privy-modal__browse-btn">
+                <span>{{ t('zelf_keys.vault.import_browse_btn') }}</span>
+                <input
+                    type="file"
+                    accept=".csv,.json,text/csv,application/json,text/plain"
+                    (change)="onFileSelected($event)"
+                    style="display: none;"
+                />
+            </label>
+        </div>
+
+        <!-- Or Paste Mode -->
+        <div *ngIf="pasteMode" class="privy-modal__field">
+            <textarea
+                class="privy-modal__textarea"
+                [(ngModel)]="pastedText"
+                [placeholder]="t('zelf_keys.vault.import_paste_placeholder')"
+                rows="7"
+            ></textarea>
+            <button
+                type="button"
+                class="privy-modal__primary-btn"
+                (click)="onParsePastedText()"
+                [disabled]="!pastedText.trim()"
+            >
+                {{ t('zelf_keys.vault.import_parse_btn') }}
+            </button>
+        </div>
+
+        <!-- Toggle file / paste -->
+        <button
+            type="button"
+            class="privy-modal__toggle-btn"
+            (click)="pasteMode = !pasteMode"
+        >
+            {{ pasteMode ? t('zelf_keys.vault.import_switch_file') : t('zelf_keys.vault.import_switch_paste') }}
+        </button>
+
+        <p *ngIf="parseErrors.length > 0" class="privy-modal__warning">
+            {{ parseErrors.join(', ') }}
+        </p>
+    </div>
+
+    <!-- State 2: Preview -->
+    <div *ngIf="state === 'preview'" class="privy-modal__content">
+        <!-- Provider Detection Bar -->
+        <div class="privy-modal__meta-row">
+            <span class="privy-modal__detected-pill">
+                {{ t('zelf_keys.vault.import_detected') }}: {{ detectedProviderName }}
+            </span>
+            <button type="button" class="privy-modal__text-action" (click)="toggleSelectAll()">
+                {{ allSelected ? t('zelf_keys.vault.deselect_all') : t('zelf_keys.vault.select_all') }}
+            </button>
+        </div>
+
+        <!-- Preview Table -->
+        <div class="privy-modal__list">
+            <div
+                *ngFor="let cred of credentials"
+                class="privy-modal__list-item"
+                [class.privy-modal__list-item--unselected]="!cred.selected"
+                (click)="cred.selected = !cred.selected"
+            >
+                <input
+                    type="checkbox"
+                    [checked]="cred.selected"
+                    (click)="$event.stopPropagation()"
+                    (change)="cred.selected = !cred.selected"
+                    class="privy-modal__checkbox"
+                />
+                <div class="privy-modal__item-info">
+                    <strong class="privy-modal__item-title">{{ cred.title }}</strong>
+                    <span class="privy-modal__item-user">{{ cred.username || cred.website || '—' }}</span>
+                </div>
+                <span class="privy-modal__item-pass">••••••••</span>
+            </div>
+        </div>
+
+        <!-- Master Password if required -->
+        <div *ngIf="hasMasterPassword" class="privy-modal__field">
+            <label class="privy-modal__label" for="importMasterPass">
+                {{ t('zelf_keys.vault.master_password_label') }}
+            </label>
+            <input
+                type="password"
+                id="importMasterPass"
+                [(ngModel)]="masterPassword"
+                [placeholder]="t('zelf_keys.vault.master_password_placeholder')"
+                class="privy-modal__input"
+                autocomplete="current-password"
+            />
+        </div>
+
+        <!-- Actions -->
+        <div class="privy-modal__actions">
+            <button type="button" class="privy-modal__secondary-btn" (click)="onBackToFileSelect()">
+                {{ t('zelf_keys.vault.import_back') }}
+            </button>
+            <button
+                type="button"
+                class="privy-modal__primary-btn privy-modal__primary-btn--flex"
+                (click)="onStartImport()"
+                [disabled]="selectedCount === 0 || (hasMasterPassword && !masterPassword.trim())"
+            >
+                {{ t('zelf_keys.vault.import_now_btn', { count: selectedCount }) }}
+            </button>
+        </div>
+    </div>
+
+    <!-- State 3: Importing -->
+    <div *ngIf="state === 'importing'" class="privy-modal__content privy-modal__content--center">
+        <div class="privy-modal__spinner"></div>
+        <h3 class="privy-modal__progress-title">{{ t('zelf_keys.vault.importing_title') }}</h3>
+        <p class="privy-modal__progress-detail">{{ progressText }}</p>
+
+        <div class="privy-modal__bar-track">
+            <div class="privy-modal__bar-fill" [style.width.%]="progressPercent"></div>
+        </div>
+        <span class="privy-modal__percent">{{ progressPercent }}%</span>
+    </div>
+
+    <!-- State 4: Complete -->
+    <div *ngIf="state === 'complete'" class="privy-modal__content privy-modal__content--center">
+        <span class="material-symbols-outlined privy-modal__success-icon">check_circle</span>
+        <h3 class="privy-modal__progress-title">{{ t('zelf_keys.vault.import_success_title') }}</h3>
+        <p class="privy-modal__progress-detail">{{ t('zelf_keys.vault.import_success_desc', { count: importSucceededCount }) }}</p>
+
+        <button type="button" class="privy-modal__primary-btn" (click)="onDone()">
+            {{ t('zelf_keys.vault.import_done_btn') }}
+        </button>
+    </div>
+</div>

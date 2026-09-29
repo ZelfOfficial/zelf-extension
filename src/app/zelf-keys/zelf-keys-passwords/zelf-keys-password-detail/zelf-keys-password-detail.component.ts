@@ -51,8 +51,11 @@ interface DecryptedPasswordData {
     zelfName?: string;
 }
 
+import { MatDialog, MatDialogModule } from "@angular/material/dialog";
+import { ExportKeyModalComponent } from "../../shared/export-key-modal/export-key-modal.component";
+
 @Component({
-    imports: [CommonModule, FormsModule, TranslocoModule, RouterModule, PopoutDecryptorComponent],
+    imports: [CommonModule, FormsModule, TranslocoModule, RouterModule, PopoutDecryptorComponent, MatDialogModule],
     selector: "zelf-keys-password-detail",
     styleUrls: ["./zelf-keys-password-detail.component.scss"],
     templateUrl: "./zelf-keys-password-detail.component.html",
@@ -77,6 +80,7 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
         private _bottomSheet: MatBottomSheet,
+        private _dialog: MatDialog,
         private _httpWrapperService: HttpWrapperService,
         private _passwordDataService: PasswordDataService,
         private _popoutCommunicationService: PopoutCommunicationService,
@@ -235,6 +239,38 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
         this._passwordDataService.clearCurrentPassword();
 
         this._router.navigate(["/zelf-keys/vault"]);
+    }
+
+    async onExportItem(): Promise<void> {
+        if (!this.zelfKeyPasswordRecord) return;
+
+        const wallet = await this._walletService.getCurrentWallet();
+
+        // If already decrypted in the detail view, pass the decrypted data directly!
+        const alreadyDecrypted = this.decryptedData
+            ? [
+                  {
+                      title: this.displayTitle,
+                      website: this.decryptedData.website || this.zelfKeyPasswordRecord.publicData?.website,
+                      username: this.decryptedData.username || this.zelfKeyPasswordRecord.publicData?.username,
+                      password: this.decryptedData.password,
+                      notes: this.decryptedData.notes,
+                      folder: this.zelfKeyPasswordRecord.publicData?.folder,
+                      alias: this.zelfKeyPasswordRecord.publicData?.alias,
+                  },
+              ]
+            : undefined;
+
+        this._dialog.open(ExportKeyModalComponent, {
+            data: {
+                mode: "single",
+                title: this.displayTitle,
+                items: [this.zelfKeyPasswordRecord],
+                alreadyDecrypted,
+                hasMasterPassword: !!wallet?.hasPassword,
+            },
+            panelClass: "zelf-dialog-panel",
+        });
     }
 
     onDeleteClick(): void {

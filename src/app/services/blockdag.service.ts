@@ -134,7 +134,14 @@ export class BlockDAGService {
                 return this._defaultResponse();
             }
 
-            const response = await this._httpWrapper.sendRequest("get", `${this._baseUrl}/api/blockdag/address/${address}`);
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("BlockDAG request timeout")), 3000)
+            );
+
+            const response: any = await Promise.race([
+                this._httpWrapper.sendRequest("get", `${this._baseUrl}/api/blockdag/address/${address}`),
+                timeoutPromise,
+            ]);
 
             if (!response || !response.data) {
                 return this._defaultResponse();
@@ -142,7 +149,7 @@ export class BlockDAGService {
 
             return response;
         } catch (error) {
-            console.error("Error getting BlockDAG wallet details:", error);
+            console.warn("BlockDAG getWalletDetails failed or timed out:", error);
 
             return this._defaultResponse();
         }

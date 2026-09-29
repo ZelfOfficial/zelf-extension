@@ -422,20 +422,60 @@ export class EthereumService {
         }
     }
 
+    async getBalanceViaRpc(address: string): Promise<any> {
+        try {
+            const w3 = await this.web3();
+            const balanceWei = await w3.eth.getBalance(address);
+            const balanceEth = this._fromWei(balanceWei.toString(), 18);
+            const price = await this.getETHPrice();
+            const fiatBalance = parseFloat(balanceEth) * price;
+
+            return {
+                data: {
+                    address,
+                    _balance: balanceEth,
+                    balance: balanceEth,
+                    fiatBalance: fiatBalance.toString(),
+                    account: {
+                        asset: "ETH",
+                        price: price.toString(),
+                    },
+                    tokenHoldings: {
+                        tokens: [
+                            {
+                                amount: balanceEth,
+                                balance: balanceEth,
+                                fiatBalance: fiatBalance.toString(),
+                                image: "assets/networks/ethereum.png",
+                                name: "Ethereum",
+                                price: price.toString(),
+                                symbol: "ETH",
+                                tokenType: "ETH",
+                            },
+                        ],
+                    },
+                },
+            };
+        } catch (err) {
+            console.warn("Direct Ethereum RPC getBalance failed:", err);
+            return this._defaultEthResponse();
+        }
+    }
+
     async getWalletDetails(address: string): Promise<any> {
         try {
             const url = `${this._baseUrl}/api/ethereum/address`;
             const requestOptions = { address };
 
-            return await this._httpWrapper
-                .sendRequest("get", url, requestOptions)
-                .then((response) => response)
-                .catch(() => this._defaultEthResponse());
+            const response = await this._httpWrapper.sendRequest("get", url, requestOptions);
+            if (response?.data?.account && response?.data?.tokenHoldings) {
+                return response;
+            }
         } catch (error) {
-            console.error("Exception in Ethereum getWalletDetails:", error);
-
-            return Promise.resolve(this._defaultEthResponse());
+            console.warn("Backend /api/ethereum/address failed, falling back to direct RPC:", error);
         }
+
+        return this.getBalanceViaRpc(address);
     }
 
     async requestTransactionDetails(transactionHash: string): Promise<{ data: EthTransaction }> {

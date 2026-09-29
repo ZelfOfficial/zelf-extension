@@ -1,0 +1,314 @@
+.privy-modal {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 440px;
+    background: #111114;
+    color: #ffffff;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.6);
+    padding: 24px;
+    box-sizing: border-box;
+    font-family: inherit;
+
+    &__top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    &__title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: #ffffff;
+    }
+
+    &__subtitle {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.45);
+        line-height: 1.45;
+    }
+
+    &__close {
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.35);
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.15s;
+
+        &:hover {
+            color: #ffffff;
+        }
+
+        span {
+            font-size: 20px;
+        }
+    }
+
+    &__content {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        &--center {
+            align-items: center;
+            text-align: center;
+            padding: 32px 0;
+        }
+    }
+
+    &__field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    &__field-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    &__label {
+        font-size: 12px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    &__tag {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.35);
+    }
+
+    &__input {
+        width: 100%;
+        box-sizing: border-box;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        padding: 12px 14px;
+        color: #ffffff;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.15s, background 0.15s;
+
+        &::placeholder {
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        &:focus {
+            border-color: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.06);
+        }
+    }
+
+    &__select {
+        width: 100%;
+        box-sizing: border-box;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        padding: 12px 14px;
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 500;
+        outline: none;
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='rgba(255,255,255,0.4)'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        background-size: 18px;
+
+        option {
+            background: #18181b;
+            color: #ffffff;
+        }
+
+        &:focus {
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+    }
+
+    &__preview {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 12px 14px;
+        max-height: 120px;
+        overflow: auto;
+
+        &::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        &::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
+        }
+    }
+
+    &__code {
+        margin: 0;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.55);
+        white-space: pre;
+    }
+
+    &__footnote {
+        margin: 0;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.35);
+        text-align: center;
+    }
+
+    &__warning {
+        margin: 0;
+        font-size: 12px;
+        color: #facc15;
+    }
+
+    &__primary-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 14px 20px;
+        background: #ffffff;
+        color: #111114;
+        border: none;
+        border-radius: 16px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s, transform 0.05s;
+
+        &:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.92);
+        }
+
+        &:active:not(:disabled) {
+            transform: scale(0.99);
+        }
+
+        &:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        span {
+            font-size: 18px;
+        }
+
+        &--flex {
+            flex: 1.2;
+        }
+    }
+
+    &__secondary-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        flex: 1;
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.05);
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.15s;
+
+        &:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.09);
+        }
+
+        &:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        span {
+            font-size: 16px;
+        }
+    }
+
+    &__actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    /* Decrypting Progress */
+    &__spinner {
+        width: 36px;
+        height: 36px;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-bottom: 12px;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    &__progress-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        color: #ffffff;
+    }
+
+    &__progress-detail {
+        margin: 4px 0 16px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.45);
+        max-width: 280px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__bar-track {
+        width: 100%;
+        max-width: 280px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    &__bar-fill {
+        height: 100%;
+        background: #ffffff;
+        border-radius: 999px;
+        transition: width 0.2s ease-out;
+    }
+
+    &__percent {
+        margin-top: 6px;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.4);
+        font-weight: 500;
+    }
+}

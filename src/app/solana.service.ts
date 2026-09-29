@@ -423,8 +423,50 @@ export class SolanaService {
         }
     }
 
+    async getBalanceViaRpc(address: string): Promise<any> {
+        try {
+            const connection = await this._connectionReady;
+            const pubKey = new PublicKey(address);
+            const lamports = await connection.getBalance(pubKey);
+            const solBalance = lamports / LAMPORTS_PER_SOL;
+            const price = await this.getSolPrice();
+            const fiatBalance = solBalance * price;
+
+            return {
+                data: {
+                    address,
+                    _balance: solBalance,
+                    balance: solBalance.toString(),
+                    fiatBalance: fiatBalance.toString(),
+                    account: {
+                        asset: "SOL",
+                        price: price.toString(),
+                    },
+                    tokenHoldings: {
+                        tokens: [
+                            {
+                                amount: solBalance,
+                                balance: solBalance.toString(),
+                                fiatBalance: fiatBalance.toString(),
+                                image: "assets/networks/solana.png",
+                                name: "Solana",
+                                price: price.toString(),
+                                symbol: "SOL",
+                                tokenType: "SOL",
+                            },
+                        ],
+                    },
+                },
+            };
+        } catch (err) {
+            console.warn("Direct Solana RPC getBalance failed:", err);
+            return this._defaultResponse();
+        }
+    }
+
     /**
      * Get Solana address details (balance, tokenHoldings, etc.) from the backend.
+     * Falls back to direct Solana RPC if backend API fails or is unavailable.
      * @param address - Solana wallet address
      * @param params - Optional query params, e.g. { source: 'oklink' } to force OKLink
      */
@@ -432,15 +474,15 @@ export class SolanaService {
         const url = `${this._baseUrl}/api/solana/address/${address}`;
 
         try {
-            return this._httpWrapper
-                .sendRequest("get", url, params ?? {})
-                .then((response) => response)
-                .catch(() => this._defaultResponse());
+            const response = await this._httpWrapper.sendRequest("get", url, params ?? {});
+            if (response?.data?.account && response?.data?.tokenHoldings) {
+                return response;
+            }
         } catch (error) {
-            console.error("Exception in Solana getWalletDetails:", error);
-
-            return Promise.resolve(this._defaultResponse());
+            console.warn("Backend /api/solana/address failed, falling back to direct RPC:", error);
         }
+
+        return this.getBalanceViaRpc(address);
     }
 
     checkIfValidAddress(address: string): boolean {
