@@ -1,12 +1,21 @@
 @use "../../../styles/variables";
 
+:host {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 0;
+}
+
 .vault {
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: calc(16px * var(--zns-space-scale, 1));
-    height: 100%;
-    min-height: 0;          /* allow proper flex + scrolling inside the phone card */
+    min-height: 100%;
+    flex: 1 1 auto;
+    box-sizing: border-box;
 
     /* When rendered inside the new hub shell (dashboard + tall card), take all available height */
     .dashboard & {
@@ -55,14 +64,7 @@
         flex-direction: column;
         gap: calc(14px * var(--zns-space-scale, 1));
         flex: 1 1 auto;
-        min-height: 0;
-    }
-
-    /* Make the actual list the tall scrollable region inside the phone card */
-    &__list {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow: auto;
+        width: 100%;
     }
 
     &__actions {
@@ -166,7 +168,6 @@
             linear-gradient(variables.$themeCard, variables.$themeCard) padding-box,
             linear-gradient(135deg, variables.$themeBorderHover, variables.$themeCardBorder) border-box;
         border-radius: calc(20px * var(--zns-space-scale, 1));
-        overflow: hidden;
     }
 
     &__row {
@@ -386,9 +387,8 @@
 
     &__browser {
         display: flex;
-        min-height: 0;
-        flex: 1 1 auto;
         flex-direction: column;
+        width: 100%;
         overflow: hidden;
         border: 1px solid variables.$themeCardBorder;
         border-radius: calc(18px * var(--zns-space-scale, 1));
@@ -458,9 +458,13 @@
     }
 
     &__list {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
         border: 0;
         border-radius: 0;
         background: transparent;
+        overflow: visible;
     }
 
     &__row {

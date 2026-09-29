@@ -378,6 +378,40 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
         return `${full.slice(0, maxLength)}…`;
     }
 
+    get displayTitle(): string {
+        if (this.zelfKeyPasswordRecord?.publicData?.alias) {
+            return this.zelfKeyPasswordRecord.publicData.alias;
+        }
+        const website = this.zelfKeyPasswordRecord?.publicData?.website;
+        if (!website) {
+            return this._translocoService.translate("billing.passwords.detail.untitled") || "Password";
+        }
+        try {
+            return new URL(website.includes("://") ? website : `https://${website}`).hostname.replace(/^www\./, "");
+        } catch {
+            return website;
+        }
+    }
+
+    get initial(): string {
+        const title = this.displayTitle.trim();
+        return (title.charAt(0) || "P").toUpperCase();
+    }
+
+    formattedDate(value: number | string | undefined | null): string {
+        if (!value) return "—";
+        const date = new Date(value);
+        return Number.isNaN(date.getTime())
+            ? String(value)
+            : new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(date);
+    }
+
+    copyUsername(): void {
+        const username = this.zelfKeyPasswordRecord?.publicData?.username;
+        if (!username) return;
+        this._copyToClipboard(username);
+    }
+
     async onOpenSite(): Promise<void> {
         const website = this.zelfKeyPasswordRecord?.publicData?.website;
 
@@ -386,10 +420,18 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
             return;
         }
 
+        const url = website.includes("://") ? website : `https://${website}`;
+
         try {
-            await browser.tabs.create({ url: website });
+            if (typeof browser !== "undefined" && browser.tabs?.create) {
+                await browser.tabs.create({ url });
+            } else if (typeof chrome !== "undefined" && chrome.tabs?.create) {
+                chrome.tabs.create({ url });
+            } else {
+                window.open(url, "_blank", "noopener,noreferrer");
+            }
         } catch (error) {
-            console.error("Error opening website:", error);
+            window.open(url, "_blank", "noopener,noreferrer");
         }
     }
 }

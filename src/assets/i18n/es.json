@@ -1556,6 +1556,9 @@
                 "message": "Prueba a ajustar los términos de búsqueda"
             },
             "detail": {
+                "title": "Detalles de la contraseña",
+                "folder": "Carpeta",
+                "alias": "Alias",
                 "loading": "Cargando detalles de la contraseña...",
                 "error": {
                     "title": "Error al cargar la contraseña",

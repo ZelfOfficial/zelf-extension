@@ -1596,6 +1596,9 @@
                 "message": "Try adjusting your search terms"
             },
             "detail": {
+                "title": "Password Details",
+                "folder": "Folder",
+                "alias": "Alias",
                 "loading": "Loading password details...",
                 "error": {
                     "title": "Error loading password",
