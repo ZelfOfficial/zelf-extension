@@ -33,7 +33,54 @@
             "delete_confirm": "Delete this item permanently?",
             "delete_description": "Verify with your face to remove it from your vault.",
             "deleting": "Deleting…",
-            "delete_failed": "We couldn't delete this item. Please try again."
+            "delete_failed": "We couldn't delete this item. Please try again.",
+            "export_vault": "Export vault",
+            "export_item": "Export",
+            "import_vault": "Import passwords",
+            "more_options": "More options",
+            "master_password_label": "Master Password",
+            "master_password_placeholder": "Enter master password",
+            "export_title": "Export passwords",
+            "export_subtitle": "Export credentials compatible with other password managers.",
+            "export_single_subtitle": "Export to other password managers.",
+            "export_biometrics_required": "Face verification",
+            "export_biometrics_explain": "Verify your face to decrypt {{count}} password(s).",
+            "export_local_only": "Decrypted locally in memory · Never leaves your device",
+            "export_scan_face_btn": "Verify with Face",
+            "export_face_instructions": "Position your face in the oval to authorize export.",
+            "export_decrypting_title": "Decrypting credentials",
+            "export_ready_count": "{{count}} password(s) ready to export",
+            "export_failed_count": "{{count}} failed to decrypt",
+            "export_format_label": "Format",
+            "export_preview_label": "Preview",
+            "download_file": "Download",
+            "copy_to_clipboard": "Copy",
+            "copied": "Copied!",
+            "import_title": "Import passwords",
+            "import_subtitle": "Select a file from your password manager.",
+            "import_drop_title": "Drop file here",
+            "import_drop_subtitle": "LastPass, Bitwarden, 1Password, Chrome, Apple, KeePassXC",
+            "import_browse_btn": "Browse file",
+            "import_paste_label": "Or paste raw text",
+            "import_paste_placeholder": "Paste exported CSV or JSON...",
+            "import_parse_btn": "Preview",
+            "import_switch_file": "Upload file instead",
+            "import_switch_paste": "Paste raw text instead",
+            "import_detected": "Detected",
+            "select_all": "Select all",
+            "deselect_all": "Deselect all",
+            "import_selected_count": "{{selected}} of {{total}} selected",
+            "import_back": "Back",
+            "import_now_btn": "Verify & Import ({{count}})",
+            "import_face_instructions": "Scan your face to encrypt and store passwords.",
+            "import_store_mode_label": "Store API (dev)",
+            "import_store_mode_one_by_one": "One-by-one (/store/password)",
+            "import_store_mode_bulk": "Bulk (/store/passwords)",
+            "importing_title": "Encrypting passwords",
+            "import_success_title": "Import complete",
+            "import_success_desc": "{{count}} password(s) secured in your vault.",
+            "import_failed_notice": "{{count}} item(s) could not be imported:",
+            "import_done_btn": "Done"
         },
         "common": {
             "qr_code": "QR Code",
@@ -1222,6 +1269,12 @@
         "signals_explore": "Explore",
         "signals_placeholder_title": "Highlights from Zelf Signals",
         "signals_placeholder_body": "Market and asset highlights will appear here.",
+        "ai_heading": "Zelf AI",
+        "ai_subtitle": "Zelf AI assistant will be available soon.",
+        "ai_assistant_title": "Intelligent Web3 Assistant",
+        "ai_assistant_desc": "Natural language commands, contract analysis & insights.",
+        "ai_security_title": "Smart Transaction Simulation",
+        "ai_security_desc": "Pre-execution security checks and automated fraud detection.",
         "more_apps": "More"
     },
     "id_scanning": {
@@ -1470,6 +1523,8 @@
                     "aria_label": "Toggle folder storage"
                 },
                 "master_password": {
+                    "label": "Master Password *",
+                    "placeholder": "Enter master password",
                     "hint": "We require the {{ walletName }} password to encrypt and store your credentials. Biometric verification is always required."
                 },
                 "buttons": {
@@ -1596,6 +1651,9 @@
                 "message": "Try adjusting your search terms"
             },
             "detail": {
+                "title": "Password Details",
+                "folder": "Folder",
+                "alias": "Alias",
                 "loading": "Loading password details...",
                 "error": {
                     "title": "Error loading password",
@@ -1676,6 +1734,7 @@
                 "master_password": {
                     "section_title": "Sign with your Zelf ID",
                     "label": "Master Password *",
+                    "placeholder": "Enter master password",
                     "hint": "We require the {{ walletName }} password to encrypt and store your credentials. Biometric verification is always required."
                 },
                 "buttons": {

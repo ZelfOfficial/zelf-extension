@@ -1,0 +1,6 @@
+folder,favorite,type,name,notes,fields,reprompt,login_uri,login_username,login_password,login_totp
+Personal,0,login,Example Mail,"Note with, comma",,0,https://mail.example.com/,qa.mail@example.com,TestPass_Mail_9x!,
+Dev,1,login,GitHub QA,Repo access note,,0,https://github.com/,qa-github-user,TestPass_Gh_7y!,
+QA,0,login,HTTPBin Basic,,,0,http://httpbin.org/basic-auth/user/passwd,httpbin-user,TestPass_Http_3z!,
+,0,login,Shop Account,Quoted password edge case,,0,https://shop.example.org/cart,shopper@example.org,"Pass""Quote""99",
+Work,0,login,Zelf Staging,Do not use real creds,,0,https://app.staging.zelf.local/,zelf-qa-tester,ZelfKeys_Import_Only_1!,

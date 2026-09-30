@@ -98,7 +98,7 @@ body {
 /* Popup: match extension window width (see .main-div--popout width below) */
 .main-div--popout {
     --zns-card-width: 375px;
-    --zns-card-min-height: 570px;
+    --zns-card-min-height: 600px;
     --zns-font-scale: 0.97;
     --zns-space-scale: 0.95;
     --zns-action-scale: 0.97;
@@ -125,6 +125,19 @@ body {
     display: none !important;
 }
 
+.flex {
+    display: flex;
+}
+
+.flex-col {
+    flex-direction: column;
+}
+
+.flex-auto {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
 .loader {
     position: fixed;
     background-color: #efefef9d;
@@ -140,11 +153,14 @@ body {
     margin: 0 auto;
 
     &--popout {
+        display: flex;
+        flex-direction: column;
         height: 100vh;
         max-height: 600px;
         max-width: 375px;
         min-height: 600px;
         width: 375px;
+        overflow: hidden;
 
         .zelf-app__content {
             padding: 0 !important;
@@ -161,6 +177,11 @@ body {
 
         .zelf-card {
             min-height: 100% !important;
+            height: 100% !important;
+            max-height: 600px !important;
+            width: 100% !important;
+            max-width: 375px !important;
+            border-radius: 0 !important;
         }
     }
 }
@@ -852,6 +873,22 @@ h3 {
         padding: 0 !important;
     }
 }
+
+.zelf-dialog-panel {
+    .mat-mdc-dialog-container {
+        padding: 0 !important;
+        border-radius: 24px !important;
+        overflow: hidden !important;
+        background: transparent !important;
+    }
+    .mdc-dialog__surface {
+        padding: 0 !important;
+        border-radius: 24px !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+    }
+}
+
 
 .zelf-snackbar {
     .mdc-snackbar__surface {

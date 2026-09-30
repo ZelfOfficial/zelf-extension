@@ -65,44 +65,10 @@ export const APP_VERSION = "${newVersion}";
 export const APP_BUILD_DATE = "${buildDate}";
 
 export function getAppVersion(): string {
-    try {
-        if (typeof chrome !== "undefined" && chrome.runtime?.getManifest) {
-            const manifest = chrome.runtime.getManifest();
-            if (manifest?.version) {
-                return manifest.version;
-            }
-        }
-        if (typeof browser !== "undefined" && browser.runtime?.getManifest) {
-            const manifest = browser.runtime.getManifest();
-            if (manifest?.version) {
-                return manifest.version;
-            }
-        }
-    } catch {
-        // Fallback to static version
-    }
     return APP_VERSION;
 }
 
 export function getAppBuildDate(): string {
-    try {
-        if (typeof chrome !== "undefined" && chrome.runtime?.getManifest) {
-            const manifest = chrome.runtime.getManifest() as any;
-            if (manifest?.version_name) {
-                const match = manifest.version_name.match(/\\((.+)\\)/);
-                if (match?.[1]) return match[1];
-            }
-        }
-        if (typeof browser !== "undefined" && browser.runtime?.getManifest) {
-            const manifest = browser.runtime.getManifest() as any;
-            if (manifest?.version_name) {
-                const match = manifest.version_name.match(/\\((.+)\\)/);
-                if (match?.[1]) return match[1];
-            }
-        }
-    } catch {
-        // Fallback to static date
-    }
     return APP_BUILD_DATE;
 }
 `;

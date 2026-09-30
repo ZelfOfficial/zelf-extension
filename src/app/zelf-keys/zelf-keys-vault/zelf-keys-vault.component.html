@@ -37,10 +37,6 @@
                 <strong>{{ cardCount }}</strong>
                 <span>{{ t("zelf_keys.vault.stat_cards") }}</span>
             </div>
-            <div class="vault__stat vault__stat--soon" role="listitem">
-                <strong>{{ noteCount }}</strong>
-                <span>{{ t("zelf_keys.vault.stat_notes") }}</span>
-            </div>
         </div>
 
         <div class="vault__actions">
@@ -73,10 +69,31 @@
                         <option *ngFor="let folder of folders" [value]="folder">{{ folder }}</option>
                     </select>
                 </label>
-                <button type="button" class="vault__icon-btn" (click)="onRefresh()" [attr.aria-label]="t('zelf_keys.vault.refresh')">
-                    <span class="material-symbols-outlined">refresh</span>
+                <button
+                    type="button"
+                    class="vault__icon-btn"
+                    [matMenuTriggerFor]="vaultMenu"
+                    [attr.aria-label]="t('zelf_keys.vault.more_options')"
+                    [title]="t('zelf_keys.vault.more_options')"
+                >
+                    <span class="material-symbols-outlined">more_vert</span>
                 </button>
             </div>
+
+            <mat-menu class="zelf-menu" #vaultMenu="matMenu">
+                <button mat-menu-item class="zelf-menu__button" (click)="onImportVault()">
+                    <span class="material-symbols-outlined" style="margin-right: 12px; font-size: 20px; vertical-align: middle;">download</span>
+                    <span class="zelf-menu__button-text">{{ t("zelf_keys.vault.import_vault") }}</span>
+                </button>
+                <button mat-menu-item class="zelf-menu__button" (click)="onExportVault()">
+                    <span class="material-symbols-outlined" style="margin-right: 12px; font-size: 20px; vertical-align: middle;">ios_share</span>
+                    <span class="zelf-menu__button-text">{{ t("zelf_keys.vault.export_vault") }}</span>
+                </button>
+                <button mat-menu-item class="zelf-menu__button" (click)="onRefresh()">
+                    <span class="material-symbols-outlined" style="margin-right: 12px; font-size: 20px; vertical-align: middle;">refresh</span>
+                    <span class="zelf-menu__button-text">{{ t("zelf_keys.vault.refresh") }}</span>
+                </button>
+            </mat-menu>
 
             <div class="vault__list" *ngIf="filteredItems.length > 0">
                 <button

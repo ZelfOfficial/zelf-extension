@@ -168,24 +168,85 @@ export class HomeComponent implements OnInit, OnDestroy {
         return true;
     }
 
+    private readonly _priorityNetworks = ["ethereum", "solana"];
+    private readonly _secondaryNetworks = [
+        "avalanche",
+        "binance",
+        "polygon",
+        "bitcoin",
+        "sui",
+        "ton",
+        "stellar",
+        "polkadot",
+        "kusama",
+        "blockdag",
+    ];
+
     private async _fetchBalancesFromNetwork(enabledNetworks?: string[]): Promise<void> {
+        const priorityToFetch = this._priorityNetworks.filter(
+            (net) => !enabledNetworks || enabledNetworks.includes(net)
+        );
+
+        const currentWalletTag = this._wallet?.tagName;
+
         try {
-            const response = await firstValueFrom(
+            // Stage 1: Load priority networks (ETH & SOL) first to unblock UI immediately
+            const priorityResponse = await firstValueFrom(
                 this._blockchainTransactionsService
-                    .getAddressData(this._wallet as TagModel, enabledNetworks)
+                    .getAddressData(this._wallet as TagModel, priorityToFetch)
                     .pipe(takeUntil(this._unsubscriberForBalances$))
             );
 
-            const result = await this._assetService.processTokensFromResponse(response);
+            if (this._wallet?.tagName !== currentWalletTag) return;
+
+            const result = await this._assetService.processTokensFromResponse(priorityResponse);
             const deduped = this._dedupeTokens(result.tokens);
             const filtered = this._filterEnabledTokens(deduped);
 
             this._updateTokenState(filtered);
         } catch (error) {
-            console.error("Error getting tokens:", error);
+            console.error("Error getting priority tokens (ETH/SOL):", error);
         } finally {
             this.balancesLoading = false;
             this._changeDetectorRef.detectChanges();
+        }
+
+        // Stage 2: Fetch remaining networks in the background one by one without blocking
+        const remainingToFetch = this._secondaryNetworks.filter(
+            (net) => (!enabledNetworks || enabledNetworks.includes(net)) && !this._priorityNetworks.includes(net)
+        );
+
+        this._fetchRemainingBalancesInBackground(remainingToFetch, currentWalletTag);
+    }
+
+    private async _fetchRemainingBalancesInBackground(networks: string[], walletTag?: string): Promise<void> {
+        for (const network of networks) {
+            if (this._wallet?.tagName !== walletTag) break;
+
+            try {
+                const response = await firstValueFrom(
+                    this._blockchainTransactionsService
+                        .getAddressData(this._wallet as TagModel, [network])
+                        .pipe(takeUntil(this._unsubscriberForBalances$))
+                );
+
+                if (this._wallet?.tagName !== walletTag) break;
+
+                if (response) {
+                    const result = await this._assetService.processTokensFromResponse(response);
+                    if (result?.tokens?.length) {
+                        const existingSessionTokens = (await this._assetService.loadTokensFromSession()) || [];
+                        const merged = this._dedupeTokens([...existingSessionTokens, ...result.tokens]);
+                        const filtered = this._filterEnabledTokens(merged);
+
+                        this._updateTokenState(filtered);
+                        this._changeDetectorRef.detectChanges();
+                        await this._assetService.saveTokensToSession(merged);
+                    }
+                }
+            } catch (err) {
+                console.warn(`[Background Balance] ${network} fetch failed:`, err);
+            }
         }
     }
 

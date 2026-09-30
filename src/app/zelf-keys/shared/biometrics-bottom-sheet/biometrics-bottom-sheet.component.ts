@@ -20,7 +20,7 @@ export interface BiometricResult {
 export interface BiometricsBottomSheetData {
     itemData: any;
     itemType: string;
-    mode: "encrypt" | "decrypt" | "delete";
+    mode: "encrypt" | "decrypt" | "delete" | "capture";
 }
 
 @Component({
@@ -35,7 +35,7 @@ export class BiometricsBottomSheetComponent implements OnInit {
     isLoading: boolean = false;
     itemData: any;
     itemType: string;
-    mode: "encrypt" | "decrypt" | "delete";
+    mode: "encrypt" | "decrypt" | "delete" | "capture";
     wallet: any;
 
     constructor(
@@ -188,6 +188,10 @@ export class BiometricsBottomSheetComponent implements OnInit {
     }
 
     getTitle(): string {
+        if (this.mode === "capture") {
+            return this.itemData?.title || this._translocoService.translate("zelf_keys.biometrics_bottom_sheet.authorize_title");
+        }
+
         const actionKey = this.mode === "encrypt" ? "encrypt" : this.mode === "delete" ? "delete" : "decrypt";
 
         switch (this.itemType) {
@@ -201,6 +205,10 @@ export class BiometricsBottomSheetComponent implements OnInit {
     }
 
     getInstructions(): string {
+        if (this.mode === "capture") {
+            return this.itemData?.instructions || this._translocoService.translate("zelf_keys.biometrics_bottom_sheet.authorize_instructions");
+        }
+
         switch (this.itemType) {
             case "payment-card":
                 return this._translocoService.translate("zelf_keys.biometrics_bottom_sheet.instructions.payment_card");
@@ -212,6 +220,10 @@ export class BiometricsBottomSheetComponent implements OnInit {
     }
 
     getItemType(): string {
+        if (this.mode === "capture") {
+            return this.itemData?.itemTypeTitle || this._translocoService.translate("zelf_keys.data_types.password");
+        }
+
         switch (this.itemType) {
             case "password":
                 return this._translocoService.translate("zelf_keys.data_types.password");
@@ -226,6 +238,10 @@ export class BiometricsBottomSheetComponent implements OnInit {
 
     getItemInfo(): string {
         if (!this.itemData) return "";
+
+        if (this.mode === "capture") {
+            return this.itemData?.subtitle || "";
+        }
 
         switch (this.itemType) {
             case "password":
@@ -256,6 +272,11 @@ export class BiometricsBottomSheetComponent implements OnInit {
     }
 
     async onBiometricsSuccess(biometricData: any): Promise<void> {
+        if (this.mode === "capture") {
+            this._bottomSheetRef.dismiss(biometricData);
+            return;
+        }
+
         if (this.mode === "delete") {
             try {
                 this.isLoading = true;

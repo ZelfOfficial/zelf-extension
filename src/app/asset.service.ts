@@ -21,6 +21,8 @@ export interface NetworkPermissions {
     ETH?: boolean;
     KSM?: boolean;
     POL?: boolean;
+    ARB?: boolean;
+    BASE?: boolean;
     SOL?: boolean;
     SUI?: boolean;
     TON?: boolean;
@@ -74,6 +76,8 @@ export class AssetService {
             BTC: false,
             ETH: true,
             POL: true,
+            ARB: true,
+            BASE: true,
             SOL: true,
             SUI: true,
             TON: false,
@@ -91,6 +95,8 @@ export class AssetService {
             ETH: true,
             KSM: true,
             POL: true,
+            ARB: true,
+            BASE: true,
             SOL: true,
             SUI: true,
             TON: false,
@@ -150,6 +156,9 @@ export class AssetService {
                     return "BNB";
                 case "Polygon":
                     return "MATIC";
+                case "Arbitrum":
+                case "Base":
+                    return "ETH";
                 case "Stellar":
                     return "XLM";
                 case "Polkadot":
@@ -166,6 +175,8 @@ export class AssetService {
             case "Ethereum":
             case "Avalanche":
             case "Polygon":
+            case "Arbitrum":
+            case "Base":
                 return "ERC-20";
             case "Binance":
                 return "BEP-20";
@@ -189,6 +200,8 @@ export class AssetService {
             Bitcoin: ["BTC", "BITCOIN"],
             Ethereum: ["ETH", "ETHEREUM"],
             Polygon: ["MATIC", "POLYGON", "POL"],
+            Arbitrum: ["ETH", "ETHEREUM"],
+            Base: ["ETH", "ETHEREUM"],
             Solana: ["SOL", "SOLANA"],
             Stellar: ["XLM", "STELLAR"],
             Sui: ["SUI", "SUI-TOKEN"],
@@ -325,6 +338,8 @@ export class AssetService {
                     (network === "Ton" && !permissions.TON) ||
                     (network === "Binance" && !permissions.BNB) ||
                     (network === "Polygon" && !permissions.POL) ||
+                    (network === "Arbitrum" && !permissions.ARB) ||
+                    (network === "Base" && !permissions.BASE) ||
                     (network === "Stellar" && !permissions.XLM) ||
                     (network === "Polkadot" && !permissions.DOT) ||
                     (network === "Kusama" && !permissions.KSM)
@@ -387,6 +402,13 @@ export class AssetService {
         if (response?.polygon?.data?.tokenHoldings?.tokens && (!permissions || permissions.POL)) {
             tokens = this.processTokens("Polygon", response.polygon.data.tokenHoldings.tokens, tokens, permissions);
         }
+
+        if (response?.arbitrum?.data?.tokenHoldings?.tokens && (!permissions || permissions.ARB)) {
+            tokens = this.processTokens("Arbitrum", response.arbitrum.data.tokenHoldings.tokens, tokens, permissions);
+        }
+
+        if (response?.base?.data?.tokenHoldings?.tokens && (!permissions || permissions.BASE)) {
+            tokens = this.processTokens("Base", response.base.data.tokenHoldings.tokens, tokens, permissions);
 
         if (response?.sui?.data?.tokenHoldings?.tokens && (!permissions || permissions.SUI)) {
             tokens = this.processTokens("Sui", response.sui.data.tokenHoldings.tokens, tokens, permissions);
