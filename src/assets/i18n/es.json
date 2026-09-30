@@ -1259,6 +1259,12 @@
         "signals_explore": "Explorar",
         "signals_placeholder_title": "Destacados de Zelf Signals",
         "signals_placeholder_body": "Aquí aparecerán destacados de mercado y activos.",
+        "ai_heading": "Zelf AI",
+        "ai_subtitle": "El asistente Zelf AI estará disponible pronto.",
+        "ai_assistant_title": "Asistente Web3 Inteligente",
+        "ai_assistant_desc": "Acciones en lenguaje natural, análisis de contratos e información.",
+        "ai_security_title": "Simulación Inteligente de Transacciones",
+        "ai_security_desc": "Controles de seguridad previos a la ejecución y detección de fraudes.",
         "more_apps": "Más"
     },
     "id_scanning": {
