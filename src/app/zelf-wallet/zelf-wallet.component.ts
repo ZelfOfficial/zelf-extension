@@ -202,22 +202,47 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
         return true;
     }
 
+    private readonly _priorityNetworks = ["ethereum", "solana"];
+    private readonly _secondaryNetworks = [
+        "avalanche",
+        "binance",
+        "polygon",
+        "bitcoin",
+        "sui",
+        "ton",
+        "stellar",
+        "polkadot",
+        "kusama",
+        "blockdag",
+    ];
+
     /**
      * Fetch balances from network
      */
     private async _fetchBalancesFromNetwork(enabledNetworks?: string[]): Promise<void> {
+        const priorityToFetch = this._priorityNetworks.filter(
+            (net) => !enabledNetworks || enabledNetworks.includes(net)
+        );
+
+        const currentWalletTag = (this.wallet?.tagName || this.wallet?.name) as string;
+
         try {
-            const response = await firstValueFrom(
-                this._blockchainTransactionsService.getAddressData(this.wallet, enabledNetworks).pipe(takeUntil(this.unsubscriberForBalances$))
+            // Stage 1: Load priority networks (ETH & SOL) first to unblock UI immediately
+            const priorityResponse = await firstValueFrom(
+                this._blockchainTransactionsService
+                    .getAddressData(this.wallet, priorityToFetch)
+                    .pipe(takeUntil(this.unsubscriberForBalances$))
             );
 
-            const result = await this._assetService.processTokensFromResponse(response);
+            if (((this.wallet?.tagName || this.wallet?.name) as string) !== currentWalletTag) return;
+
+            const result = await this._assetService.processTokensFromResponse(priorityResponse);
             const deduped = this._dedupeTokens(result.tokens);
             const filtered = this._filterEnabledTokens(deduped);
 
             this._updateTokenState(filtered);
         } catch (error) {
-            console.error("Error getting tokens:", error);
+            console.error("Error getting priority tokens (ETH/SOL):", error);
         } finally {
             this.balancesLoading = false;
             this._changeDetectorRef.detectChanges();
@@ -229,6 +254,43 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
                 balancesLoading: false,
             });
             zelfWalletLoadPerfMeasure("walletSet_to_balancesIdle", "walletSet:end", "balancesIdle:end");
+        }
+
+        // Stage 2: Fetch remaining networks in the background one by one without blocking
+        const remainingToFetch = this._secondaryNetworks.filter(
+            (net) => (!enabledNetworks || enabledNetworks.includes(net)) && !this._priorityNetworks.includes(net)
+        );
+
+        this._fetchRemainingBalancesInBackground(remainingToFetch, currentWalletTag);
+    }
+
+    private async _fetchRemainingBalancesInBackground(networks: string[], walletTag?: string): Promise<void> {
+        for (const network of networks) {
+            if (((this.wallet?.tagName || this.wallet?.name) as string) !== walletTag) break;
+
+            try {
+                const response = await firstValueFrom(
+                    this._blockchainTransactionsService
+                        .getAddressData(this.wallet, [network])
+                        .pipe(takeUntil(this.unsubscriberForBalances$))
+                );
+
+                if (((this.wallet?.tagName || this.wallet?.name) as string) !== walletTag) break;
+
+                if (response) {
+                    const result = await this._assetService.processTokensFromResponse(response);
+                    if (result?.tokens?.length) {
+                        const merged = this._dedupeTokens([...this.tokens, ...result.tokens]);
+                        const filtered = this._filterEnabledTokens(merged);
+
+                        this._updateTokenState(filtered);
+                        this._changeDetectorRef.detectChanges();
+                        await this._assetService.saveTokensToSession(merged);
+                    }
+                }
+            } catch (err) {
+                console.warn(`[Background Balance] ${network} fetch failed:`, err);
+            }
         }
     }
 

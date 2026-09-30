@@ -9,6 +9,8 @@ export const DEFAULT_NETWORK_CONFIGS: NetworkConfig[] = [
     { id: "blockdag", name: "BlockDAG", symbol: "BDAG", enabled: true },
     { id: "polygon", name: "Polygon", symbol: "POL", enabled: true },
     { id: "optimism", name: "Optimism", symbol: "ETH", enabled: true },
+    { id: "arbitrum", name: "Arbitrum", symbol: "ETH", enabled: true },
+    { id: "base", name: "Base", symbol: "ETH", enabled: true },
     { id: "solana", name: "Solana", symbol: "SOL", enabled: true },
     { id: "stellar", name: "Stellar", symbol: "XLM", enabled: true },
     { id: "sui", name: "Sui", symbol: "SUI", enabled: true },
@@ -21,7 +23,17 @@ export const DEFAULT_NETWORK_CONFIGS: NetworkConfig[] = [
  * Chain ids the app supports but `tags.wallet.networks` on the domain license may omit.
  * Merge these into the license allowlist so Manage Networks matches {@link DEFAULT_NETWORK_CONFIGS}.
  */
-export const NETWORK_IDS_ENSURED_FROM_LICENSE_GAP: readonly string[] = ["stellar", "bitcoin", "sui", "ton", "polkadot", "kusama", "optimism"];
+export const NETWORK_IDS_ENSURED_FROM_LICENSE_GAP: readonly string[] = [
+    "stellar",
+    "bitcoin",
+    "sui",
+    "ton",
+    "polkadot",
+    "kusama",
+    "optimism",
+    "arbitrum",
+    "base",
+];
 
 /**
  * Merge saved toggles into defaults so new chains (e.g. stellar) appear enabled

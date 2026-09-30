@@ -162,6 +162,8 @@ export class ReceiveQrComponent extends CopyToClipboardBase implements OnInit, O
             polygon: { name: "Polygon", symbol: "MATIC", type: "ERC-20" },
             optimism: { name: "Optimism", symbol: "ETH", type: "ERC-20" },
             op: { name: "Optimism", symbol: "ETH", type: "ERC-20" },
+            arbitrum: { name: "Arbitrum", symbol: "ETH", type: "ERC-20" },
+            arb: { name: "Arbitrum", symbol: "ETH", type: "ERC-20" },
         };
         const meta = evm[n];
         if (!meta) {

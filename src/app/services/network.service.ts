@@ -12,6 +12,8 @@ export type NetworkName =
     | "blockdag"
     | "polygon"
     | "optimism"
+    | "arbitrum"
+    | "base"
     | "stellar"
     | "polkadot"
     | "kusama"
@@ -58,6 +60,8 @@ export class NetworkService {
             case "polygon":
                 return "POL";
             case "optimism":
+            case "arbitrum":
+            case "base":
                 return "ETH";
             case "avalanche":
                 return "AVAX";
@@ -140,6 +144,10 @@ export class NetworkService {
                 return 137;
             case "optimism":
                 return 10;
+            case "arbitrum":
+                return 42161;
+            case "base":
+                return 8453;
             case "bitcoin":
                 return 0;
             case "binance":
@@ -187,6 +195,11 @@ export class NetworkService {
             case "optimism":
             case "OP":
                 return "./assets/networks/optimism.svg";
+            case "arbitrum":
+            case "ARB":
+                return "./assets/networks/arbitrum.svg";
+            case "base":
+                return "./assets/networks/base.svg";
             case "polkadot":
             case "DOT":
                 return "./assets/networks/dot.svg";

@@ -51,8 +51,11 @@ interface DecryptedPasswordData {
     zelfName?: string;
 }
 
+import { MatDialog, MatDialogModule } from "@angular/material/dialog";
+import { ExportKeyModalComponent } from "../../shared/export-key-modal/export-key-modal.component";
+
 @Component({
-    imports: [CommonModule, FormsModule, TranslocoModule, RouterModule, PopoutDecryptorComponent],
+    imports: [CommonModule, FormsModule, TranslocoModule, RouterModule, PopoutDecryptorComponent, MatDialogModule],
     selector: "zelf-keys-password-detail",
     styleUrls: ["./zelf-keys-password-detail.component.scss"],
     templateUrl: "./zelf-keys-password-detail.component.html",
@@ -77,6 +80,7 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
         private _bottomSheet: MatBottomSheet,
+        private _dialog: MatDialog,
         private _httpWrapperService: HttpWrapperService,
         private _passwordDataService: PasswordDataService,
         private _popoutCommunicationService: PopoutCommunicationService,
@@ -237,6 +241,38 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
         this._router.navigate(["/zelf-keys/vault"]);
     }
 
+    async onExportItem(): Promise<void> {
+        if (!this.zelfKeyPasswordRecord) return;
+
+        const wallet = await this._walletService.getCurrentWallet();
+
+        // If already decrypted in the detail view, pass the decrypted data directly!
+        const alreadyDecrypted = this.decryptedData
+            ? [
+                  {
+                      title: this.displayTitle,
+                      website: this.decryptedData.website || this.zelfKeyPasswordRecord.publicData?.website,
+                      username: this.decryptedData.username || this.zelfKeyPasswordRecord.publicData?.username,
+                      password: this.decryptedData.password,
+                      notes: this.decryptedData.notes,
+                      folder: this.zelfKeyPasswordRecord.publicData?.folder,
+                      alias: this.zelfKeyPasswordRecord.publicData?.alias,
+                  },
+              ]
+            : undefined;
+
+        this._dialog.open(ExportKeyModalComponent, {
+            data: {
+                mode: "single",
+                title: this.displayTitle,
+                items: [this.zelfKeyPasswordRecord],
+                alreadyDecrypted,
+                hasMasterPassword: !!wallet?.hasPassword,
+            },
+            panelClass: "zelf-dialog-panel",
+        });
+    }
+
     onDeleteClick(): void {
         this.confirmingDelete = true;
         this.deleteMasterPassword = "";
@@ -378,6 +414,40 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
         return `${full.slice(0, maxLength)}…`;
     }
 
+    get displayTitle(): string {
+        if (this.zelfKeyPasswordRecord?.publicData?.alias) {
+            return this.zelfKeyPasswordRecord.publicData.alias;
+        }
+        const website = this.zelfKeyPasswordRecord?.publicData?.website;
+        if (!website) {
+            return this._translocoService.translate("billing.passwords.detail.untitled") || "Password";
+        }
+        try {
+            return new URL(website.includes("://") ? website : `https://${website}`).hostname.replace(/^www\./, "");
+        } catch {
+            return website;
+        }
+    }
+
+    get initial(): string {
+        const title = this.displayTitle.trim();
+        return (title.charAt(0) || "P").toUpperCase();
+    }
+
+    formattedDate(value: number | string | undefined | null): string {
+        if (!value) return "—";
+        const date = new Date(value);
+        return Number.isNaN(date.getTime())
+            ? String(value)
+            : new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(date);
+    }
+
+    copyUsername(): void {
+        const username = this.zelfKeyPasswordRecord?.publicData?.username;
+        if (!username) return;
+        this._copyToClipboard(username);
+    }
+
     async onOpenSite(): Promise<void> {
         const website = this.zelfKeyPasswordRecord?.publicData?.website;
 
@@ -386,10 +456,18 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
             return;
         }
 
+        const url = website.includes("://") ? website : `https://${website}`;
+
         try {
-            await browser.tabs.create({ url: website });
+            if (typeof browser !== "undefined" && browser.tabs?.create) {
+                await browser.tabs.create({ url });
+            } else if (typeof chrome !== "undefined" && chrome.tabs?.create) {
+                chrome.tabs.create({ url });
+            } else {
+                window.open(url, "_blank", "noopener,noreferrer");
+            }
         } catch (error) {
-            console.error("Error opening website:", error);
+            window.open(url, "_blank", "noopener,noreferrer");
         }
     }
 }

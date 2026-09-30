@@ -22,6 +22,8 @@ export interface NetworkPermissions {
     KSM?: boolean;
     POL?: boolean;
     OP?: boolean;
+    ARB?: boolean;
+    BASE?: boolean;
     SOL?: boolean;
     SUI?: boolean;
     TON?: boolean;
@@ -76,6 +78,8 @@ export class AssetService {
             ETH: true,
             POL: true,
             OP: true,
+            ARB: true,
+            BASE: true,
             SOL: true,
             SUI: true,
             TON: false,
@@ -94,6 +98,8 @@ export class AssetService {
             KSM: true,
             POL: true,
             OP: true,
+            ARB: true,
+            BASE: true,
             SOL: true,
             SUI: true,
             TON: false,
@@ -154,6 +160,8 @@ export class AssetService {
                 case "Polygon":
                     return "MATIC";
                 case "Optimism":
+                case "Arbitrum":
+                case "Base":
                     return "ETH";
                 case "Stellar":
                     return "XLM";
@@ -172,6 +180,8 @@ export class AssetService {
             case "Avalanche":
             case "Polygon":
             case "Optimism":
+            case "Arbitrum":
+            case "Base":
                 return "ERC-20";
             case "Binance":
                 return "BEP-20";
@@ -196,6 +206,8 @@ export class AssetService {
             Ethereum: ["ETH", "ETHEREUM"],
             Polygon: ["MATIC", "POLYGON", "POL"],
             Optimism: ["ETH", "ETHEREUM"],
+            Arbitrum: ["ETH", "ETHEREUM"],
+            Base: ["ETH", "ETHEREUM"],
             Solana: ["SOL", "SOLANA"],
             Stellar: ["XLM", "STELLAR"],
             Sui: ["SUI", "SUI-TOKEN"],
@@ -333,6 +345,8 @@ export class AssetService {
                     (network === "Binance" && !permissions.BNB) ||
                     (network === "Polygon" && !permissions.POL) ||
                     (network === "Optimism" && !permissions.OP) ||
+                    (network === "Arbitrum" && !permissions.ARB) ||
+                    (network === "Base" && !permissions.BASE) ||
                     (network === "Stellar" && !permissions.XLM) ||
                     (network === "Polkadot" && !permissions.DOT) ||
                     (network === "Kusama" && !permissions.KSM)
@@ -398,6 +412,14 @@ export class AssetService {
 
         if (response?.optimism?.data?.tokenHoldings?.tokens && (!permissions || permissions.OP)) {
             tokens = this.processTokens("Optimism", response.optimism.data.tokenHoldings.tokens, tokens, permissions);
+        }
+
+        if (response?.arbitrum?.data?.tokenHoldings?.tokens && (!permissions || permissions.ARB)) {
+            tokens = this.processTokens("Arbitrum", response.arbitrum.data.tokenHoldings.tokens, tokens, permissions);
+        }
+
+        if (response?.base?.data?.tokenHoldings?.tokens && (!permissions || permissions.BASE)) {
+            tokens = this.processTokens("Base", response.base.data.tokenHoldings.tokens, tokens, permissions);
         }
 
         if (response?.sui?.data?.tokenHoldings?.tokens && (!permissions || permissions.SUI)) {

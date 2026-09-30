@@ -22,8 +22,10 @@ import { BitcoinService } from "./bitcoin.service";
 import { BlockDAGService } from "./blockdag.service";
 import { BscService } from "./bsc.service";
 import { NetworkName } from "./network.service";
+import { BaseService } from "./base.service";
 import { PolygonService } from "./polygon.service";
 import { OptimismService } from "./optimism.service";
+import { ArbitrumService } from "./arbitrum.service";
 import { StellarService } from "./stellar.service";
 import { SuiService } from "./sui.service";
 import { TonService } from "./ton.service";
@@ -43,6 +45,8 @@ export class BlockchainTransactionsService {
         private _ethereumService: EthereumService,
         private _polygonService: PolygonService,
         private _optimismService: OptimismService,
+        private _arbitrumService: ArbitrumService,
+        private _baseService: BaseService,
         private _solanaService: SolanaService,
         private _stellarService: StellarService,
         private _suiService: SuiService,
@@ -84,6 +88,8 @@ export class BlockchainTransactionsService {
         if (responses.blockdag?.data?.transactions) transactions.push(...responses.blockdag.data.transactions);
         if (responses.polygon?.data?.transactions) transactions.push(...responses.polygon.data.transactions);
         if (responses.optimism?.data?.transactions) transactions.push(...responses.optimism.data.transactions);
+        if (responses.arbitrum?.data?.transactions) transactions.push(...responses.arbitrum.data.transactions);
+        if (responses.base?.data?.transactions) transactions.push(...responses.base.data.transactions);
         if (responses.solana?.data?.transactions) transactions.push(...responses.solana.data.transactions);
         if (responses.stellar?.data?.transactions) {
             const stellarPrice = parseFloat(responses.stellar.data.account?.price || "0") || 0;
@@ -147,6 +153,17 @@ export class BlockchainTransactionsService {
                     );
                 case "optimism":
                     return await this._optimismService.calculateTransactionFees(
+                case "arbitrum":
+                    return await this._arbitrumService.calculateTransactionFees(
+                        receiverAddress,
+                        amount,
+                        tokenType,
+                        tokenAddress,
+                        tokenDecimals,
+                        params.senderAddress
+                    );
+                case "base":
+                    return await this._baseService.calculateTransactionFees(
                         receiverAddress,
                         amount,
                         tokenType,
@@ -220,6 +237,8 @@ export class BlockchainTransactionsService {
         if (network === "ethereum") return `http://etherscan.io/tx/${hash}`;
         if (network === "polygon") return `https://polygonscan.com/tx/${hash}`;
         if (network === "optimism") return `https://optimistic.etherscan.io/tx/${hash}`;
+        if (network === "arbitrum") return `https://arbiscan.io/tx/${hash}`;
+        if (network === "base") return `https://basescan.org/tx/${hash}`;
         if (network === "solana") return `https://solscan.io/tx/${hash}`;
         if (network === "stellar") return `https://stellar.expert/explorer/public/tx/${hash}`;
         if (network === "sui") return `https://suiscan.xyz/tx/${hash}`;
@@ -270,6 +289,13 @@ export class BlockchainTransactionsService {
             optimism:
                 isEnabled("optimism") && wallet.publicData?.ethAddress
                     ? from(this._optimismService.getWalletDetails(wallet.publicData?.ethAddress)).pipe(catchError(() => of(null)))
+            arbitrum:
+                isEnabled("arbitrum") && wallet.publicData?.ethAddress
+                    ? from(this._arbitrumService.getWalletDetails(wallet.publicData?.ethAddress)).pipe(catchError(() => of(null)))
+                    : of(null),
+            base:
+                isEnabled("base") && wallet.publicData?.ethAddress
+                    ? from(this._baseService.getWalletDetails(wallet.publicData?.ethAddress)).pipe(catchError(() => of(null)))
                     : of(null),
             solana:
                 isEnabled("solana") && wallet.publicData?.solanaAddress
@@ -306,6 +332,8 @@ export class BlockchainTransactionsService {
                     blockdag: responses.blockdag,
                     polygon: responses.polygon,
                     optimism: responses.optimism,
+                    arbitrum: responses.arbitrum,
+                    base: responses.base,
                     solana: responses.solana,
                     stellar: responses.stellar,
                     sui: responses.sui,
@@ -336,6 +364,8 @@ export class BlockchainTransactionsService {
                 observable = forkJoin({ polygon: from(this._polygonService.getWalletDetails(wallet.publicData?.ethAddress)) });
             } else if (token === "OP") {
                 observable = forkJoin({ optimism: from(this._optimismService.getWalletDetails(wallet.publicData?.ethAddress)) });
+            } else if (token === "ARB") {
+                observable = forkJoin({ arbitrum: from(this._arbitrumService.getWalletDetails(wallet.publicData?.ethAddress)) });
             }
         }
 
@@ -387,6 +417,7 @@ export class BlockchainTransactionsService {
                           blockdag: responses.blockdag,
                           polygon: responses.polygon,
                           optimism: responses.optimism,
+                          arbitrum: responses.arbitrum,
                           solana: responses.solana,
                           stellar: responses.stellar,
                           sui: responses.sui,
@@ -446,6 +477,13 @@ export class BlockchainTransactionsService {
             optimism:
                 isEnabled("optimism") && wallet.publicData?.ethAddress
                     ? from(this._optimismService.requestTransactionHistory(wallet.publicData?.ethAddress, pagination)).pipe(catchError(() => of(null)))
+            arbitrum:
+                isEnabled("arbitrum") && wallet.publicData?.ethAddress
+                    ? from(this._arbitrumService.requestTransactionHistory(wallet.publicData?.ethAddress, pagination)).pipe(catchError(() => of(null)))
+                    : of(null),
+            base:
+                isEnabled("base") && wallet.publicData?.ethAddress
+                    ? from(this._baseService.requestTransactionHistory(wallet.publicData?.ethAddress, pagination)).pipe(catchError(() => of(null)))
                     : of(null),
             solana:
                 isEnabled("solana") && wallet.publicData?.solanaAddress
@@ -508,6 +546,8 @@ export class BlockchainTransactionsService {
             case "binance":
             case "polygon":
             case "optimism":
+            case "arbitrum":
+            case "base":
             case "solana":
                 return new TransactionDetailModel(response.data).toTransaction();
             case "stellar":
@@ -569,6 +609,13 @@ export class BlockchainTransactionsService {
                 case "optimism":
                     if (!address) throw new Error("Address required for Optimism transaction details");
                     promise = this._optimismService.requestTransactionDetails(address, hash);
+                case "arbitrum":
+                    if (!address) throw new Error("Address required for Arbitrum transaction details");
+                    promise = this._arbitrumService.requestTransactionDetails(address, hash);
+                    break;
+                case "base":
+                    if (!address) throw new Error("Address required for Base transaction details");
+                    promise = this._baseService.requestTransactionDetails(address, hash);
                     break;
                 default:
                     throw new Error(`Unsupported network: ${network}`);
@@ -607,6 +654,10 @@ export class BlockchainTransactionsService {
                     return await this._polygonService.sendTransaction(params);
                 case "optimism":
                     return await this._optimismService.sendTransaction(params);
+                case "arbitrum":
+                    return await this._arbitrumService.sendTransaction(params);
+                case "base":
+                    return await this._baseService.sendTransaction(params);
                 case "binance":
                     return await this._bscService.sendTransaction(params);
                 case "polkadot":

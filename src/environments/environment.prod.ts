@@ -1,5 +1,5 @@
 export const environment = {
-    apiUrl: "https://v3.zelf.world",
+    apiUrl: "https://v4.zelf.world",
     v4ApiUrl: "https://v4.zelf.world",
     appUrl: "https://zelf.world",
     baseUrl: "/",
@@ -9,6 +9,7 @@ export const environment = {
     paymentDomainUrl: "https://zelf.world/tags/payment",
     paymentZelfIdUrl: "https://zelf.world/zelf-ids/payment",
     production: true,
+    devBiometricsBypass: false,
     testnetAddress: "",
     znsUsdPrice: 0.05,
     zelfKeysPasswordSaveZns: 10,
@@ -30,6 +31,12 @@ export const environment = {
     },
     optimismRpc: {
         mainnet: "https://mainnet.optimism.io",
+    },
+    arbitrumRpc: {
+        mainnet: "https://arb1.arbitrum.io/rpc",
+    },
+    baseRpc: {
+        mainnet: "https://mainnet.base.org",
     },
     avalancheRpc: {
         mainnet: "https://wild-bitter-meadow.avalanche-mainnet.quiknode.pro/e2565749ca44c2873fe2a0a747f5ac68ae7eb14f/ext/bc/C/rpc/",

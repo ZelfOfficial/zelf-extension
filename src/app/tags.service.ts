@@ -199,7 +199,7 @@ export interface TagSearchResponse {
     providedIn: "root",
 })
 export class TagsService {
-    baseUrl: String = environment.apiUrl;
+    baseUrl: String = environment.v4ApiUrl;
     variables: any;
 
     /** Lowercase TLDs with status active from GET /api/tags/domains; undefined = not loaded yet */

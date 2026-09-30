@@ -9,6 +9,8 @@ export const environment = {
     paymentDomainUrl: "http://localhost:3009/tags/payment",
     paymentZelfIdUrl: "http://localhost:3009/zelf-ids/payment",
     production: false,
+    /** Local/dev QA only: inject bundled selfie instead of camera (headless boxes). */
+    devBiometricsBypass: true,
     testnetAddress: "",
     znsUsdPrice: 0.05,
     zelfKeysPasswordSaveZns: 10,
@@ -30,6 +32,12 @@ export const environment = {
     },
     optimismRpc: {
         mainnet: "https://mainnet.optimism.io",
+    },
+    arbitrumRpc: {
+        mainnet: "https://arb1.arbitrum.io/rpc",
+    },
+    baseRpc: {
+        mainnet: "https://mainnet.base.org",
     },
     avalancheRpc: {
         mainnet: "https://wild-bitter-meadow.avalanche-mainnet.quiknode.pro/e2565749ca44c2873fe2a0a747f5ac68ae7eb14f/ext/bc/C/rpc/",

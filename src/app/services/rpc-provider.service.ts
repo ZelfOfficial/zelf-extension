@@ -56,11 +56,11 @@ export class RpcProviderService {
             case "bsc":
                 return environment.binanceRpc.mainnet;
             case "arbitrum":
-                return "https://arb1.arbitrum.io/rpc";
+                return environment.arbitrumRpc.mainnet;
             case "optimism":
                 return environment.optimismRpc.mainnet;
             case "base":
-                return "https://mainnet.base.org";
+                return environment.baseRpc.mainnet;
             case "blockdag":
                 return "https://rpc.bdagscan.com";
             case "solana":
