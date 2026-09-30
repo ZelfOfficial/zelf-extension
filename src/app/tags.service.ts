@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { inject, Injectable } from "@angular/core";
 
 import {
     readPublicDataDotAddress,
@@ -14,6 +14,7 @@ import { HttpWrapperService } from "./http-wrapper.service";
 import { applyPreviewSecurity, type ProofPreview } from "./onboarding-stack";
 import { VaultService } from "./vault.service";
 import { WalletService } from "./wallet.service";
+import { ZelfIdsService } from "./zelf-ids.service";
 
 export type TagFlow = "create" | "import" | "unlock" | "recover" | "";
 export type TagType = "create" | "import";
@@ -205,6 +206,7 @@ export class TagsService {
     /** Lowercase TLDs with status active from GET /api/tags/domains; undefined = not loaded yet */
     private _activeDomainKeys?: Set<string>;
     private _activeDomainsPromise: Promise<Set<string>> | null = null;
+    private readonly _zelfIdsService = inject(ZelfIdsService);
 
     constructor(
         private _httpWrapper: HttpWrapperService,
@@ -317,10 +319,6 @@ export class TagsService {
     searchTagsByDomain(domain: string, storage: StorageSystem): Promise<any> {
         const query = { domain, storage };
         return this._httpWrapper.sendRequest("get", `${this.baseUrl}/api/tags/search-by-domain`, query);
-    }
-
-    previewTag(request: TagPreviewRequest): Promise<any> {
-        return this._httpWrapper.sendRequest("post", `${this.baseUrl}/api/tags/preview`, request);
     }
 
     // Lease Endpoints
@@ -627,6 +625,12 @@ export class TagsService {
         })();
     }
 
+    private isV4WalletTag(tag: TagModel): boolean {
+        const v = (tag.publicData as { v?: unknown })?.v;
+
+        return v === 4 || v === "4";
+    }
+
     async refreshTagPublicData(tag: TagModel): Promise<TagModel | null> {
         if (!tag) return null;
 
@@ -637,9 +641,12 @@ export class TagsService {
 
         if (!tagName) return null;
 
-        const response = await this.searchTag({ tagName, domain });
+        const response = this.isV4WalletTag(tag)
+            ? await this._zelfIdsService.searchTag({ tagName, domain, os: "DESKTOP" })
+            : await this.searchTag({ tagName, domain });
 
-        const tagObject = response.data.tagObject;
+        const responseData = response.data as TagSearchResponse & { zelfIDObject?: TagStorageData | TagModel };
+        const tagObject = responseData.tagObject || responseData.zelfIDObject;
 
         // this is when the tag is available for purchase, not longer in IPFS or Arweave
         if (response.data?.available) {
