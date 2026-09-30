@@ -153,6 +153,13 @@ export class BlockchainTransactionsService {
                     );
                 case "optimism":
                     return await this._optimismService.calculateTransactionFees(
+                        receiverAddress,
+                        amount,
+                        tokenType,
+                        tokenAddress,
+                        tokenDecimals,
+                        params.senderAddress
+                    );
                 case "arbitrum":
                     return await this._arbitrumService.calculateTransactionFees(
                         receiverAddress,
@@ -289,6 +296,7 @@ export class BlockchainTransactionsService {
             optimism:
                 isEnabled("optimism") && wallet.publicData?.ethAddress
                     ? from(this._optimismService.getWalletDetails(wallet.publicData?.ethAddress)).pipe(catchError(() => of(null)))
+                    : of(null),
             arbitrum:
                 isEnabled("arbitrum") && wallet.publicData?.ethAddress
                     ? from(this._arbitrumService.getWalletDetails(wallet.publicData?.ethAddress)).pipe(catchError(() => of(null)))
@@ -477,6 +485,7 @@ export class BlockchainTransactionsService {
             optimism:
                 isEnabled("optimism") && wallet.publicData?.ethAddress
                     ? from(this._optimismService.requestTransactionHistory(wallet.publicData?.ethAddress, pagination)).pipe(catchError(() => of(null)))
+                    : of(null),
             arbitrum:
                 isEnabled("arbitrum") && wallet.publicData?.ethAddress
                     ? from(this._arbitrumService.requestTransactionHistory(wallet.publicData?.ethAddress, pagination)).pipe(catchError(() => of(null)))
@@ -609,6 +618,7 @@ export class BlockchainTransactionsService {
                 case "optimism":
                     if (!address) throw new Error("Address required for Optimism transaction details");
                     promise = this._optimismService.requestTransactionDetails(address, hash);
+                    break;
                 case "arbitrum":
                     if (!address) throw new Error("Address required for Arbitrum transaction details");
                     promise = this._arbitrumService.requestTransactionDetails(address, hash);
