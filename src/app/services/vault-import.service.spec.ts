@@ -41,7 +41,16 @@ describe("VaultImportService", () => {
         mockZelfKeysService.storePasswordWithAuth.calls.reset();
         mockZelfKeysService.storePasswordsBulkWithAuth.calls.reset();
         mockZelfKeysService.storePasswordsBulkWithAuth.and.returnValue(
-            Promise.resolve({ data: { results: [{ success: true }] } })
+            Promise.resolve({
+                data: {
+                    success: [{ index: 0 }],
+                    failed: [],
+                    total: 1,
+                    successCount: 1,
+                    failedCount: 0,
+                    maxBatchSize: 100,
+                },
+            })
         );
         mockHttpWrapperService.encryptMessage.calls.reset();
         mockWalletService.getCurrentWallet.and.returnValue(
@@ -343,24 +352,32 @@ describe("VaultImportService", () => {
             expect(mockZelfKeysService.storePasswordsBulkWithAuth).toHaveBeenCalledWith(
                 jasmine.objectContaining({
                     faceBase64,
-                    zelfProof: "test-proof",
                     passwords: [
                         jasmine.objectContaining({
-                            name: "GitHub",
+                            website: "https://github.com",
+                            username: "user@test.com",
                             password: "encrypted:secret123",
+                            alias: "GitHub",
                         }),
                     ],
                 })
             );
+            const bulkRequest = mockZelfKeysService.storePasswordsBulkWithAuth.calls.mostRecent().args[0];
+            expect(bulkRequest.zelfProof).toBeUndefined();
             expect(result.succeeded).toBe(1);
             expect(result.failed).toEqual([]);
         });
 
-        it("maps per-row bulk failures from API results", async () => {
+        it("maps per-row bulk failures from API failed[]", async () => {
             mockZelfKeysService.storePasswordsBulkWithAuth.and.returnValue(
                 Promise.resolve({
                     data: {
-                        results: [{ success: true }, { success: false, error: "Duplicate entry" }],
+                        success: [{ index: 0 }],
+                        failed: [{ index: 1, message: "Duplicate entry", code: "Conflict" }],
+                        total: 2,
+                        successCount: 1,
+                        failedCount: 1,
+                        maxBatchSize: 100,
                     },
                 })
             );
@@ -385,14 +402,29 @@ describe("VaultImportService", () => {
             expect(result.failed[0].error).toBe("Duplicate entry");
         });
 
-        it("marks all selected credentials failed when bulk request throws", async () => {
-            mockZelfKeysService.storePasswordsBulkWithAuth.and.returnValue(Promise.reject({ message: "Network error" }));
+        it("rethrows whole-request bulk failures (e.g. face/master 412)", async () => {
+            mockZelfKeysService.storePasswordsBulkWithAuth.and.returnValue(
+                Promise.reject({ status: 412, error: { message: "encryption_key_didnt_match" } })
+            );
 
-            const result = await service.importBatchBulk(credentials, "encrypted-face");
+            await expectAsync(service.importBatchBulk(credentials, "encrypted-face")).toBeRejected();
+        });
 
-            expect(result.succeeded).toBe(0);
-            expect(result.failed.length).toBe(1);
-            expect(result.failed[0].error).toBe("Network error");
+        it("chunks bulk imports into batches of 100", async () => {
+            const manyCredentials: ImportableCredential[] = Array.from({ length: 101 }, (_, i) => ({
+                id: `${i + 1}`,
+                title: `Site ${i + 1}`,
+                website: `https://example-${i + 1}.com`,
+                username: `user${i + 1}@example.com`,
+                password: `pass-${i + 1}`,
+                selected: true,
+            }));
+
+            await service.importBatchBulk(manyCredentials, "encrypted-face");
+
+            expect(mockZelfKeysService.storePasswordsBulkWithAuth).toHaveBeenCalledTimes(2);
+            expect(mockZelfKeysService.storePasswordsBulkWithAuth.calls.argsFor(0)[0].passwords.length).toBe(100);
+            expect(mockZelfKeysService.storePasswordsBulkWithAuth.calls.argsFor(1)[0].passwords.length).toBe(1);
         });
 
         it("routes importBatch to bulk mode when requested", async () => {

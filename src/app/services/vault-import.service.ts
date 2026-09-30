@@ -55,6 +55,9 @@ export interface ImportBatchResult {
     providedIn: "root",
 })
 export class VaultImportService {
+    /** Matches API BULK_PASSWORDS_MAX on POST /api/zelf-keys/store/passwords. */
+    readonly bulkPasswordsMaxBatchSize = 100;
+
     readonly providerOptions: ImportProviderOption[] = [
         {
             id: "auto",
@@ -526,7 +529,7 @@ export class VaultImportService {
     }
 
     /**
-     * Stores all credentials in one POST /api/zelf-keys/store/passwords call.
+     * Stores credentials via POST /api/zelf-keys/store/passwords (1–100 rows per request).
      */
     async importBatchBulk(
         credentials: ImportableCredential[],
@@ -539,7 +542,6 @@ export class VaultImportService {
             throw new Error("Active wallet with zelfProof is required to store passwords.");
         }
 
-        const zelfProof = wallet.zelfProof;
         const selected = credentials.filter((c) => c.selected);
         const total = selected.length;
 
@@ -547,40 +549,41 @@ export class VaultImportService {
             return { succeeded: 0, failed: [] };
         }
 
-        const passwords: StorePasswordBulkItem[] = [];
+        let succeeded = 0;
+        const failed: { credential: ImportableCredential; error: string }[] = [];
+        let processed = 0;
 
-        for (let i = 0; i < total; i++) {
-            const cred = selected[i];
-            if (onProgress) {
-                onProgress({ current: i + 1, total, title: cred.title });
+        for (let batchStart = 0; batchStart < total; batchStart += this.bulkPasswordsMaxBatchSize) {
+            const batch = selected.slice(batchStart, batchStart + this.bulkPasswordsMaxBatchSize);
+            const passwords: StorePasswordBulkItem[] = [];
+
+            for (let i = 0; i < batch.length; i++) {
+                const cred = batch[i];
+                processed++;
+                if (onProgress) {
+                    onProgress({ current: processed, total, title: cred.title });
+                }
+
+                const encryptedPassword = await this._httpWrapperService.encryptMessage(cred.password || "");
+                passwords.push(this._buildBulkPasswordItem(cred, encryptedPassword));
             }
 
-            const encryptedPassword = await this._httpWrapperService.encryptMessage(cred.password || "");
-            passwords.push(this._buildBulkPasswordItem(cred, encryptedPassword));
-        }
+            if (onProgress) {
+                onProgress({ current: processed, total, title: "Uploading batch..." });
+            }
 
-        if (onProgress) {
-            onProgress({ current: total, total, title: "Uploading batch..." });
-        }
-
-        try {
             const response = await this._zelfKeysService.storePasswordsBulkWithAuth({
                 faceBase64,
                 masterPassword: wallet.hasPassword ? masterPassword : undefined,
-                zelfProof,
                 passwords,
             });
 
-            return this._parseBulkStoreResponse(selected, response);
-        } catch (err: any) {
-            console.warn("Bulk vault import failed:", err);
-            const error = this._extractStoreError(err);
-
-            return {
-                succeeded: 0,
-                failed: selected.map((credential) => ({ credential, error })),
-            };
+            const batchResult = this._parseBulkStoreResponse(batch, response);
+            succeeded += batchResult.succeeded;
+            failed.push(...batchResult.failed);
         }
+
+        return { succeeded, failed };
     }
 
     private _buildStorePasswordPayload(
@@ -607,7 +610,6 @@ export class VaultImportService {
 
     private _buildBulkPasswordItem(cred: ImportableCredential, encryptedPassword: string): StorePasswordBulkItem {
         return {
-            name: cred.title,
             website: cred.website || cred.title,
             username: cred.username || "",
             password: encryptedPassword,
@@ -622,65 +624,31 @@ export class VaultImportService {
         return err?.error?.error || err?.error?.message || err?.message || "Storage failed";
     }
 
-    private _parseBulkStoreResponse(selected: ImportableCredential[], response: any): ImportBatchResult {
-        const rows =
-            response?.data?.results ??
-            response?.results ??
-            response?.data?.failed ??
-            response?.failed;
+    private _parseBulkStoreResponse(
+        batch: ImportableCredential[],
+        response: { data?: { success?: unknown[]; failed?: unknown[]; successCount?: number; failedCount?: number } }
+    ): ImportBatchResult {
+        const data = response?.data;
+        const failedRows = Array.isArray(data?.failed) ? data.failed : [];
+        const failed: { credential: ImportableCredential; error: string }[] = [];
 
-        if (Array.isArray(rows) && rows.length > 0) {
-            let succeeded = 0;
-            const failed: { credential: ImportableCredential; error: string }[] = [];
+        failedRows.forEach((row: any) => {
+            const cred = batch[row?.index];
+            if (!cred) return;
 
-            rows.forEach((row: any, index: number) => {
-                const cred = selected[row?.index ?? index];
-                if (!cred) return;
-
-                const rowFailed = row?.success === false || !!row?.error || !!row?.message;
-                if (rowFailed) {
-                    failed.push({
-                        credential: cred,
-                        error: row?.error || row?.message || "Storage failed",
-                    });
-                } else {
-                    succeeded++;
-                }
+            failed.push({
+                credential: cred,
+                error: row?.message || row?.error || row?.code || "Storage failed",
             });
+        });
 
-            // Rows may only list failures; treat any unlisted credentials as succeeded.
-            if (succeeded === 0 && failed.length === 0) {
-                return { succeeded: selected.length, failed: [] };
-            }
+        const succeeded =
+            typeof data?.successCount === "number"
+                ? data.successCount
+                : Array.isArray(data?.success)
+                  ? data.success.length
+                  : batch.length - failed.length;
 
-            const accounted = succeeded + failed.length;
-            if (accounted < selected.length) {
-                succeeded += selected.length - accounted;
-            }
-
-            return { succeeded, failed };
-        }
-
-        const succeededCount = response?.data?.succeeded ?? response?.succeeded;
-        if (typeof succeededCount === "number") {
-            const failedRows = response?.data?.failed ?? response?.failed;
-            const failed: { credential: ImportableCredential; error: string }[] = [];
-
-            if (Array.isArray(failedRows)) {
-                failedRows.forEach((row: any) => {
-                    const cred = selected[row?.index];
-                    if (cred) {
-                        failed.push({
-                            credential: cred,
-                            error: row?.error || row?.message || "Storage failed",
-                        });
-                    }
-                });
-            }
-
-            return { succeeded: succeededCount, failed };
-        }
-
-        return { succeeded: selected.length, failed: [] };
+        return { succeeded, failed };
     }
 }

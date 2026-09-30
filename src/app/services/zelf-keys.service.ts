@@ -21,7 +21,6 @@ export interface StorePasswordRequest {
 
 /** Per-item payload for bulk password store (auth fields live on the parent request). */
 export interface StorePasswordBulkItem {
-    name: string;
     website: string;
     username: string;
     password: string;
@@ -35,16 +34,33 @@ export interface StorePasswordBulkItem {
 export interface StorePasswordsBulkRequest {
     faceBase64: string;
     masterPassword?: string;
-    zelfProof?: string;
+    removePGP?: boolean;
     passwords: StorePasswordBulkItem[];
 }
 
-/** Per-row outcome from POST /api/zelf-keys/store/passwords (expected API shape). */
-export interface StorePasswordBulkResultRow {
-    success?: boolean;
-    index?: number;
-    error?: string;
+/** Per-row success from POST /api/zelf-keys/store/passwords. */
+export interface StorePasswordBulkSuccessRow {
+    index: number;
+    type?: string;
+    zelfProof?: string;
     message?: string;
+}
+
+/** Per-row failure from POST /api/zelf-keys/store/passwords. */
+export interface StorePasswordBulkFailedRow {
+    index: number;
+    message: string;
+    code?: string;
+}
+
+/** 200 response body from POST /api/zelf-keys/store/passwords. */
+export interface StorePasswordsBulkResponseData {
+    success: StorePasswordBulkSuccessRow[];
+    failed: StorePasswordBulkFailedRow[];
+    total: number;
+    successCount: number;
+    failedCount: number;
+    maxBatchSize: number;
 }
 
 /**
@@ -241,9 +257,9 @@ export class ZelfKeysService {
 
     /**
      * Bulk store passwords in ZelfKeys with auth header.
-     * POST /api/zelf-keys/store/passwords — one faceBase64 + masterPassword + passwords[].
+     * POST /api/zelf-keys/store/passwords — JWT + one faceBase64 + masterPassword + passwords[] (1–100).
      */
-    async storePasswordsBulkWithAuth(request: StorePasswordsBulkRequest): Promise<any> {
+    async storePasswordsBulkWithAuth(request: StorePasswordsBulkRequest): Promise<{ data: StorePasswordsBulkResponseData }> {
         const token = await this._authService.checkAccessToken();
         const url = `${this.baseUrl}${this.apiPath}/store/passwords`;
 
