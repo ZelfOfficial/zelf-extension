@@ -17,8 +17,8 @@
     width: 100%;
 
     .dashboard {
-        height: min(852px, calc(100vh - 32px));
-        max-height: min(852px, calc(100vh - 32px));
+        height: var(--zns-card-max-height, min(852px, calc(100vh - 32px)));
+        max-height: var(--zns-card-max-height, min(852px, calc(100vh - 32px)));
         min-height: var(--zns-card-min-height, 614px);
         width: var(--zns-card-width, 430px);
         border-radius: calc(64px * var(--zns-space-scale, 1));

@@ -86,13 +86,44 @@ body {
     --zns-action-scale: 1;
 }
 
-/* Full-screen: compact sizing (~80–90% feel) */
+/* Full-screen: phone-frame sizing — realistic proportions, scales up on large viewports */
 .main-div--fullscreen {
-    --zns-card-width: 430px;
-    --zns-card-min-height: 614px;
-    --zns-font-scale: 0.9;
-    --zns-space-scale: 0.85;
-    --zns-action-scale: 0.9;
+    --zns-card-width: 402px;
+    --zns-card-min-height: min(852px, 85vh);
+    --zns-card-max-height: min(852px, 88vh);
+    --zns-font-scale: 0.94;
+    --zns-space-scale: 0.9;
+    --zns-action-scale: 0.94;
+}
+
+/* Large desktop: enlarge phone frame toward ~430–480px width and ~90–92vh tall */
+@media screen and (min-width: 1280px) and (min-height: 720px) {
+    .main-div--fullscreen {
+        --zns-card-width: 430px;
+        --zns-card-min-height: min(852px, 88vh);
+        --zns-card-max-height: min(852px, 90vh);
+        --zns-font-scale: 0.97;
+        --zns-space-scale: 0.93;
+        --zns-action-scale: 0.97;
+    }
+}
+
+@media screen and (min-width: 1600px) and (min-height: 800px) {
+    .main-div--fullscreen {
+        --zns-card-width: 460px;
+        --zns-card-min-height: min(852px, 90vh);
+        --zns-card-max-height: min(852px, 92vh);
+        --zns-font-scale: 1;
+        --zns-space-scale: 0.96;
+        --zns-action-scale: 1;
+    }
+}
+
+@media screen and (min-width: 1920px) and (min-height: 900px) {
+    .main-div--fullscreen {
+        --zns-card-width: 480px;
+        --zns-card-max-height: min(852px, 92vh);
+    }
 }
 
 /* Popup: match extension window width (see .main-div--popout width below) */
@@ -107,17 +138,19 @@ body {
 /* Full-screen: tighten on short viewports to avoid clipping */
 @media (max-height: 760px) {
     .main-div--fullscreen {
-        --zns-space-scale: 0.8;
-        --zns-font-scale: 0.88;
-        --zns-card-min-height: 560px;
+        --zns-space-scale: 0.82;
+        --zns-font-scale: 0.9;
+        --zns-card-min-height: min(760px, 92vh);
+        --zns-card-max-height: min(760px, 94vh);
     }
 }
 
 @media (max-height: 680px) {
     .main-div--fullscreen {
-        --zns-space-scale: 0.75;
-        --zns-font-scale: 0.85;
-        --zns-card-min-height: 520px;
+        --zns-space-scale: 0.78;
+        --zns-font-scale: 0.87;
+        --zns-card-min-height: min(680px, 94vh);
+        --zns-card-max-height: min(680px, 96vh);
     }
 }
 
