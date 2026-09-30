@@ -716,6 +716,7 @@
         "security_label": "Security",
         "notifications_label": "Notifications",
         "language_label": "Language",
+        "theme_label": "Appearance",
         "subscription_label": "Subscription",
         "networks": {
             "title": "Blockchain Networks",
@@ -734,6 +735,12 @@
         },
         "language": {
             "description": "Choose your preferred language for the application."
+        },
+        "theme": {
+            "description": "Choose light, dark, or match your system appearance.",
+            "system": "System",
+            "light": "Light",
+            "dark": "Dark"
         },
         "dapps_label": "Dapps connections",
         "dapps": {

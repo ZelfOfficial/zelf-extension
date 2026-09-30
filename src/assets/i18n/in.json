@@ -652,6 +652,13 @@
             "remove_keys_countdown_minutes": "कुंजियाँ {{ minutes }}m {{ seconds }}s में हटा दी जाएंगी",
             "remove_keys_countdown_seconds": "कुंजियाँ {{ seconds }}s में हटा दी जाएंगी",
             "remove_keys_cancel": "रद्द करें"
+        },
+        "theme_label": "दिखावट",
+        "theme": {
+            "description": "लाइट, डार्क या सिस्टम की दिखावट चुनें।",
+            "system": "सिस्टम",
+            "light": "लाइट",
+            "dark": "डार्क"
         }
     },
     "security": {

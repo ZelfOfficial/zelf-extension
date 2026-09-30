@@ -1,0 +1,28 @@
+<div class="zelf-settings-theme" *transloco="let t">
+    <div class="zelf-settings-theme__header">
+        <p class="zelf-settings-theme__description">{{ t("settings.theme.description") }}</p>
+    </div>
+
+    <div class="zelf-settings-theme__list">
+        <button
+            type="button"
+            *ngFor="let option of themeOptions"
+            class="zelf-settings-theme__item"
+            [class.zelf-settings-theme__item--active]="option.id === activeMode"
+            (click)="setActiveMode(option.id)"
+        >
+            <div class="zelf-settings-theme__item-left">
+                <div class="zelf-settings-theme__icon-wrapper">
+                    <span class="material-symbols-outlined zelf-settings-theme__icon">{{ option.icon }}</span>
+                </div>
+                <span class="zelf-settings-theme__name">{{ t(option.labelKey) }}</span>
+            </div>
+
+            <div class="zelf-settings-theme__check" *ngIf="option.id === activeMode" aria-hidden="true">
+                <svg width="14" height="10" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 5L4.5 8.5L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </div>
+        </button>
+    </div>
+</div>

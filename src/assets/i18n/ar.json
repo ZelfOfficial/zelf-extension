@@ -652,6 +652,13 @@
             "remove_keys_countdown_minutes": "ستتم إزالة المفاتيح خلال {{ minutes }}د {{ seconds }}ث",
             "remove_keys_countdown_seconds": "ستتم إزالة المفاتيح خلال {{ seconds }}ث",
             "remove_keys_cancel": "إلغاء"
+        },
+        "theme_label": "المظهر",
+        "theme": {
+            "description": "اختر الفاتح أو الداكن أو مطابقة مظهر النظام.",
+            "system": "النظام",
+            "light": "فاتح",
+            "dark": "داكن"
         }
     },
     "security": {

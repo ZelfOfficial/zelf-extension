@@ -1,4 +1,4 @@
-<div class="zelf-app" *transloco="let t">
+<div class="zelf-app" [class.zelf-app--fullscreen]="isFullscreen" *transloco="let t">
     <div [ngClass]="['zelf-app__desktop-bg', 'zelf-app__desktop-bg--' + backgroundPattern]"></div>
 
     <nav class="zelf-app__header">
@@ -6,10 +6,6 @@
             <ng-container *ngTemplateOutlet="logo"></ng-container>
         </div>
 
-        <div class="zelf-app__header-language" *ngIf="!isSidePanel">
-            <zelf-theme></zelf-theme>
-            <language></language>
-        </div>
     </nav>
 
     <section #contentContainer class="zelf-app__content">
