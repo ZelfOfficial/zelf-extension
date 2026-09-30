@@ -459,6 +459,7 @@ export class SwapComponent implements OnInit, OnDestroy {
             case "binance":
                 return this.wallet.publicData?.ethAddress;
             case "polygon":
+            case "optimism":
             case "arbitrum":
             case "base":
                 return this.wallet.publicData?.ethAddress;
@@ -902,7 +903,7 @@ export class SwapComponent implements OnInit, OnDestroy {
             const ethWallet = ethers.Wallet.fromPhrase(this._mnemonics);
             const sourceNetwork = this.selectedSourceAsset.network?.toLowerCase();
 
-            const EVM_NETWORKS = ["ethereum", "avalanche", "binance", "polygon", "arbitrum", "base"];
+            const EVM_NETWORKS = ["ethereum", "avalanche", "binance", "polygon", "optimism", "arbitrum", "base"];
 
             if (sourceNetwork && EVM_NETWORKS.includes(sourceNetwork)) {
                 const receipt = await this._lifiService.executeEvmLiFiSwap(this.swapQuote, {

@@ -92,6 +92,7 @@ export class ReceiveCurrencyComponent extends CopyToClipboardBase implements OnI
     private _mapNetworkToId(network: Network): string {
         const name = (network.name || "").toLowerCase();
 
+        if (name === "optimism") return "optimism";
         if (name === "arbitrum") return "arbitrum";
         if (name === "base") return "base";
         if (name === "ethereum") return "ethereum";
@@ -180,6 +181,8 @@ export class ReceiveCurrencyComponent extends CopyToClipboardBase implements OnI
             case "MATIC":
             case "POL":
                 return "polygon";
+            case "OP":
+                return "optimism";
             case "ARB":
                 return "arbitrum";
             case "BASE":

@@ -76,6 +76,7 @@ export class LifiService {
 
         const byChainId: Record<string, string> = {
             "1": "ethereum",
+            "10": "optimism",
             "56": "binance",
             "137": "polygon",
             "8453": "base",
@@ -277,6 +278,7 @@ export class LifiService {
                 return "ETH";
             case "polygon":
                 return "POL";
+            case "optimism":
             case "arbitrum":
                 return "ETH";
             case "binance":
@@ -296,6 +298,7 @@ export class LifiService {
 
         const map: Record<number, string> = {
             1: "ETH",
+            10: "ETH",
             56: "BNB",
             137: "POL",
             42161: "ETH",
@@ -583,6 +586,7 @@ export class LifiService {
         const raw = String(chainIdOrSlug).trim();
         const slugToId: Record<string, string> = {
             ethereum: "1",
+            optimism: "10",
             avalanche: "43114",
             binance: "56",
             polygon: "137",
