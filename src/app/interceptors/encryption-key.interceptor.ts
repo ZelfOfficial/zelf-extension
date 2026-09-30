@@ -76,15 +76,19 @@ export class EncryptionKeyInterceptor implements HttpInterceptor {
 
         try {
             await this._refreshPromise;
-
-            // Retry the original request with the new public key
-            return await lastValueFrom(next.handle(req));
         } catch (refreshError) {
             console.error("Failed to refresh public key:", refreshError);
             throw refreshError;
         } finally {
             this._isRefreshing = false;
             this._refreshPromise = null;
+        }
+
+        try {
+            return await lastValueFrom(next.handle(req));
+        } catch (retryError) {
+            console.error("Request failed after public key refresh:", retryError);
+            throw retryError;
         }
     }
 

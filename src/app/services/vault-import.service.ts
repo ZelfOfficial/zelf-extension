@@ -1,4 +1,5 @@
 import { Injectable } from "@angular/core";
+import { HttpWrapperService } from "../http-wrapper.service";
 import { WalletService } from "../wallet.service";
 import { ZelfKeysService } from "./zelf-keys.service";
 
@@ -97,7 +98,8 @@ export class VaultImportService {
 
     constructor(
         private _walletService: WalletService,
-        private _zelfKeysService: ZelfKeysService
+        private _zelfKeysService: ZelfKeysService,
+        private _httpWrapperService: HttpWrapperService
     ) {}
 
     /**
@@ -474,11 +476,13 @@ export class VaultImportService {
             }
 
             try {
+                const encryptedPassword = await this._httpWrapperService.encryptMessage(cred.password || "");
+
                 const payload = {
                     name: cred.title,
                     website: cred.website || cred.title,
                     username: cred.username || "",
-                    password: cred.password || "",
+                    password: encryptedPassword,
                     alias: cred.title,
                     folder: cred.folder || undefined,
                     insideFolder: !!cred.folder,

@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
+import { HttpWrapperService } from "../http-wrapper.service";
 import { WalletService } from "../wallet.service";
-import { VaultImportService } from "./vault-import.service";
+import { VaultImportService, ImportableCredential } from "./vault-import.service";
 import { ZelfKeysService } from "./zelf-keys.service";
 
 describe("VaultImportService", () => {
@@ -20,12 +21,20 @@ describe("VaultImportService", () => {
         storePasswordWithAuth: jasmine.createSpy("storePasswordWithAuth").and.returnValue(Promise.resolve({ success: true })),
     };
 
+    const mockHttpWrapperService = {
+        encryptMessage: jasmine.createSpy("encryptMessage").and.callFake((data: string) => Promise.resolve(`encrypted:${data}`)),
+    };
+
     beforeEach(() => {
+        mockZelfKeysService.storePasswordWithAuth.calls.reset();
+        mockHttpWrapperService.encryptMessage.calls.reset();
+
         TestBed.configureTestingModule({
             providers: [
                 VaultImportService,
                 { provide: WalletService, useValue: mockWalletService },
                 { provide: ZelfKeysService, useValue: mockZelfKeysService },
+                { provide: HttpWrapperService, useValue: mockHttpWrapperService },
             ],
         });
         service = TestBed.inject(VaultImportService);
@@ -144,6 +153,67 @@ describe("VaultImportService", () => {
             expect(result.credentials[0].title).toBe("Stripe");
             expect(result.credentials[0].folder).toBe("Development");
             expect(result.credentials[0].username).toBe("admin@corp.com");
+        });
+    });
+
+    describe("importBatch", () => {
+        const credentials: ImportableCredential[] = [
+            {
+                id: "1",
+                title: "GitHub",
+                website: "https://github.com",
+                username: "user@test.com",
+                password: "secret123",
+                selected: true,
+            },
+            {
+                id: "2",
+                title: "GitLab",
+                website: "https://gitlab.com",
+                username: "dev@test.com",
+                password: "token456",
+                selected: true,
+            },
+        ];
+
+        it("encrypts each credential password before storePasswordWithAuth", async () => {
+            const faceBase64 = "encrypted-face";
+            const result = await service.importBatch(credentials, faceBase64);
+
+            expect(mockHttpWrapperService.encryptMessage).toHaveBeenCalledTimes(2);
+            expect(mockHttpWrapperService.encryptMessage).toHaveBeenCalledWith("secret123");
+            expect(mockHttpWrapperService.encryptMessage).toHaveBeenCalledWith("token456");
+            expect(mockZelfKeysService.storePasswordWithAuth).toHaveBeenCalledTimes(2);
+            expect(mockZelfKeysService.storePasswordWithAuth).toHaveBeenCalledWith(
+                jasmine.objectContaining({
+                    password: "encrypted:secret123",
+                    faceBase64,
+                })
+            );
+            expect(result.succeeded).toBe(2);
+            expect(result.failed).toEqual([]);
+        });
+
+        it("passes through already-encrypted faceBase64 and masterPassword", async () => {
+            const faceBase64 = "encrypted-face";
+            const masterPassword = "encrypted-master";
+
+            mockWalletService.getCurrentWallet.and.returnValue(
+                Promise.resolve({
+                    name: "test-wallet",
+                    zelfProof: "test-proof",
+                    hasPassword: true,
+                })
+            );
+
+            await service.importBatch(credentials, faceBase64, masterPassword);
+
+            expect(mockZelfKeysService.storePasswordWithAuth).toHaveBeenCalledWith(
+                jasmine.objectContaining({
+                    faceBase64,
+                    masterPassword,
+                })
+            );
         });
     });
 });

@@ -233,7 +233,7 @@
         padding: calc(100px * var(--zns-space-scale, 1)) 0 calc(64px * var(--zns-space-scale, 1));
 
         @media screen and (max-width: variables.$medium) {
-            padding: calc(56px * var(--zns-space-scale, 1)) 0 0;
+            padding: calc(56px * var(--zns-space-scale, 1)) 0 calc(64px * var(--zns-space-scale, 1));
         }
     }
 
