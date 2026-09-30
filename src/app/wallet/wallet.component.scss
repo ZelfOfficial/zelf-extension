@@ -165,7 +165,7 @@
 
     &__title {
         font-family: variables.$themeBodyFamily;
-        font-weight: 500;
+        font-weight: 600;
         font-size: calc(14px * var(--zns-font-scale, 1));
         line-height: calc(20px * var(--zns-font-scale, 1));
         letter-spacing: 0.1px;
@@ -173,6 +173,7 @@
         vertical-align: middle;
         color: variables.$themeText;
         margin: 0;
+        text-transform: uppercase;
     }
 
     &__details {
@@ -252,8 +253,8 @@
 .wallet__quick-actions .zelf-action-button__icon {
     border-radius: calc(16px * var(--zns-space-scale, 1));
     width: auto;
-    min-width: calc(100px * var(--zns-space-scale, 1));
-    max-width: calc(132px * var(--zns-space-scale, 1));
+    min-width: calc(72px * var(--zns-space-scale, 1));
+    max-width: calc(96px * var(--zns-space-scale, 1));
 }
 
 .wallet__quick-actions .zelf-action-button__text {
