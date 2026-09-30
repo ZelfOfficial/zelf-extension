@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { HttpWrapperService } from "../http-wrapper.service";
 import { WalletService } from "../wallet.service";
+import { LASTPASS_SAMPLE_CSV, ONEPASSWORD_SAMPLE_CSV } from "./fixtures/vault-import-sample-exports";
 import { VaultImportService, ImportableCredential } from "./vault-import.service";
 import { ZelfKeysService } from "./zelf-keys.service";
 
@@ -164,6 +165,31 @@ describe("VaultImportService", () => {
             expect(result.credentials[0].title).toBe("Stripe");
             expect(result.credentials[0].folder).toBe("Development");
             expect(result.credentials[0].username).toBe("admin@corp.com");
+        });
+    });
+
+    describe("QA sample exports", () => {
+        it("parses LastPass QA sample CSV", () => {
+            const result = service.parseContent(LASTPASS_SAMPLE_CSV);
+            expect(result.detectedProvider).toBe("lastpass");
+            expect(result.credentials.length).toBe(5);
+            expect(result.credentials[0].title).toBe("Example Portal");
+            expect(result.credentials[0].website).toBe("https://login.example.com");
+            expect(result.credentials[0].username).toBe("alice@example.com");
+            expect(result.credentials[0].password).toBe("FakePass-Alpha-01");
+            expect(result.credentials[0].folder).toBe("Work");
+            expect(result.credentials[2].password).toBe('Fake,Pass"Gamma"03');
+        });
+
+        it("parses 1Password QA sample CSV", () => {
+            const result = service.parseContent(ONEPASSWORD_SAMPLE_CSV);
+            expect(result.detectedProvider).toBe("1password");
+            expect(result.credentials.length).toBe(5);
+            expect(result.credentials[0].title).toBe("Example Portal");
+            expect(result.credentials[0].website).toBe("https://login.example.com");
+            expect(result.credentials[0].username).toBe("alice@example.com");
+            expect(result.credentials[0].password).toBe("FakePass-Alpha-01");
+            expect(result.credentials[2].password).toBe('Fake,Pass"Gamma"03');
         });
     });
 

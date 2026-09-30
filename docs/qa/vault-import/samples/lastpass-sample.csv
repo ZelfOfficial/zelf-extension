@@ -1,0 +1,6 @@
+url,username,password,extra,name,grouping,fav
+https://login.example.com,alice@example.com,FakePass-Alpha-01,QA sample account,Example Portal,Work,1
+https://shop.example.com,bob@example.com,FakePass-Beta-02,Test shopping login,Example Shop,Personal,0
+https://mail.example.com,carol@example.com,"Fake,Pass""Gamma""03",Note with comma and quotes,Example Mail,Work,0
+https://docs.example.com,dana@example.com,FakePass-Delta-04,Docs sandbox,Example Docs,Engineering,0
+https://api.example.com,svc@example.com,FakePass-Epsilon-05,Service account placeholder,Example API,Shared,0
