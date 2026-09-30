@@ -19,6 +19,34 @@ export interface StorePasswordRequest {
     zelfProof?: string;
 }
 
+/** Per-item payload for bulk password store (auth fields live on the parent request). */
+export interface StorePasswordBulkItem {
+    name: string;
+    website: string;
+    username: string;
+    password: string;
+    alias?: string;
+    folder?: string;
+    insideFolder?: boolean;
+    notes?: string;
+}
+
+/** Bulk store request: one face + masterPassword + encrypted password rows. */
+export interface StorePasswordsBulkRequest {
+    faceBase64: string;
+    masterPassword?: string;
+    zelfProof?: string;
+    passwords: StorePasswordBulkItem[];
+}
+
+/** Per-row outcome from POST /api/zelf-keys/store/passwords (expected API shape). */
+export interface StorePasswordBulkResultRow {
+    success?: boolean;
+    index?: number;
+    error?: string;
+    message?: string;
+}
+
 /**
  * Interface for storing a ZOTP via ZelfKeys API
  */
@@ -205,6 +233,19 @@ export class ZelfKeysService {
     async storePasswordWithAuth(request: StorePasswordRequest & { name?: string }): Promise<any> {
         const token = await this._authService.checkAccessToken();
         const url = `${this.baseUrl}${this.apiPath}/store/password`;
+
+        return this._httpWrapper.sendRequest("post", url, request, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+    }
+
+    /**
+     * Bulk store passwords in ZelfKeys with auth header.
+     * POST /api/zelf-keys/store/passwords — one faceBase64 + masterPassword + passwords[].
+     */
+    async storePasswordsBulkWithAuth(request: StorePasswordsBulkRequest): Promise<any> {
+        const token = await this._authService.checkAccessToken();
+        const url = `${this.baseUrl}${this.apiPath}/store/passwords`;
 
         return this._httpWrapper.sendRequest("post", url, request, {
             headers: { Authorization: `Bearer ${token}` },

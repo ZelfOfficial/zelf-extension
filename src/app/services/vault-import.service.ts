@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
+import { HttpWrapperService } from "../http-wrapper.service";
 import { WalletService } from "../wallet.service";
-import { ZelfKeysService } from "./zelf-keys.service";
+import { StorePasswordBulkItem, ZelfKeysService } from "./zelf-keys.service";
 
 export type ImportProvider =
     | "auto"
@@ -41,6 +42,13 @@ export interface ImportBatchProgress {
     current: number;
     total: number;
     title: string;
+}
+
+export type ImportBatchMode = "one-by-one" | "bulk";
+
+export interface ImportBatchResult {
+    succeeded: number;
+    failed: { credential: ImportableCredential; error: string }[];
 }
 
 @Injectable({
@@ -97,7 +105,8 @@ export class VaultImportService {
 
     constructor(
         private _walletService: WalletService,
-        private _zelfKeysService: ZelfKeysService
+        private _zelfKeysService: ZelfKeysService,
+        private _httpWrapperService: HttpWrapperService
     ) {}
 
     /**
@@ -450,18 +459,37 @@ export class VaultImportService {
 
     /**
      * Batch stores parsed credentials in ZelfKeys using a single captured selfie proof.
+     * @param mode - `one-by-one` loops POST /store/password; `bulk` uses POST /store/passwords.
      */
     async importBatch(
         credentials: ImportableCredential[],
         faceBase64: string,
         masterPassword?: string,
+        onProgress?: (progress: ImportBatchProgress) => void,
+        mode: ImportBatchMode = "one-by-one"
+    ): Promise<ImportBatchResult> {
+        if (mode === "bulk") {
+            return this.importBatchBulk(credentials, faceBase64, masterPassword, onProgress);
+        }
+
+        return this.importBatchOneByOne(credentials, faceBase64, masterPassword, onProgress);
+    }
+
+    /**
+     * Stores each credential via POST /api/zelf-keys/store/password (existing path).
+     */
+    async importBatchOneByOne(
+        credentials: ImportableCredential[],
+        faceBase64: string,
+        masterPassword?: string,
         onProgress?: (progress: ImportBatchProgress) => void
-    ): Promise<{ succeeded: number; failed: { credential: ImportableCredential; error: string }[] }> {
+    ): Promise<ImportBatchResult> {
         const wallet = await this._walletService.getCurrentWallet();
         if (!wallet?.zelfProof) {
             throw new Error("Active wallet with zelfProof is required to store passwords.");
         }
 
+        const zelfProof = wallet.zelfProof;
         const selected = credentials.filter((c) => c.selected);
         const total = selected.length;
         let succeeded = 0;
@@ -474,19 +502,14 @@ export class VaultImportService {
             }
 
             try {
-                const payload = {
-                    name: cred.title,
-                    website: cred.website || cred.title,
-                    username: cred.username || "",
-                    password: cred.password || "",
-                    alias: cred.title,
-                    folder: cred.folder || undefined,
-                    insideFolder: !!cred.folder,
-                    notes: cred.notes || undefined,
+                const encryptedPassword = await this._httpWrapperService.encryptMessage(cred.password || "");
+                const payload = this._buildStorePasswordPayload(
+                    cred,
+                    encryptedPassword,
                     faceBase64,
-                    masterPassword: wallet.hasPassword ? masterPassword : undefined,
-                    zelfProof: wallet.zelfProof,
-                };
+                    { zelfProof, hasPassword: wallet.hasPassword },
+                    masterPassword
+                );
 
                 await this._zelfKeysService.storePasswordWithAuth(payload);
                 succeeded++;
@@ -494,11 +517,170 @@ export class VaultImportService {
                 console.warn(`Failed to import credential "${cred.title}":`, err);
                 failed.push({
                     credential: cred,
-                    error: err?.error?.error || err?.error?.message || err?.message || "Storage failed",
+                    error: this._extractStoreError(err),
                 });
             }
         }
 
         return { succeeded, failed };
+    }
+
+    /**
+     * Stores all credentials in one POST /api/zelf-keys/store/passwords call.
+     */
+    async importBatchBulk(
+        credentials: ImportableCredential[],
+        faceBase64: string,
+        masterPassword?: string,
+        onProgress?: (progress: ImportBatchProgress) => void
+    ): Promise<ImportBatchResult> {
+        const wallet = await this._walletService.getCurrentWallet();
+        if (!wallet?.zelfProof) {
+            throw new Error("Active wallet with zelfProof is required to store passwords.");
+        }
+
+        const zelfProof = wallet.zelfProof;
+        const selected = credentials.filter((c) => c.selected);
+        const total = selected.length;
+
+        if (total === 0) {
+            return { succeeded: 0, failed: [] };
+        }
+
+        const passwords: StorePasswordBulkItem[] = [];
+
+        for (let i = 0; i < total; i++) {
+            const cred = selected[i];
+            if (onProgress) {
+                onProgress({ current: i + 1, total, title: cred.title });
+            }
+
+            const encryptedPassword = await this._httpWrapperService.encryptMessage(cred.password || "");
+            passwords.push(this._buildBulkPasswordItem(cred, encryptedPassword));
+        }
+
+        if (onProgress) {
+            onProgress({ current: total, total, title: "Uploading batch..." });
+        }
+
+        try {
+            const response = await this._zelfKeysService.storePasswordsBulkWithAuth({
+                faceBase64,
+                masterPassword: wallet.hasPassword ? masterPassword : undefined,
+                zelfProof,
+                passwords,
+            });
+
+            return this._parseBulkStoreResponse(selected, response);
+        } catch (err: any) {
+            console.warn("Bulk vault import failed:", err);
+            const error = this._extractStoreError(err);
+
+            return {
+                succeeded: 0,
+                failed: selected.map((credential) => ({ credential, error })),
+            };
+        }
+    }
+
+    private _buildStorePasswordPayload(
+        cred: ImportableCredential,
+        encryptedPassword: string,
+        faceBase64: string,
+        wallet: { zelfProof: string; hasPassword?: boolean },
+        masterPassword?: string
+    ) {
+        return {
+            name: cred.title,
+            website: cred.website || cred.title,
+            username: cred.username || "",
+            password: encryptedPassword,
+            alias: cred.title,
+            folder: cred.folder || undefined,
+            insideFolder: !!cred.folder,
+            notes: cred.notes || undefined,
+            faceBase64,
+            masterPassword: wallet.hasPassword ? masterPassword : undefined,
+            zelfProof: wallet.zelfProof,
+        };
+    }
+
+    private _buildBulkPasswordItem(cred: ImportableCredential, encryptedPassword: string): StorePasswordBulkItem {
+        return {
+            name: cred.title,
+            website: cred.website || cred.title,
+            username: cred.username || "",
+            password: encryptedPassword,
+            alias: cred.title,
+            folder: cred.folder || undefined,
+            insideFolder: !!cred.folder,
+            notes: cred.notes || undefined,
+        };
+    }
+
+    private _extractStoreError(err: any): string {
+        return err?.error?.error || err?.error?.message || err?.message || "Storage failed";
+    }
+
+    private _parseBulkStoreResponse(selected: ImportableCredential[], response: any): ImportBatchResult {
+        const rows =
+            response?.data?.results ??
+            response?.results ??
+            response?.data?.failed ??
+            response?.failed;
+
+        if (Array.isArray(rows) && rows.length > 0) {
+            let succeeded = 0;
+            const failed: { credential: ImportableCredential; error: string }[] = [];
+
+            rows.forEach((row: any, index: number) => {
+                const cred = selected[row?.index ?? index];
+                if (!cred) return;
+
+                const rowFailed = row?.success === false || !!row?.error || !!row?.message;
+                if (rowFailed) {
+                    failed.push({
+                        credential: cred,
+                        error: row?.error || row?.message || "Storage failed",
+                    });
+                } else {
+                    succeeded++;
+                }
+            });
+
+            // Rows may only list failures; treat any unlisted credentials as succeeded.
+            if (succeeded === 0 && failed.length === 0) {
+                return { succeeded: selected.length, failed: [] };
+            }
+
+            const accounted = succeeded + failed.length;
+            if (accounted < selected.length) {
+                succeeded += selected.length - accounted;
+            }
+
+            return { succeeded, failed };
+        }
+
+        const succeededCount = response?.data?.succeeded ?? response?.succeeded;
+        if (typeof succeededCount === "number") {
+            const failedRows = response?.data?.failed ?? response?.failed;
+            const failed: { credential: ImportableCredential; error: string }[] = [];
+
+            if (Array.isArray(failedRows)) {
+                failedRows.forEach((row: any) => {
+                    const cred = selected[row?.index];
+                    if (cred) {
+                        failed.push({
+                            credential: cred,
+                            error: row?.error || row?.message || "Storage failed",
+                        });
+                    }
+                });
+            }
+
+            return { succeeded: succeededCount, failed };
+        }
+
+        return { succeeded: selected.length, failed: [] };
     }
 }

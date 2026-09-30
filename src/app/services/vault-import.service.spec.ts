@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
+import { HttpWrapperService } from "../http-wrapper.service";
 import { WalletService } from "../wallet.service";
-import { VaultImportService } from "./vault-import.service";
+import { VaultImportService, ImportableCredential } from "./vault-import.service";
 import { ZelfKeysService } from "./zelf-keys.service";
 
 describe("VaultImportService", () => {
@@ -18,14 +19,33 @@ describe("VaultImportService", () => {
 
     const mockZelfKeysService = {
         storePasswordWithAuth: jasmine.createSpy("storePasswordWithAuth").and.returnValue(Promise.resolve({ success: true })),
+        storePasswordsBulkWithAuth: jasmine
+            .createSpy("storePasswordsBulkWithAuth")
+            .and.returnValue(Promise.resolve({ data: { results: [{ success: true }] } })),
+    };
+
+    const mockHttpWrapperService = {
+        encryptMessage: jasmine.createSpy("encryptMessage").and.callFake((data: string) => Promise.resolve(`encrypted:${data}`)),
     };
 
     beforeEach(() => {
+        mockZelfKeysService.storePasswordWithAuth.calls.reset();
+        mockZelfKeysService.storePasswordsBulkWithAuth.calls.reset();
+        mockHttpWrapperService.encryptMessage.calls.reset();
+        mockWalletService.getCurrentWallet.and.returnValue(
+            Promise.resolve({
+                name: "test-wallet",
+                zelfProof: "test-proof",
+                hasPassword: false,
+            })
+        );
+
         TestBed.configureTestingModule({
             providers: [
                 VaultImportService,
                 { provide: WalletService, useValue: mockWalletService },
                 { provide: ZelfKeysService, useValue: mockZelfKeysService },
+                { provide: HttpWrapperService, useValue: mockHttpWrapperService },
             ],
         });
         service = TestBed.inject(VaultImportService);
@@ -144,6 +164,166 @@ describe("VaultImportService", () => {
             expect(result.credentials[0].title).toBe("Stripe");
             expect(result.credentials[0].folder).toBe("Development");
             expect(result.credentials[0].username).toBe("admin@corp.com");
+        });
+    });
+
+    describe("importBatchOneByOne", () => {
+        const credentials: ImportableCredential[] = [
+            {
+                id: "1",
+                title: "GitHub",
+                website: "https://github.com",
+                username: "user@test.com",
+                password: "secret123",
+                selected: true,
+            },
+            {
+                id: "2",
+                title: "GitLab",
+                website: "https://gitlab.com",
+                username: "dev@test.com",
+                password: "token456",
+                selected: true,
+            },
+        ];
+
+        it("encrypts each credential password before storePasswordWithAuth", async () => {
+            const faceBase64 = "encrypted-face";
+            const result = await service.importBatchOneByOne(credentials, faceBase64);
+
+            expect(mockHttpWrapperService.encryptMessage).toHaveBeenCalledTimes(2);
+            expect(mockHttpWrapperService.encryptMessage).toHaveBeenCalledWith("secret123");
+            expect(mockHttpWrapperService.encryptMessage).toHaveBeenCalledWith("token456");
+            expect(mockZelfKeysService.storePasswordWithAuth).toHaveBeenCalledTimes(2);
+            expect(mockZelfKeysService.storePasswordWithAuth).toHaveBeenCalledWith(
+                jasmine.objectContaining({
+                    password: "encrypted:secret123",
+                    faceBase64,
+                })
+            );
+            expect(mockZelfKeysService.storePasswordsBulkWithAuth).not.toHaveBeenCalled();
+            expect(result.succeeded).toBe(2);
+            expect(result.failed).toEqual([]);
+        });
+
+        it("passes through already-encrypted faceBase64 and masterPassword", async () => {
+            const faceBase64 = "encrypted-face";
+            const masterPassword = "encrypted-master";
+
+            mockWalletService.getCurrentWallet.and.returnValue(
+                Promise.resolve({
+                    name: "test-wallet",
+                    zelfProof: "test-proof",
+                    hasPassword: true,
+                })
+            );
+
+            await service.importBatchOneByOne(credentials, faceBase64, masterPassword);
+
+            expect(mockZelfKeysService.storePasswordWithAuth).toHaveBeenCalledWith(
+                jasmine.objectContaining({
+                    faceBase64,
+                    masterPassword,
+                })
+            );
+        });
+
+        it("routes importBatch to one-by-one mode by default", async () => {
+            await service.importBatch(credentials, "encrypted-face");
+
+            expect(mockZelfKeysService.storePasswordWithAuth).toHaveBeenCalledTimes(2);
+            expect(mockZelfKeysService.storePasswordsBulkWithAuth).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("importBatchBulk", () => {
+        const credentials: ImportableCredential[] = [
+            {
+                id: "1",
+                title: "GitHub",
+                website: "https://github.com",
+                username: "user@test.com",
+                password: "secret123",
+                selected: true,
+            },
+            {
+                id: "2",
+                title: "GitLab",
+                website: "https://gitlab.com",
+                username: "dev@test.com",
+                password: "token456",
+                selected: false,
+            },
+        ];
+
+        it("encrypts selected passwords and sends one bulk request", async () => {
+            const faceBase64 = "encrypted-face";
+            const result = await service.importBatchBulk(credentials, faceBase64);
+
+            expect(mockHttpWrapperService.encryptMessage).toHaveBeenCalledTimes(1);
+            expect(mockHttpWrapperService.encryptMessage).toHaveBeenCalledWith("secret123");
+            expect(mockZelfKeysService.storePasswordWithAuth).not.toHaveBeenCalled();
+            expect(mockZelfKeysService.storePasswordsBulkWithAuth).toHaveBeenCalledTimes(1);
+            expect(mockZelfKeysService.storePasswordsBulkWithAuth).toHaveBeenCalledWith(
+                jasmine.objectContaining({
+                    faceBase64,
+                    zelfProof: "test-proof",
+                    passwords: [
+                        jasmine.objectContaining({
+                            name: "GitHub",
+                            password: "encrypted:secret123",
+                        }),
+                    ],
+                })
+            );
+            expect(result.succeeded).toBe(1);
+            expect(result.failed).toEqual([]);
+        });
+
+        it("maps per-row bulk failures from API results", async () => {
+            mockZelfKeysService.storePasswordsBulkWithAuth.and.returnValue(
+                Promise.resolve({
+                    data: {
+                        results: [{ success: true }, { success: false, error: "Duplicate entry" }],
+                    },
+                })
+            );
+
+            const twoSelected: ImportableCredential[] = [
+                { ...credentials[0], selected: true },
+                {
+                    id: "3",
+                    title: "Stripe",
+                    website: "https://stripe.com",
+                    username: "admin",
+                    password: "pw",
+                    selected: true,
+                },
+            ];
+
+            const result = await service.importBatchBulk(twoSelected, "encrypted-face");
+
+            expect(result.succeeded).toBe(1);
+            expect(result.failed.length).toBe(1);
+            expect(result.failed[0].credential.title).toBe("Stripe");
+            expect(result.failed[0].error).toBe("Duplicate entry");
+        });
+
+        it("marks all selected credentials failed when bulk request throws", async () => {
+            mockZelfKeysService.storePasswordsBulkWithAuth.and.returnValue(Promise.reject({ message: "Network error" }));
+
+            const result = await service.importBatchBulk(credentials, "encrypted-face");
+
+            expect(result.succeeded).toBe(0);
+            expect(result.failed.length).toBe(1);
+            expect(result.failed[0].error).toBe("Network error");
+        });
+
+        it("routes importBatch to bulk mode when requested", async () => {
+            await service.importBatch(credentials, "encrypted-face", undefined, undefined, "bulk");
+
+            expect(mockZelfKeysService.storePasswordsBulkWithAuth).toHaveBeenCalledTimes(1);
+            expect(mockZelfKeysService.storePasswordWithAuth).not.toHaveBeenCalled();
         });
     });
 });
