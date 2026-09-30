@@ -307,7 +307,7 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
             },
             dimensions: {
                 video: {
-                    max: { isLandscape: false, height: 1, width: 1 },
+                    max: { height: 1, width: 1 },
                 },
             },
         };
