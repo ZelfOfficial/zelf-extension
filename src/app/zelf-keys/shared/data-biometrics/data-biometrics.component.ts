@@ -11,6 +11,7 @@ import { Observable, Subject, takeUntil } from "rxjs";
 
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { ZelfKeysService } from "app/services/zelf-keys.service";
+import { isDevBiometricsBypassEnabled, loadDevBiometricsFixtureBase64 } from "app/utils/dev-biometrics-bypass.util";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { WalletService } from "../../../wallet.service";
 
@@ -195,6 +196,11 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
     }
 
     private async _initializeBiometrics(): Promise<void> {
+        if (isDevBiometricsBypassEnabled()) {
+            await this._runDevBiometricsBypass();
+            return;
+        }
+
         try {
             // Always wait for the wallet service to load the models
             this._walletService.faceapi$.pipe(takeUntil(this.unsubscriber$)).subscribe(async (isLoaded) => {
@@ -608,6 +614,24 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
         this.response.isLoading = true;
 
         this._emitBiometricCapture();
+    }
+
+    /** Local/dev QA only — skip camera and inject bundled selfie for headless QA boxes. */
+    private async _runDevBiometricsBypass(): Promise<void> {
+        this.camera.isLoading = true;
+        this.response.isLoading = true;
+        this._changeDetectorRef.markForCheck();
+
+        try {
+            const base64 = await loadDevBiometricsFixtureBase64();
+            this.response.base64Image = `data:image/jpeg;base64,${base64}`;
+            await this._emitBiometricCapture();
+        } catch (error) {
+            console.error("Dev biometrics bypass failed:", error);
+            this.camera.isLoading = false;
+            this.response.isLoading = false;
+            this._changeDetectorRef.markForCheck();
+        }
     }
 
     private async _emitBiometricCapture(): Promise<void> {

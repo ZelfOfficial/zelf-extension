@@ -14,6 +14,7 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { MediaStreamService } from "app/services/media-stream.service";
+import { isDevBiometricsBypassEnabled, loadDevBiometricsFixtureBase64 } from "app/utils/dev-biometrics-bypass.util";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { WalletService } from "../wallet.service";
 import { CameraData, directionImage, ErrorFace, FaceData, FacingMode, Intervals, OvalData, ResponseData } from "./sdk.models";
@@ -90,6 +91,11 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
     }
 
     async ngOnInit(): Promise<void> {
+        if (isDevBiometricsBypassEnabled()) {
+            await this._runDevBiometricsBypass();
+            return;
+        }
+
         await this._startDefaultValues();
 
         this._resizeUnlisten = this._renderer.listen("window", "resize", this._debounceWindowResize);
@@ -284,6 +290,35 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         const encryptedImage = await this._httpWrapperService.encryptMessage(base64Image);
 
         this.imageCaptured.emit(encryptedImage);
+    }
+
+    /** Local/dev QA only — skip camera and inject bundled selfie for headless QA boxes. */
+    private async _runDevBiometricsBypass(): Promise<void> {
+        this._setDefaultResponse();
+        this.camera = {
+            hasPermissions: true,
+            isLoading: true,
+            isLowQuality: false,
+            configuration: {
+                height: { ideal: 1080 },
+                width: { ideal: 1920 },
+                facingMode: FacingMode.USER,
+                frameRate: { ideal: 30, max: 30 },
+            },
+            dimensions: {
+                video: {
+                    max: { isLandscape: false, height: 1, width: 1 },
+                },
+            },
+        };
+
+        try {
+            const base64 = await loadDevBiometricsFixtureBase64();
+            this.response.base64Image = `data:image/jpeg;base64,${base64}`;
+            await this._emitBiometricCapture();
+        } catch (error) {
+            this.error.emit(error);
+        }
     }
 
     private _getCenterAndRadius = (height: number, width: number) => {
