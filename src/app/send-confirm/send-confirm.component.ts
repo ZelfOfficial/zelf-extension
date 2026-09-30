@@ -70,6 +70,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
         { id: "ethereum", name: "Ethereum", symbol: "ETH" },
         { id: "polygon", name: "Polygon", symbol: "POL" },
         { id: "arbitrum", name: "Arbitrum", symbol: "ETH" },
+        { id: "base", name: "Base", symbol: "ETH" },
         { id: "solana", name: "Solana", symbol: "SOL" },
         { id: "stellar", name: "Stellar", symbol: "XLM" },
         { id: "sui", name: "Sui", symbol: "SUI" },
@@ -737,7 +738,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
         };
 
         // EVM networks need private key instead of mnemonic
-        if (["ethereum", "avalanche", "binance", "blockdag", "polygon", "arbitrum"].includes(this.transactionData.network)) {
+        if (["ethereum", "avalanche", "binance", "blockdag", "polygon", "arbitrum", "base"].includes(this.transactionData.network)) {
             if (!ethers.Mnemonic.isValidMnemonic(cleanMnemonic)) {
                 this.openErrorSnackBar("errors.invalid_private_key");
                 return;

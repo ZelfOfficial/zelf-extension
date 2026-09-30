@@ -93,6 +93,7 @@ export class ReceiveCurrencyComponent extends CopyToClipboardBase implements OnI
         const name = (network.name || "").toLowerCase();
 
         if (name === "arbitrum") return "arbitrum";
+        if (name === "base") return "base";
         if (name === "ethereum") return "ethereum";
         if (name === "polygon") return "polygon";
         if (name === "avalanche") return "avalanche";
@@ -181,6 +182,8 @@ export class ReceiveCurrencyComponent extends CopyToClipboardBase implements OnI
                 return "polygon";
             case "ARB":
                 return "arbitrum";
+            case "BASE":
+                return "base";
             case "SOL":
                 return "solana";
             case "SUI":

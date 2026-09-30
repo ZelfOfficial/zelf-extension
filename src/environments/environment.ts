@@ -33,6 +33,9 @@ export const environment = {
     arbitrumRpc: {
         mainnet: "https://arb1.arbitrum.io/rpc",
     },
+    baseRpc: {
+        mainnet: "https://mainnet.base.org",
+    },
     avalancheRpc: {
         mainnet: "https://wild-bitter-meadow.avalanche-mainnet.quiknode.pro/e2565749ca44c2873fe2a0a747f5ac68ae7eb14f/ext/bc/C/rpc/",
     },

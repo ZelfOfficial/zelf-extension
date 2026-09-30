@@ -197,6 +197,9 @@ export class WalletService {
             case "ARB":
                 assetSrc = "./assets/networks/arbitrum.svg";
                 break;
+            case "BASE":
+                assetSrc = "./assets/networks/base.svg";
+                break;
             case "BTC":
                 assetSrc = "./assets/networks/btc.png";
                 break;
@@ -1223,6 +1226,12 @@ export class WalletService {
                     address: _wallet?.publicData?.ethAddress,
                     image: this.getAssetImage("ARB"),
                     name: "Arbitrum",
+                    symbol: "ETH",
+                },
+                {
+                    address: _wallet?.publicData?.ethAddress,
+                    image: this.getAssetImage("BASE"),
+                    name: "Base",
                     symbol: "ETH",
                 }
             );
