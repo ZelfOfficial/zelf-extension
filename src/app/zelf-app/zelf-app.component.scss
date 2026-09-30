@@ -212,12 +212,6 @@
         }
     }
 
-    &__header-language {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
     &__logo-container {
         cursor: pointer;
     }
@@ -234,6 +228,22 @@
 
         @media screen and (max-width: variables.$medium) {
             padding: calc(56px * var(--zns-space-scale, 1)) 0 0;
+        }
+    }
+
+    &--fullscreen {
+        .zelf-app__header {
+            height: calc(56px * var(--zns-space-scale, 1));
+            pointer-events: none;
+
+            .zelf-app__logo-container {
+                pointer-events: auto;
+            }
+        }
+
+        .zelf-app__content {
+            padding-top: calc(56px * var(--zns-space-scale, 1));
+            padding-bottom: calc(16px * var(--zns-space-scale, 1));
         }
     }
 

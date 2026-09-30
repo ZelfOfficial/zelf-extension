@@ -710,6 +710,7 @@
         "security_label": "Seguridad",
         "notifications_label": "Notificaciones",
         "language_label": "Idioma",
+        "theme_label": "Apariencia",
         "subscription_label": "Suscripción",
         "networks": {
             "title": "Redes Blockchain",
@@ -728,6 +729,12 @@
         },
         "language": {
             "description": "Elige tu idioma preferido para la aplicación."
+        },
+        "theme": {
+            "description": "Elige claro, oscuro o seguir la apariencia del sistema.",
+            "system": "Sistema",
+            "light": "Claro",
+            "dark": "Oscuro"
         },
         "dapps_label": "Conexiones Dapps",
         "dapps": {

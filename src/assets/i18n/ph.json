@@ -652,6 +652,13 @@
             "remove_keys_countdown_minutes": "Aalisin ang mga key sa {{ minutes }}m {{ seconds }}s",
             "remove_keys_countdown_seconds": "Aalisin ang mga key sa {{ seconds }}s",
             "remove_keys_cancel": "Kanselahin"
+        },
+        "theme_label": "Hitsura",
+        "theme": {
+            "description": "Pumili ng light, dark, o sundan ang hitsura ng system.",
+            "system": "System",
+            "light": "Light",
+            "dark": "Dark"
         }
     },
     "security": {

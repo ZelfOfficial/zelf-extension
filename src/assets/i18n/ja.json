@@ -652,6 +652,13 @@
             "remove_keys_countdown_minutes": "{{ minutes }}分{{ seconds }}秒後にキーが削除されます",
             "remove_keys_countdown_seconds": "{{ seconds }}秒後にキーが削除されます",
             "remove_keys_cancel": "キャンセル"
+        },
+        "theme_label": "外観",
+        "theme": {
+            "description": "ライト、ダーク、またはシステムの外観に合わせて選択します。",
+            "system": "システム",
+            "light": "ライト",
+            "dark": "ダーク"
         }
     },
     "security": {

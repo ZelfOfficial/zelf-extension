@@ -652,6 +652,13 @@
             "remove_keys_countdown_minutes": "Ключи будут удалены через {{ minutes }}м {{ seconds }}с",
             "remove_keys_countdown_seconds": "Ключи будут удалены через {{ seconds }}с",
             "remove_keys_cancel": "Отмена"
+        },
+        "theme_label": "Оформление",
+        "theme": {
+            "description": "Выберите светлую, тёмную тему или как в системе.",
+            "system": "Система",
+            "light": "Светлая",
+            "dark": "Тёмная"
         }
     },
     "security": {

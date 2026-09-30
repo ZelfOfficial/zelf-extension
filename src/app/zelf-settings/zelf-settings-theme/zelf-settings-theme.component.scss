@@ -1,0 +1,102 @@
+@use "../../../styles/variables";
+
+:host {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.zelf-settings-theme {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: calc(16px * var(--zns-space-scale, 1));
+
+    &__header {
+        padding: 0 calc(16px * var(--zns-space-scale, 1));
+    }
+
+    &__description {
+        font-family: variables.$themeBodyFamily;
+        font-size: calc(14px * var(--zns-font-scale, 1));
+        line-height: calc(20px * var(--zns-font-scale, 1));
+        color: variables.$themeTextSecondary;
+        margin: 0;
+    }
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+        gap: calc(8px * var(--zns-space-scale, 1));
+        padding: 0 calc(16px * var(--zns-space-scale, 1)) calc(16px * var(--zns-space-scale, 1));
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: calc(12px * var(--zns-space-scale, 1)) calc(16px * var(--zns-space-scale, 1));
+        background-color: variables.$themeCard;
+        border: 1px solid variables.$themeBorder;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s variables.$smoothBezier;
+        text-align: left;
+
+        &:hover {
+            border-color: variables.$primaryColor;
+            background-color: variables.$themeBackgroundSecondary;
+        }
+
+        &--active {
+            border-color: variables.$primaryColor;
+            background-color: variables.$themeBackgroundSecondary;
+
+            .zelf-settings-theme__name {
+                color: variables.$primaryColor;
+                font-weight: 600;
+            }
+
+            .zelf-settings-theme__check {
+                color: variables.$primaryColor;
+            }
+        }
+    }
+
+    &__item-left {
+        display: flex;
+        align-items: center;
+        gap: calc(12px * var(--zns-space-scale, 1));
+    }
+
+    &__icon-wrapper {
+        width: calc(32px * var(--zns-space-scale, 1));
+        height: calc(32px * var(--zns-space-scale, 1));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: variables.$themeBackground;
+        flex-shrink: 0;
+    }
+
+    &__icon {
+        font-size: calc(18px * var(--zns-font-scale, 1));
+        color: variables.$themeText;
+    }
+
+    &__name {
+        font-family: variables.$themeBodyFamily;
+        font-size: calc(14px * var(--zns-font-scale, 1));
+        line-height: calc(18px * var(--zns-font-scale, 1));
+        color: variables.$themeText;
+        font-weight: 500;
+    }
+
+    &__check {
+        color: variables.$themeTextSecondary;
+        display: flex;
+        align-items: center;
+    }
+}

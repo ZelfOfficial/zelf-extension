@@ -6,11 +6,10 @@ import { TranslocoModule } from "@jsverse/transloco";
 import { filter, Subject, takeUntil } from "rxjs";
 
 import { FooterNavigationService, FooterNavDestination } from "../zelf-footer/footer-navigation.service";
-import { LanguageComponent } from "../language/language.component";
 import { getAppBuildDate, getAppVersion } from "../../environments/version";
 
 @Component({
-    imports: [NgFor, NgIf, MatButtonModule, RouterLink, RouterLinkActive, TranslocoModule, LanguageComponent],
+    imports: [NgFor, NgIf, MatButtonModule, RouterLink, RouterLinkActive, TranslocoModule],
     selector: "apps-hub",
     styleUrls: ["./apps-hub.component.scss"],
     templateUrl: "./apps-hub.component.html",

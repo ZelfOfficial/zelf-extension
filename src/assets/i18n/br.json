@@ -652,6 +652,13 @@
             "remove_keys_countdown_minutes": "As chaves serão removidas em {{ minutes }}m {{ seconds }}s",
             "remove_keys_countdown_seconds": "As chaves serão removidas em {{ seconds }}s",
             "remove_keys_cancel": "Cancelar"
+        },
+        "theme_label": "Aparência",
+        "theme": {
+            "description": "Escolha claro, escuro ou seguir a aparência do sistema.",
+            "system": "Sistema",
+            "light": "Claro",
+            "dark": "Escuro"
         }
     },
     "security": {

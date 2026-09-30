@@ -652,6 +652,13 @@
             "remove_keys_countdown_minutes": "Les clés seront supprimées dans {{ minutes }}m {{ seconds }}s",
             "remove_keys_countdown_seconds": "Les clés seront supprimées dans {{ seconds }}s",
             "remove_keys_cancel": "Annuler"
+        },
+        "theme_label": "Apparence",
+        "theme": {
+            "description": "Choisissez clair, sombre ou selon l'apparence du système.",
+            "system": "Système",
+            "light": "Clair",
+            "dark": "Sombre"
         }
     },
     "security": {

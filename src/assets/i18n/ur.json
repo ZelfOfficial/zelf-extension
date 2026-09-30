@@ -636,6 +636,13 @@
             "remove_keys_countdown_minutes": "چابیاں {{ minutes }}m {{ seconds }}s میں ہٹا دی جائیں گی",
             "remove_keys_countdown_seconds": "چابیاں {{ seconds }}s میں ہٹا دی جائیں گی",
             "remove_keys_cancel": "منسوخ کریں"
+        },
+        "theme_label": "ظاہری شکل",
+        "theme": {
+            "description": "لائٹ، ڈارک یا سسٹم کی ظاہری شکل منتخب کریں۔",
+            "system": "سسٹم",
+            "light": "لائٹ",
+            "dark": "ڈارک"
         }
     },
     "security": {

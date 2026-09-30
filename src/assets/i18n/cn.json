@@ -652,6 +652,13 @@
             "remove_keys_countdown_minutes": "密钥将在 {{ minutes }}分 {{ seconds }}秒 后移除",
             "remove_keys_countdown_seconds": "密钥将在 {{ seconds }}秒 后移除",
             "remove_keys_cancel": "取消"
+        },
+        "theme_label": "外观",
+        "theme": {
+            "description": "选择浅色、深色或跟随系统外观。",
+            "system": "系统",
+            "light": "浅色",
+            "dark": "深色"
         }
     },
     "security": {

@@ -5,15 +5,13 @@ import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from "@ang
 import { ActivatedRoute, NavigationEnd, Router, RouterModule } from "@angular/router";
 import { TranslocoModule } from "@jsverse/transloco";
 
-import { LanguageComponent } from "app/language/language.component";
-import { ZelfThemeComponent } from "app/zelf-theme/zelf-theme.component";
 import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
 import { TagModel } from "app/tags.service";
 import { ChromeService } from "app/chrome.service";
 
 @Component({
-    imports: [CommonModule, RouterModule, LanguageComponent, ZelfThemeComponent, TranslocoModule],
+    imports: [CommonModule, RouterModule, TranslocoModule],
     selector: "zelf-app",
     styleUrls: ["./zelf-app.component.scss"],
     templateUrl: "./zelf-app.component.html",
@@ -27,7 +25,7 @@ export class ZelfAppComponent implements AfterViewInit, OnDestroy {
     wallet: Partial<TagModel> = {};
     wallets: any[] = [];
     backgroundPattern: "gradient-dots" | "falling-pattern" = "falling-pattern";
-    isSidePanel = false;
+    isFullscreen = false;
 
     constructor(
         private _activatedRoute: ActivatedRoute,
@@ -36,7 +34,7 @@ export class ZelfAppComponent implements AfterViewInit, OnDestroy {
         private _vaultService: VaultService,
         private _walletService: WalletService
     ) {
-        this.isSidePanel = this._chromeService.isSidePanel;
+        this.isFullscreen = !this._chromeService.isPopout;
     }
 
     async ngAfterViewInit(): Promise<void> {
@@ -46,8 +44,8 @@ export class ZelfAppComponent implements AfterViewInit, OnDestroy {
             await this._setCanGoHome();
         });
 
-        this._chromeService.isSidePanel$.pipe(takeUntil(this.unsubscriber$)).subscribe((isSidePanel) => {
-            this.isSidePanel = isSidePanel;
+        this._chromeService.isPopout$.pipe(takeUntil(this.unsubscriber$)).subscribe((isPopout) => {
+            this.isFullscreen = !isPopout;
         });
 
         this._router.events.pipe(takeUntil(this.unsubscriber$)).subscribe((event) => {

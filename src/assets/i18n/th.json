@@ -636,6 +636,13 @@
             "remove_keys_countdown_minutes": "คีย์จะถูกลบใน {{ minutes }}m {{ seconds }}s",
             "remove_keys_countdown_seconds": "คีย์จะถูกลบใน {{ seconds }}s",
             "remove_keys_cancel": "ยกเลิก"
+        },
+        "theme_label": "ธีม",
+        "theme": {
+            "description": "เลือกสว่าง มืด หรือตามระบบ",
+            "system": "ระบบ",
+            "light": "สว่าง",
+            "dark": "มืด"
         }
     },
     "security": {

@@ -14,6 +14,7 @@ import { ZelfSettingsSecurityComponent } from "./zelf-settings-security/zelf-set
 import { ZelfSettingsLanguageComponent } from "./zelf-settings-language/zelf-settings-language.component";
 import { ZelfSettingsDappsComponent } from "./zelf-settings-dapps/zelf-settings-dapps.component";
 import { ZelfSettingsNotificationsComponent } from "./zelf-settings-notifications/zelf-settings-notifications.component";
+import { ZelfSettingsThemeComponent } from "./zelf-settings-theme/zelf-settings-theme.component";
 
 @Component({
     imports: [
@@ -29,6 +30,7 @@ import { ZelfSettingsNotificationsComponent } from "./zelf-settings-notification
         ZelfSettingsLanguageComponent,
         ZelfSettingsDappsComponent,
         ZelfSettingsNotificationsComponent,
+        ZelfSettingsThemeComponent,
     ],
     selector: "zelf-settings",
     styleUrls: ["./zelf-settings.component.scss"],
@@ -38,13 +40,14 @@ export class ZelfSettingsComponent implements OnDestroy {
     @ViewChild("networksIcon", { static: true }) networksIcon: TemplateRef<HTMLDivElement> = {} as TemplateRef<HTMLDivElement>;
     @ViewChild("securityIcon", { static: true }) securityIcon: TemplateRef<HTMLDivElement> = {} as TemplateRef<HTMLDivElement>;
     @ViewChild("notificationsIcon", { static: true }) notificationsIcon: TemplateRef<HTMLDivElement> = {} as TemplateRef<HTMLDivElement>;
+    @ViewChild("themeIcon", { static: true }) themeIcon: TemplateRef<HTMLDivElement> = {} as TemplateRef<HTMLDivElement>;
     @ViewChild("languageIcon", { static: true }) languageIcon: TemplateRef<HTMLDivElement> = {} as TemplateRef<HTMLDivElement>;
     @ViewChild("subscriptionIcon", { static: true }) subscriptionIcon: TemplateRef<HTMLDivElement> = {} as TemplateRef<HTMLDivElement>;
     @ViewChild("dappsConnectionsIcon", { static: true }) dappsConnectionsIcon: TemplateRef<HTMLDivElement> = {} as TemplateRef<HTMLDivElement>;
 
     private unsubscriber$: Subject<void> = new Subject<void>();
 
-    selectedSettings: "networks" | "security" | "language" | "dapps" | "notifications" | "" = "";
+    selectedSettings: "networks" | "security" | "theme" | "language" | "dapps" | "notifications" | "" = "";
     settingsItems: {
         text: string;
         icon: string;
@@ -68,6 +71,12 @@ export class ZelfSettingsComponent implements OnDestroy {
             icon: "notificationsIcon",
             routerLink: ["./"],
             queryParams: { edit: "notifications" },
+        },
+        {
+            text: "settings.theme_label",
+            icon: "themeIcon",
+            routerLink: ["./"],
+            queryParams: { edit: "theme" },
         },
         {
             text: "settings.language_label",
@@ -157,6 +166,8 @@ export class ZelfSettingsComponent implements OnDestroy {
                 return "settings.security_label";
             case "notifications":
                 return "settings.notifications.title";
+            case "theme":
+                return "settings.theme_label";
             case "language":
                 return "settings.language_label";
             case "dapps":
