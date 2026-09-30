@@ -9,6 +9,7 @@ export const environment = {
     paymentDomainUrl: "https://zelf.world/tags/payment",
     paymentZelfIdUrl: "https://zelf.world/zelf-ids/payment",
     production: true,
+    devBiometricsBypass: false,
     testnetAddress: "",
     znsUsdPrice: 0.05,
     zelfKeysPasswordSaveZns: 10,
