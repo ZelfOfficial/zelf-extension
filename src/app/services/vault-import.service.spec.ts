@@ -1,7 +1,15 @@
 import { TestBed } from "@angular/core/testing";
 import { HttpWrapperService } from "../http-wrapper.service";
 import { WalletService } from "../wallet.service";
-import { LASTPASS_SAMPLE_CSV, ONEPASSWORD_SAMPLE_CSV } from "./fixtures/vault-import-sample-exports";
+import {
+    APPLE_SAMPLE_CSV,
+    BITWARDEN_SAMPLE_CSV,
+    CHROME_SAMPLE_CSV,
+    KEEPASSXC_SAMPLE_CSV,
+    LASTPASS_SAMPLE_CSV,
+    ONEPASSWORD_MINIMAL_SAMPLE_CSV,
+    ONEPASSWORD_SAMPLE_CSV,
+} from "./fixtures/vault-import-sample-exports";
 import { VaultImportService, ImportableCredential } from "./vault-import.service";
 import { ZelfKeysService } from "./zelf-keys.service";
 
@@ -32,6 +40,9 @@ describe("VaultImportService", () => {
     beforeEach(() => {
         mockZelfKeysService.storePasswordWithAuth.calls.reset();
         mockZelfKeysService.storePasswordsBulkWithAuth.calls.reset();
+        mockZelfKeysService.storePasswordsBulkWithAuth.and.returnValue(
+            Promise.resolve({ data: { results: [{ success: true }] } })
+        );
         mockHttpWrapperService.encryptMessage.calls.reset();
         mockWalletService.getCurrentWallet.and.returnValue(
             Promise.resolve({
@@ -173,23 +184,62 @@ describe("VaultImportService", () => {
             const result = service.parseContent(LASTPASS_SAMPLE_CSV);
             expect(result.detectedProvider).toBe("lastpass");
             expect(result.credentials.length).toBe(5);
-            expect(result.credentials[0].title).toBe("Example Portal");
-            expect(result.credentials[0].website).toBe("https://login.example.com");
-            expect(result.credentials[0].username).toBe("alice@example.com");
-            expect(result.credentials[0].password).toBe("FakePass-Alpha-01");
-            expect(result.credentials[0].folder).toBe("Work");
-            expect(result.credentials[2].password).toBe('Fake,Pass"Gamma"03');
+            expect(result.credentials[0].title).toBe("Example Mail");
+            expect(result.credentials[0].website).toBe("https://mail.example.com/");
+            expect(result.credentials[0].username).toBe("qa.mail@example.com");
+            expect(result.credentials[0].password).toBe("TestPass_Mail_9x!");
+            expect(result.credentials[0].folder).toBe("Personal");
+            expect(result.credentials[3].password).toBe('Pass"Quote"99');
         });
 
-        it("parses 1Password QA sample CSV", () => {
+        it("parses 1Password QA sample CSV (full export)", () => {
             const result = service.parseContent(ONEPASSWORD_SAMPLE_CSV);
             expect(result.detectedProvider).toBe("1password");
             expect(result.credentials.length).toBe(5);
-            expect(result.credentials[0].title).toBe("Example Portal");
-            expect(result.credentials[0].website).toBe("https://login.example.com");
-            expect(result.credentials[0].username).toBe("alice@example.com");
-            expect(result.credentials[0].password).toBe("FakePass-Alpha-01");
-            expect(result.credentials[2].password).toBe('Fake,Pass"Gamma"03');
+            expect(result.credentials[0].title).toBe("Example Mail");
+            expect(result.credentials[0].website).toBe("https://mail.example.com/");
+            expect(result.credentials[0].username).toBe("qa.mail@example.com");
+            expect(result.credentials[0].password).toBe("TestPass_Mail_9x!");
+        });
+
+        it("parses 1Password minimal QA sample CSV", () => {
+            const result = service.parseContent(ONEPASSWORD_MINIMAL_SAMPLE_CSV);
+            expect(result.detectedProvider).toBe("1password");
+            expect(result.credentials.length).toBe(5);
+            expect(result.credentials[4].title).toBe("Zelf Staging");
+            expect(result.credentials[4].password).toBe("ZelfKeys_Import_Only_1!");
+        });
+
+        it("parses Chrome QA sample CSV", () => {
+            const result = service.parseContent(CHROME_SAMPLE_CSV);
+            expect(result.detectedProvider).toBe("chrome");
+            expect(result.credentials.length).toBe(5);
+            expect(result.credentials[1].title).toBe("GitHub QA");
+            expect(result.credentials[1].username).toBe("qa-github-user");
+        });
+
+        it("parses Bitwarden QA sample CSV", () => {
+            const result = service.parseContent(BITWARDEN_SAMPLE_CSV);
+            expect(result.detectedProvider).toBe("bitwarden_csv");
+            expect(result.credentials.length).toBe(5);
+            expect(result.credentials[0].folder).toBe("Personal");
+            expect(result.credentials[3].password).toBe('Pass"Quote"99');
+        });
+
+        it("parses KeePassXC QA sample CSV", () => {
+            const result = service.parseContent(KEEPASSXC_SAMPLE_CSV);
+            expect(result.detectedProvider).toBe("keepassxc");
+            expect(result.credentials.length).toBe(5);
+            expect(result.credentials[0].folder).toBe("Personal");
+            expect(result.credentials[3].folder).toBe("");
+        });
+
+        it("parses Apple QA sample CSV", () => {
+            const result = service.parseContent(APPLE_SAMPLE_CSV);
+            expect(result.detectedProvider).toBe("apple");
+            expect(result.credentials.length).toBe(5);
+            expect(result.credentials[0].title).toBe("Example Mail");
+            expect(result.credentials[0].notes).toBe("Note with comma");
         });
     });
 
