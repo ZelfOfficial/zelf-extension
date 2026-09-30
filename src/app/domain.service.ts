@@ -14,7 +14,7 @@ export interface DomainResponse {
     providedIn: "root",
 })
 export class DomainService {
-    private readonly apiUrl = environment.apiUrl;
+    private readonly apiUrl = environment.v4ApiUrl;
     private readonly CACHE_DURATION_MINUTES = 60;
     private readonly CACHE_TIMESTAMP_KEY = "domainCacheTimestamp";
     private readonly DOMAIN_KEYS_KEY = "domainKeys";
@@ -67,6 +67,7 @@ export class DomainService {
                             avalanche: { enabled: true },
                             binance: { enabled: true },
                             polygon: { enabled: true },
+                            arbitrum: { enabled: true },
                             base: { enabled: true },
                             sui: { enabled: true },
                         },

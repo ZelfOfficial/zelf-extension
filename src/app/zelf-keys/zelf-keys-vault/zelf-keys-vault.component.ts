@@ -12,6 +12,11 @@ import { PaymentCardDataService } from "../../services/payment-card-data.service
 import { ZelfKeysData, ZelfKeysDataService } from "../../services/zelf-keys-data.service";
 import { WalletService } from "../../wallet.service";
 
+import { MatDialog, MatDialogModule } from "@angular/material/dialog";
+import { MatMenuModule } from "@angular/material/menu";
+import { ExportKeyModalComponent } from "../shared/export-key-modal/export-key-modal.component";
+import { ImportVaultModalComponent } from "../shared/import-vault-modal/import-vault-modal.component";
+
 export interface VaultItem {
     type: "password" | "card";
     title: string;
@@ -22,7 +27,7 @@ export interface VaultItem {
 }
 
 @Component({
-    imports: [CommonModule, TranslocoModule, RouterModule, ReactiveFormsModule],
+    imports: [CommonModule, TranslocoModule, RouterModule, ReactiveFormsModule, MatDialogModule, MatMenuModule],
     selector: "zelf-keys-vault",
     styleUrls: ["./zelf-keys-vault.component.scss"],
     templateUrl: "./zelf-keys-vault.component.html",
@@ -44,6 +49,7 @@ export class ZelfKeysVaultComponent implements OnInit, OnDestroy {
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
         private _chromeService: ChromeService,
+        private _dialog: MatDialog,
         private _passwordDataService: PasswordDataService,
         private _paymentCardDataService: PaymentCardDataService,
         private _router: Router,
@@ -229,7 +235,7 @@ export class ZelfKeysVaultComponent implements OnInit, OnDestroy {
     }
 
     get totalCount(): number {
-        return this.allItems.length + this.noteCount;
+        return this.allItems.length;
     }
 
     get passwordCount(): number {
@@ -367,6 +373,40 @@ export class ZelfKeysVaultComponent implements OnInit, OnDestroy {
         await this._zelfKeysDataService.ensureLoadedForCurrentWallet({
             forceRefresh: true,
             reason: "vault-refresh",
+        });
+    }
+
+    async onExportVault(): Promise<void> {
+        const passwordItems = this.allItems
+            .filter((item) => item.type === "password")
+            .map((item) => item.raw);
+
+        const wallet = await this._walletService.getCurrentWallet();
+
+        this._dialog.open(ExportKeyModalComponent, {
+            data: {
+                mode: "vault",
+                items: passwordItems,
+                hasMasterPassword: !!wallet?.hasPassword,
+            },
+            panelClass: "zelf-dialog-panel",
+        });
+    }
+
+    async onImportVault(): Promise<void> {
+        const wallet = await this._walletService.getCurrentWallet();
+
+        const dialogRef = this._dialog.open(ImportVaultModalComponent, {
+            data: {
+                hasMasterPassword: !!wallet?.hasPassword,
+            },
+            panelClass: "zelf-dialog-panel",
+        });
+
+        dialogRef.afterClosed().subscribe((res) => {
+            if (res?.imported) {
+                void this.onRefresh();
+            }
         });
     }
 

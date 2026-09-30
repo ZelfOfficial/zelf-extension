@@ -19,6 +19,50 @@ export interface StorePasswordRequest {
     zelfProof?: string;
 }
 
+/** Per-item payload for bulk password store (auth fields live on the parent request). */
+export interface StorePasswordBulkItem {
+    website: string;
+    username: string;
+    password: string;
+    alias?: string;
+    folder?: string;
+    insideFolder?: boolean;
+    notes?: string;
+}
+
+/** Bulk store request: one face + masterPassword + encrypted password rows. */
+export interface StorePasswordsBulkRequest {
+    faceBase64: string;
+    masterPassword?: string;
+    removePGP?: boolean;
+    passwords: StorePasswordBulkItem[];
+}
+
+/** Per-row success from POST /api/zelf-keys/store/passwords. */
+export interface StorePasswordBulkSuccessRow {
+    index: number;
+    type?: string;
+    zelfProof?: string;
+    message?: string;
+}
+
+/** Per-row failure from POST /api/zelf-keys/store/passwords. */
+export interface StorePasswordBulkFailedRow {
+    index: number;
+    message: string;
+    code?: string;
+}
+
+/** 200 response body from POST /api/zelf-keys/store/passwords. */
+export interface StorePasswordsBulkResponseData {
+    success: StorePasswordBulkSuccessRow[];
+    failed: StorePasswordBulkFailedRow[];
+    total: number;
+    successCount: number;
+    failedCount: number;
+    maxBatchSize: number;
+}
+
 /**
  * Interface for storing a ZOTP via ZelfKeys API
  */
@@ -205,6 +249,19 @@ export class ZelfKeysService {
     async storePasswordWithAuth(request: StorePasswordRequest & { name?: string }): Promise<any> {
         const token = await this._authService.checkAccessToken();
         const url = `${this.baseUrl}${this.apiPath}/store/password`;
+
+        return this._httpWrapper.sendRequest("post", url, request, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+    }
+
+    /**
+     * Bulk store passwords in ZelfKeys with auth header.
+     * POST /api/zelf-keys/store/passwords — JWT + one faceBase64 + masterPassword + passwords[] (1–100).
+     */
+    async storePasswordsBulkWithAuth(request: StorePasswordsBulkRequest): Promise<{ data: StorePasswordsBulkResponseData }> {
+        const token = await this._authService.checkAccessToken();
+        const url = `${this.baseUrl}${this.apiPath}/store/passwords`;
 
         return this._httpWrapper.sendRequest("post", url, request, {
             headers: { Authorization: `Bearer ${token}` },

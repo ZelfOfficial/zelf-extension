@@ -9,6 +9,7 @@ export const environment = {
     paymentDomainUrl: "https://zelf.world/tags/payment",
     paymentZelfIdUrl: "https://zelf.world/zelf-ids/payment",
     production: true,
+    devBiometricsBypass: false,
     testnetAddress: "",
     znsUsdPrice: 0.05,
     zelfKeysPasswordSaveZns: 10,
@@ -27,6 +28,9 @@ export const environment = {
     },
     polygonRpc: {
         mainnet: "https://responsive-wandering-choice.matic.quiknode.pro/d4a8a38223c463bd108ee7e6c38e68b0ac736e27/",
+    },
+    arbitrumRpc: {
+        mainnet: "https://arb1.arbitrum.io/rpc",
     },
     baseRpc: {
         mainnet: "https://mainnet.base.org",

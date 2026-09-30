@@ -21,6 +21,7 @@ export interface NetworkPermissions {
     ETH?: boolean;
     KSM?: boolean;
     POL?: boolean;
+    ARB?: boolean;
     BASE?: boolean;
     SOL?: boolean;
     SUI?: boolean;
@@ -75,6 +76,7 @@ export class AssetService {
             BTC: false,
             ETH: true,
             POL: true,
+            ARB: true,
             BASE: true,
             SOL: true,
             SUI: true,
@@ -93,6 +95,7 @@ export class AssetService {
             ETH: true,
             KSM: true,
             POL: true,
+            ARB: true,
             BASE: true,
             SOL: true,
             SUI: true,
@@ -153,6 +156,7 @@ export class AssetService {
                     return "BNB";
                 case "Polygon":
                     return "MATIC";
+                case "Arbitrum":
                 case "Base":
                     return "ETH";
                 case "Stellar":
@@ -171,6 +175,7 @@ export class AssetService {
             case "Ethereum":
             case "Avalanche":
             case "Polygon":
+            case "Arbitrum":
             case "Base":
                 return "ERC-20";
             case "Binance":
@@ -195,6 +200,7 @@ export class AssetService {
             Bitcoin: ["BTC", "BITCOIN"],
             Ethereum: ["ETH", "ETHEREUM"],
             Polygon: ["MATIC", "POLYGON", "POL"],
+            Arbitrum: ["ETH", "ETHEREUM"],
             Base: ["ETH", "ETHEREUM"],
             Solana: ["SOL", "SOLANA"],
             Stellar: ["XLM", "STELLAR"],
@@ -332,6 +338,7 @@ export class AssetService {
                     (network === "Ton" && !permissions.TON) ||
                     (network === "Binance" && !permissions.BNB) ||
                     (network === "Polygon" && !permissions.POL) ||
+                    (network === "Arbitrum" && !permissions.ARB) ||
                     (network === "Base" && !permissions.BASE) ||
                     (network === "Stellar" && !permissions.XLM) ||
                     (network === "Polkadot" && !permissions.DOT) ||
@@ -396,9 +403,12 @@ export class AssetService {
             tokens = this.processTokens("Polygon", response.polygon.data.tokenHoldings.tokens, tokens, permissions);
         }
 
+        if (response?.arbitrum?.data?.tokenHoldings?.tokens && (!permissions || permissions.ARB)) {
+            tokens = this.processTokens("Arbitrum", response.arbitrum.data.tokenHoldings.tokens, tokens, permissions);
+        }
+
         if (response?.base?.data?.tokenHoldings?.tokens && (!permissions || permissions.BASE)) {
             tokens = this.processTokens("Base", response.base.data.tokenHoldings.tokens, tokens, permissions);
-        }
 
         if (response?.sui?.data?.tokenHoldings?.tokens && (!permissions || permissions.SUI)) {
             tokens = this.processTokens("Sui", response.sui.data.tokenHoldings.tokens, tokens, permissions);
