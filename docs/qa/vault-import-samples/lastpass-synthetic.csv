@@ -1,0 +1,6 @@
+url,username,password,extra,name,grouping,fav
+https://mail.example.com/,qa.mail@example.com,TestPass_Mail_9x!,"Note with, comma",Example Mail,Personal,0
+https://github.com/,qa-github-user,TestPass_Gh_7y!,Repo access note,GitHub QA,Dev,1
+http://httpbin.org/basic-auth/user/passwd,httpbin-user,TestPass_Http_3z!,,HTTPBin Basic,QA,0
+https://shop.example.org/cart,shopper@example.org,"Pass""Quote""99","Quoted password edge case",Shop Account,Shopping,0
+https://app.staging.zelf.local/,zelf-qa-tester,ZelfKeys_Import_Only_1!,Do not use real creds,Zelf Staging,Work,0

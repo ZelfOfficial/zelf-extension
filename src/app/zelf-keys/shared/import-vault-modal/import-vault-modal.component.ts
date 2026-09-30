@@ -4,8 +4,10 @@ import { FormsModule } from "@angular/forms";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
+import { environment } from "environments/environment";
 import { HttpWrapperService } from "../../../http-wrapper.service";
 import {
+    ImportBatchMode,
     ImportBatchProgress,
     ImportParseResult,
     ImportProvider,
@@ -28,8 +30,12 @@ export interface ImportVaultModalData {
     styleUrls: ["./import-vault-modal.component.scss"],
 })
 export class ImportVaultModalComponent implements OnInit {
+    private static readonly IMPORT_MODE_STORAGE_KEY = "zelf-keys-vault-import-mode";
+
     hasMasterPassword: boolean = false;
     masterPassword: string = "";
+    showImportModeToggle: boolean = !environment.production;
+    importBatchMode: ImportBatchMode = "one-by-one";
 
     // States: 'select_file' | 'preview' | 'importing' | 'complete'
     state: "select_file" | "preview" | "importing" | "complete" = "select_file";
@@ -71,7 +77,14 @@ export class ImportVaultModalComponent implements OnInit {
         this.providers = this._vaultImportService.providerOptions;
     }
 
-    ngOnInit(): void {}
+    ngOnInit(): void {
+        if (this.showImportModeToggle) {
+            const savedMode = sessionStorage.getItem(ImportVaultModalComponent.IMPORT_MODE_STORAGE_KEY);
+            if (savedMode === "one-by-one" || savedMode === "bulk") {
+                this.importBatchMode = savedMode;
+            }
+        }
+    }
 
     get selectedCount(): number {
         return this.credentials.filter((c) => c.selected).length;
@@ -177,6 +190,13 @@ export class ImportVaultModalComponent implements OnInit {
         this.parseErrors = [];
     }
 
+    onImportModeChange(mode: ImportBatchMode): void {
+        this.importBatchMode = mode;
+        if (this.showImportModeToggle) {
+            sessionStorage.setItem(ImportVaultModalComponent.IMPORT_MODE_STORAGE_KEY, mode);
+        }
+    }
+
     /**
      * Trigger face biometric scan to authorize batch storage with a single selfie.
      */
@@ -227,7 +247,8 @@ export class ImportVaultModalComponent implements OnInit {
                     this.progressPercent = Math.round((progress.current / progress.total) * 100);
                     this.progressText = `Storing ${progress.current} of ${progress.total}: ${progress.title}`;
                     this._changeDetectorRef.detectChanges();
-                }
+                },
+                this.importBatchMode
             );
 
             this.importSucceededCount = succeeded;

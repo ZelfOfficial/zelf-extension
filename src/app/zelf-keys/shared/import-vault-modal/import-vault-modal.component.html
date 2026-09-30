@@ -123,6 +123,33 @@
             />
         </div>
 
+        <!-- Dev-only: flip one-by-one vs bulk store API -->
+        <div *ngIf="showImportModeToggle" class="privy-modal__dev-toggle">
+            <span class="privy-modal__dev-toggle-label">{{ t('zelf_keys.vault.import_store_mode_label') }}</span>
+            <div class="privy-modal__dev-toggle-options">
+                <label class="privy-modal__dev-toggle-option">
+                    <input
+                        type="radio"
+                        name="importStoreMode"
+                        value="one-by-one"
+                        [checked]="importBatchMode === 'one-by-one'"
+                        (change)="onImportModeChange('one-by-one')"
+                    />
+                    {{ t('zelf_keys.vault.import_store_mode_one_by_one') }}
+                </label>
+                <label class="privy-modal__dev-toggle-option">
+                    <input
+                        type="radio"
+                        name="importStoreMode"
+                        value="bulk"
+                        [checked]="importBatchMode === 'bulk'"
+                        (change)="onImportModeChange('bulk')"
+                    />
+                    {{ t('zelf_keys.vault.import_store_mode_bulk') }}
+                </label>
+            </div>
+        </div>
+
         <!-- Actions -->
         <div class="privy-modal__actions">
             <button type="button" class="privy-modal__secondary-btn" (click)="onBackToFileSelect()">
@@ -156,6 +183,15 @@
         <span class="material-symbols-outlined privy-modal__success-icon">check_circle</span>
         <h3 class="privy-modal__progress-title">{{ t('zelf_keys.vault.import_success_title') }}</h3>
         <p class="privy-modal__progress-detail">{{ t('zelf_keys.vault.import_success_desc', { count: importSucceededCount }) }}</p>
+
+        <p *ngIf="importFailedItems.length > 0" class="privy-modal__warning">
+            {{ t('zelf_keys.vault.import_failed_notice', { count: importFailedItems.length }) }}
+        </p>
+        <ul *ngIf="importFailedItems.length > 0" class="privy-modal__failed-list">
+            <li *ngFor="let item of importFailedItems">
+                {{ item.credential.title }} — {{ item.error }}
+            </li>
+        </ul>
 
         <button type="button" class="privy-modal__primary-btn" (click)="onDone()">
             {{ t('zelf_keys.vault.import_done_btn') }}
