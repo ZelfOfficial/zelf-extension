@@ -9,7 +9,7 @@ export const environment = {
     paymentDomainUrl: "http://localhost:3009/tags/payment",
     paymentZelfIdUrl: "http://localhost:3009/zelf-ids/payment",
     production: false,
-    /** Local/dev QA only: inject bundled selfie instead of camera (headless boxes). */
+    /** Local/dev QA only: allow bundled selfie bypass when `devFaceBypass=1` is in the URL. */
     devBiometricsBypass: true,
     testnetAddress: "",
     znsUsdPrice: 0.05,

@@ -18,6 +18,7 @@ import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
 import { WelcomeErrorComponent } from "app/welcome-error/welcome-error.component";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
+import { syncDevFaceBypassFromQueryParams } from "app/utils/dev-biometrics-bypass.util";
 import { BiometricsGeneralComponent } from "../biometrics-general/biometrics.component";
 
 @Component({
@@ -70,9 +71,12 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
             hideBiometricsCheckbox: [false],
         });
 
+        syncDevFaceBypassFromQueryParams(this._activatedRoute.snapshot.queryParams);
+
         this._activatedRoute.snapshot.queryParams?.return && (this.returnState = this._activatedRoute.snapshot.queryParams.return);
 
         this._activatedRoute.queryParams.pipe(takeUntil(this.unsubscriber$)).subscribe(async (params) => {
+            syncDevFaceBypassFromQueryParams(params);
             params?.return && (this.returnState = params.return);
         });
     }
