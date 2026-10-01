@@ -5,7 +5,7 @@ import { FlexLayoutModule } from "@angular/flex-layout";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
 import { MatButtonModule } from "@angular/material/button";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
-import { Router, RouterLink, RouterModule } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink, RouterModule } from "@angular/router";
 
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 
@@ -50,6 +50,7 @@ export class WalletComponent extends CopyToClipboardBase implements OnInit, OnDe
     wallet: Partial<TagModel> = {};
 
     constructor(
+        private _activatedRoute: ActivatedRoute,
         private _bottomSheet: MatBottomSheet,
         private _destroyRef: DestroyRef,
         private _router: Router,
@@ -70,7 +71,7 @@ export class WalletComponent extends CopyToClipboardBase implements OnInit, OnDe
     async ngOnInit(): Promise<void> {
         this._showArnsInstructions = (await this._chromeService.getItem("myArnsDontShowAgain")) !== true;
 
-        this.wallet = (await this._walletService.getCurrentWallet()) || {};
+        await this._resolveWalletFromRoute();
 
         this.parameters = (await this._chromeService.getItem("parameters")) || {};
 
@@ -98,7 +99,7 @@ export class WalletComponent extends CopyToClipboardBase implements OnInit, OnDe
     }
 
     get showSyncButton(): boolean {
-        return !!this.wallet?.fullTagName;
+        return !!this.wallet?.fullTagName && !this._chromeService.isExtension;
     }
 
     get showExtendSubscriptionButton(): boolean {
@@ -111,6 +112,29 @@ export class WalletComponent extends CopyToClipboardBase implements OnInit, OnDe
 
     get showSeedPhraseButton(): boolean {
         return !!this.wallet?.fullTagName;
+    }
+
+    private async _resolveWalletFromRoute(): Promise<void> {
+        const zelfName = this._activatedRoute.snapshot.queryParams["zelfName"] as string | undefined;
+
+        if (!zelfName) {
+            this.wallet = (await this._walletService.getCurrentWallet()) || {};
+
+            return;
+        }
+
+        const { wallet, wallets } = await this._walletService.getAllWalletsFromStorage();
+        const fromList = wallets.find((w) => w.tagName?.toLowerCase() === zelfName.toLowerCase());
+
+        if (fromList && wallet && this._walletService.walletIdentityEquals(fromList, wallet)) {
+            this.wallet = wallet;
+        } else {
+            this.wallet = fromList || wallet || ({} as TagModel);
+        }
+
+        if (this.wallet?.tagName || this.wallet?.fullTagName) {
+            await this._walletService.switchWallet(this.wallet as TagModel);
+        }
     }
 
     private async _updateWallet(): Promise<void> {

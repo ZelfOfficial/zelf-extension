@@ -193,8 +193,14 @@ export class ManageDomainsComponent implements OnInit, OnDestroy {
         bottomSheetRef.afterDismissed().subscribe((confirmed) => {
             if (!confirmed) return;
 
-            this._router.navigate(["/domain"], { queryParams: { zelfName: wallet.tagName } });
+            this._navigateToWalletManage(wallet);
         });
+    }
+
+    private async _navigateToWalletManage(wallet: Partial<TagModel>): Promise<void> {
+        await this._walletService.switchWallet(wallet as TagModel);
+
+        this._router.navigate(["/wallet-manage"], { queryParams: { zelfName: wallet.tagName } });
     }
 
     /**
@@ -260,7 +266,7 @@ export class ManageDomainsComponent implements OnInit, OnDestroy {
             return;
         }
 
-        this._router.navigate(["/domain"], { queryParams: { zelfName: wallet.tagName } });
+        void this._navigateToWalletManage(wallet);
     }
 
     /**
