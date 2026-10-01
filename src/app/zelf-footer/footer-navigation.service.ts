@@ -89,7 +89,7 @@ export class FooterNavigationService {
             case "wallet":
                 return cleanUrl === "/wallet";
             case "manage-domains":
-                return cleanUrl === "/manage-domains" || cleanUrl.startsWith("/domain");
+                return cleanUrl === "/manage-domains" || cleanUrl.startsWith("/domain") || cleanUrl === "/wallet-manage";
             case "zelf-keys":
                 return cleanUrl.startsWith("/zelf-keys");
             case "zelf-authenticator":

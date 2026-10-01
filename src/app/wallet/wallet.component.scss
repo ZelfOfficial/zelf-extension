@@ -135,9 +135,11 @@
         width: 100%;
         margin-top: calc(12px * var(--zns-space-scale, 1));
         padding-top: calc(4px * var(--zns-space-scale, 1));
-        flex-wrap: wrap;
-        justify-content: center;
-        row-gap: calc(12px * var(--zns-space-scale, 1));
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: calc(12px * var(--zns-space-scale, 1));
+        align-items: start;
+        justify-items: stretch;
     }
 
     &__status-chip {
@@ -250,19 +252,30 @@
     }
 }
 
+.wallet__quick-actions .zelf-action-button {
+    width: 100%;
+    min-width: 0;
+}
+
 .wallet__quick-actions .zelf-action-button__icon {
     border-radius: calc(16px * var(--zns-space-scale, 1));
-    width: auto;
-    min-width: calc(72px * var(--zns-space-scale, 1));
-    max-width: calc(96px * var(--zns-space-scale, 1));
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    aspect-ratio: 1;
+    padding: calc(10px * var(--zns-space-scale, 1));
+    box-sizing: border-box;
 }
 
 .wallet__quick-actions .zelf-action-button__text {
-    line-height: 1.25;
+    font-size: calc(10px * var(--zns-font-scale, 1));
+    line-height: 1.2;
     max-width: 100%;
     min-width: 0;
-    overflow-wrap: anywhere;
     white-space: normal;
+    overflow-wrap: normal;
+    word-break: keep-all;
+    text-align: center;
 }
 
 .crypto-address {

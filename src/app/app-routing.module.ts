@@ -22,6 +22,7 @@ import { ZelfKeysResultGuard } from "./guards/zelf-keys-result.guard";
 import { ZelfKeysStartGuard } from "./guards/zelf-keys-start.guard";
 import { ZelfIdNameGuard } from "./guards/zelf-id-name.guard";
 import { ZelfNameGuard } from "./guards/zelf-name.guard";
+import { DomainToWalletManageGuard } from "./guards/domain-to-wallet-manage.guard";
 import { ZelfWalletGuard } from "./guards/zelf-wallet.guard";
 import { JWTResolver } from "./resolvers/jwt.resolver";
 import { SecurityBiometricsComponent } from "./security-biometrics/security-biometrics.component";
@@ -69,7 +70,8 @@ const routes: Routes = [
             {
                 path: "domain",
                 pathMatch: "prefix",
-                loadComponent: () => import("./manage-domain/manage-domain.component").then((m) => m.ManageDomainComponent),
+                canActivate: [DomainToWalletManageGuard],
+                children: [],
             },
             {
                 path: "domain-purchase",
