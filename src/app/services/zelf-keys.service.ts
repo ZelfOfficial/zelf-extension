@@ -73,7 +73,7 @@ export interface StoreZOTPRequest {
     folder?: string;
     insideFolder?: boolean;
     faceBase64: string; // Encrypted face image from biometrics
-    masterPassword: string; // Wallet master password (encrypted)
+    masterPassword?: string; // Wallet master password (encrypted); omitted for passwordless wallets
 }
 
 /**

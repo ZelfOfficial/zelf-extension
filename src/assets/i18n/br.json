@@ -1751,6 +1751,7 @@
         "title": "Seleção de Domínio"
     },
     "zotp": {
+        "add_failed": "Falha ao adicionar ZOTP. Tente novamente.",
         "add_zotp": "Adicionar ZOTP",
         "empty_preview_name": "Conta de trabalho",
         "empty_preview_issuer": "ex.: seu banco ou app",

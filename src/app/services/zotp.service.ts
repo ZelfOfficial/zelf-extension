@@ -237,9 +237,9 @@ export class ZOTPService {
      * Store ZOTP to ZelfKeys API
      * @param zotp - ZOTP to store
      * @param faceBase64 - Encrypted face image from biometrics
-     * @param masterPassword - Encrypted master password
+     * @param masterPassword - Encrypted master password (omitted for passwordless wallets)
      */
-    async storeZOTPToZelfKeys(zotp: ZOTP, faceBase64: string, masterPassword: string): Promise<ZOTP> {
+    async storeZOTPToZelfKeys(zotp: ZOTP, faceBase64: string, masterPassword?: string): Promise<ZOTP> {
         if (!zotp.zelfProof) {
             throw new Error("zelfProof is required to store ZOTP");
         }

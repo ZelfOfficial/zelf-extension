@@ -1744,6 +1744,7 @@
         "title": "اختر النطاق لاسم التاج الخاص بك"
     },
     "zotp": {
+        "add_failed": "تعذّرت إضافة ZOTP. يرجى المحاولة مرة أخرى.",
         "add_zotp": "إضافة ZOTP",
         "empty_preview_name": "حساب العمل",
         "empty_preview_issuer": "مثل البنك أو التطبيق",

@@ -1910,6 +1910,7 @@
         "title": "Elige el dominio para tu ID de Zelf"
     },
     "zotp": {
+        "add_failed": "No se pudo agregar el ZOTP. Por favor, intente de nuevo.",
         "add_zotp": "Agregar ZOTP",
         "empty_preview_name": "Cuenta de trabajo",
         "empty_preview_issuer": "p. ej. tu banco o app",

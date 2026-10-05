@@ -1744,6 +1744,7 @@
         "title": "Choisir le domaine pour votre ID Zelf"
     },
     "zotp": {
+        "add_failed": "Échec de l'ajout du ZOTP. Veuillez réessayer.",
         "add_zotp": "Ajouter ZOTP",
         "empty_preview_name": "Compte pro",
         "empty_preview_issuer": "ex. votre banque ou appli",

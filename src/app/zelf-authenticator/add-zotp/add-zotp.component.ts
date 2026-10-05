@@ -3,7 +3,7 @@ import { Component, Inject, OnDestroy, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
-import { TranslocoModule } from "@jsverse/transloco";
+import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import jsQR from "jsqr";
 import { Subject } from "rxjs";
 
@@ -39,7 +39,9 @@ export class AddZotpComponent implements OnInit, OnDestroy {
     private unsubscriber$ = new Subject<void>();
 
     currentWallet: TagModel | null = null; // Current wallet for displaying
+    errorMessage: string = "";
     form!: FormGroup;
+    hasMasterPassword: boolean = true; // Passwordless wallets verify ownership with the face only
     loading: boolean = false;
     mode: "setup-key" | "qr-upload" = "setup-key";
     pendingZOTP: ZOTP | null = null; // ZOTP waiting to be created/stored after biometrics verification
@@ -56,6 +58,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         private _vaultService: VaultService,
         private _httpWrapperService: HttpWrapperService,
         private _walletService: WalletService,
+        private _translocoService: TranslocoService,
         @Inject(MAT_DIALOG_DATA) public data: any
     ) {
         this._initForm();
@@ -70,6 +73,17 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         try {
             const wallet = await this._walletService.getCurrentWallet();
             this.currentWallet = wallet ? new TagModel(wallet) : null;
+
+            // Same rule as the zKeys forms: only wallets with a master password are asked for it
+            if (this.currentWallet && !this.currentWallet.hasPassword) {
+                this.hasMasterPassword = false;
+
+                const masterPasswordControl = this.form.get("masterPassword");
+
+                masterPasswordControl?.clearValidators();
+                masterPasswordControl?.setValue("");
+                masterPasswordControl?.updateValueAndValidity();
+            }
         } catch (error) {
             console.error("Error loading current wallet:", error);
         }
@@ -230,16 +244,19 @@ export class AddZotpComponent implements OnInit, OnDestroy {
 
             if (url.protocol !== "otpauth:" || url.hostname !== "totp") return null;
 
-            const pathParts = url.pathname.split(":");
-            const issuer = pathParts[0] || "";
-            const name = pathParts[1] || url.searchParams.get("issuer") || "";
+            // Label is "/Issuer:Account" or "/Account"; the colon may come encoded as %3A
+            const label = decodeURIComponent(url.pathname.replace(/^\//, ""));
+            const separatorIndex = label.indexOf(":");
+            const labelIssuer = separatorIndex >= 0 ? label.slice(0, separatorIndex).trim() : "";
+            const name = (separatorIndex >= 0 ? label.slice(separatorIndex + 1) : label).trim();
+            const issuer = url.searchParams.get("issuer") || labelIssuer;
             const secret = url.searchParams.get("secret") || "";
 
             if (!secret) return null;
 
             return {
-                name: decodeURIComponent(name),
-                issuer: decodeURIComponent(url.searchParams.get("issuer") || issuer),
+                name: name || issuer,
+                issuer,
                 secret,
             };
         } catch (error) {
@@ -472,6 +489,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
      */
     async save(): Promise<void> {
         this.submitted = true;
+        this.errorMessage = "";
 
         if (this.form.invalid) return;
 
@@ -508,7 +526,8 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             this.showBiometrics = true;
         } catch (error) {
             console.error("Error preparing ZOTP:", error);
-            // TODO: Show error message to user
+
+            this.errorMessage = this._getErrorMessage(error);
         }
     }
 
@@ -525,15 +544,18 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         this.loading = true;
 
         try {
-            // Get master password from form and encrypt it
-            const masterPasswordPlain = this.form.get("masterPassword")?.value;
+            let masterPassword: string | undefined;
 
-            if (!masterPasswordPlain) {
-                throw new Error("Master password is required");
+            if (this.hasMasterPassword) {
+                const masterPasswordPlain = this.form.get("masterPassword")?.value;
+
+                if (!masterPasswordPlain) {
+                    throw new Error("Master password is required");
+                }
+
+                // Encrypt the master password before sending to API
+                masterPassword = await this._httpWrapperService.encryptMessage(masterPasswordPlain);
             }
-
-            // Encrypt the master password before sending to API
-            const masterPassword = await this._httpWrapperService.encryptMessage(masterPasswordPlain);
 
             // Store ZOTP to ZelfKeys API (this is the creation step)
             // The biometrics are part of the creation flow, not decryption
@@ -543,7 +565,8 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             this._dialogRef.close(true);
         } catch (error) {
             console.error("Error creating ZOTP:", error);
-            // TODO: Show error message to user
+
+            this.errorMessage = this._getErrorMessage(error);
             this.showBiometrics = false;
             this.pendingZOTP = null;
         } finally {
@@ -557,10 +580,27 @@ export class AddZotpComponent implements OnInit, OnDestroy {
 
     onBiometricsFailed(error: any): void {
         console.error("Biometrics failed:", error);
+
+        this.errorMessage = this._translocoService.translate("zotp.biometrics_failed");
         this.showBiometrics = false;
         this.pendingZOTP = null;
         this.loading = false;
-        // TODO: Show error message to user
+    }
+
+    /**
+     * Translate an API error code (errors.*) when there is one; otherwise use the generic zOTP message
+     */
+    private _getErrorMessage(error: any): string {
+        const errorKeys = [error?.error?.error, error?.error?.message, error?.message].filter(Boolean);
+
+        for (const errorKey of errorKeys) {
+            const translationKey = `errors.${errorKey}`;
+            const translation = this._translocoService.translate(translationKey);
+
+            if (translation !== translationKey) return translation;
+        }
+
+        return this._translocoService.translate("zotp.add_failed");
     }
 
     canNavigateAwayHandler(canNavigate: boolean): void {

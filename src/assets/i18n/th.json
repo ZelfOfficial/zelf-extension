@@ -1728,6 +1728,7 @@
         "title": "ข้อมูลบัตรชำระเงิน"
     },
     "zotp": {
+        "add_failed": "ไม่สามารถเพิ่ม ZOTP ได้ โปรดลองอีกครั้ง",
         "add_zotp": "เพิ่ม ZOTP",
         "empty_preview_name": "บัญชีงาน",
         "empty_preview_issuer": "เช่น ธนาคารหรือแอปของคุณ",

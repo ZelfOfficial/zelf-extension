@@ -1923,6 +1923,7 @@
         "title": "Choose domain for your Zelf ID"
     },
     "zotp": {
+        "add_failed": "Failed to add ZOTP. Please try again.",
         "add_zotp": "Add ZOTP",
         "empty_preview_name": "Work account",
         "empty_preview_issuer": "e.g. your bank or app",
