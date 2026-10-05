@@ -167,4 +167,11 @@ video {
 .biometric-shell.biometric-shell--portrait {
     min-height: 100%;
     padding: 0;
+
+    // Portrait runs inside dialogs: the camera, oval and face hints must never be wider than the container
+    ::ng-deep webcam,
+    ::ng-deep video,
+    canvas {
+        max-width: 100% !important;
+    }
 }

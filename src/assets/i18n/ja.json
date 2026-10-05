@@ -1745,6 +1745,8 @@
     },
     "zotp": {
         "add_failed": "ZOTPの追加に失敗しました。もう一度お試しください。",
+        "export_failed": "ZOTPのエクスポートに失敗しました。もう一度お試しください。",
+        "unlock_failed": "ZOTPのロック解除に失敗しました。もう一度お試しください。",
         "add_zotp": "ZOTPを追加",
         "empty_preview_name": "仕事用アカウント",
         "empty_preview_issuer": "例：銀行やアプリ",

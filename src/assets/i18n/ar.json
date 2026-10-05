@@ -1745,6 +1745,8 @@
     },
     "zotp": {
         "add_failed": "تعذّرت إضافة ZOTP. يرجى المحاولة مرة أخرى.",
+        "export_failed": "تعذّر تصدير ZOTP. يرجى المحاولة مرة أخرى.",
+        "unlock_failed": "تعذّر فتح ZOTP. يرجى المحاولة مرة أخرى.",
         "add_zotp": "إضافة ZOTP",
         "empty_preview_name": "حساب العمل",
         "empty_preview_issuer": "مثل البنك أو التطبيق",

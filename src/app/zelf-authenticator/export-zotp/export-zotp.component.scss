@@ -1,4 +1,5 @@
 @use "../../../styles/variables";
+@use "../../../styles/buttons";
 
 .export-zotp {
     display: flex;
@@ -161,6 +162,23 @@
                 height: auto !important;
             }
         }
+    }
+
+    &__error {
+        display: flex;
+        flex-direction: column;
+        gap: calc(16px * var(--zns-space-scale, 1));
+        width: 100%;
+    }
+
+    &__error-text {
+        margin: 0;
+        padding: calc(12px * var(--zns-space-scale, 1));
+        border-radius: calc(8px * var(--zns-space-scale, 1));
+        background-color: variables.$errorLight;
+        color: variables.$error;
+        font-family: variables.$themeBodyFamily;
+        font-size: calc(12px * var(--zns-font-scale, 1));
     }
 
     &__export-content {

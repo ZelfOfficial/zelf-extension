@@ -295,10 +295,10 @@ export class ZelfKeysService {
      * Delete a ZelfKey by ID
      * @param id - IPFS ID of the ZelfKey to delete
      * @param faceBase64 - Encrypted face image from biometrics
-     * @param masterPassword - Encrypted master password
+     * @param masterPassword - Encrypted master password (omitted for passwordless wallets)
      * @returns Promise with the deletion response
      */
-    async delete(id: string, faceBase64: string, masterPassword: string): Promise<any> {
+    async delete(id: string, faceBase64: string, masterPassword?: string): Promise<any> {
         const token = await this._authService.checkAccessToken();
         const url = `${this.baseUrl}${this.apiPath}/delete/${id}`;
 

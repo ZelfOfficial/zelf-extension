@@ -1745,6 +1745,8 @@
     },
     "zotp": {
         "add_failed": "ZOTP जोड़ने में विफल। कृपया पुनः प्रयास करें।",
+        "export_failed": "ZOTP निर्यात करने में विफल। कृपया पुनः प्रयास करें।",
+        "unlock_failed": "ZOTP अनलॉक करने में विफल। कृपया पुनः प्रयास करें।",
         "add_zotp": "ZOTP जोड़ें",
         "empty_preview_name": "कार्य खाता",
         "empty_preview_issuer": "जैसे आपका बैंक या ऐप",

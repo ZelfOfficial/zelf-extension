@@ -262,23 +262,5 @@
 
     &__biometrics {
         padding: calc(24px * var(--zns-space-scale, 1)) 0;
-
-        // Keep the camera, oval and face hints inside the dialog width
-        ::ng-deep biometrics-general {
-            display: flex;
-            justify-content: center;
-            width: 100%;
-
-            > div {
-                width: 100%;
-                padding: 0 !important;
-            }
-
-            webcam,
-            video,
-            canvas {
-                max-width: 100% !important;
-            }
-        }
     }
 }

@@ -9,6 +9,7 @@ import { ChromeService } from "app/chrome.service";
 import { ZOTP } from "app/models/zotp.model";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { ZOTPService } from "app/services/zotp.service";
+import { translateZotpError } from "app/utils/zotp-error.util";
 import QRCodeStyling, { Options as QRCodeStylingOptions } from "qr-code-styling";
 import { ShareZotpComponent, ShareZOTPData } from "../share-zotp/share-zotp.component";
 
@@ -26,11 +27,13 @@ export class ExportZotpComponent extends CopyToClipboardBase {
     @ViewChild("qrCodeContainer", { static: false }) qrCodeContainer!: ElementRef<HTMLElement>;
 
     zotp: ZOTP;
+    errorMessage: string = "";
     loading: boolean = false;
     metadata: any = null;
     setupKey: string = "";
     qrCode!: QRCodeStyling;
     qrCodeDataUrl: string = "";
+    showBiometrics: boolean = true;
 
     constructor(
         @Inject(MAT_DIALOG_DATA) public data: ExportZOTPData,
@@ -72,9 +75,11 @@ export class ExportZotpComponent extends CopyToClipboardBase {
             })
             .catch((error) => {
                 console.error("Error retrieving ZOTP metadata:", error);
+
+                this.errorMessage = translateZotpError(this._translocoService, error, "zotp.export_failed");
+                this.showBiometrics = false;
                 this.loading = false;
                 this._changeDetectorRef.detectChanges();
-                // TODO: Show error message to user
             });
     }
 
@@ -141,7 +146,16 @@ export class ExportZotpComponent extends CopyToClipboardBase {
 
     onBiometricsFailed(error: any): void {
         console.error("Biometrics failed:", error);
-        this.dialogRef.close(false);
+
+        this.errorMessage = this._translocoService.translate("zotp.biometrics_failed");
+        this.showBiometrics = false;
+        this._changeDetectorRef.detectChanges();
+    }
+
+    retryBiometrics(): void {
+        this.errorMessage = "";
+        this.showBiometrics = true;
+        this._changeDetectorRef.detectChanges();
     }
 
     canNavigateAwayHandler(canNavigate: boolean): void {

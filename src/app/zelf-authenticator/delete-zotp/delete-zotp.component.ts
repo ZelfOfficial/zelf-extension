@@ -10,6 +10,8 @@ import { ZOTP } from "app/models/zotp.model";
 import { ZelfKeysService } from "app/services/zelf-keys.service";
 import { BiometricsGeneralComponent } from "app/biometrics-general/biometrics.component";
 import { HttpWrapperService } from "app/http-wrapper.service";
+import { TagModel } from "app/tags.service";
+import { WalletService } from "app/wallet.service";
 
 export interface DeleteZOTPData {
     zotp: ZOTP;
@@ -25,6 +27,7 @@ export class DeleteZotpComponent implements OnInit, OnDestroy {
     private unsubscriber$ = new Subject<void>();
 
     form!: FormGroup;
+    hasMasterPassword: boolean = true; // Passwordless wallets verify ownership with the face only
     loading: boolean = false;
     showBiometrics: boolean = false;
     showMasterPassword: boolean = false;
@@ -37,13 +40,29 @@ export class DeleteZotpComponent implements OnInit, OnDestroy {
         private _httpWrapperService: HttpWrapperService,
         private _snackBar: MatSnackBar,
         private _translocoService: TranslocoService,
+        private _walletService: WalletService,
         @Inject(MAT_DIALOG_DATA) public data: DeleteZOTPData
     ) {
         this._initForm();
     }
 
-    ngOnInit(): void {
-        // Component initialized
+    async ngOnInit(): Promise<void> {
+        try {
+            const wallet = await this._walletService.getCurrentWallet();
+
+            // Same rule as the zKeys forms: only wallets with a master password are asked for it
+            if (wallet && !new TagModel(wallet).hasPassword) {
+                this.hasMasterPassword = false;
+
+                const masterPasswordControl = this.form.get("masterPassword");
+
+                masterPasswordControl?.clearValidators();
+                masterPasswordControl?.setValue("");
+                masterPasswordControl?.updateValueAndValidity();
+            }
+        } catch (error) {
+            console.error("Error loading current wallet:", error);
+        }
     }
 
     ngOnDestroy(): void {
@@ -94,9 +113,11 @@ export class DeleteZotpComponent implements OnInit, OnDestroy {
         // Handle navigation away from biometrics if needed
     }
 
-    onBiometricsFailed(error: string): void {
+    onBiometricsFailed(error: any): void {
+        console.error("Biometrics failed:", error);
+
         this.showBiometrics = false;
-        this.errorMessage = error || this._translocoService.translate("zotp.biometrics_failed");
+        this.errorMessage = this._translocoService.translate("zotp.biometrics_failed");
         this._showError(this.errorMessage);
     }
 
@@ -106,15 +127,19 @@ export class DeleteZotpComponent implements OnInit, OnDestroy {
         this.errorMessage = "";
 
         try {
-            // Get master password from form and encrypt it
-            const masterPasswordPlain = this.form.get("masterPassword")?.value;
-
-            if (!masterPasswordPlain) throw new Error("Master password is required");
-
             if (!this.ipfsId) throw new Error("IPFS ID is required for deletion");
 
-            // Encrypt the master password before sending to API
-            const masterPassword = await this._httpWrapperService.encryptMessage(masterPasswordPlain);
+            let masterPassword: string | undefined;
+
+            if (this.hasMasterPassword) {
+                const masterPasswordPlain = this.form.get("masterPassword")?.value;
+
+                if (!masterPasswordPlain) throw new Error("Master password is required");
+
+                // Encrypt the master password before sending to API
+                masterPassword = await this._httpWrapperService.encryptMessage(masterPasswordPlain);
+            }
+
             // Call delete endpoint
             await this._zelfKeysService.delete(this.ipfsId, encryptedImage, masterPassword);
             // Success - show toast and close

@@ -248,15 +248,19 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
 
         this._intervals.checkNgxVideo = null;
 
-        videoNgx.addEventListener(
-            "loadeddata",
-            () => {
-                this._startFaceDetectionInterval();
-                this._setVideoDimensions(videoNgx);
-                this._drawOvalCenterAndMask();
-            },
-            { once: true }
-        );
+        const onVideoReady = () => {
+            this._startFaceDetectionInterval();
+            this._setVideoDimensions(videoNgx);
+            this._drawOvalCenterAndMask();
+        };
+
+        // A fast or already-warm camera can deliver its first frame before this check runs;
+        // "loadeddata" would never fire again and face detection would never start
+        if (videoNgx.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+            onVideoReady();
+        } else {
+            videoNgx.addEventListener("loadeddata", onVideoReady, { once: true });
+        }
 
         this._setVideoDimensions(videoNgx);
         this._drawOvalCenterAndMask();

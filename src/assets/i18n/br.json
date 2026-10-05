@@ -1752,6 +1752,8 @@
     },
     "zotp": {
         "add_failed": "Falha ao adicionar ZOTP. Tente novamente.",
+        "export_failed": "Falha ao exportar ZOTP. Tente novamente.",
+        "unlock_failed": "Falha ao desbloquear ZOTP. Tente novamente.",
         "add_zotp": "Adicionar ZOTP",
         "empty_preview_name": "Conta de trabalho",
         "empty_preview_issuer": "ex.: seu banco ou app",

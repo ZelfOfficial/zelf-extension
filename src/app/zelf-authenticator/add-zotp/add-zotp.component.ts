@@ -14,6 +14,7 @@ import { ZOTP } from "app/models/zotp.model";
 import { FirstLetterPipe } from "app/pipes/first-letter.pipe";
 import { ZOTPService } from "app/services/zotp.service";
 import { TagModel, TagsService } from "app/tags.service";
+import { translateZotpError } from "app/utils/zotp-error.util";
 import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
@@ -527,7 +528,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         } catch (error) {
             console.error("Error preparing ZOTP:", error);
 
-            this.errorMessage = this._getErrorMessage(error);
+            this.errorMessage = translateZotpError(this._translocoService, error, "zotp.add_failed");
         }
     }
 
@@ -566,7 +567,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         } catch (error) {
             console.error("Error creating ZOTP:", error);
 
-            this.errorMessage = this._getErrorMessage(error);
+            this.errorMessage = translateZotpError(this._translocoService, error, "zotp.add_failed");
             this.showBiometrics = false;
             this.pendingZOTP = null;
         } finally {
@@ -585,22 +586,6 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         this.showBiometrics = false;
         this.pendingZOTP = null;
         this.loading = false;
-    }
-
-    /**
-     * Translate an API error code (errors.*) when there is one; otherwise use the generic zOTP message
-     */
-    private _getErrorMessage(error: any): string {
-        const errorKeys = [error?.error?.error, error?.error?.message, error?.message].filter(Boolean);
-
-        for (const errorKey of errorKeys) {
-            const translationKey = `errors.${errorKey}`;
-            const translation = this._translocoService.translate(translationKey);
-
-            if (translation !== translationKey) return translation;
-        }
-
-        return this._translocoService.translate("zotp.add_failed");
     }
 
     canNavigateAwayHandler(canNavigate: boolean): void {

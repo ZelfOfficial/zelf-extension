@@ -17,12 +17,21 @@
         </div>
 
         <!-- Biometrics step -->
-        <div class="export-zotp__biometrics" *ngIf="!metadata">
+        <div class="export-zotp__biometrics" *ngIf="!metadata && showBiometrics">
             <biometrics-general
                 (canNavigate)="canNavigateAwayHandler($event)"
                 (error)="onBiometricsFailed($event)"
                 (imageCaptured)="onBiometricsScanned($event)"
             ></biometrics-general>
+        </div>
+
+        <!-- Error after biometrics or retrieval, with a way to try again -->
+        <div class="export-zotp__error" *ngIf="errorMessage" role="alert">
+            <p class="export-zotp__error-text">{{ errorMessage }}</p>
+
+            <button type="button" class="zelf-button zelf-button--outlined zelf-button--wide" (click)="retryBiometrics()">
+                {{ t("common.try_again") }}
+            </button>
         </div>
 
         <!-- Setup key and QR code display after biometrics -->

@@ -1729,6 +1729,8 @@
     },
     "zotp": {
         "add_failed": "ไม่สามารถเพิ่ม ZOTP ได้ โปรดลองอีกครั้ง",
+        "export_failed": "ไม่สามารถส่งออก ZOTP ได้ โปรดลองอีกครั้ง",
+        "unlock_failed": "ไม่สามารถปลดล็อก ZOTP ได้ โปรดลองอีกครั้ง",
         "add_zotp": "เพิ่ม ZOTP",
         "empty_preview_name": "บัญชีงาน",
         "empty_preview_issuer": "เช่น ธนาคารหรือแอปของคุณ",

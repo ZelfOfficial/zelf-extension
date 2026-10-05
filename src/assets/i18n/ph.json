@@ -1745,6 +1745,8 @@
     },
     "zotp": {
         "add_failed": "Nabigong idagdag ang ZOTP. Pakisubukang muli.",
+        "export_failed": "Nabigong i-export ang ZOTP. Pakisubukang muli.",
+        "unlock_failed": "Nabigong i-unlock ang ZOTP. Pakisubukang muli.",
         "add_zotp": "Magdagdag ng ZOTP",
         "empty_preview_name": "Trabaho account",
         "empty_preview_issuer": "hal. bangko o app mo",

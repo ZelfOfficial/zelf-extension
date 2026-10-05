@@ -22,6 +22,7 @@ import { FirstLetterPipe } from "app/pipes/first-letter.pipe";
 import { TOTPService } from "app/services/totp.service";
 import { ZOTPService } from "app/services/zotp.service";
 import { TagModel } from "app/tags.service";
+import { translateZotpError } from "app/utils/zotp-error.util";
 import { WalletService } from "app/wallet.service";
 import { ZelfFooterComponent } from "app/zelf-footer/zelf-footer.component";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
@@ -394,6 +395,12 @@ export class ZelfAuthenticatorComponent extends CopyToClipboardBase implements O
                 await this._updateCodeCache();
             } catch (error) {
                 console.error("Error decrypting ZOTP:", error);
+
+                this._snackBar.open(
+                    translateZotpError(this._translocoService, error, "zotp.unlock_failed"),
+                    this._translocoService.translate("common.close"),
+                    { duration: 5000 }
+                );
             } finally {
                 this.loading = false;
                 this._changeDetectorRef.detectChanges();

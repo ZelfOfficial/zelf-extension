@@ -142,6 +142,16 @@
                         </mat-menu>
                     </div>
                 </div>
+
+                <!-- The empty state has its own add card; once there are zOTPs this keeps adding another one possible -->
+                <button
+                    *ngIf="!searchQuery.trim()"
+                    type="button"
+                    class="zelf-button zelf-button--outlined zelf-button--wide zelf-authenticator__add-button"
+                    (click)="openAddZotp()"
+                >
+                    + {{ t("zotp.add_zotp") }}
+                </button>
             </div>
 
             <div class="zelf-authenticator__empty" *ngIf="!loading && filteredZotps.length === 0">

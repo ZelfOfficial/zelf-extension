@@ -46,7 +46,7 @@
 
             <!-- Master Password Input -->
             <form [formGroup]="form" class="delete-zotp__form">
-                <div class="delete-zotp__field delete-zotp__field--master-password">
+                <div class="delete-zotp__field delete-zotp__field--master-password" *ngIf="hasMasterPassword">
                     <label class="delete-zotp__label delete-zotp__label--master-password">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path
@@ -110,6 +110,9 @@
     <ng-container *ngIf="showBiometrics">
         <div class="delete-zotp__biometrics">
             <biometrics-general
+                displayMode="portrait"
+                [maxDisplayHeight]="560"
+                [maxDisplayWidth]="420"
                 (canNavigate)="canNavigateAwayHandler($event)"
                 (error)="onBiometricsFailed($event)"
                 (imageCaptured)="onBiometricsScanned($event)"

@@ -1745,6 +1745,8 @@
     },
     "zotp": {
         "add_failed": "ZOTP 추가 실패. 다시 시도해 주세요.",
+        "export_failed": "ZOTP 내보내기 실패. 다시 시도해 주세요.",
+        "unlock_failed": "ZOTP 잠금 해제 실패. 다시 시도해 주세요.",
         "add_zotp": "ZOTP 추가",
         "empty_preview_name": "직장 계정",
         "empty_preview_issuer": "예: 은행 또는 앱",

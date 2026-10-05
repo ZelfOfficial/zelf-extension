@@ -1745,6 +1745,8 @@
     },
     "zotp": {
         "add_failed": "添加 ZOTP 失败，请重试。",
+        "export_failed": "导出 ZOTP 失败，请重试。",
+        "unlock_failed": "解锁 ZOTP 失败，请重试。",
         "add_zotp": "添加 ZOTP",
         "empty_preview_name": "工作账户",
         "empty_preview_issuer": "例如您的银行或应用",

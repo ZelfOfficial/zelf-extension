@@ -102,6 +102,10 @@
         animation: rotate 1s linear infinite;
     }
 
+    &__add-button {
+        margin-top: calc(4px * var(--zns-space-scale, 1));
+    }
+
     &__empty {
         display: flex;
         flex-direction: column;
