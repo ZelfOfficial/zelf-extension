@@ -30,6 +30,10 @@ export class ThemeService implements OnDestroy {
         private _domainService: DomainService,
         private _tagsService: TagsService
     ) {
+        // Immediately apply system mode class synchronously to prevent mismatched theme or dark flash on startup
+        const initialSystemMode = this.getSystemMode();
+        this._applyThemeClass(initialSystemMode);
+
         this._initializeModePreference().then(() => {
             this.getUserModePreference().then((preference) => {
                 this.modeSubject.next(preference);
@@ -55,7 +59,7 @@ export class ThemeService implements OnDestroy {
         const config = this._findConfigForDomain(domain);
 
         if (!config?.themeSettings?.zns) {
-            this._resetTheme();
+            await this._resetTheme();
             this.activeDomain = "";
             this.lastPalette = {};
 
@@ -65,7 +69,7 @@ export class ThemeService implements OnDestroy {
         const znsTheme = config.themeSettings.zns as ThemeSettings;
 
         if (!znsTheme.enabled) {
-            this._resetTheme();
+            await this._resetTheme();
             this.activeDomain = "";
             this.lastPalette = {};
 
@@ -124,8 +128,9 @@ export class ThemeService implements OnDestroy {
         await this._chromeService.setItem(this.activeDomainPreferenceKey, domain);
     }
 
-    private _resetTheme(): void {
-        this._removeThemeClass();
+    private async _resetTheme(): Promise<void> {
+        const userPreference = await this.getUserModePreference();
+        this._applyThemeClass(userPreference);
 
         const items = document.documentElement.style;
 

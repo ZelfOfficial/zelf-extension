@@ -37,7 +37,8 @@
 }
 
 :host {
-    @include app-starfield;
+    background-color: var(--zns-theme-background-secondary, rgb(247, 246, 244));
+    background-image: none;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -46,8 +47,14 @@
     min-width: 100%;
 }
 
-:host-context(html.zns-theme-light) {
-    background-color: rgb(247 246 244 / var(--tw-bg-opacity, 1));
+:host-context(html.zns-theme-dark),
+:host-context(.zns-theme-dark) {
+    @include app-starfield;
+}
+
+:host-context(html.zns-theme-light),
+:host-context(.zns-theme-light) {
+    background-color: var(--zns-theme-background-secondary, rgb(247, 246, 244));
     background-image: none;
 }
 
@@ -56,7 +63,8 @@
     margin: 0 auto;
 
     &__desktop-bg {
-        @include app-starfield;
+        background-color: var(--zns-theme-background-secondary, rgb(247, 246, 244));
+        background-image: none;
         position: fixed;
         inset: 0;
         z-index: 0;
@@ -395,8 +403,18 @@
     }
 }
 
-:host-context(html.zns-theme-light) .zelf-app__desktop-bg {
-    background-color: rgb(247 246 244 / var(--tw-bg-opacity, 1));
+:host-context(html.zns-theme-dark) .zelf-app__desktop-bg,
+:host-context(.zns-theme-dark) .zelf-app__desktop-bg {
+    @include app-starfield;
+
+    @media screen and (max-width: variables.$medium) {
+        display: none;
+    }
+}
+
+:host-context(html.zns-theme-light) .zelf-app__desktop-bg,
+:host-context(.zns-theme-light) .zelf-app__desktop-bg {
+    background-color: var(--zns-theme-background-secondary, rgb(247, 246, 244));
     background-image: none;
 
     @media screen and (max-width: variables.$medium) {

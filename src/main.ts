@@ -28,6 +28,14 @@ if (environment.production) {
     enableProdMode();
 }
 
+try {
+    const isDark = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    document.documentElement.classList.add(isDark ? "zns-theme-dark" : "zns-theme-light");
+} catch {
+    document.documentElement.classList.add("zns-theme-light");
+}
+
 platformBrowserDynamic()
     .bootstrapModule(AppModule)
     .catch((err) => console.error(err));
+

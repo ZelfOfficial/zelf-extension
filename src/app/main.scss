@@ -69,12 +69,14 @@ html {
     position: relative !important;
     min-width: 347px;
     color: variables.$themeText;
+    background-color: var(--zns-theme-background-secondary, rgb(247, 246, 244));
 }
 
 body {
     margin: 0px !important;
     height: 100vh;
     color: variables.$themeText;
+    background-color: var(--zns-theme-background-secondary, rgb(247, 246, 244));
 }
 
 /* Compact phone design tokens – defaults (no scaling) */
@@ -1812,7 +1814,14 @@ svg.zelf-logo {
     }
 }
 
-html.zns-theme-dark {
+html.zns-theme-dark,
+.zns-theme-dark {
+    background-color: #000000;
+
+    body {
+        background-color: #000000;
+    }
+
     svg.zelf-logo {
         fill: variables.$white;
     }
