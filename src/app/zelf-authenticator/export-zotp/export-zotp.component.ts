@@ -41,6 +41,7 @@ export class ExportZotpComponent extends CopyToClipboardBase implements OnInit {
     setupKey: string = "";
     showBiometrics = false;
     showMasterPassword = false;
+    showSetupKey = false;
     zotp: ZOTP;
 
     constructor(
@@ -81,11 +82,17 @@ export class ExportZotpComponent extends CopyToClipboardBase implements OnInit {
     }
 
     close(): void {
+        this.setupKey = "";
+        this.showSetupKey = false;
         this.dialogRef.close(false);
     }
 
     toggleMasterPasswordVisibility(): void {
         this.showMasterPassword = !this.showMasterPassword;
+    }
+
+    toggleSetupKeyVisibility(): void {
+        this.showSetupKey = !this.showSetupKey;
     }
 
     async onContinueToBiometrics(): Promise<void> {

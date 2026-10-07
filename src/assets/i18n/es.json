@@ -913,8 +913,11 @@
         "import_wallet": "Importar billetera",
         "information": "Esta dirección solo puede usarse para recibir tokens compatibles.",
         "is_required": "es requerido",
+        "done": "Listo",
+        "hide_password": "Ocultar contraseña",
         "learn_more": "Saber más",
         "load_more": "Cargar más",
+        "loading": "Cargando…",
         "login": "Descifrar Zelf ID QR",
         "logout": "Eliminar Zelf ID QR",
         "manage_domains": "Administrar Zelf IDs",
@@ -958,6 +961,7 @@
         "settings": "Configuración",
         "show_less": "Mostrar menos",
         "show_more": "Mostrar más",
+        "show_password": "Mostrar contraseña",
         "show_words": "Mostrar palabras",
         "sol_address": "Dirección SOL",
         "start": "Iniciar",
@@ -1928,6 +1932,44 @@
         "master_password_placeholder": "Ingrese su contraseña maestra si tiene una",
         "master_password_hint": "Si estableció una contraseña maestra al crear esta entrada, ingrésela aquí",
         "see_details": "Ver Detalles",
+        "copy_code": "Copiar código",
+        "copy_setup_key": "Copiar clave de configuración",
+        "code": {
+            "title": "Tu código",
+            "refreshes_in": "Se actualiza en {{seconds}} s"
+        },
+        "proof": {
+            "loading": "Cargando datos cifrados…"
+        },
+        "errors": {
+            "proof_load_failed": "No se pudieron cargar los datos cifrados de este código. Inténtalo de nuevo."
+        },
+        "decrypt": {
+            "button": "Mostrar código",
+            "decrypting": "Abriendo…"
+        },
+        "protection": {
+            "label": "Protección al abrir",
+            "face": "Solo rostro",
+            "face_password": "Rostro + contraseña maestra",
+            "decrypt_toggle": {
+                "title": "Requerir contraseña maestra para abrir",
+                "description": "Si está activado, al abrir este ZOTP también se pedirá la contraseña maestra de la billetera además de la verificación facial.",
+                "aria_label": "Requerir contraseña maestra al abrir este ZOTP"
+            },
+            "face_only": {
+                "title": "Billetera solo con rostro",
+                "description": "Este Zelf ID no tiene contraseña maestra. Los ZOTP se abren solo con verificación facial."
+            },
+            "decrypt_prompt": {
+                "title": "Ingresa la contraseña maestra",
+                "description": "Este ZOTP está protegido con rostro y la contraseña maestra de tu billetera.",
+                "continue": "Continuar al escaneo facial"
+            },
+            "errors": {
+                "password_required": "Se requiere una contraseña maestra para abrir este ZOTP."
+            }
+        },
         "unlock_zotp": "Desbloquear ZOTP",
         "unlock_subtitle": "Verifica tu identidad para revelar tu código de un solo uso.",
         "security_note": "Cifrado de extremo a extremo. Solo tú puedes desbloquearlo.",
@@ -1981,6 +2023,7 @@
         "share": "Acción",
         "download_all_shares": "Descargar Todas las Acciones",
         "shares_info": "Necesita {{threshold}} de {{total}} acciones para recuperar este ZOTP. Distribuya las acciones de forma segura a partes de confianza.",
+        "warning": "Advertencia",
         "shares_warning": "¡Mantenga las acciones seguras! Cualquiera con suficientes acciones puede recuperar su ZOTP. Almacene las acciones en ubicaciones seguras separadas.",
         "recover_zotp": "Recuperar ZOTP",
         "recover_description": "Importe acciones para recuperar su secreto ZOTP. Necesita un número umbral de acciones para reconstruir el secreto.",
