@@ -11,7 +11,12 @@ import { CopyToClipboardBase } from "app/base/copy-to-clipboard/copy-to-clipboar
 import { BiometricsGeneralComponent } from "app/biometrics-general/biometrics.component";
 import { ChromeService } from "app/chrome.service";
 import { HttpWrapperService } from "app/http-wrapper.service";
-import { zelfKeysRequiresDecryptPassword } from "app/models/zelf-keys-protection";
+import {
+    resolveZotpProtection,
+    ZelfKeysProtection,
+    zelfKeysRequiresDecryptPassword,
+} from "app/models/zelf-keys-protection";
+import { extractZotpApiErrorMessage } from "../zotp-error.util";
 import { ZOTP } from "app/models/zotp.model";
 import { TOTPService } from "app/services/totp.service";
 import { ZelfKeysService } from "app/services/zelf-keys.service";
@@ -94,8 +99,12 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
         return this.zotp?.ipfs?.id || this.zotp?.zelfKeysId || "";
     }
 
+    get resolvedProtection(): ZelfKeysProtection {
+        return this.zotp ? resolveZotpProtection(this.zotp) : "face";
+    }
+
     get requiresDecryptPassword(): boolean {
-        return zelfKeysRequiresDecryptPassword(this.zotp?.protection);
+        return zelfKeysRequiresDecryptPassword(this.resolvedProtection);
     }
 
     get protectionLabelKey(): string {
@@ -237,6 +246,8 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
 
     onBiometricsFailed(error: unknown): void {
         console.error("Biometrics failed:", error);
+        const message = extractZotpApiErrorMessage(error, this._translocoService);
+        this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
         this.showBiometrics = false;
         this.unlockMode = false;
         this.awaitingUnlockPassword = false;
@@ -271,9 +282,17 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
             this._scrollToCode();
         } catch (error) {
             console.error("Error decrypting ZOTP:", error);
+            const message = extractZotpApiErrorMessage(error, this._translocoService);
+            this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
+
             this.showBiometrics = false;
             this.unlockMode = false;
-            this.unlockMasterPassword = "";
+
+            if (this.requiresDecryptPassword) {
+                this.awaitingUnlockPassword = true;
+            } else {
+                this.unlockMasterPassword = "";
+            }
         } finally {
             this.loading = false;
             this._changeDetectorRef.detectChanges();
@@ -295,9 +314,11 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
             void this._router.navigate(["/zelf-authenticator"]);
         } catch (error) {
             console.error("Error deleting ZOTP:", error);
+            const message = extractZotpApiErrorMessage(error, this._translocoService);
+            this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
             this.showBiometrics = false;
             this.deleting = false;
-            this.confirmingDelete = false;
+            this.confirmingDelete = true;
         } finally {
             this.deleting = false;
             this._changeDetectorRef.detectChanges();

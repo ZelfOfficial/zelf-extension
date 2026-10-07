@@ -16,6 +16,8 @@
             <div class="export-zotp__zotp-issuer" *ngIf="zotp.issuer">{{ zotp.issuer }}</div>
         </div>
 
+        <div class="export-zotp__error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
         <div class="export-zotp__master-password" *ngIf="awaitingMasterPassword && !metadata">
             <h4>{{ t("zotp.protection.decrypt_prompt.title") }}</h4>
             <p>{{ t("zotp.protection.decrypt_prompt.description") }}</p>

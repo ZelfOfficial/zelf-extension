@@ -2,8 +2,9 @@ import { CommonModule, NgClass, NgIf, NgTemplateOutlet } from "@angular/common";
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
+import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { Router } from "@angular/router";
-import { TranslocoModule } from "@jsverse/transloco";
+import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import jsQR from "jsqr";
 import { Subject } from "rxjs";
 
@@ -17,6 +18,7 @@ import { TagModel, TagsService } from "app/tags.service";
 import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
+import { extractZotpApiErrorMessage } from "../zotp-error.util";
 
 @Component({
     imports: [
@@ -24,6 +26,7 @@ import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
         CommonModule,
         DragAndDropDirective,
         MatButtonModule,
+        MatSnackBarModule,
         NgClass,
         NgIf,
         NgTemplateOutlet,
@@ -57,7 +60,9 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         private _formBuilder: FormBuilder,
         private _httpWrapperService: HttpWrapperService,
         private _router: Router,
+        private _snackBar: MatSnackBar,
         private _tagsService: TagsService,
+        private _translocoService: TranslocoService,
         private _vaultService: VaultService,
         private _walletService: WalletService,
         private _zotpService: ZOTPService
@@ -556,7 +561,8 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             this.showBiometrics = true;
         } catch (error) {
             console.error("Error preparing ZOTP:", error);
-            // TODO: Show error message to user
+            const message = extractZotpApiErrorMessage(error, this._translocoService);
+            this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
         }
     }
 
@@ -593,7 +599,8 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             void this._router.navigate(["/zelf-authenticator"]);
         } catch (error) {
             console.error("Error creating ZOTP:", error);
-            // TODO: Show error message to user
+            const message = extractZotpApiErrorMessage(error, this._translocoService);
+            this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
             this.showBiometrics = false;
             this.pendingZOTP = null;
             this.pendingProtection = "face";
@@ -604,11 +611,12 @@ export class AddZotpComponent implements OnInit, OnDestroy {
 
     onBiometricsFailed(error: any): void {
         console.error("Biometrics failed:", error);
+        const message = extractZotpApiErrorMessage(error, this._translocoService);
+        this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
         this.showBiometrics = false;
         this.pendingZOTP = null;
         this.pendingProtection = "face";
         this.loading = false;
-        // TODO: Show error message to user
     }
 
     canNavigateAwayHandler(canNavigate: boolean): void {

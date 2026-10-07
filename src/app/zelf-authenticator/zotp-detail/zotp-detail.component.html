@@ -46,7 +46,7 @@
         <div class="password-detail__actions">
             <button type="button" class="password-detail__btn-cta" (click)="onUnlockClick()" [disabled]="loading">
                 <span class="material-symbols-outlined">{{ decryptedSecret ? "verified" : "lock_open" }}</span>
-                {{ decryptedSecret ? t("zotp.see_details") : t("billing.passwords.detail.decrypt.button") }}
+                {{ decryptedSecret ? t("zotp.see_details") : t("zotp.decrypt.button") }}
             </button>
 
             <button type="button" class="password-detail__btn-secondary" (click)="onCopyCode()" [disabled]="!decryptedSecret">

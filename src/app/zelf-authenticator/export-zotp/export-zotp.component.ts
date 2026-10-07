@@ -7,7 +7,8 @@ import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { BiometricsGeneralComponent } from "app/biometrics-general/biometrics.component";
 import { CopyToClipboardBase } from "app/base/copy-to-clipboard/copy-to-clipboard.base";
 import { ChromeService } from "app/chrome.service";
-import { zelfKeysRequiresDecryptPassword } from "app/models/zelf-keys-protection";
+import { resolveZotpProtection, zelfKeysRequiresDecryptPassword } from "app/models/zelf-keys-protection";
+import { extractZotpApiErrorMessage } from "../zotp-error.util";
 import { ZOTP } from "app/models/zotp.model";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
@@ -30,6 +31,7 @@ export class ExportZotpComponent extends CopyToClipboardBase implements OnInit {
 
     awaitingMasterPassword = false;
     encryptedMasterPassword = "";
+    errorMessage = "";
     loading: boolean = false;
     masterPassword = "";
     metadata: any = null;
@@ -56,12 +58,12 @@ export class ExportZotpComponent extends CopyToClipboardBase implements OnInit {
     }
 
     ngOnInit(): void {
-        this.awaitingMasterPassword = zelfKeysRequiresDecryptPassword(this.zotp.protection);
+        this.awaitingMasterPassword = zelfKeysRequiresDecryptPassword(resolveZotpProtection(this.zotp));
         this.showBiometrics = !this.awaitingMasterPassword;
     }
 
     get requiresDecryptPassword(): boolean {
-        return zelfKeysRequiresDecryptPassword(this.zotp.protection);
+        return zelfKeysRequiresDecryptPassword(resolveZotpProtection(this.zotp));
     }
 
     close(): void {
@@ -108,9 +110,20 @@ export class ExportZotpComponent extends CopyToClipboardBase implements OnInit {
             })
             .catch((error) => {
                 console.error("Error retrieving ZOTP metadata:", error);
+                this.errorMessage = extractZotpApiErrorMessage(error, this._translocoService);
+                this._snackBar.open(
+                    this.errorMessage,
+                    this._translocoService.translate("common.close"),
+                    { duration: 5000 }
+                );
                 this.loading = false;
+                this.showBiometrics = false;
+
+                if (this.requiresDecryptPassword) {
+                    this.awaitingMasterPassword = true;
+                }
+
                 this._changeDetectorRef.detectChanges();
-                // TODO: Show error message to user
             });
     }
 

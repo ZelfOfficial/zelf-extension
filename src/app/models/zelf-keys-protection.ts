@@ -23,3 +23,15 @@ export function zelfKeysRequiresDecryptPassword(protection?: ZelfKeysProtection 
 export function protectionFromDecryptToggle(requireOnDecrypt: boolean): ZelfKeysProtection {
     return requireOnDecrypt ? ZELF_KEYS_PROTECTION_FACE_PASSWORD : ZELF_KEYS_PROTECTION_FACE;
 }
+
+/** Resolve protection from the cached zOTP model (list/detail) before retrieve. */
+export function resolveZotpProtection(zotp: {
+    protection?: ZelfKeysProtection | null;
+    ipfs?: { publicData?: { protection?: unknown } } | null;
+}): ZelfKeysProtection {
+    return (
+        parseZelfKeysProtection(zotp.protection) ??
+        parseZelfKeysProtection(zotp.ipfs?.publicData?.protection) ??
+        ZELF_KEYS_PROTECTION_FACE
+    );
+}

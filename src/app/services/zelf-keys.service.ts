@@ -87,6 +87,12 @@ export interface RetrieveRequest {
     type?: string;
     v?: string | number;
     password?: string; // Optional ZelfProof password
+    /** Item decrypt protection — API may read this or publicData.protection on the request body. */
+    protection?: "face" | "face_password";
+    publicData?: {
+        protection?: "face" | "face_password";
+        v?: string | number;
+    };
 }
 
 /**

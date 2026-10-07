@@ -1,11 +1,11 @@
 import { Injectable } from "@angular/core";
 import { ChromeService } from "../chrome.service";
 import { VaultService } from "../vault.service";
-import { parseZelfKeysProtection, ZelfKeysProtection } from "../models/zelf-keys-protection";
+import { parseZelfKeysProtection, resolveZotpProtection, ZelfKeysProtection } from "../models/zelf-keys-protection";
 import { ZOTP } from "../models/zotp.model";
 import { TagModel } from "../tags.service";
 import { WalletService } from "../wallet.service";
-import { ZelfKeysService } from "./zelf-keys.service";
+import { RetrieveRequest, ZelfKeysService } from "./zelf-keys.service";
 
 @Injectable({
     providedIn: "root",
@@ -300,6 +300,27 @@ export class ZOTPService {
         }
     }
 
+    private _buildZotpRetrieveRequest(
+        zotp: ZOTP,
+        faceBase64: string,
+        clientPublicKey: string,
+        encryptedMasterPassword?: string
+    ): RetrieveRequest {
+        const protection = resolveZotpProtection(zotp);
+        const versionHint = zotp.ipfs?.publicData?.v;
+
+        return {
+            zelfProof: zotp.zelfProof!,
+            faceBase64,
+            type: "zotp",
+            clientPublicKey,
+            protection,
+            publicData: { protection },
+            ...(encryptedMasterPassword ? { password: encryptedMasterPassword } : {}),
+            ...(versionHint != null && String(versionHint).trim() ? { v: String(versionHint) } : {}),
+        };
+    }
+
     /**
      * Retrieve decrypted secret from ZelfKeys
      * @param zotp - ZOTP to retrieve
@@ -313,16 +334,10 @@ export class ZOTPService {
 
         try {
             const { publicKey: clientPublicKey } = await this._vaultService.generateEphemeralKeyPair();
-            const versionHint = zotp.ipfs?.publicData?.v;
 
-            const response = await this._zelfKeysService.retrieve({
-                zelfProof: zotp.zelfProof,
-                faceBase64: faceBase64,
-                type: "zotp",
-                clientPublicKey,
-                ...(encryptedMasterPassword ? { password: encryptedMasterPassword } : {}),
-                ...(versionHint != null && String(versionHint).trim() ? { v: String(versionHint) } : {}),
-            });
+            const response = await this._zelfKeysService.retrieve(
+                this._buildZotpRetrieveRequest(zotp, faceBase64, clientPublicKey, encryptedMasterPassword)
+            );
 
             // Response structure: { data: { success, data: { metadata, publicData, ipfs } } }
             // For ZOTP, the setupKey is stored in metadata.setupKey
@@ -369,16 +384,10 @@ export class ZOTPService {
 
         try {
             const { publicKey: clientPublicKey } = await this._vaultService.generateEphemeralKeyPair();
-            const versionHint = zotp.ipfs?.publicData?.v;
 
-            const response = await this._zelfKeysService.retrieve({
-                zelfProof: zotp.zelfProof,
-                faceBase64: faceBase64,
-                type: "zotp",
-                clientPublicKey,
-                ...(encryptedMasterPassword ? { password: encryptedMasterPassword } : {}),
-                ...(versionHint != null && String(versionHint).trim() ? { v: String(versionHint) } : {}),
-            });
+            const response = await this._zelfKeysService.retrieve(
+                this._buildZotpRetrieveRequest(zotp, faceBase64, clientPublicKey, encryptedMasterPassword)
+            );
 
             // Response structure: { data: { success, data: { metadata, publicData, ipfs } } }
             if (response?.data) {

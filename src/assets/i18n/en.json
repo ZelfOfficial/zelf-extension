@@ -1957,9 +1957,17 @@
                 "title": "Enter master password",
                 "description": "This ZOTP is protected with face and your wallet master password.",
                 "continue": "Continue to face scan"
+            },
+            "errors": {
+                "password_required": "A master password is required to open this ZOTP."
             }
         },
         "see_details": "See Details",
+        "decrypt": {
+            "button": "Show code",
+            "decrypting": "Opening…"
+        },
+        "decrypt_failed": "Could not open this ZOTP. Please try again.",
         "unlock_zotp": "Unlock ZOTP",
         "unlock_subtitle": "Verify your identity to reveal your one-time code.",
         "security_note": "End-to-end encrypted. Only you can unlock it.",

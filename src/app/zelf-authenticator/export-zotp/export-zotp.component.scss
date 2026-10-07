@@ -129,6 +129,15 @@
         }
     }
 
+    &__error {
+        padding: calc(12px * var(--zns-space-scale, 1));
+        border-radius: calc(8px * var(--zns-space-scale, 1));
+        background-color: variables.$errorLight;
+        color: variables.$error;
+        font-size: calc(13px * var(--zns-font-scale, 1));
+        line-height: 1.5;
+    }
+
     &__master-password {
         display: flex;
         flex-direction: column;
