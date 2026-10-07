@@ -15,6 +15,7 @@ export const DEEP_SHELL_PATH_MATCHERS: ReadonlyArray<(path: string) => boolean> 
     (path) => path.startsWith("/zelf-keys/payment-cards/result"),
     (path) => path.startsWith("/zelf-keys/billing"),
     (path) => path.startsWith("/zelf-authenticator/new"),
+    (path) => path.startsWith("/zelf-authenticator/detail"),
 ];
 
 @Injectable({

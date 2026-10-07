@@ -1,4 +1,4 @@
-import { CommonModule, NgClass, NgIf } from "@angular/common";
+import { CommonModule, NgClass, NgIf, NgTemplateOutlet } from "@angular/common";
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
@@ -11,7 +11,6 @@ import { BiometricsGeneralComponent } from "app/biometrics-general/biometrics.co
 import { DragAndDropDirective } from "app/directives/drag-and-drop.directive";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { ZOTP } from "app/models/zotp.model";
-import { FirstLetterPipe } from "app/pipes/first-letter.pipe";
 import { ZOTPService } from "app/services/zotp.service";
 import { TagModel, TagsService } from "app/tags.service";
 import { VaultService } from "app/vault.service";
@@ -23,23 +22,27 @@ import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
         BiometricsGeneralComponent,
         CommonModule,
         DragAndDropDirective,
-        FirstLetterPipe,
         MatButtonModule,
         NgClass,
         NgIf,
+        NgTemplateOutlet,
         ReactiveFormsModule,
         TranslocoModule,
         ZelfLoaderComponent,
     ],
     selector: "add-zotp",
-    styleUrls: ["./add-zotp.component.scss"],
+    styleUrls: [
+        "./add-zotp.component.scss",
+        "../../zelf-keys/zelf-keys-passwords/zelf-keys-password-form/zelf-keys-password-form.component.scss",
+    ],
     templateUrl: "./add-zotp.component.html",
 })
 export class AddZotpComponent implements OnInit, OnDestroy {
     private unsubscriber$ = new Subject<void>();
 
-    currentWallet: TagModel | null = null; // Current wallet for displaying
+    currentWallet: TagModel | null = null;
     form!: FormGroup;
+    hasMasterPassword = false;
     loading: boolean = false;
     mode: "setup-key" | "qr-upload" = "setup-key";
     pendingZOTP: ZOTP | null = null; // ZOTP waiting to be created/stored after biometrics verification
@@ -69,9 +72,28 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         try {
             const wallet = await this._walletService.getCurrentWallet();
             this.currentWallet = wallet ? new TagModel(wallet) : null;
+            this.hasMasterPassword = !!wallet?.hasPassword;
+            this._updateMasterPasswordValidators();
         } catch (error) {
             console.error("Error loading current wallet:", error);
         }
+    }
+
+    private _updateMasterPasswordValidators(): void {
+        const control = this.form.get("masterPassword");
+        if (!control) return;
+
+        if (this.hasMasterPassword) {
+            control.setValidators([Validators.required]);
+        } else {
+            control.clearValidators();
+        }
+
+        control.updateValueAndValidity();
+    }
+
+    toggleMasterPasswordVisibility(): void {
+        this.showMasterPassword = !this.showMasterPassword;
     }
 
     ngOnDestroy(): void {
@@ -84,7 +106,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             name: ["", [Validators.required, Validators.maxLength(128)]],
             issuer: ["", [Validators.maxLength(128)]],
             setupKey: ["", [Validators.required]],
-            masterPassword: ["", [Validators.required]], // Master password required for ZOTP creation
+            masterPassword: [""],
         });
     }
 
@@ -526,13 +548,10 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         try {
             // Get master password from form and encrypt it
             const masterPasswordPlain = this.form.get("masterPassword")?.value;
-
-            if (!masterPasswordPlain) {
-                throw new Error("Master password is required");
-            }
-
-            // Encrypt the master password before sending to API
-            const masterPassword = await this._httpWrapperService.encryptMessage(masterPasswordPlain);
+            const masterPassword =
+                this.hasMasterPassword && masterPasswordPlain
+                    ? await this._httpWrapperService.encryptMessage(masterPasswordPlain)
+                    : "";
 
             // Store ZOTP to ZelfKeys API (this is the creation step)
             // The biometrics are part of the creation flow, not decryption
@@ -548,10 +567,6 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         } finally {
             this.loading = false;
         }
-    }
-
-    toggleShowMasterPassword(): void {
-        this.showMasterPassword = !this.showMasterPassword;
     }
 
     onBiometricsFailed(error: any): void {
