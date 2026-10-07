@@ -627,3 +627,38 @@
 .password-detail__biometrics {
     padding: calc(24px * var(--zns-space-scale, 1)) 0;
 }
+
+.password-detail__unlock-password-card {
+    margin-top: calc(12px * var(--zns-space-scale, 1));
+    padding: calc(20px * var(--zns-space-scale, 1));
+    border: 1px solid variables.$themeCardBorder;
+    border-radius: 16px;
+    background: variables.$themeCard;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+    h3 {
+        margin: 12px 0 8px;
+        font-size: calc(18px * var(--zns-font-scale, 1));
+        font-weight: 700;
+        color: variables.$themeText;
+    }
+
+    p {
+        margin: 0 0 16px;
+        font-size: calc(13px * var(--zns-font-scale, 1));
+        color: variables.$themeTextMuted;
+        line-height: 1.5;
+    }
+}
+
+.password-detail__unlock-password-icon {
+    font-size: 28px;
+    color: variables.$secondaryColor;
+}
+
+.password-detail__unlock-password-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 16px;
+}

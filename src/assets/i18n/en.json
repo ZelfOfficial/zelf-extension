@@ -1940,6 +1940,25 @@
         "master_password": "Master Password",
         "master_password_placeholder": "Enter your wallet master password",
         "master_password_hint": "Your wallet's master password is required to encrypt and store this ZOTP securely.",
+        "protection": {
+            "label": "Open protection",
+            "face": "Face only",
+            "face_password": "Face + master password",
+            "decrypt_toggle": {
+                "title": "Require master password to open",
+                "description": "When enabled, decrypting this ZOTP later also asks for your wallet master password in addition to face verification.",
+                "aria_label": "Require master password when opening this ZOTP"
+            },
+            "face_only": {
+                "title": "Face-only wallet",
+                "description": "This Zelf ID has no master password. ZOTPs open with face verification only."
+            },
+            "decrypt_prompt": {
+                "title": "Enter master password",
+                "description": "This ZOTP is protected with face and your wallet master password.",
+                "continue": "Continue to face scan"
+            }
+        },
         "see_details": "See Details",
         "unlock_zotp": "Unlock ZOTP",
         "unlock_subtitle": "Verify your identity to reveal your one-time code.",

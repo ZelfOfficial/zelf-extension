@@ -1,6 +1,58 @@
 @use "../../../styles/variables";
 @use "../../../styles/drag-and-drop";
 
+.password-form.add-zotp {
+    .password-form__option-card {
+        margin-top: 20px;
+        padding: 16px;
+        border: 1px solid variables.$themeCardBorder;
+        border-radius: 16px;
+        background: variables.$themeCard;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+        &--muted {
+            opacity: 0.92;
+        }
+    }
+
+    .password-form__option-card-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .password-form__option-card-copy {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .password-form__option-card-icon {
+        flex-shrink: 0;
+        font-size: 22px;
+        color: variables.$secondaryColor;
+        margin-top: 2px;
+    }
+
+    .password-form__option-card-title {
+        margin: 0 0 6px;
+        font-size: 15px;
+        font-weight: 700;
+        color: variables.$themeText;
+        line-height: 1.35;
+    }
+
+    .password-form__option-card-description {
+        margin: 0;
+        font-size: 12px;
+        color: variables.$themeTextMuted;
+        line-height: 1.5;
+    }
+}
+
 .add-zotp {
     &__qr-upload {
         align-items: center;

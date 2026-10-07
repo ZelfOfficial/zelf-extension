@@ -31,7 +31,6 @@ export class ZelfAuthenticatorComponent implements OnInit, OnDestroy {
         private _changeDetectorRef: ChangeDetectorRef,
         private _chromeService: ChromeService,
         private _router: Router,
-        private _walletService: WalletService,
         private _zotpDataService: ZotpDataService,
         private _zotpService: ZOTPService
     ) {}

@@ -129,7 +129,41 @@
                     </ng-container>
                 </div>
 
-                <div class="password-form__wallet-panel" *ngIf="hasMasterPassword">
+                <div class="password-form__option-card" *ngIf="canShowProtectionOption && hasMasterPassword">
+                    <div class="password-form__option-card-row">
+                        <div class="password-form__option-card-copy">
+                            <span class="material-symbols-outlined password-form__option-card-icon" aria-hidden="true">shield_lock</span>
+                            <div>
+                                <h3 class="password-form__option-card-title">{{ t("zotp.protection.decrypt_toggle.title") }}</h3>
+                                <p class="password-form__option-card-description">{{ t("zotp.protection.decrypt_toggle.description") }}</p>
+                            </div>
+                        </div>
+                        <div
+                            (click)="toggleRequireMasterPasswordOnDecrypt()"
+                            [attr.aria-checked]="form.get('requireMasterPasswordOnDecrypt')?.value"
+                            [attr.aria-label]="t('zotp.protection.decrypt_toggle.aria_label')"
+                            [class.zelf-toggle--active]="form.get('requireMasterPasswordOnDecrypt')?.value"
+                            class="zelf-toggle"
+                            role="switch"
+                            tabindex="0"
+                        >
+                            <div class="zelf-toggle__track"></div>
+                            <div class="zelf-toggle__thumb"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="password-form__option-card password-form__option-card--muted" *ngIf="canShowProtectionOption && !hasMasterPassword">
+                    <div class="password-form__option-card-copy">
+                        <span class="material-symbols-outlined password-form__option-card-icon" aria-hidden="true">face</span>
+                        <div>
+                            <h3 class="password-form__option-card-title">{{ t("zotp.protection.face_only.title") }}</h3>
+                            <p class="password-form__option-card-description">{{ t("zotp.protection.face_only.description") }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="password-form__wallet-panel" *ngIf="hasMasterPassword && canShowProtectionOption">
                     <h3 class="password-form__wallet-panel-title">{{ t("billing.passwords.form.master_password.section_title") }}</h3>
                     <div class="zelf-input zelf-input--wide">
                         <input
@@ -161,7 +195,7 @@
                 <button class="zelf-button zelf-button--outlined" type="button" (click)="onCancel()" [disabled]="loading">
                     {{ t("common.cancel") }}
                 </button>
-                <button class="zelf-button zelf-button--primary" type="button" (click)="save()" [disabled]="form.invalid || loading">
+                <button class="zelf-button zelf-button--primary" type="button" (click)="save()" [disabled]="!isFormReadyToSave || loading">
                     {{ t("common.confirm") }}
                 </button>
             </div>

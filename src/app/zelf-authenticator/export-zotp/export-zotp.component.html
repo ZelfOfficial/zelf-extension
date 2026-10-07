@@ -16,8 +16,34 @@
             <div class="export-zotp__zotp-issuer" *ngIf="zotp.issuer">{{ zotp.issuer }}</div>
         </div>
 
+        <div class="export-zotp__master-password" *ngIf="awaitingMasterPassword && !metadata">
+            <h4>{{ t("zotp.protection.decrypt_prompt.title") }}</h4>
+            <p>{{ t("zotp.protection.decrypt_prompt.description") }}</p>
+            <div class="zelf-input zelf-input--wide">
+                <input
+                    [type]="showMasterPassword ? 'text' : 'password'"
+                    class="zelf-input__control zelf-input__control--floating-label"
+                    [(ngModel)]="masterPassword"
+                    id="exportZotpMasterPassword"
+                    autocomplete="current-password"
+                    placeholder=" "
+                />
+                <label for="exportZotpMasterPassword" class="zelf-input__floating-label">
+                    {{ t("billing.passwords.form.master_password.label") }}
+                </label>
+            </div>
+            <button
+                type="button"
+                class="zelf-button zelf-button--primary zelf-button--wide"
+                (click)="onContinueToBiometrics()"
+                [disabled]="!masterPassword.trim()"
+            >
+                {{ t("zotp.protection.decrypt_prompt.continue") }}
+            </button>
+        </div>
+
         <!-- Biometrics step -->
-        <div class="export-zotp__biometrics" *ngIf="!metadata">
+        <div class="export-zotp__biometrics" *ngIf="showBiometrics && !metadata">
             <biometrics-general
                 (canNavigate)="canNavigateAwayHandler($event)"
                 (error)="onBiometricsFailed($event)"

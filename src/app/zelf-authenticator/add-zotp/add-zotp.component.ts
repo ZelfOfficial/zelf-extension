@@ -10,6 +10,7 @@ import { Subject } from "rxjs";
 import { BiometricsGeneralComponent } from "app/biometrics-general/biometrics.component";
 import { DragAndDropDirective } from "app/directives/drag-and-drop.directive";
 import { HttpWrapperService } from "app/http-wrapper.service";
+import { protectionFromDecryptToggle, ZelfKeysProtection } from "app/models/zelf-keys-protection";
 import { ZOTP } from "app/models/zotp.model";
 import { ZOTPService } from "app/services/zotp.service";
 import { TagModel, TagsService } from "app/tags.service";
@@ -45,6 +46,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
     hasMasterPassword = false;
     loading: boolean = false;
     mode: "setup-key" | "qr-upload" = "setup-key";
+    pendingProtection: ZelfKeysProtection = "face";
     pendingZOTP: ZOTP | null = null; // ZOTP waiting to be created/stored after biometrics verification
     qrError: string = "";
     showBiometrics: boolean = false;
@@ -107,7 +109,27 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             issuer: ["", [Validators.maxLength(128)]],
             setupKey: ["", [Validators.required]],
             masterPassword: [""],
+            requireMasterPasswordOnDecrypt: [false],
         });
+    }
+
+    get canShowProtectionOption(): boolean {
+        return this.mode === "setup-key" || !!this.form.get("setupKey")?.value?.trim();
+    }
+
+    get isFormReadyToSave(): boolean {
+        if (this.mode === "qr-upload") {
+            return !!this.form.get("setupKey")?.value?.trim() && !!this.form.get("name")?.valid;
+        }
+
+        return this.form.valid;
+    }
+
+    toggleRequireMasterPasswordOnDecrypt(): void {
+        if (!this.hasMasterPassword) return;
+
+        const control = this.form.get("requireMasterPasswordOnDecrypt");
+        control?.setValue(!control?.value);
     }
 
     switchMode(mode: "setup-key" | "qr-upload"): void {
@@ -509,6 +531,8 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             if (!zelfProof) throw new Error("No wallet found. Please create or unlock a wallet first.");
 
             // Create ZOTP object (secret will be encrypted by ZelfKeys API during storage)
+            const protection = protectionFromDecryptToggle(!!formValue.requireMasterPasswordOnDecrypt);
+
             const zotp: ZOTP = {
                 id: this._zotpService.generateId(),
                 name: formValue.name.trim(),
@@ -520,8 +544,11 @@ export class AddZotpComponent implements OnInit, OnDestroy {
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
                 isDecrypted: false,
+                protection,
                 zelfProof: zelfProof,
             };
+
+            this.pendingProtection = protection;
 
             // Store pending ZOTP and show biometrics for creation
             // Biometrics are required as part of the creation flow
@@ -555,7 +582,12 @@ export class AddZotpComponent implements OnInit, OnDestroy {
 
             // Store ZOTP to ZelfKeys API (this is the creation step)
             // The biometrics are part of the creation flow, not decryption
-            await this._zotpService.storeZOTPToZelfKeys(this.pendingZOTP, encryptedImage, masterPassword);
+            await this._zotpService.storeZOTPToZelfKeys(
+                this.pendingZOTP,
+                encryptedImage,
+                masterPassword,
+                this.pendingProtection
+            );
 
             // Successfully created - return to list
             void this._router.navigate(["/zelf-authenticator"]);
@@ -564,6 +596,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             // TODO: Show error message to user
             this.showBiometrics = false;
             this.pendingZOTP = null;
+            this.pendingProtection = "face";
         } finally {
             this.loading = false;
         }
@@ -573,6 +606,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         console.error("Biometrics failed:", error);
         this.showBiometrics = false;
         this.pendingZOTP = null;
+        this.pendingProtection = "face";
         this.loading = false;
         // TODO: Show error message to user
     }

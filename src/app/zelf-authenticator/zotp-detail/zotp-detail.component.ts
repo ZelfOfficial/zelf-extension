@@ -11,6 +11,7 @@ import { CopyToClipboardBase } from "app/base/copy-to-clipboard/copy-to-clipboar
 import { BiometricsGeneralComponent } from "app/biometrics-general/biometrics.component";
 import { ChromeService } from "app/chrome.service";
 import { HttpWrapperService } from "app/http-wrapper.service";
+import { zelfKeysRequiresDecryptPassword } from "app/models/zelf-keys-protection";
 import { ZOTP } from "app/models/zotp.model";
 import { TOTPService } from "app/services/totp.service";
 import { ZelfKeysService } from "app/services/zelf-keys.service";
@@ -28,6 +29,7 @@ import { ExportZotpComponent, ExportZOTPData } from "../export-zotp/export-zotp.
 export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
+    awaitingUnlockPassword = false;
     confirmingDelete = false;
     currentCode = "";
     currentTime = Math.floor(Date.now() / 1000);
@@ -39,7 +41,9 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
     loading = false;
     showBiometrics = false;
     showCode = false;
+    showUnlockMasterPassword = false;
     timeRemaining = 0;
+    unlockMasterPassword = "";
     unlockMode = false;
     zotp: ZOTP | null = null;
 
@@ -90,6 +94,14 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
         return this.zotp?.ipfs?.id || this.zotp?.zelfKeysId || "";
     }
 
+    get requiresDecryptPassword(): boolean {
+        return zelfKeysRequiresDecryptPassword(this.zotp?.protection);
+    }
+
+    get protectionLabelKey(): string {
+        return this.requiresDecryptPassword ? "zotp.protection.face_password" : "zotp.protection.face";
+    }
+
     private _loadZotp(): void {
         this.loading = true;
         this.error = null;
@@ -126,6 +138,31 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
         }
 
         this.unlockMode = true;
+        this.unlockMasterPassword = "";
+
+        if (this.requiresDecryptPassword) {
+            this.awaitingUnlockPassword = true;
+            this.showBiometrics = false;
+            return;
+        }
+
+        this.showBiometrics = true;
+    }
+
+    toggleUnlockMasterPasswordVisibility(): void {
+        this.showUnlockMasterPassword = !this.showUnlockMasterPassword;
+    }
+
+    onCancelUnlockPassword(): void {
+        this.awaitingUnlockPassword = false;
+        this.unlockMode = false;
+        this.unlockMasterPassword = "";
+    }
+
+    onContinueUnlockPassword(): void {
+        if (!this.unlockMasterPassword.trim()) return;
+
+        this.awaitingUnlockPassword = false;
         this.showBiometrics = true;
     }
 
@@ -202,6 +239,8 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
         console.error("Biometrics failed:", error);
         this.showBiometrics = false;
         this.unlockMode = false;
+        this.awaitingUnlockPassword = false;
+        this.unlockMasterPassword = "";
         this.deleting = false;
         this._changeDetectorRef.detectChanges();
     }
@@ -216,18 +255,25 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
         this.loading = true;
 
         try {
-            const secret = await this._zotpService.retrieveZOTPSecret(this.zotp, encryptedImage);
+            const encryptedMasterPassword =
+                this.requiresDecryptPassword && this.unlockMasterPassword.trim()
+                    ? await this._httpWrapperService.encryptMessage(this.unlockMasterPassword.trim())
+                    : undefined;
+
+            const secret = await this._zotpService.retrieveZOTPSecret(this.zotp, encryptedImage, encryptedMasterPassword);
             if (!secret) throw new Error("Failed to retrieve ZOTP secret");
 
             this.decryptedSecret = secret;
             this.showBiometrics = false;
             this.unlockMode = false;
+            this.unlockMasterPassword = "";
             await this._refreshCode();
             this._scrollToCode();
         } catch (error) {
             console.error("Error decrypting ZOTP:", error);
             this.showBiometrics = false;
             this.unlockMode = false;
+            this.unlockMasterPassword = "";
         } finally {
             this.loading = false;
             this._changeDetectorRef.detectChanges();

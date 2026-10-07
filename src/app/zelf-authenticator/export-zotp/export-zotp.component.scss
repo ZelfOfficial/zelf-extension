@@ -129,6 +129,26 @@
         }
     }
 
+    &__master-password {
+        display: flex;
+        flex-direction: column;
+        gap: calc(12px * var(--zns-space-scale, 1));
+
+        h4 {
+            margin: 0;
+            font-size: calc(16px * var(--zns-font-scale, 1));
+            font-weight: 700;
+            color: variables.$themeText;
+        }
+
+        p {
+            margin: 0;
+            font-size: calc(13px * var(--zns-font-scale, 1));
+            color: variables.$themeTextMuted;
+            line-height: 1.5;
+        }
+    }
+
     &__biometrics {
         display: flex;
         align-items: center;

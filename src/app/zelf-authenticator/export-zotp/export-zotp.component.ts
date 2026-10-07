@@ -1,12 +1,15 @@
 import { CommonModule, NgIf } from "@angular/common";
-import { ChangeDetectorRef, Component, ElementRef, Inject, ViewChild } from "@angular/core";
+import { ChangeDetectorRef, Component, ElementRef, Inject, OnInit, ViewChild } from "@angular/core";
+import { FormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { BiometricsGeneralComponent } from "app/biometrics-general/biometrics.component";
 import { CopyToClipboardBase } from "app/base/copy-to-clipboard/copy-to-clipboard.base";
 import { ChromeService } from "app/chrome.service";
+import { zelfKeysRequiresDecryptPassword } from "app/models/zelf-keys-protection";
 import { ZOTP } from "app/models/zotp.model";
+import { HttpWrapperService } from "app/http-wrapper.service";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { ZOTPService } from "app/services/zotp.service";
 import QRCodeStyling, { Options as QRCodeStylingOptions } from "qr-code-styling";
@@ -17,24 +20,30 @@ export interface ExportZOTPData {
 }
 
 @Component({
-    imports: [CommonModule, MatButtonModule, MatDialogModule, MatSnackBarModule, NgIf, TranslocoModule, BiometricsGeneralComponent],
+    imports: [CommonModule, FormsModule, MatButtonModule, MatDialogModule, MatSnackBarModule, NgIf, TranslocoModule, BiometricsGeneralComponent],
     selector: "export-zotp",
     styleUrls: ["./export-zotp.component.scss"],
     templateUrl: "./export-zotp.component.html",
 })
-export class ExportZotpComponent extends CopyToClipboardBase {
+export class ExportZotpComponent extends CopyToClipboardBase implements OnInit {
     @ViewChild("qrCodeContainer", { static: false }) qrCodeContainer!: ElementRef<HTMLElement>;
 
-    zotp: ZOTP;
+    awaitingMasterPassword = false;
+    encryptedMasterPassword = "";
     loading: boolean = false;
+    masterPassword = "";
     metadata: any = null;
-    setupKey: string = "";
     qrCode!: QRCodeStyling;
     qrCodeDataUrl: string = "";
+    setupKey: string = "";
+    showBiometrics = false;
+    showMasterPassword = false;
+    zotp: ZOTP;
 
     constructor(
         @Inject(MAT_DIALOG_DATA) public data: ExportZOTPData,
         public dialogRef: MatDialogRef<ExportZotpComponent>,
+        private _httpWrapperService: HttpWrapperService,
         private _zotpService: ZOTPService,
         private _changeDetectorRef: ChangeDetectorRef,
         private _dialog: MatDialog,
@@ -46,8 +55,31 @@ export class ExportZotpComponent extends CopyToClipboardBase {
         this.zotp = data.zotp;
     }
 
+    ngOnInit(): void {
+        this.awaitingMasterPassword = zelfKeysRequiresDecryptPassword(this.zotp.protection);
+        this.showBiometrics = !this.awaitingMasterPassword;
+    }
+
+    get requiresDecryptPassword(): boolean {
+        return zelfKeysRequiresDecryptPassword(this.zotp.protection);
+    }
+
     close(): void {
         this.dialogRef.close(false);
+    }
+
+    toggleMasterPasswordVisibility(): void {
+        this.showMasterPassword = !this.showMasterPassword;
+    }
+
+    async onContinueToBiometrics(): Promise<void> {
+        if (!this.masterPassword.trim()) return;
+
+        this.encryptedMasterPassword = await this._httpWrapperService.encryptMessage(this.masterPassword.trim());
+        this.masterPassword = "";
+        this.awaitingMasterPassword = false;
+        this.showBiometrics = true;
+        this._changeDetectorRef.detectChanges();
     }
 
     onBiometricsScanned(encryptedImage: string): void {
@@ -56,7 +88,11 @@ export class ExportZotpComponent extends CopyToClipboardBase {
         this._changeDetectorRef.detectChanges();
 
         this._zotpService
-            .retrieveZOTPMetadata(this.zotp, encryptedImage)
+            .retrieveZOTPMetadata(
+                this.zotp,
+                encryptedImage,
+                this.encryptedMasterPassword || undefined
+            )
             .then((metadata) => {
                 this.metadata = metadata;
                 // Extract setupKey from metadata
