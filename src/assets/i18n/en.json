@@ -1965,6 +1965,12 @@
             }
         },
         "see_details": "See Details",
+        "copy_code": "Copy code",
+        "copy_setup_key": "Copy setup key",
+        "code": {
+            "title": "Your code",
+            "refreshes_in": "Refreshes in {{seconds}}s"
+        },
         "decrypt": {
             "button": "Show code",
             "decrypting": "Opening…"

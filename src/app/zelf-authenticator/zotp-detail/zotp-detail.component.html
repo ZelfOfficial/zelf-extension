@@ -44,20 +44,20 @@
         </div>
 
         <div class="password-detail__actions">
-            <button type="button" class="password-detail__btn-cta" (click)="onUnlockClick()" [disabled]="loading || hydratingProof">
-                <span class="material-symbols-outlined">{{ decryptedSecret ? "verified" : "lock_open" }}</span>
-                {{
-                    hydratingProof
-                        ? t("zotp.proof.loading")
-                        : decryptedSecret
-                          ? t("zotp.see_details")
-                          : t("zotp.decrypt.button")
-                }}
+            <button
+                *ngIf="!decryptedSecret"
+                type="button"
+                class="password-detail__btn-cta"
+                (click)="onUnlockClick()"
+                [disabled]="loading || hydratingProof"
+            >
+                <span class="material-symbols-outlined">{{ hydratingProof ? "sync" : "lock_open" }}</span>
+                {{ hydratingProof ? t("zotp.proof.loading") : t("zotp.decrypt.button") }}
             </button>
 
             <button type="button" class="password-detail__btn-secondary" (click)="onCopyCode()" [disabled]="!decryptedSecret">
                 <span class="material-symbols-outlined">content_copy</span>
-                {{ t("common.copy") }}
+                {{ t("zotp.copy_code") }}
             </button>
 
             <button type="button" class="password-detail__btn-secondary" (click)="onExportItem()" [disabled]="hydratingProof">
@@ -145,31 +145,50 @@
             id="zotp-decrypted-content"
         >
             <h3 class="password-detail__section-title password-detail__section-title--accent">
-                {{ t("billing.passwords.detail.decrypted.title") }}
+                {{ t("zotp.code.title") }}
             </h3>
-            <div class="password-detail__panel">
+
+            <div class="zotp-code-hero">
+                <div class="zotp-code-hero__digits" aria-live="polite">{{ currentCode || "------" }}</div>
+                <div class="zotp-code-hero__timer">
+                    <div class="zotp-code-hero__timer-track">
+                        <div class="zotp-code-hero__timer-fill" [style.width.%]="countdownPercent"></div>
+                    </div>
+                    <span class="zotp-code-hero__timer-label">{{ t("zotp.code.refreshes_in", { seconds: timeRemaining }) }}</span>
+                </div>
+                <button type="button" class="password-detail__btn-secondary zotp-code-hero__copy" (click)="onCopyCode()">
+                    <span class="material-symbols-outlined">content_copy</span>
+                    {{ t("zotp.copy_code") }}
+                </button>
+            </div>
+
+            <div class="password-detail__panel zotp-setup-key-panel">
                 <dl class="password-detail__dl">
                     <div>
                         <dt>{{ t("zotp.setup_key") }}</dt>
                         <dd>
                             <div class="password-detail__row-content">
                                 <span class="password-detail__password-text password-detail__monospace">
-                                    {{ showCode ? currentCode : "• • • • • •" }}
+                                    {{ showSetupKey ? decryptedSecret : "••••••••••••" }}
                                 </span>
                                 <div class="password-detail__inline-actions">
                                     <button
                                         type="button"
                                         class="password-detail__icon-btn"
-                                        (click)="onToggleCodeVisibility()"
-                                        [title]="showCode ? t('billing.passwords.detail.decrypted.hide_password') : t('billing.passwords.detail.decrypted.show_password')"
+                                        (click)="onToggleSetupKeyVisibility()"
+                                        [title]="
+                                            showSetupKey
+                                                ? t('billing.passwords.detail.decrypted.hide_password')
+                                                : t('billing.passwords.detail.decrypted.show_password')
+                                        "
                                     >
-                                        <span class="material-symbols-outlined">{{ showCode ? "visibility_off" : "visibility" }}</span>
+                                        <span class="material-symbols-outlined">{{ showSetupKey ? "visibility_off" : "visibility" }}</span>
                                     </button>
                                     <button
                                         type="button"
                                         class="password-detail__icon-btn"
-                                        (click)="onCopyCode()"
-                                        [title]="t('zotp.copy_code')"
+                                        (click)="onCopySetupKey()"
+                                        [title]="t('zotp.copy_setup_key')"
                                     >
                                         <span class="material-symbols-outlined">content_copy</span>
                                     </button>
@@ -209,7 +228,7 @@
             <h3>{{ t("zotp.protection.decrypt_prompt.title") }}</h3>
             <p>{{ t("zotp.protection.decrypt_prompt.description") }}</p>
 
-            <div class="zelf-input zelf-input--wide">
+            <div class="zelf-input zelf-input--wide" [ngClass]="{ 'zelf-input--error': unlockError }">
                 <input
                     [type]="showUnlockMasterPassword ? 'text' : 'password'"
                     class="zelf-input__control zelf-input__control--floating-label"
@@ -223,7 +242,7 @@
                 </label>
             </div>
 
-            <p class="password-detail__unlock-password-error" *ngIf="unlockError">{{ unlockError }}</p>
+            <div class="zelf-message zelf-message--error" *ngIf="unlockError">{{ unlockError }}</div>
 
             <div class="password-detail__unlock-password-actions">
                 <button type="button" class="zelf-button zelf-button--outlined" (click)="onCancelUnlockPassword()">

@@ -3,7 +3,7 @@ import { ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatDialog, MatDialogModule } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { Router, RouterModule } from "@angular/router";
+import { ActivatedRoute, Router, RouterModule } from "@angular/router";
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { interval, Subject, takeUntil } from "rxjs";
 
@@ -24,6 +24,7 @@ import { ZelfKeysService } from "app/services/zelf-keys.service";
 import { ZotpDataService } from "app/services/zotp-data.service";
 import { ZOTPService } from "app/services/zotp.service";
 import { WalletService } from "app/wallet.service";
+import { getDevFaceBypassRouterExtras, syncDevFaceBypassFromQueryParams } from "app/utils/dev-biometrics-bypass.util";
 import { ExportZotpComponent, ExportZOTPData } from "../export-zotp/export-zotp.component";
 
 @Component({
@@ -34,6 +35,7 @@ import { ExportZotpComponent, ExportZOTPData } from "../export-zotp/export-zotp.
 })
 export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
+    private _proofHydrationPromise: Promise<ZOTP | null> | null = null;
 
     awaitingUnlockPassword = false;
     confirmingDelete = false;
@@ -48,7 +50,7 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
     hydratingProof = false;
     loading = false;
     showBiometrics = false;
-    showCode = false;
+    showSetupKey = false;
     showUnlockMasterPassword = false;
     timeRemaining = 0;
     unlockError: string | null = null;
@@ -57,6 +59,7 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
     zotp: ZOTP | null = null;
 
     constructor(
+        private _activatedRoute: ActivatedRoute,
         private _changeDetectorRef: ChangeDetectorRef,
         private _dialog: MatDialog,
         private _httpWrapperService: HttpWrapperService,
@@ -74,6 +77,11 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
     }
 
     async ngOnInit(): Promise<void> {
+        syncDevFaceBypassFromQueryParams(this._activatedRoute.snapshot.queryParams);
+        this._activatedRoute.queryParams.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+            syncDevFaceBypassFromQueryParams(params);
+        });
+
         const wallet = await this._walletService.getCurrentWallet();
         this.hasMasterPassword = wallet?.hasPassword || false;
         this._loadZotp();
@@ -87,8 +95,15 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
     }
 
     ngOnDestroy(): void {
+        this._clearDecryptedState();
         this.destroy$.next();
         this.destroy$.complete();
+    }
+
+    get countdownPercent(): number {
+        const period = this.zotp?.period || 30;
+        if (!period) return 0;
+        return Math.max(0, Math.min(100, (this.timeRemaining / period) * 100));
     }
 
     get initial(): string {
@@ -115,22 +130,49 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
         return this.requiresDecryptPassword ? "zotp.protection.face_password" : "zotp.protection.face";
     }
 
-    private async _ensureZotpProofReady(): Promise<boolean> {
-        if (!this.zotp) return false;
+    private _startProofPrefetch(): void {
+        if (!this.zotp?.zelfProof?.trim() && !this._proofHydrationPromise) {
+            this._proofHydrationPromise = this._hydrateProof(false);
+        }
+    }
 
-        this.hydratingProof = true;
-        this._changeDetectorRef.detectChanges();
+    private async _hydrateProof(showErrors: boolean): Promise<ZOTP | null> {
+        if (!this.zotp) return null;
+        if (this.zotp.zelfProof?.trim()) return this.zotp;
 
         try {
             const hydrated = await this._zotpService.ensureZotpProof(this.zotp);
             this.zotp = hydrated;
             this._zotpDataService.setCurrentZotp(hydrated);
-            return !!hydrated.zelfProof?.trim();
+            return hydrated;
         } catch (error) {
             console.error("Error hydrating ZOTP proof:", error);
-            const message = extractZotpApiErrorMessage(error, this._translocoService);
-            this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
-            return false;
+            if (showErrors) {
+                const message = extractZotpApiErrorMessage(error, this._translocoService);
+                this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
+            }
+            return null;
+        }
+    }
+
+    private async _ensureZotpProofReady(): Promise<boolean> {
+        if (!this.zotp) return false;
+        if (this.zotp.zelfProof?.trim()) return true;
+
+        this.hydratingProof = true;
+        this._changeDetectorRef.detectChanges();
+
+        try {
+            const hydrated = this._proofHydrationPromise
+                ? await this._proofHydrationPromise
+                : await this._hydrateProof(true);
+
+            if (!hydrated?.zelfProof?.trim()) {
+                const retry = await this._hydrateProof(true);
+                return !!retry?.zelfProof?.trim();
+            }
+
+            return true;
         } finally {
             this.hydratingProof = false;
             this._changeDetectorRef.detectChanges();
@@ -150,21 +192,24 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
 
         this.zotp = zotp;
         this.loading = false;
+        this._startProofPrefetch();
+    }
+
+    private _clearDecryptedState(): void {
+        this.decryptedSecret = null;
+        this.currentCode = "";
+        this.showSetupKey = false;
+        this.timeRemaining = 0;
     }
 
     onBackToList(): void {
+        this._clearDecryptedState();
         this._zotpDataService.clearCurrentZotp();
-        void this._router.navigate(["/zelf-authenticator"]);
+        void this._router.navigate(["/zelf-authenticator"], getDevFaceBypassRouterExtras() ?? {});
     }
 
     async onUnlockClick(): Promise<void> {
         if (!this.zotp) return;
-
-        if (this.decryptedSecret) {
-            this._scrollToCode();
-            return;
-        }
-
         if (!(await this._ensureZotpProofReady())) return;
 
         this.unlockMode = true;
@@ -216,14 +261,17 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
         await this._copyToClipboard(this.currentCode.replace(/\s/g, ""));
     }
 
-    onToggleCodeVisibility(): void {
-        this.showCode = !this.showCode;
+    onToggleSetupKeyVisibility(): void {
+        this.showSetupKey = !this.showSetupKey;
+    }
+
+    async onCopySetupKey(): Promise<void> {
+        if (!this.decryptedSecret) return;
+        await this._copyToClipboard(this.decryptedSecret);
     }
 
     onHideCode(): void {
-        this.decryptedSecret = null;
-        this.currentCode = "";
-        this.showCode = false;
+        this._clearDecryptedState();
     }
 
     async onExportItem(): Promise<void> {
@@ -346,7 +394,7 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
 
             this._zotpDataService.clearCurrentZotp();
             await this._zotpService.clearCacheAndRefresh();
-            void this._router.navigate(["/zelf-authenticator"]);
+            void this._router.navigate(["/zelf-authenticator"], getDevFaceBypassRouterExtras() ?? {});
         } catch (error) {
             console.error("Error deleting ZOTP:", error);
             const message = extractZotpApiErrorMessage(error, this._translocoService);
@@ -369,7 +417,9 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
 
         try {
             const code = await this._totpService.generate(this.decryptedSecret, period, digits, algorithm);
-            this.currentCode = code.length === 6 ? `${code.substring(0, 3)} ${code.substring(3)}` : code;
+            const midpoint = Math.ceil(code.length / 2);
+            this.currentCode =
+                code.length > 4 ? `${code.substring(0, midpoint)} ${code.substring(midpoint)}` : code;
             this.timeRemaining = period - (this.currentTime % period);
         } catch (error) {
             console.error("Error generating TOTP code:", error);

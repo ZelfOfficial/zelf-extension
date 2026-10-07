@@ -1,11 +1,12 @@
 import { CommonModule, NgFor, NgIf } from "@angular/common";
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
-import { Router } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { TranslocoModule } from "@jsverse/transloco";
 import { debounceTime, distinctUntilChanged, filter, map, skip, Subject, takeUntil } from "rxjs";
 
 import { ChromeService } from "app/chrome.service";
+import { getDevFaceBypassRouterExtras, syncDevFaceBypassFromQueryParams } from "app/utils/dev-biometrics-bypass.util";
 import { AuthService } from "app/services/auth.service";
 import { ZOTP } from "app/models/zotp.model";
 import { ZotpDataService } from "app/services/zotp-data.service";
@@ -27,6 +28,7 @@ export class ZelfAuthenticatorComponent implements OnInit, OnDestroy {
     zotps: ZOTP[] = [];
 
     constructor(
+        private _activatedRoute: ActivatedRoute,
         private _authService: AuthService,
         private _changeDetectorRef: ChangeDetectorRef,
         private _chromeService: ChromeService,
@@ -36,6 +38,11 @@ export class ZelfAuthenticatorComponent implements OnInit, OnDestroy {
     ) {}
 
     async ngOnInit(): Promise<void> {
+        syncDevFaceBypassFromQueryParams(this._activatedRoute.snapshot.queryParams);
+        this._activatedRoute.queryParams.pipe(takeUntil(this.unsubscriber$)).subscribe((params) => {
+            syncDevFaceBypassFromQueryParams(params);
+        });
+
         this.searchControl.valueChanges.pipe(debounceTime(200), takeUntil(this.unsubscriber$)).subscribe(() => {
             this._applyFilters();
         });
@@ -54,12 +61,12 @@ export class ZelfAuthenticatorComponent implements OnInit, OnDestroy {
     }
 
     onAddZotp(): void {
-        void this._router.navigate(["/zelf-authenticator/new"]);
+        void this._router.navigate(["/zelf-authenticator/new"], getDevFaceBypassRouterExtras() ?? {});
     }
 
     onZotpClick(zotp: ZOTP): void {
         this._zotpDataService.setCurrentZotp(zotp);
-        void this._router.navigate(["/zelf-authenticator/detail"]);
+        void this._router.navigate(["/zelf-authenticator/detail"], getDevFaceBypassRouterExtras() ?? {});
     }
 
     onRefresh(): void {

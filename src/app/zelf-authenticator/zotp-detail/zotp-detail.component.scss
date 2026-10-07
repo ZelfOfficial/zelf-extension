@@ -656,11 +656,68 @@
     color: variables.$secondaryColor;
 }
 
-.password-detail__unlock-password-error {
-    margin: 12px 0 0;
-    font-size: calc(13px * var(--zns-font-scale, 1));
-    color: variables.$error;
-    line-height: 1.5;
+.zotp-code-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(14px * var(--zns-space-scale, 1));
+    padding: calc(24px * var(--zns-space-scale, 1)) calc(16px * var(--zns-space-scale, 1));
+    border: 1px solid transparent;
+    background:
+        linear-gradient(variables.$themeCard, variables.$themeCard) padding-box,
+        linear-gradient(135deg, variables.$themeBorderHover, variables.$themeCardBorder) border-box;
+    border-radius: calc(20px * var(--zns-space-scale, 1));
+    margin-bottom: calc(10px * var(--zns-space-scale, 1));
+
+    &__digits {
+        font-family: variables.$themeMonospaceFamily;
+        font-size: calc(42px * var(--zns-font-scale, 1));
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        color: variables.$themeText;
+        line-height: 1.1;
+        text-align: center;
+        user-select: all;
+    }
+
+    &__timer {
+        width: 100%;
+        max-width: calc(240px * var(--zns-space-scale, 1));
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: calc(6px * var(--zns-space-scale, 1));
+    }
+
+    &__timer-track {
+        width: 100%;
+        height: calc(4px * var(--zns-space-scale, 1));
+        border-radius: 999px;
+        background: variables.$themeCardBorder;
+        overflow: hidden;
+    }
+
+    &__timer-fill {
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, variables.$secondaryColor, variables.$primaryColor);
+        transition: width 1s linear;
+    }
+
+    &__timer-label {
+        font-size: calc(12px * var(--zns-font-scale, 1));
+        color: variables.$themeTextMuted;
+        font-weight: 500;
+    }
+
+    &__copy {
+        width: 100%;
+        max-width: calc(220px * var(--zns-space-scale, 1));
+    }
+}
+
+.zotp-setup-key-panel {
+    margin-top: calc(4px * var(--zns-space-scale, 1));
 }
 
 .password-detail__unlock-password-actions {

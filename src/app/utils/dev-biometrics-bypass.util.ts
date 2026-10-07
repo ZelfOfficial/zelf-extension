@@ -77,6 +77,15 @@ export function isDevBiometricsBypassEnabled(): boolean {
     return !environment.production && environment.devBiometricsBypass === true && isDevFaceBypassOptedIn();
 }
 
+/** Keep `devFaceBypass=1` in the hash when navigating within zAuth (dev/QA only). */
+export function getDevFaceBypassRouterExtras(): { queryParams: Record<string, string> } | undefined {
+    if (isDevFaceBypassOptedIn()) {
+        return { queryParams: { [DEV_FACE_BYPASS_QUERY_PARAM]: "1" } };
+    }
+
+    return undefined;
+}
+
 /** Loads the dev selfie fixture and returns raw JPEG base64 (no data-URL prefix). */
 export async function loadDevBiometricsFixtureBase64(): Promise<string> {
     const response = await fetch(DEV_BIOMETRICS_FIXTURE_URL);

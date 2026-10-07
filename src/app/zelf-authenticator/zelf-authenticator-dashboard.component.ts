@@ -1,6 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
-import { NavigationEnd, Router, RouterModule } from "@angular/router";
+import { ActivatedRoute, NavigationEnd, Router, RouterModule } from "@angular/router";
+import { syncDevFaceBypassFromQueryParams } from "app/utils/dev-biometrics-bypass.util";
 import { TranslocoModule } from "@jsverse/transloco";
 import { Observable, Subject, distinctUntilChanged, filter, map, skip, takeUntil } from "rxjs";
 
@@ -35,6 +36,7 @@ export class ZelfAuthenticatorDashboardComponent implements OnInit, OnDestroy {
     allWallets: TagModel[] = [];
 
     constructor(
+        private _activatedRoute: ActivatedRoute,
         private _chromeService: ChromeService,
         private _changeDetectorRef: ChangeDetectorRef,
         private _router: Router,
@@ -45,6 +47,11 @@ export class ZelfAuthenticatorDashboardComponent implements OnInit, OnDestroy {
     }
 
     async ngOnInit(): Promise<void> {
+        syncDevFaceBypassFromQueryParams(this._activatedRoute.snapshot.queryParams);
+        this._activatedRoute.queryParams.pipe(takeUntil(this.unsubscriber$)).subscribe((params) => {
+            syncDevFaceBypassFromQueryParams(params);
+        });
+
         await this._initWallet();
         this._initSubscriptions();
     }
