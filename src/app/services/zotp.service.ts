@@ -1,7 +1,12 @@
 import { Injectable } from "@angular/core";
 import { ChromeService } from "../chrome.service";
 import { VaultService } from "../vault.service";
-import { parseZelfKeysProtection, resolveZotpProtection, ZelfKeysProtection } from "../models/zelf-keys-protection";
+import {
+    parseZelfKeysProtection,
+    resolveZotpProtection,
+    ZELF_KEYS_PROTECTION_FACE_PASSWORD,
+    ZelfKeysProtection,
+} from "../models/zelf-keys-protection";
 import { ZOTP } from "../models/zotp.model";
 import { TagModel } from "../tags.service";
 import { WalletService } from "../wallet.service";
@@ -309,6 +314,18 @@ export class ZOTPService {
         const protection = resolveZotpProtection(zotp);
         const versionHint = zotp.ipfs?.publicData?.v;
 
+        if (protection === ZELF_KEYS_PROTECTION_FACE_PASSWORD && !encryptedMasterPassword) {
+            throw new Error("ERR_PASSWORD_REQUIRED");
+        }
+
+        const walletPasswordFields = encryptedMasterPassword
+            ? {
+                  // Store/delete use `masterPassword`; password export retrieve uses `password`.
+                  masterPassword: encryptedMasterPassword,
+                  password: encryptedMasterPassword,
+              }
+            : {};
+
         return {
             zelfProof: zotp.zelfProof!,
             faceBase64,
@@ -316,7 +333,7 @@ export class ZOTPService {
             clientPublicKey,
             protection,
             publicData: { protection },
-            ...(encryptedMasterPassword ? { password: encryptedMasterPassword } : {}),
+            ...walletPasswordFields,
             ...(versionHint != null && String(versionHint).trim() ? { v: String(versionHint) } : {}),
         };
     }

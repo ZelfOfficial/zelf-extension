@@ -656,6 +656,13 @@
     color: variables.$secondaryColor;
 }
 
+.password-detail__unlock-password-error {
+    margin: 12px 0 0;
+    font-size: calc(13px * var(--zns-font-scale, 1));
+    color: variables.$error;
+    line-height: 1.5;
+}
+
 .password-detail__unlock-password-actions {
     display: flex;
     justify-content: flex-end;

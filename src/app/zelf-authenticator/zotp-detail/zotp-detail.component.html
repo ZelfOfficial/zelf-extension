@@ -217,6 +217,8 @@
                 </label>
             </div>
 
+            <p class="password-detail__unlock-password-error" *ngIf="unlockError">{{ unlockError }}</p>
+
             <div class="password-detail__unlock-password-actions">
                 <button type="button" class="zelf-button zelf-button--outlined" (click)="onCancelUnlockPassword()">
                     {{ t("common.cancel") }}

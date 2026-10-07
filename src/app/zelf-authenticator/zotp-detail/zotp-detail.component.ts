@@ -17,6 +17,7 @@ import {
     zelfKeysRequiresDecryptPassword,
 } from "app/models/zelf-keys-protection";
 import { extractZotpApiErrorMessage } from "../zotp-error.util";
+import { encryptWalletMasterPassword } from "../zotp-master-password.util";
 import { ZOTP } from "app/models/zotp.model";
 import { TOTPService } from "app/services/totp.service";
 import { ZelfKeysService } from "app/services/zelf-keys.service";
@@ -36,6 +37,7 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
 
     awaitingUnlockPassword = false;
     confirmingDelete = false;
+    encryptedUnlockMasterPassword = "";
     currentCode = "";
     currentTime = Math.floor(Date.now() / 1000);
     decryptedSecret: string | null = null;
@@ -48,6 +50,7 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
     showCode = false;
     showUnlockMasterPassword = false;
     timeRemaining = 0;
+    unlockError: string | null = null;
     unlockMasterPassword = "";
     unlockMode = false;
     zotp: ZOTP | null = null;
@@ -148,6 +151,8 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
 
         this.unlockMode = true;
         this.unlockMasterPassword = "";
+        this.encryptedUnlockMasterPassword = "";
+        this.unlockError = null;
 
         if (this.requiresDecryptPassword) {
             this.awaitingUnlockPassword = true;
@@ -166,13 +171,26 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
         this.awaitingUnlockPassword = false;
         this.unlockMode = false;
         this.unlockMasterPassword = "";
+        this.encryptedUnlockMasterPassword = "";
+        this.unlockError = null;
     }
 
-    onContinueUnlockPassword(): void {
+    async onContinueUnlockPassword(): Promise<void> {
         if (!this.unlockMasterPassword.trim()) return;
 
-        this.awaitingUnlockPassword = false;
-        this.showBiometrics = true;
+        try {
+            this.encryptedUnlockMasterPassword =
+                (await encryptWalletMasterPassword(this._httpWrapperService, this.unlockMasterPassword)) || "";
+            if (!this.encryptedUnlockMasterPassword) return;
+
+            this.unlockError = null;
+            this.awaitingUnlockPassword = false;
+            this.showBiometrics = true;
+        } catch (error) {
+            console.error("Error encrypting unlock password:", error);
+            this.unlockError = extractZotpApiErrorMessage(error, this._translocoService);
+            this._snackBar.open(this.unlockError, this._translocoService.translate("common.close"), { duration: 5000 });
+        }
     }
 
     async onCopyCode(): Promise<void> {
@@ -266,10 +284,9 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
         this.loading = true;
 
         try {
-            const encryptedMasterPassword =
-                this.requiresDecryptPassword && this.unlockMasterPassword.trim()
-                    ? await this._httpWrapperService.encryptMessage(this.unlockMasterPassword.trim())
-                    : undefined;
+            const encryptedMasterPassword = this.requiresDecryptPassword
+                ? this.encryptedUnlockMasterPassword || undefined
+                : undefined;
 
             const secret = await this._zotpService.retrieveZOTPSecret(this.zotp, encryptedImage, encryptedMasterPassword);
             if (!secret) throw new Error("Failed to retrieve ZOTP secret");
@@ -278,11 +295,14 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
             this.showBiometrics = false;
             this.unlockMode = false;
             this.unlockMasterPassword = "";
+            this.encryptedUnlockMasterPassword = "";
+            this.unlockError = null;
             await this._refreshCode();
             this._scrollToCode();
         } catch (error) {
             console.error("Error decrypting ZOTP:", error);
             const message = extractZotpApiErrorMessage(error, this._translocoService);
+            this.unlockError = message;
             this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
 
             this.showBiometrics = false;
@@ -290,8 +310,11 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
 
             if (this.requiresDecryptPassword) {
                 this.awaitingUnlockPassword = true;
+                this.unlockMasterPassword = "";
+                this.encryptedUnlockMasterPassword = "";
             } else {
                 this.unlockMasterPassword = "";
+                this.encryptedUnlockMasterPassword = "";
             }
         } finally {
             this.loading = false;

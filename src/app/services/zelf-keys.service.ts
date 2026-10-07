@@ -86,7 +86,9 @@ export interface RetrieveRequest {
     clientPublicKey: string; // Ephemeral client public key for transport encryption
     type?: string;
     v?: string | number;
-    password?: string; // Optional ZelfProof password
+    password?: string; // Optional ZelfProof password (retrieve decrypt)
+    /** Wallet master password (PGP-encrypted) — same field name as store/delete endpoints. */
+    masterPassword?: string;
     /** Item decrypt protection — API may read this or publicData.protection on the request body. */
     protection?: "face" | "face_password";
     publicData?: {

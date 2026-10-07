@@ -9,6 +9,7 @@ import { CopyToClipboardBase } from "app/base/copy-to-clipboard/copy-to-clipboar
 import { ChromeService } from "app/chrome.service";
 import { resolveZotpProtection, zelfKeysRequiresDecryptPassword } from "app/models/zelf-keys-protection";
 import { extractZotpApiErrorMessage } from "../zotp-error.util";
+import { encryptWalletMasterPassword } from "../zotp-master-password.util";
 import { ZOTP } from "app/models/zotp.model";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
@@ -77,7 +78,7 @@ export class ExportZotpComponent extends CopyToClipboardBase implements OnInit {
     async onContinueToBiometrics(): Promise<void> {
         if (!this.masterPassword.trim()) return;
 
-        this.encryptedMasterPassword = await this._httpWrapperService.encryptMessage(this.masterPassword.trim());
+        this.encryptedMasterPassword = (await encryptWalletMasterPassword(this._httpWrapperService, this.masterPassword)) || "";
         this.masterPassword = "";
         this.awaitingMasterPassword = false;
         this.showBiometrics = true;

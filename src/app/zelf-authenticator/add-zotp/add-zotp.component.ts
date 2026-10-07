@@ -19,6 +19,7 @@ import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { extractZotpApiErrorMessage } from "../zotp-error.util";
+import { encryptWalletMasterPassword } from "../zotp-master-password.util";
 
 @Component({
     imports: [
@@ -579,11 +580,9 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         this.loading = true;
 
         try {
-            // Get master password from form and encrypt it
-            const masterPasswordPlain = this.form.get("masterPassword")?.value;
             const masterPassword =
-                this.hasMasterPassword && masterPasswordPlain
-                    ? await this._httpWrapperService.encryptMessage(masterPasswordPlain)
+                this.hasMasterPassword
+                    ? (await encryptWalletMasterPassword(this._httpWrapperService, this.form.get("masterPassword")?.value)) || ""
                     : "";
 
             // Store ZOTP to ZelfKeys API (this is the creation step)
