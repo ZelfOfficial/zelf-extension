@@ -17,6 +17,7 @@ import { PasswordDataService } from "../../../services/password-data.service";
 import { PopoutCommunicationService, PopoutDecryptionResult } from "../../../services/popout-communication.service";
 import { ScrollToSectionService } from "../../../services/scroll-to-section.service";
 import { ZelfKeysDataService } from "../../../services/zelf-keys-data.service";
+import { extractZelfKeyProofErrorMessage, ZelfKeysProofService } from "../../../services/zelf-keys-proof.service";
 import {
     BiometricResult,
     BiometricsBottomSheetComponent,
@@ -69,6 +70,7 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
     deleting = false;
     decrypting = false;
     error: string | null = null;
+    hydratingProof = false;
     isPopout = false;
     loading = false;
     showBiometrics = false;
@@ -88,6 +90,7 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
         private _scrollToSectionService: ScrollToSectionService,
         private _walletService: WalletService,
         private _zelfKeysDataService: ZelfKeysDataService,
+        private _zelfKeysProofService: ZelfKeysProofService,
         public _chromeService: ChromeService,
         public _snackBar: MatSnackBar,
         public _translocoService: TranslocoService
@@ -181,11 +184,38 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
         this._popoutCommunicationService.setDecryptionData(this.decryptionPayload);
     }
 
+    private async _ensureItemProofReady(): Promise<boolean> {
+        if (!this.zelfKeyPasswordRecord) return false;
+        if (this.zelfKeyPasswordRecord.zelfProof?.trim()) return true;
+
+        this.hydratingProof = true;
+        this._changeDetectorRef.detectChanges();
+
+        try {
+            const hydrated = await this._zelfKeysProofService.ensureProof(this.zelfKeyPasswordRecord, {
+                keysCategory: "passwords",
+            });
+            this.zelfKeyPasswordRecord = hydrated as ZelfKeyPasswordRecord;
+            this._passwordDataService.setCurrentPassword(hydrated);
+            return !!hydrated.zelfProof?.trim();
+        } catch (error) {
+            console.error("Error hydrating password proof:", error);
+            const message = extractZelfKeyProofErrorMessage(error, this._translocoService);
+            this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
+            return false;
+        } finally {
+            this.hydratingProof = false;
+            this._changeDetectorRef.detectChanges();
+        }
+    }
+
     async onDecryptClick(): Promise<void> {
         if (this.decryptedData) {
             this._scrollToSectionService.scrollToSection("password-decrypted-content", "password");
             return;
         }
+
+        if (!(await this._ensureItemProofReady())) return;
 
         if (this.isPopout) {
             this.showPopoutDecryptor = true;
@@ -243,6 +273,7 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
 
     async onExportItem(): Promise<void> {
         if (!this.zelfKeyPasswordRecord) return;
+        if (!(await this._ensureItemProofReady())) return;
 
         const wallet = await this._walletService.getCurrentWallet();
 

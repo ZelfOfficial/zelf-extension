@@ -1,5 +1,7 @@
 import { TranslocoService } from "@jsverse/transloco";
 
+import { ERR_ZELFKEY_PROOF_UNAVAILABLE } from "app/services/zelf-keys-proof.service";
+
 /** Map ZelfKeys / retrieve API errors to user-facing zOTP copy. */
 export function extractZotpApiErrorMessage(error: unknown, transloco: TranslocoService): string {
     const fallback = transloco.translate("zotp.decrypt_failed");
@@ -28,6 +30,10 @@ export function extractZotpApiErrorMessage(error: unknown, transloco: TranslocoS
 
     if (serverCode === "ERR_INVALID_PASSWORD") {
         return transloco.translate("zotp.incorrect_password");
+    }
+
+    if (serverCode === ERR_ZELFKEY_PROOF_UNAVAILABLE || err?.message === ERR_ZELFKEY_PROOF_UNAVAILABLE) {
+        return transloco.translate("zotp.errors.proof_load_failed");
     }
 
     if (typeof serverMessage === "string" && serverMessage.trim().length > 0) {

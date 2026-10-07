@@ -89,7 +89,9 @@
             "back_to_payment_cards": "Back to Payment Cards",
             "add_another_card": "Add Another Card",
             "try_again": "Try Again",
-            "image_not_available": "Image not available"
+            "image_not_available": "Image not available",
+            "proof_loading": "Loading encrypted data…",
+            "proof_load_failed": "Couldn't load this item's encrypted data. Try again."
         },
         "payment_cards": {
             "labels": {
@@ -1966,6 +1968,12 @@
         "decrypt": {
             "button": "Show code",
             "decrypting": "Opening…"
+        },
+        "proof": {
+            "loading": "Loading encrypted data…"
+        },
+        "errors": {
+            "proof_load_failed": "Couldn't load this code's encrypted data. Try again."
         },
         "decrypt_failed": "Could not open this ZOTP. Please try again.",
         "unlock_zotp": "Unlock ZOTP",

@@ -10,6 +10,7 @@ import {
 import { ZOTP } from "../models/zotp.model";
 import { TagModel } from "../tags.service";
 import { WalletService } from "../wallet.service";
+import { ZelfKeysProofService } from "./zelf-keys-proof.service";
 import { RetrieveRequest, ZelfKeysService } from "./zelf-keys.service";
 
 @Injectable({
@@ -30,6 +31,7 @@ export class ZOTPService {
         private _chromeService: ChromeService,
         private _vaultService: VaultService,
         private _walletService: WalletService,
+        private _zelfKeysProofService: ZelfKeysProofService,
         private _zelfKeysService: ZelfKeysService
     ) {}
 
@@ -455,6 +457,50 @@ export class ZOTPService {
         const zotps = await this.getAllZOTPs();
 
         return zotps.find((z) => z.id === id) || null;
+    }
+
+    /**
+     * Ensure the item-specific ZelfKey proof is present (lazy GET /proof when list/cache omitted it).
+     */
+    async ensureZotpProof(zotp: ZOTP): Promise<ZOTP> {
+        if (zotp.zelfProof?.trim()) {
+            await this._syncZotpFromStoredResponse(zotp);
+            if (zotp.zelfProof?.trim()) {
+                return zotp;
+            }
+        }
+
+        const hydrated = await this._zelfKeysProofService.ensureProof(zotp);
+        const updated: ZOTP = {
+            ...zotp,
+            ...hydrated,
+            zelfProof: hydrated.zelfProof,
+            zelfProofQRCode: hydrated.zelfProofQRCode ?? zotp.zelfProofQRCode,
+            ipfs: zotp.ipfs
+                ? {
+                      ...zotp.ipfs,
+                      id: hydrated.ipfs?.id ?? zotp.ipfs.id,
+                      cid: hydrated.ipfs?.cid ?? zotp.ipfs.cid,
+                  }
+                : zotp.ipfs,
+        };
+
+        await this._addToCache(updated);
+
+        const responseKey = `zotp_response_${updated.id}`;
+        const storedResponse = await this._chromeService.getItem<any>(responseKey);
+        if (storedResponse?.response) {
+            await this._chromeService.setItem(responseKey, {
+                ...storedResponse,
+                response: {
+                    ...storedResponse.response,
+                    zelfProof: updated.zelfProof,
+                    zelfProofQRCode: updated.zelfProofQRCode,
+                },
+            });
+        }
+
+        return updated;
     }
 
     /**

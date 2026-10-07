@@ -1,5 +1,6 @@
 import { Injectable } from "@angular/core";
 import { VaultService } from "../vault.service";
+import { ZelfKeysProofService } from "./zelf-keys-proof.service";
 import { ZelfKeysService } from "./zelf-keys.service";
 
 export type ExportFormat =
@@ -94,6 +95,7 @@ export class VaultExportService {
 
     constructor(
         private _vaultService: VaultService,
+        private _zelfKeysProofService: ZelfKeysProofService,
         private _zelfKeysService: ZelfKeysService
     ) {}
 
@@ -390,8 +392,7 @@ export class VaultExportService {
 
         for (let i = 0; i < total; i++) {
             const raw = rawItems[i];
-            const item = raw.raw || raw;
-            const zelfProof = item.zelfProof || item.publicData?.zelfProof;
+            let item = raw.raw || raw;
             const title =
                 item.publicData?.title ||
                 item.publicData?.website ||
@@ -403,8 +404,20 @@ export class VaultExportService {
                 onProgress({ current: i + 1, total, title });
             }
 
-            if (!zelfProof) {
-                failed.push({ item, error: "Missing zelfProof" });
+            let zelfProof = item.zelfProof || item.publicData?.zelfProof;
+            if (!zelfProof?.trim()) {
+                try {
+                    item = await this._zelfKeysProofService.ensureProof(item, { keysCategory: "passwords" });
+                    zelfProof = item.zelfProof || item.publicData?.zelfProof;
+                } catch (hydrateError) {
+                    console.warn(`Failed to hydrate proof for ${title}:`, hydrateError);
+                    failed.push({ item, error: "proof_load_failed" });
+                    continue;
+                }
+            }
+
+            if (!zelfProof?.trim()) {
+                failed.push({ item, error: "proof_load_failed" });
                 continue;
             }
 

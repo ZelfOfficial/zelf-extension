@@ -17,6 +17,7 @@ import { PaymentCardDataService } from "../../../services/payment-card-data.serv
 import { PopoutCommunicationService, PopoutDecryptionResult } from "../../../services/popout-communication.service";
 import { ScrollToSectionService } from "../../../services/scroll-to-section.service";
 import { ZelfKeysDataService } from "../../../services/zelf-keys-data.service";
+import { extractZelfKeyProofErrorMessage, ZelfKeysProofService } from "../../../services/zelf-keys-proof.service";
 import {
     BiometricResult,
     BiometricsBottomSheetComponent,
@@ -39,6 +40,7 @@ export class ZelfKeysPaymentCardDetailComponent extends CopyToClipboardBase impl
     error: string | null = null;
     isDecrypted = false;
     isLoading = false;
+    hydratingProof = false;
     isPopout = false;
     paymentCard: PaymentCardItem | null = null;
     showBiometrics = false;
@@ -57,6 +59,7 @@ export class ZelfKeysPaymentCardDetailComponent extends CopyToClipboardBase impl
         private _scrollToSectionService: ScrollToSectionService,
         private _walletService: WalletService,
         private _zelfKeysDataService: ZelfKeysDataService,
+        private _zelfKeysProofService: ZelfKeysProofService,
         protected _chromeService: ChromeService,
         protected _snackBar: MatSnackBar,
         protected _translocoService: TranslocoService
@@ -119,11 +122,38 @@ export class ZelfKeysPaymentCardDetailComponent extends CopyToClipboardBase impl
         }
     }
 
+    private async _ensureItemProofReady(): Promise<boolean> {
+        if (!this.paymentCard) return false;
+        if ((this.paymentCard as any).zelfProof?.trim() || this.paymentCard.publicData?.zelfProof?.trim()) return true;
+
+        this.hydratingProof = true;
+        this._changeDetectorRef.detectChanges();
+
+        try {
+            const hydrated = await this._zelfKeysProofService.ensureProof(this.paymentCard, {
+                keysCategory: "paymentCards",
+            });
+            this.paymentCard = hydrated as PaymentCardItem;
+            this._paymentCardDataService.setCurrentPaymentCard(this.paymentCard);
+            return !!(hydrated as any).zelfProof?.trim();
+        } catch (error) {
+            console.error("Error hydrating payment card proof:", error);
+            const message = extractZelfKeyProofErrorMessage(error, this._translocoService);
+            this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
+            return false;
+        } finally {
+            this.hydratingProof = false;
+            this._changeDetectorRef.detectChanges();
+        }
+    }
+
     async onDecryptClick(): Promise<void> {
         if (this.isDecrypted) {
             this._scrollToSectionService.scrollToSection("payment-card-decrypted-content", "payment-card");
             return;
         }
+
+        if (!(await this._ensureItemProofReady())) return;
 
         if (this.isPopout) {
             this.showPopoutDecryptor = true;

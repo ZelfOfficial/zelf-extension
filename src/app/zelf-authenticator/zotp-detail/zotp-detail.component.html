@@ -44,9 +44,15 @@
         </div>
 
         <div class="password-detail__actions">
-            <button type="button" class="password-detail__btn-cta" (click)="onUnlockClick()" [disabled]="loading">
+            <button type="button" class="password-detail__btn-cta" (click)="onUnlockClick()" [disabled]="loading || hydratingProof">
                 <span class="material-symbols-outlined">{{ decryptedSecret ? "verified" : "lock_open" }}</span>
-                {{ decryptedSecret ? t("zotp.see_details") : t("zotp.decrypt.button") }}
+                {{
+                    hydratingProof
+                        ? t("zotp.proof.loading")
+                        : decryptedSecret
+                          ? t("zotp.see_details")
+                          : t("zotp.decrypt.button")
+                }}
             </button>
 
             <button type="button" class="password-detail__btn-secondary" (click)="onCopyCode()" [disabled]="!decryptedSecret">
@@ -54,7 +60,7 @@
                 {{ t("common.copy") }}
             </button>
 
-            <button type="button" class="password-detail__btn-secondary" (click)="onExportItem()">
+            <button type="button" class="password-detail__btn-secondary" (click)="onExportItem()" [disabled]="hydratingProof">
                 <span class="material-symbols-outlined">ios_share</span>
                 {{ t("zotp.export") }}
             </button>

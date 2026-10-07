@@ -48,9 +48,10 @@
 
         <!-- Decrypt Button -->
         <div class="payment-card-detail__decrypt-section" *ngIf="!isDecrypted && !showBiometrics">
-            <button class="zelf-button zelf-button--primary zelf-button--wide" (click)="onDecryptClick()" [disabled]="isLoading">
-                <span *ngIf="!isLoading">{{ t("zelf_keys.payment_cards.decrypt.button") }}</span>
-                <span *ngIf="isLoading">{{ t("zelf_keys.payment_cards.decrypt.decrypting") }}</span>
+            <button class="zelf-button zelf-button--primary zelf-button--wide" (click)="onDecryptClick()" [disabled]="isLoading || hydratingProof">
+                <span *ngIf="hydratingProof">{{ t("zelf_keys.common.proof_loading") }}</span>
+                <span *ngIf="!hydratingProof && !isLoading">{{ t("zelf_keys.payment_cards.decrypt.button") }}</span>
+                <span *ngIf="!hydratingProof && isLoading">{{ t("zelf_keys.payment_cards.decrypt.decrypting") }}</span>
             </button>
         </div>
 

@@ -58,7 +58,20 @@ export class ExportZotpComponent extends CopyToClipboardBase implements OnInit {
         this.zotp = data.zotp;
     }
 
-    ngOnInit(): void {
+    async ngOnInit(): Promise<void> {
+        try {
+            this.loading = true;
+            this.zotp = await this._zotpService.ensureZotpProof(this.zotp);
+        } catch (error) {
+            console.error("Error hydrating ZOTP proof for export:", error);
+            this.errorMessage = extractZotpApiErrorMessage(error, this._translocoService);
+            this._snackBar.open(this.errorMessage, this._translocoService.translate("common.close"), { duration: 5000 });
+            this.loading = false;
+            return;
+        } finally {
+            this.loading = false;
+        }
+
         this.awaitingMasterPassword = zelfKeysRequiresDecryptPassword(resolveZotpProtection(this.zotp));
         this.showBiometrics = !this.awaitingMasterPassword;
     }

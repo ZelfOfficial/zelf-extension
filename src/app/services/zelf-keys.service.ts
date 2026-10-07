@@ -225,6 +225,20 @@ export class ZelfKeysService {
     }
 
     /**
+     * Hydrate a single item's ZelfKey proof from its pin URL (list rows omit zelfProof).
+     */
+    async getProof(id: string): Promise<any> {
+        const token = await this._authService.checkAccessToken();
+
+        return this._httpWrapper.sendRequest(
+            "get",
+            `${this.baseUrl}${this.apiPath}/proof`,
+            { id },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+    }
+
+    /**
      * List all ZOTPs (passwords with folder="ZOTP")
      * This is a convenience method that filters the password list
      * @param zelfProof - Wallet zelfProof for authentication

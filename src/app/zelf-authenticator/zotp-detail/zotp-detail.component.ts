@@ -45,6 +45,7 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
     deleting = false;
     error: string | null = null;
     hasMasterPassword = false;
+    hydratingProof = false;
     loading = false;
     showBiometrics = false;
     showCode = false;
@@ -114,6 +115,28 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
         return this.requiresDecryptPassword ? "zotp.protection.face_password" : "zotp.protection.face";
     }
 
+    private async _ensureZotpProofReady(): Promise<boolean> {
+        if (!this.zotp) return false;
+
+        this.hydratingProof = true;
+        this._changeDetectorRef.detectChanges();
+
+        try {
+            const hydrated = await this._zotpService.ensureZotpProof(this.zotp);
+            this.zotp = hydrated;
+            this._zotpDataService.setCurrentZotp(hydrated);
+            return !!hydrated.zelfProof?.trim();
+        } catch (error) {
+            console.error("Error hydrating ZOTP proof:", error);
+            const message = extractZotpApiErrorMessage(error, this._translocoService);
+            this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
+            return false;
+        } finally {
+            this.hydratingProof = false;
+            this._changeDetectorRef.detectChanges();
+        }
+    }
+
     private _loadZotp(): void {
         this.loading = true;
         this.error = null;
@@ -134,20 +157,15 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
         void this._router.navigate(["/zelf-authenticator"]);
     }
 
-    onUnlockClick(): void {
-        if (!this.zotp?.zelfProof) {
-            this._snackBar.open(
-                this._translocoService.translate("errors.cannot_decrypt_zotp_missing_zelfProof"),
-                this._translocoService.translate("common.close"),
-                { duration: 3000 }
-            );
-            return;
-        }
+    async onUnlockClick(): Promise<void> {
+        if (!this.zotp) return;
 
         if (this.decryptedSecret) {
             this._scrollToCode();
             return;
         }
+
+        if (!(await this._ensureZotpProofReady())) return;
 
         this.unlockMode = true;
         this.unlockMasterPassword = "";
@@ -208,15 +226,9 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
         this.showCode = false;
     }
 
-    onExportItem(): void {
-        if (!this.zotp?.zelfProof) {
-            this._snackBar.open(
-                this._translocoService.translate("errors.cannot_decrypt_zotp_missing_zelfProof"),
-                this._translocoService.translate("common.close"),
-                { duration: 3000 }
-            );
-            return;
-        }
+    async onExportItem(): Promise<void> {
+        if (!this.zotp) return;
+        if (!(await this._ensureZotpProofReady())) return;
 
         this._dialog.open(ExportZotpComponent, {
             panelClass: "zelf-dialog",
