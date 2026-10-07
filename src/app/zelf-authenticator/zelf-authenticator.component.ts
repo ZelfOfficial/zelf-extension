@@ -15,17 +15,12 @@ import { distinctUntilChanged, filter, interval, map, skip, Subject, takeUntil }
 import { CopyToClipboardBase } from "app/base/copy-to-clipboard/copy-to-clipboard.base";
 import { ChromeService } from "app/chrome.service";
 import { AuthService } from "app/services/auth.service";
-import { HomeHubHeaderComponent } from "app/home/home-hub-header/home-hub-header.component";
-import { HomeProfilePanelComponent } from "app/home/home-profile-panel/home-profile-panel.component";
 import { ZOTP } from "app/models/zotp.model";
 import { FirstLetterPipe } from "app/pipes/first-letter.pipe";
 import { TOTPService } from "app/services/totp.service";
 import { ZOTPService } from "app/services/zotp.service";
-import { TagModel } from "app/tags.service";
 import { WalletService } from "app/wallet.service";
-import { ZelfFooterComponent } from "app/zelf-footer/zelf-footer.component";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
-import { AddZotpComponent } from "./add-zotp/add-zotp.component";
 import { DeleteZotpComponent, DeleteZOTPData } from "./delete-zotp/delete-zotp.component";
 import { ExportZotpComponent, ExportZOTPData } from "./export-zotp/export-zotp.component";
 import { RecoverZotpComponent, RecoverZOTPData } from "./recover-zotp/recover-zotp.component";
@@ -38,8 +33,6 @@ import { ZotpDetailsComponent, ZOTPDetailsData } from "./zotp-details/zotp-detai
         FirstLetterPipe,
         FlexLayoutModule,
         FormsModule,
-        HomeHubHeaderComponent,
-        HomeProfilePanelComponent,
         MatButtonModule,
         MatIconModule,
         MatMenuModule,
@@ -48,7 +41,6 @@ import { ZotpDetailsComponent, ZOTPDetailsData } from "./zotp-details/zotp-detai
         NgFor,
         NgIf,
         TranslocoModule,
-        ZelfFooterComponent,
         ZelfLoaderComponent,
     ],
     selector: "zelf-authenticator",
@@ -68,16 +60,6 @@ export class ZelfAuthenticatorComponent extends CopyToClipboardBase implements O
     searchQuery: string = "";
     zotps: ZOTP[] = [];
 
-    shareables: any = {
-        view: "home",
-        wallet: {} as Partial<TagModel>,
-    };
-
-    wallet: Partial<TagModel> = {};
-    showProfilePanel = false;
-    allWallets: TagModel[] = [];
-    showName = false;
-
     constructor(
         private _authService: AuthService,
         private _changeDetectorRef: ChangeDetectorRef,
@@ -94,7 +76,6 @@ export class ZelfAuthenticatorComponent extends CopyToClipboardBase implements O
 
         this._searchDebounced = debounce(this._performSearch.bind(this), 300);
 
-        this._initWallet();
         this._initSubscriptions();
     }
 
@@ -123,15 +104,6 @@ export class ZelfAuthenticatorComponent extends CopyToClipboardBase implements O
         this.unsubscriber$.complete();
     }
 
-    private _initWallet(): void {
-        this._walletService.getCurrentWallet().then((wallet: Partial<TagModel> | null) => {
-            if (!wallet) return;
-
-            this.wallet = wallet;
-            this.shareables.wallet = wallet;
-        });
-    }
-
     private _initSubscriptions(): void {
         this._chromeService.onWalletChanged$
             .pipe(
@@ -148,9 +120,6 @@ export class ZelfAuthenticatorComponent extends CopyToClipboardBase implements O
 
     private async _reloadZotpsForWalletSwitch(fullTagName: string): Promise<void> {
         console.log(`[zAuth] reload for ${fullTagName}`);
-
-        const wallet = await this._walletService.getCurrentWallet();
-        if (wallet) this.shareables.wallet = wallet;
 
         this._decryptedSecrets.clear();
         this._codeCache.clear();
@@ -296,17 +265,8 @@ export class ZelfAuthenticatorComponent extends CopyToClipboardBase implements O
         dialogRef.afterClosed().subscribe();
     }
 
-    openAddZotp(): void {
-        const dialogRef = this._dialog.open(AddZotpComponent, {
-            backdropClass: "zelf-backdrop",
-            maxWidth: "500px",
-            panelClass: "zelf-dialog",
-            width: "90vw",
-        });
-
-        dialogRef.afterClosed().subscribe((added: boolean | undefined) => {
-            if (added) void this.refreshList();
-        });
+    onAddZotp(): void {
+        void this._router.navigate(["/zelf-authenticator/new"]);
     }
 
     async recoverZOTP(): Promise<void> {
@@ -456,41 +416,7 @@ export class ZelfAuthenticatorComponent extends CopyToClipboardBase implements O
         return remaining;
     }
 
-    get walletName(): string {
-        return (this.wallet?.fullTagName || this.wallet?.publicData?.tagName || "") as string;
-    }
-
     async refreshList(): Promise<void> {
         await this._reloadZotps(true);
-    }
-
-    toggleName(): void {
-        this.showName = !this.showName;
-    }
-
-    async openProfilePanel(): Promise<void> {
-        const { wallets } = await this._walletService.getAllWalletsFromStorage();
-        this.allWallets = wallets;
-        this.showProfilePanel = true;
-        this._changeDetectorRef.detectChanges();
-    }
-
-    closeProfilePanel(): void {
-        this.showProfilePanel = false;
-    }
-
-    async onPanelWalletSelected(selectedWallet: TagModel): Promise<void> {
-        this.closeProfilePanel();
-        await this._walletService.switchWallet(selectedWallet);
-    }
-
-    onPanelSettings(): void {
-        this.closeProfilePanel();
-        void this._router.navigate(["/settings"], { state: { fromZAuthScreen: true } });
-    }
-
-    onPanelAddAccount(): void {
-        this.closeProfilePanel();
-        void this._router.navigate(["/wallet-manage"], { state: { fromZAuthScreen: true } });
     }
 }

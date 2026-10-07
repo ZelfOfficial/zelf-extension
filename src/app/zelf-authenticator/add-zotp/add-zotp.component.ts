@@ -1,8 +1,8 @@
 import { CommonModule, NgClass, NgIf } from "@angular/common";
-import { Component, Inject, OnDestroy, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { Router } from "@angular/router";
 import { TranslocoModule } from "@jsverse/transloco";
 import jsQR from "jsqr";
 import { Subject } from "rxjs";
@@ -49,14 +49,13 @@ export class AddZotpComponent implements OnInit, OnDestroy {
     submitted: boolean = false; // Track if form has been submitted
 
     constructor(
-        private _dialogRef: MatDialogRef<AddZotpComponent>,
         private _formBuilder: FormBuilder,
-        private _zotpService: ZOTPService,
+        private _httpWrapperService: HttpWrapperService,
+        private _router: Router,
         private _tagsService: TagsService,
         private _vaultService: VaultService,
-        private _httpWrapperService: HttpWrapperService,
         private _walletService: WalletService,
-        @Inject(MAT_DIALOG_DATA) public data: any
+        private _zotpService: ZOTPService
     ) {
         this._initForm();
     }
@@ -539,8 +538,8 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             // The biometrics are part of the creation flow, not decryption
             await this._zotpService.storeZOTPToZelfKeys(this.pendingZOTP, encryptedImage, masterPassword);
 
-            // Successfully created - close dialog
-            this._dialogRef.close(true);
+            // Successfully created - return to list
+            void this._router.navigate(["/zelf-authenticator"]);
         } catch (error) {
             console.error("Error creating ZOTP:", error);
             // TODO: Show error message to user
@@ -567,7 +566,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         // Handle navigation away from biometrics if needed
     }
 
-    close(): void {
-        this._dialogRef.close(false);
+    onCancel(): void {
+        void this._router.navigate(["/zelf-authenticator"]);
     }
 }

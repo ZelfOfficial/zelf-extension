@@ -1,0 +1,26 @@
+<div class="zelf-card authenticator-dashboard" *transloco="let t" [class.authenticator-dashboard--deep]="isDeepShell$ | async">
+    <home-hub-header
+        *ngIf="!(isDeepShell$ | async)"
+        [walletName]="walletName"
+        [showName]="showName"
+        (profileClick)="openProfilePanel()"
+        (toggleNameClick)="toggleName()"
+    />
+
+    <main class="authenticator-dashboard__content">
+        <router-outlet></router-outlet>
+    </main>
+
+    <zelf-footer [shareables]="{ wallet: wallet }"></zelf-footer>
+
+    <home-profile-panel
+        *ngIf="showProfilePanel"
+        [wallets]="allWallets"
+        [currentWallet]="wallet"
+        [visible]="showProfilePanel"
+        (closed)="closeProfilePanel()"
+        (walletSelected)="onPanelWalletSelected($event)"
+        (openSettings)="onPanelSettings()"
+        (addAccount)="onPanelAddAccount()"
+    />
+</div>

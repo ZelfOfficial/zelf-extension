@@ -152,7 +152,19 @@ const routes: Routes = [
             },
             {
                 path: "zelf-authenticator",
-                loadComponent: () => import("./zelf-authenticator/zelf-authenticator.component").then((m) => m.ZelfAuthenticatorComponent),
+                loadComponent: () =>
+                    import("./zelf-authenticator/zelf-authenticator-dashboard.component").then((m) => m.ZelfAuthenticatorDashboardComponent),
+                children: [
+                    {
+                        path: "",
+                        loadComponent: () =>
+                            import("./zelf-authenticator/zelf-authenticator.component").then((m) => m.ZelfAuthenticatorComponent),
+                    },
+                    {
+                        path: "new",
+                        loadComponent: () => import("./zelf-authenticator/add-zotp/add-zotp.component").then((m) => m.AddZotpComponent),
+                    },
+                ],
             },
             {
                 path: "rewards",

@@ -2,41 +2,11 @@
 @use "../../styles/buttons";
 
 :host {
-    align-items: center;
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
-    justify-content: center;
-}
-
-::ng-deep .home-hub {
-    overflow: hidden;
-    padding-bottom: calc(94px * var(--zns-space-scale, 1)) !important;
-}
-
-/* Prevent old zAuth padding from fighting with the hub body layout (makes the card feel taller and cleaner) */
-.home-hub__body .zelf-authenticator {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-}
-
-.home-hub__body {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: calc(88px * var(--zns-space-scale, 1));
-    bottom: calc(82px * var(--zns-space-scale, 1));
-    display: flex;
-    flex-direction: column;
-    overflow: auto;
-    padding: 0 calc(16px * var(--zns-space-scale, 1));
-}
-
-@media screen and (max-width: variables.$medium) {
-    .home-hub__body {
-        top: calc(76px * var(--zns-space-scale, 1));
-        bottom: calc(70px * var(--zns-space-scale, 1));
-    }
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 0;
 }
 
 * {
@@ -44,13 +14,17 @@
 }
 
 .zelf-authenticator {
-    align-items: center;
+    width: 100%;
     display: flex;
     flex-direction: column;
-    gap: calc(24px * var(--zns-space-scale, 1)) !important;
-    justify-content: center;
-    padding-bottom: calc(94px * var(--zns-space-scale, 1)) !important;
-    padding-top: calc(88px * var(--zns-space-scale, 1)) !important;
+    gap: calc(16px * var(--zns-space-scale, 1));
+    min-height: 100%;
+    flex: 1 1 auto;
+    box-sizing: border-box;
+
+    .authenticator-dashboard & {
+        flex: 1 1 auto;
+    }
 
     &__header {
         display: flex;
@@ -81,6 +55,43 @@
         align-items: center;
         flex-grow: 1;
         padding-top: calc(8px * var(--zns-space-scale, 1));
+    }
+
+    &__actions {
+        display: flex;
+        align-items: center;
+        gap: calc(8px * var(--zns-space-scale, 1));
+        width: 100%;
+        padding: 0 calc(16px * var(--zns-space-scale, 1));
+    }
+
+    &__add-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: calc(6px * var(--zns-space-scale, 1));
+        padding: calc(10px * var(--zns-space-scale, 1)) calc(14px * var(--zns-space-scale, 1));
+        border: none;
+        border-radius: calc(12px * var(--zns-space-scale, 1));
+        font-family: variables.$themeBodyFamily;
+        font-size: calc(13px * var(--zns-font-scale, 1));
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+            transform 0.2s variables.$smoothBezier,
+            box-shadow 0.2s variables.$smoothBezier;
+        background: variables.$themeButton;
+        color: variables.$themeButtonText;
+
+        &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        &:active {
+            transform: scale(0.97);
+        }
     }
 
     &__search {

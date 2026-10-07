@@ -14,6 +14,7 @@ export const DEEP_SHELL_PATH_MATCHERS: ReadonlyArray<(path: string) => boolean> 
     (path) => path.startsWith("/zelf-keys/payment-cards/new"),
     (path) => path.startsWith("/zelf-keys/payment-cards/result"),
     (path) => path.startsWith("/zelf-keys/billing"),
+    (path) => path.startsWith("/zelf-authenticator/new"),
 ];
 
 @Injectable({
@@ -49,6 +50,10 @@ export class ShellLayoutService {
 
         if (path.startsWith("/zelf-keys/payment-cards")) {
             return "/zelf-keys/payment-cards/new";
+        }
+
+        if (path.startsWith("/zelf-authenticator")) {
+            return "/zelf-authenticator/new";
         }
 
         if (path.startsWith("/zelf-keys")) {
