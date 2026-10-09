@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { VaultService } from "../vault.service";
 import { ExportableCredential, VaultExportService } from "./vault-export.service";
+import { ZelfKeysProofService } from "./zelf-keys-proof.service";
 import { ZelfKeysService } from "./zelf-keys.service";
 
 describe("VaultExportService", () => {
@@ -42,6 +43,7 @@ describe("VaultExportService", () => {
                 VaultExportService,
                 { provide: VaultService, useValue: mockVaultService },
                 { provide: ZelfKeysService, useValue: mockZelfKeysService },
+                { provide: ZelfKeysProofService, useValue: {} },
             ],
         });
         service = TestBed.inject(VaultExportService);
