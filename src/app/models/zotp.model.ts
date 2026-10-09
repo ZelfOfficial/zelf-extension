@@ -1,3 +1,5 @@
+import { ZelfKeysProtection } from "./zelf-keys-protection";
+
 export interface ZOTP {
     id: string;
     name: string;
@@ -10,7 +12,10 @@ export interface ZOTP {
     updatedAt: number;
     isDecrypted?: boolean; // Whether the code is currently visible
     decryptedSecret?: string; // Temporarily decrypted secret (only in memory, never persisted)
-    zelfProof?: string; // Wallet zelfProof - identifies which wallet owns this ZOTP (required for retrieval)
+    /** Item-level decrypt protection from publicData.protection (`face` | `face_password`). */
+    protection?: ZelfKeysProtection;
+    /** Per-item ZelfKey proof from store or GET /proof — required for retrieve (not the wallet session proof). */
+    zelfProof?: string;
     zelfKeysId?: string; // ID returned from ZelfKeys API for retrieval
     zelfProofQRCode?: string; // QR code image from backend response (data:image/png;base64,...)
     ipfs?: any; // Full IPFS data from backend response

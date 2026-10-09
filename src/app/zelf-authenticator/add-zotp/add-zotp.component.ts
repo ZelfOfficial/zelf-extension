@@ -1,47 +1,56 @@
-import { CommonModule, NgClass, NgIf } from "@angular/common";
-import { Component, Inject, OnDestroy, OnInit } from "@angular/core";
+import { CommonModule, NgClass, NgIf, NgTemplateOutlet } from "@angular/common";
+import { Component, OnDestroy, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
-import { TranslocoModule } from "@jsverse/transloco";
+import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
+import { Router } from "@angular/router";
+import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import jsQR from "jsqr";
 import { Subject } from "rxjs";
 
 import { BiometricsGeneralComponent } from "app/biometrics-general/biometrics.component";
 import { DragAndDropDirective } from "app/directives/drag-and-drop.directive";
 import { HttpWrapperService } from "app/http-wrapper.service";
+import { protectionFromDecryptToggle, ZelfKeysProtection } from "app/models/zelf-keys-protection";
 import { ZOTP } from "app/models/zotp.model";
-import { FirstLetterPipe } from "app/pipes/first-letter.pipe";
 import { ZOTPService } from "app/services/zotp.service";
 import { TagModel, TagsService } from "app/tags.service";
 import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
+import { extractZotpApiErrorMessage } from "../zotp-error.util";
+import { encryptWalletMasterPassword } from "../zotp-master-password.util";
 
 @Component({
     imports: [
         BiometricsGeneralComponent,
         CommonModule,
         DragAndDropDirective,
-        FirstLetterPipe,
         MatButtonModule,
+        MatSnackBarModule,
         NgClass,
         NgIf,
+        NgTemplateOutlet,
         ReactiveFormsModule,
         TranslocoModule,
         ZelfLoaderComponent,
     ],
     selector: "add-zotp",
-    styleUrls: ["./add-zotp.component.scss"],
+    styleUrls: [
+        "./add-zotp.component.scss",
+        "../../zelf-keys/zelf-keys-passwords/zelf-keys-password-form/zelf-keys-password-form.component.scss",
+    ],
     templateUrl: "./add-zotp.component.html",
 })
 export class AddZotpComponent implements OnInit, OnDestroy {
     private unsubscriber$ = new Subject<void>();
 
-    currentWallet: TagModel | null = null; // Current wallet for displaying
+    currentWallet: TagModel | null = null;
     form!: FormGroup;
+    hasMasterPassword = false;
     loading: boolean = false;
     mode: "setup-key" | "qr-upload" = "setup-key";
+    pendingProtection: ZelfKeysProtection = "face";
     pendingZOTP: ZOTP | null = null; // ZOTP waiting to be created/stored after biometrics verification
     qrError: string = "";
     showBiometrics: boolean = false;
@@ -49,14 +58,15 @@ export class AddZotpComponent implements OnInit, OnDestroy {
     submitted: boolean = false; // Track if form has been submitted
 
     constructor(
-        private _dialogRef: MatDialogRef<AddZotpComponent>,
         private _formBuilder: FormBuilder,
-        private _zotpService: ZOTPService,
-        private _tagsService: TagsService,
-        private _vaultService: VaultService,
         private _httpWrapperService: HttpWrapperService,
+        private _router: Router,
+        private _snackBar: MatSnackBar,
+        private _tagsService: TagsService,
+        private _translocoService: TranslocoService,
+        private _vaultService: VaultService,
         private _walletService: WalletService,
-        @Inject(MAT_DIALOG_DATA) public data: any
+        private _zotpService: ZOTPService
     ) {
         this._initForm();
     }
@@ -70,9 +80,28 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         try {
             const wallet = await this._walletService.getCurrentWallet();
             this.currentWallet = wallet ? new TagModel(wallet) : null;
+            this.hasMasterPassword = !!wallet?.hasPassword;
+            this._updateMasterPasswordValidators();
         } catch (error) {
             console.error("Error loading current wallet:", error);
         }
+    }
+
+    private _updateMasterPasswordValidators(): void {
+        const control = this.form.get("masterPassword");
+        if (!control) return;
+
+        if (this.hasMasterPassword) {
+            control.setValidators([Validators.required]);
+        } else {
+            control.clearValidators();
+        }
+
+        control.updateValueAndValidity();
+    }
+
+    toggleMasterPasswordVisibility(): void {
+        this.showMasterPassword = !this.showMasterPassword;
     }
 
     ngOnDestroy(): void {
@@ -85,8 +114,28 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             name: ["", [Validators.required, Validators.maxLength(128)]],
             issuer: ["", [Validators.maxLength(128)]],
             setupKey: ["", [Validators.required]],
-            masterPassword: ["", [Validators.required]], // Master password required for ZOTP creation
+            masterPassword: [""],
+            requireMasterPasswordOnDecrypt: [false],
         });
+    }
+
+    get canShowProtectionOption(): boolean {
+        return this.mode === "setup-key" || !!this.form.get("setupKey")?.value?.trim();
+    }
+
+    get isFormReadyToSave(): boolean {
+        if (this.mode === "qr-upload") {
+            return !!this.form.get("setupKey")?.value?.trim() && !!this.form.get("name")?.valid;
+        }
+
+        return this.form.valid;
+    }
+
+    toggleRequireMasterPasswordOnDecrypt(): void {
+        if (!this.hasMasterPassword) return;
+
+        const control = this.form.get("requireMasterPasswordOnDecrypt");
+        control?.setValue(!control?.value);
     }
 
     switchMode(mode: "setup-key" | "qr-upload"): void {
@@ -488,6 +537,8 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             if (!zelfProof) throw new Error("No wallet found. Please create or unlock a wallet first.");
 
             // Create ZOTP object (secret will be encrypted by ZelfKeys API during storage)
+            const protection = protectionFromDecryptToggle(!!formValue.requireMasterPasswordOnDecrypt);
+
             const zotp: ZOTP = {
                 id: this._zotpService.generateId(),
                 name: formValue.name.trim(),
@@ -499,8 +550,11 @@ export class AddZotpComponent implements OnInit, OnDestroy {
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
                 isDecrypted: false,
+                protection,
                 zelfProof: zelfProof,
             };
+
+            this.pendingProtection = protection;
 
             // Store pending ZOTP and show biometrics for creation
             // Biometrics are required as part of the creation flow
@@ -508,7 +562,8 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             this.showBiometrics = true;
         } catch (error) {
             console.error("Error preparing ZOTP:", error);
-            // TODO: Show error message to user
+            const message = extractZotpApiErrorMessage(error, this._translocoService);
+            this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
         }
     }
 
@@ -525,49 +580,49 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         this.loading = true;
 
         try {
-            // Get master password from form and encrypt it
-            const masterPasswordPlain = this.form.get("masterPassword")?.value;
-
-            if (!masterPasswordPlain) {
-                throw new Error("Master password is required");
-            }
-
-            // Encrypt the master password before sending to API
-            const masterPassword = await this._httpWrapperService.encryptMessage(masterPasswordPlain);
+            const masterPassword =
+                this.hasMasterPassword
+                    ? (await encryptWalletMasterPassword(this._httpWrapperService, this.form.get("masterPassword")?.value)) || ""
+                    : "";
 
             // Store ZOTP to ZelfKeys API (this is the creation step)
             // The biometrics are part of the creation flow, not decryption
-            await this._zotpService.storeZOTPToZelfKeys(this.pendingZOTP, encryptedImage, masterPassword);
+            await this._zotpService.storeZOTPToZelfKeys(
+                this.pendingZOTP,
+                encryptedImage,
+                masterPassword,
+                this.pendingProtection
+            );
 
-            // Successfully created - close dialog
-            this._dialogRef.close(true);
+            // Successfully created - return to list
+            void this._router.navigate(["/zelf-authenticator"]);
         } catch (error) {
             console.error("Error creating ZOTP:", error);
-            // TODO: Show error message to user
+            const message = extractZotpApiErrorMessage(error, this._translocoService);
+            this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
             this.showBiometrics = false;
             this.pendingZOTP = null;
+            this.pendingProtection = "face";
         } finally {
             this.loading = false;
         }
     }
 
-    toggleShowMasterPassword(): void {
-        this.showMasterPassword = !this.showMasterPassword;
-    }
-
     onBiometricsFailed(error: any): void {
         console.error("Biometrics failed:", error);
+        const message = extractZotpApiErrorMessage(error, this._translocoService);
+        this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
         this.showBiometrics = false;
         this.pendingZOTP = null;
+        this.pendingProtection = "face";
         this.loading = false;
-        // TODO: Show error message to user
     }
 
     canNavigateAwayHandler(canNavigate: boolean): void {
         // Handle navigation away from biometrics if needed
     }
 
-    close(): void {
-        this._dialogRef.close(false);
+    onCancel(): void {
+        void this._router.navigate(["/zelf-authenticator"]);
     }
 }

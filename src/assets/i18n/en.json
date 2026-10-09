@@ -89,7 +89,9 @@
             "back_to_payment_cards": "Back to Payment Cards",
             "add_another_card": "Add Another Card",
             "try_again": "Try Again",
-            "image_not_available": "Image not available"
+            "image_not_available": "Image not available",
+            "proof_loading": "Loading encrypted data…",
+            "proof_load_failed": "Couldn't load this item's encrypted data. Try again."
         },
         "payment_cards": {
             "labels": {
@@ -931,8 +933,11 @@
         "import": "Import",
         "information": "Information",
         "is_required": "is required",
+        "done": "Done",
+        "hide_password": "Hide password",
         "learn_more": "Learn more",
         "load_more": "Load more",
+        "loading": "Loading…",
         "login": "Decrypt Zelf ID QR",
         "logout": "Remove Zelf ID QR",
         "manage_domains": "Manage Zelf IDs",
@@ -973,6 +978,7 @@
         "settings": "Settings",
         "show_less": "Show less",
         "show_more": "Show more",
+        "show_password": "Show password",
         "show_words": "Show words",
         "sol_address": "SOL Address",
         "stellar_address": "Stellar Address",
@@ -1940,7 +1946,46 @@
         "master_password": "Master Password",
         "master_password_placeholder": "Enter your wallet master password",
         "master_password_hint": "Your wallet's master password is required to encrypt and store this ZOTP securely.",
+        "protection": {
+            "label": "Open protection",
+            "face": "Face only",
+            "face_password": "Face + master password",
+            "decrypt_toggle": {
+                "title": "Require master password to open",
+                "description": "When enabled, decrypting this ZOTP later also asks for your wallet master password in addition to face verification.",
+                "aria_label": "Require master password when opening this ZOTP"
+            },
+            "face_only": {
+                "title": "Face-only wallet",
+                "description": "This Zelf ID has no master password. ZOTPs open with face verification only."
+            },
+            "decrypt_prompt": {
+                "title": "Enter master password",
+                "description": "This ZOTP is protected with face and your wallet master password.",
+                "continue": "Continue to face scan"
+            },
+            "errors": {
+                "password_required": "A master password is required to open this ZOTP."
+            }
+        },
         "see_details": "See Details",
+        "copy_code": "Copy code",
+        "copy_setup_key": "Copy setup key",
+        "code": {
+            "title": "Your code",
+            "refreshes_in": "Refreshes in {{seconds}}s"
+        },
+        "decrypt": {
+            "button": "Show code",
+            "decrypting": "Opening…"
+        },
+        "proof": {
+            "loading": "Loading encrypted data…"
+        },
+        "errors": {
+            "proof_load_failed": "Couldn't load this code's encrypted data. Try again."
+        },
+        "decrypt_failed": "Could not open this ZOTP. Please try again.",
         "unlock_zotp": "Unlock ZOTP",
         "unlock_subtitle": "Verify your identity to reveal your one-time code.",
         "security_note": "End-to-end encrypted. Only you can unlock it.",
@@ -1994,6 +2039,7 @@
         "share": "Share",
         "download_all_shares": "Download All Shares",
         "shares_info": "You need {{threshold}} out of {{total}} shares to recover this ZOTP. Distribute shares securely to trusted parties.",
+        "warning": "Warning",
         "shares_warning": "Keep shares secure! Anyone with enough shares can recover your ZOTP. Store shares in separate secure locations.",
         "recover_zotp": "Recover ZOTP",
         "recover_description": "Import shares to recover your ZOTP secret. You need a threshold number of shares to reconstruct the secret.",

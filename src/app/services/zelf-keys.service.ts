@@ -73,7 +73,8 @@ export interface StoreZOTPRequest {
     folder?: string;
     insideFolder?: boolean;
     faceBase64: string; // Encrypted face image from biometrics
-    masterPassword: string; // Wallet master password (encrypted)
+    masterPassword?: string; // Wallet master password (encrypted) — required when wallet has password
+    protection?: "face" | "face_password"; // Decrypt protection stored in publicData
 }
 
 /**
@@ -85,7 +86,15 @@ export interface RetrieveRequest {
     clientPublicKey: string; // Ephemeral client public key for transport encryption
     type?: string;
     v?: string | number;
-    password?: string; // Optional ZelfProof password
+    password?: string; // Optional ZelfProof password (retrieve decrypt)
+    /** Wallet master password (PGP-encrypted) — same field name as store/delete endpoints. */
+    masterPassword?: string;
+    /** Item decrypt protection — API may read this or publicData.protection on the request body. */
+    protection?: "face" | "face_password";
+    publicData?: {
+        protection?: "face" | "face_password";
+        v?: string | number;
+    };
 }
 
 /**
@@ -213,6 +222,20 @@ export class ZelfKeysService {
         const url = `${this.baseUrl}${this.apiPath}/list`;
 
         return this._httpWrapper.sendRequest("get", url, category ? { category } : {});
+    }
+
+    /**
+     * Hydrate a single item's ZelfKey proof from its pin URL (list rows omit zelfProof).
+     */
+    async getProof(id: string): Promise<any> {
+        const token = await this._authService.checkAccessToken();
+
+        return this._httpWrapper.sendRequest(
+            "get",
+            `${this.baseUrl}${this.apiPath}/proof`,
+            { id },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
     }
 
     /**

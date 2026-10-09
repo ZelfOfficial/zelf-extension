@@ -16,6 +16,7 @@ import { PasswordZelfidGuard } from "./guards/password-zelfid.guard";
 import { PopoutOnlyGuard } from "./guards/popout-only.guard";
 import { WelcomeCompleteWalletGuard } from "./guards/welcome-complete-wallet.guard";
 import { WelcomeZelfidCompleteWalletGuard } from "./guards/welcome-zelfid-complete-wallet.guard";
+import { ZelfAuthenticatorZotpGuard } from "./guards/zelf-authenticator-zotp.guard";
 import { ZelfKeysPasswordGuard } from "./guards/zelf-keys-password.guard";
 import { ZelfKeysPaymentCardGuard } from "./guards/zelf-keys-payment-card.guard";
 import { ZelfKeysResultGuard } from "./guards/zelf-keys-result.guard";
@@ -152,7 +153,24 @@ const routes: Routes = [
             },
             {
                 path: "zelf-authenticator",
-                loadComponent: () => import("./zelf-authenticator/zelf-authenticator.component").then((m) => m.ZelfAuthenticatorComponent),
+                loadComponent: () =>
+                    import("./zelf-authenticator/zelf-authenticator-dashboard.component").then((m) => m.ZelfAuthenticatorDashboardComponent),
+                children: [
+                    {
+                        path: "",
+                        loadComponent: () =>
+                            import("./zelf-authenticator/zelf-authenticator.component").then((m) => m.ZelfAuthenticatorComponent),
+                    },
+                    {
+                        path: "new",
+                        loadComponent: () => import("./zelf-authenticator/add-zotp/add-zotp.component").then((m) => m.AddZotpComponent),
+                    },
+                    {
+                        path: "detail",
+                        loadComponent: () => import("./zelf-authenticator/zotp-detail/zotp-detail.component").then((m) => m.ZotpDetailComponent),
+                        canActivate: [ZelfAuthenticatorZotpGuard],
+                    },
+                ],
             },
             {
                 path: "rewards",

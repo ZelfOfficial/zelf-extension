@@ -1,0 +1,270 @@
+<div class="password-detail" *transloco="let t">
+    <div *ngIf="loading && !zotp" class="loading-state">
+        <div class="spinner"></div>
+        <p>{{ t("billing.passwords.detail.loading") }}</p>
+    </div>
+
+    <div *ngIf="error && !zotp" class="error-state">
+        <span class="material-symbols-outlined icon">warning</span>
+        <h3>{{ t("common.error") }}</h3>
+        <p>{{ error }}</p>
+        <button class="btn-secondary" type="button" (click)="onBackToList()">{{ t("billing.passwords.detail.error.go_back") }}</button>
+    </div>
+
+    <div *ngIf="zotp && !showBiometrics && !awaitingUnlockPassword" class="password-detail__content">
+        <div class="password-detail__nav">
+            <button
+                (click)="onBackToList()"
+                mat-flat-button
+                class="zelf-icon-button zelf-icon-button--secondary zelf-icon-button--40"
+                [attr.aria-label]="t('common.go_back')"
+                type="button"
+            >
+                <svg width="22" height="14" viewBox="0 0 22 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M20.0898 5.8277H4.72478L8.08478 2.4677C8.53978 2.0127 8.53978 1.2777 8.08478 0.822695C7.62978 0.367695 6.89478 0.367695 6.43978 0.822695L1.08478 6.1777C0.62978 6.6327 0.62978 7.3677 1.08478 7.8227L6.43978 13.1777C6.89478 13.6327 7.62978 13.6327 8.08478 13.1777C8.53978 12.7227 8.53978 11.9877 8.08478 11.5327L4.72478 8.16103H20.0898C20.7314 8.16103 21.2564 7.63603 21.2564 6.99436C21.2564 6.3527 20.7314 5.8277 20.0898 5.8277Z"
+                    />
+                </svg>
+            </button>
+            <h2 class="password-detail__nav-title">{{ t("zotp.details") }}</h2>
+            <div class="password-detail__nav-spacer"></div>
+        </div>
+
+        <div class="password-detail__identity-card">
+            <div class="password-detail__identity">
+                <span class="password-detail__mark">{{ initial }}</span>
+                <div class="password-detail__identity-text">
+                    <h3 class="password-detail__title">{{ displayTitle }}</h3>
+                    <p class="password-detail__subtitle">{{ zotp.issuer || t("zotp.issuer_placeholder") }}</p>
+                </div>
+            </div>
+            <div class="password-detail__meta">
+                <span class="password-detail__category-chip">{{ t("zotp.category") }}</span>
+            </div>
+        </div>
+
+        <div class="password-detail__actions">
+            <button
+                *ngIf="!decryptedSecret"
+                type="button"
+                class="password-detail__btn-cta"
+                (click)="onUnlockClick()"
+                [disabled]="loading || hydratingProof"
+            >
+                <span class="material-symbols-outlined">{{ hydratingProof ? "sync" : "lock_open" }}</span>
+                {{ hydratingProof ? t("zotp.proof.loading") : t("zotp.decrypt.button") }}
+            </button>
+
+            <button type="button" class="password-detail__btn-secondary" (click)="onCopyCode()" [disabled]="!decryptedSecret">
+                <span class="material-symbols-outlined">content_copy</span>
+                {{ t("zotp.copy_code") }}
+            </button>
+
+            <button type="button" class="password-detail__btn-secondary" (click)="onExportItem()" [disabled]="hydratingProof">
+                <span class="material-symbols-outlined">ios_share</span>
+                {{ t("zotp.export") }}
+            </button>
+
+            <button type="button" class="password-detail__btn-delete" (click)="onDeleteClick()" *ngIf="!confirmingDelete">
+                <span class="material-symbols-outlined">delete</span>
+                {{ t("common.remove") }}
+            </button>
+        </div>
+
+        <section class="password-detail__delete-panel" *ngIf="confirmingDelete">
+            <div>
+                <strong>{{ t("zelf_keys.vault.delete_confirm") }}</strong>
+                <p>{{ t("zelf_keys.vault.delete_description") }}</p>
+            </div>
+            <div class="zelf-input zelf-input--wide" *ngIf="hasMasterPassword">
+                <input
+                    type="password"
+                    class="zelf-input__control zelf-input__control--floating-label"
+                    [(ngModel)]="deleteMasterPassword"
+                    id="zotpDeleteMasterPassword"
+                    autocomplete="current-password"
+                />
+                <label for="zotpDeleteMasterPassword" class="zelf-input__floating-label">
+                    {{ t("billing.passwords.form.master_password.label") }}
+                </label>
+            </div>
+            <div class="password-detail__delete-actions">
+                <button type="button" class="zelf-button zelf-button--outlined" (click)="onCancelDelete()" [disabled]="deleting">
+                    {{ t("zelf_keys.popout_decryptor.cancel") }}
+                </button>
+                <button
+                    type="button"
+                    class="zelf-button password-detail__delete-confirm"
+                    (click)="onConfirmDelete()"
+                    [disabled]="deleting || (hasMasterPassword && !deleteMasterPassword.trim())"
+                >
+                    {{ deleting ? t("zelf_keys.vault.deleting") : t("zelf_keys.vault.delete") }}
+                </button>
+            </div>
+        </section>
+
+        <div class="password-detail__section">
+            <h3 class="password-detail__section-title">{{ t("zotp.basic_info") }}</h3>
+            <div class="password-detail__panel">
+                <dl class="password-detail__dl">
+                    <div>
+                        <dt>{{ t("zotp.account_name") }}</dt>
+                        <dd>{{ zotp.name }}</dd>
+                    </div>
+                    <div *ngIf="zotp.issuer">
+                        <dt>{{ t("zotp.issuer") }}</dt>
+                        <dd>{{ zotp.issuer }}</dd>
+                    </div>
+                    <div>
+                        <dt>{{ t("zotp.protection.label") }}</dt>
+                        <dd>{{ t(protectionLabelKey) }}</dd>
+                    </div>
+                    <div *ngIf="zotp.algorithm">
+                        <dt>{{ t("zotp.algorithm") }}</dt>
+                        <dd>{{ zotp.algorithm }}</dd>
+                    </div>
+                    <div *ngIf="zotp.digits">
+                        <dt>{{ t("zotp.digits") }}</dt>
+                        <dd>{{ zotp.digits }}</dd>
+                    </div>
+                    <div *ngIf="zotp.period">
+                        <dt>{{ t("zotp.period") }}</dt>
+                        <dd>{{ zotp.period }}s</dd>
+                    </div>
+                    <div *ngIf="zotp.createdAt">
+                        <dt>{{ t("zotp.created_at") }}</dt>
+                        <dd>{{ formatDate(zotp.createdAt) }}</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <div
+            *ngIf="decryptedSecret"
+            class="password-detail__section password-detail__section--decrypted"
+            id="zotp-decrypted-content"
+        >
+            <h3 class="password-detail__section-title password-detail__section-title--accent">
+                {{ t("zotp.code.title") }}
+            </h3>
+
+            <div class="zotp-code-hero">
+                <div class="zotp-code-hero__digits" aria-live="polite">{{ currentCode || "------" }}</div>
+                <div class="zotp-code-hero__timer">
+                    <div class="zotp-code-hero__timer-track">
+                        <div class="zotp-code-hero__timer-fill" [style.width.%]="countdownPercent"></div>
+                    </div>
+                    <span class="zotp-code-hero__timer-label">{{ t("zotp.code.refreshes_in", { seconds: timeRemaining }) }}</span>
+                </div>
+                <button type="button" class="password-detail__btn-secondary zotp-code-hero__copy" (click)="onCopyCode()">
+                    <span class="material-symbols-outlined">content_copy</span>
+                    {{ t("zotp.copy_code") }}
+                </button>
+            </div>
+
+            <div class="password-detail__panel zotp-setup-key-panel">
+                <dl class="password-detail__dl">
+                    <div>
+                        <dt>{{ t("zotp.setup_key") }}</dt>
+                        <dd>
+                            <div class="password-detail__row-content">
+                                <span class="password-detail__password-text password-detail__monospace">
+                                    {{ showSetupKey ? decryptedSecret : "••••••••••••" }}
+                                </span>
+                                <div class="password-detail__inline-actions">
+                                    <button
+                                        type="button"
+                                        class="password-detail__icon-btn"
+                                        (click)="onToggleSetupKeyVisibility()"
+                                        [title]="
+                                            showSetupKey
+                                                ? t('billing.passwords.detail.decrypted.hide_password')
+                                                : t('billing.passwords.detail.decrypted.show_password')
+                                        "
+                                    >
+                                        <span class="material-symbols-outlined">{{ showSetupKey ? "visibility_off" : "visibility" }}</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="password-detail__icon-btn"
+                                        (click)="onCopySetupKey()"
+                                        [title]="t('zotp.copy_setup_key')"
+                                    >
+                                        <span class="material-symbols-outlined">content_copy</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </dd>
+                    </div>
+                </dl>
+                <button type="button" class="password-detail__btn-secondary" (click)="onHideCode()">
+                    <span class="material-symbols-outlined">lock</span>
+                    {{ t("zotp.hide_secret") }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <section *ngIf="awaitingUnlockPassword" class="password-detail__unlock-password">
+        <div class="password-detail__nav">
+            <button
+                (click)="onCancelUnlockPassword()"
+                mat-flat-button
+                class="zelf-icon-button zelf-icon-button--secondary zelf-icon-button--40"
+                type="button"
+            >
+                <svg width="22" height="14" viewBox="0 0 22 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M20.0898 5.8277H4.72478L8.08478 2.4677C8.53978 2.0127 8.53978 1.2777 8.08478 0.822695C7.62978 0.367695 6.89478 0.367695 6.43978 0.822695L1.08478 6.1777C0.62978 6.6327 0.62978 7.3677 1.08478 7.8227L6.43978 13.1777C6.89478 13.6327 7.62978 13.6327 8.08478 13.1777C8.53978 12.7227 8.53978 11.9877 8.08478 11.5327L4.72478 8.16103H20.0898C20.7314 8.16103 21.2564 7.63603 21.2564 6.99436C21.2564 6.3527 20.7314 5.8277 20.0898 5.8277Z"
+                    />
+                </svg>
+            </button>
+            <h2 class="password-detail__nav-title">{{ t("zotp.unlock_zotp") }}</h2>
+            <div class="password-detail__nav-spacer"></div>
+        </div>
+
+        <div class="password-detail__unlock-password-card">
+            <span class="material-symbols-outlined password-detail__unlock-password-icon" aria-hidden="true">encrypted</span>
+            <h3>{{ t("zotp.protection.decrypt_prompt.title") }}</h3>
+            <p>{{ t("zotp.protection.decrypt_prompt.description") }}</p>
+
+            <div class="zelf-input zelf-input--wide" [ngClass]="{ 'zelf-input--error': unlockError }">
+                <input
+                    [type]="showUnlockMasterPassword ? 'text' : 'password'"
+                    class="zelf-input__control zelf-input__control--floating-label"
+                    [(ngModel)]="unlockMasterPassword"
+                    id="zotpUnlockMasterPassword"
+                    autocomplete="current-password"
+                    placeholder=" "
+                />
+                <label for="zotpUnlockMasterPassword" class="zelf-input__floating-label">
+                    {{ t("billing.passwords.form.master_password.label") }}
+                </label>
+            </div>
+
+            <div class="zelf-message zelf-message--error" *ngIf="unlockError">{{ unlockError }}</div>
+
+            <div class="password-detail__unlock-password-actions">
+                <button type="button" class="zelf-button zelf-button--outlined" (click)="onCancelUnlockPassword()">
+                    {{ t("common.cancel") }}
+                </button>
+                <button
+                    type="button"
+                    class="zelf-button zelf-button--primary"
+                    (click)="onContinueUnlockPassword()"
+                    [disabled]="!unlockMasterPassword.trim()"
+                >
+                    {{ t("zotp.protection.decrypt_prompt.continue") }}
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <div *ngIf="showBiometrics" class="password-detail__biometrics">
+        <biometrics-general
+            (canNavigate)="canNavigateAwayHandler($event)"
+            (error)="onBiometricsFailed($event)"
+            (imageCaptured)="onBiometricsScanned($event)"
+        ></biometrics-general>
+    </div>
+</div>

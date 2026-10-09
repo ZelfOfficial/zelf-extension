@@ -1,12 +1,17 @@
 import { CommonModule, NgIf } from "@angular/common";
-import { ChangeDetectorRef, Component, ElementRef, Inject, ViewChild } from "@angular/core";
+import { ChangeDetectorRef, Component, ElementRef, Inject, OnInit, ViewChild } from "@angular/core";
+import { FormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { BiometricsGeneralComponent } from "app/biometrics-general/biometrics.component";
 import { CopyToClipboardBase } from "app/base/copy-to-clipboard/copy-to-clipboard.base";
 import { ChromeService } from "app/chrome.service";
+import { resolveZotpProtection, zelfKeysRequiresDecryptPassword } from "app/models/zelf-keys-protection";
+import { extractZotpApiErrorMessage } from "../zotp-error.util";
+import { encryptWalletMasterPassword } from "../zotp-master-password.util";
 import { ZOTP } from "app/models/zotp.model";
+import { HttpWrapperService } from "app/http-wrapper.service";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { ZOTPService } from "app/services/zotp.service";
 import QRCodeStyling, { Options as QRCodeStylingOptions } from "qr-code-styling";
@@ -17,24 +22,32 @@ export interface ExportZOTPData {
 }
 
 @Component({
-    imports: [CommonModule, MatButtonModule, MatDialogModule, MatSnackBarModule, NgIf, TranslocoModule, BiometricsGeneralComponent],
+    imports: [CommonModule, FormsModule, MatButtonModule, MatDialogModule, MatSnackBarModule, NgIf, TranslocoModule, BiometricsGeneralComponent],
     selector: "export-zotp",
     styleUrls: ["./export-zotp.component.scss"],
     templateUrl: "./export-zotp.component.html",
 })
-export class ExportZotpComponent extends CopyToClipboardBase {
+export class ExportZotpComponent extends CopyToClipboardBase implements OnInit {
     @ViewChild("qrCodeContainer", { static: false }) qrCodeContainer!: ElementRef<HTMLElement>;
 
-    zotp: ZOTP;
+    awaitingMasterPassword = false;
+    encryptedMasterPassword = "";
+    errorMessage = "";
     loading: boolean = false;
+    masterPassword = "";
     metadata: any = null;
-    setupKey: string = "";
     qrCode!: QRCodeStyling;
     qrCodeDataUrl: string = "";
+    setupKey: string = "";
+    showBiometrics = false;
+    showMasterPassword = false;
+    showSetupKey = false;
+    zotp: ZOTP;
 
     constructor(
         @Inject(MAT_DIALOG_DATA) public data: ExportZOTPData,
         public dialogRef: MatDialogRef<ExportZotpComponent>,
+        private _httpWrapperService: HttpWrapperService,
         private _zotpService: ZOTPService,
         private _changeDetectorRef: ChangeDetectorRef,
         private _dialog: MatDialog,
@@ -46,8 +59,50 @@ export class ExportZotpComponent extends CopyToClipboardBase {
         this.zotp = data.zotp;
     }
 
+    async ngOnInit(): Promise<void> {
+        try {
+            this.loading = true;
+            this.zotp = await this._zotpService.ensureZotpProof(this.zotp);
+        } catch (error) {
+            console.error("Error hydrating ZOTP proof for export:", error);
+            this.errorMessage = extractZotpApiErrorMessage(error, this._translocoService);
+            this._snackBar.open(this.errorMessage, this._translocoService.translate("common.close"), { duration: 5000 });
+            this.loading = false;
+            return;
+        } finally {
+            this.loading = false;
+        }
+
+        this.awaitingMasterPassword = zelfKeysRequiresDecryptPassword(resolveZotpProtection(this.zotp));
+        this.showBiometrics = !this.awaitingMasterPassword;
+    }
+
+    get requiresDecryptPassword(): boolean {
+        return zelfKeysRequiresDecryptPassword(resolveZotpProtection(this.zotp));
+    }
+
     close(): void {
+        this.setupKey = "";
+        this.showSetupKey = false;
         this.dialogRef.close(false);
+    }
+
+    toggleMasterPasswordVisibility(): void {
+        this.showMasterPassword = !this.showMasterPassword;
+    }
+
+    toggleSetupKeyVisibility(): void {
+        this.showSetupKey = !this.showSetupKey;
+    }
+
+    async onContinueToBiometrics(): Promise<void> {
+        if (!this.masterPassword.trim()) return;
+
+        this.encryptedMasterPassword = (await encryptWalletMasterPassword(this._httpWrapperService, this.masterPassword)) || "";
+        this.masterPassword = "";
+        this.awaitingMasterPassword = false;
+        this.showBiometrics = true;
+        this._changeDetectorRef.detectChanges();
     }
 
     onBiometricsScanned(encryptedImage: string): void {
@@ -56,7 +111,11 @@ export class ExportZotpComponent extends CopyToClipboardBase {
         this._changeDetectorRef.detectChanges();
 
         this._zotpService
-            .retrieveZOTPMetadata(this.zotp, encryptedImage)
+            .retrieveZOTPMetadata(
+                this.zotp,
+                encryptedImage,
+                this.encryptedMasterPassword || undefined
+            )
             .then((metadata) => {
                 this.metadata = metadata;
                 // Extract setupKey from metadata
@@ -72,9 +131,20 @@ export class ExportZotpComponent extends CopyToClipboardBase {
             })
             .catch((error) => {
                 console.error("Error retrieving ZOTP metadata:", error);
+                this.errorMessage = extractZotpApiErrorMessage(error, this._translocoService);
+                this._snackBar.open(
+                    this.errorMessage,
+                    this._translocoService.translate("common.close"),
+                    { duration: 5000 }
+                );
                 this.loading = false;
+                this.showBiometrics = false;
+
+                if (this.requiresDecryptPassword) {
+                    this.awaitingMasterPassword = true;
+                }
+
                 this._changeDetectorRef.detectChanges();
-                // TODO: Show error message to user
             });
     }
 

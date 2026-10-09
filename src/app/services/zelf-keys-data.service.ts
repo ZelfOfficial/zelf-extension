@@ -428,4 +428,45 @@ export class ZelfKeysDataService {
     async refresh(reason: string = "refresh"): Promise<ZelfKeysData> {
         return this.load(true, reason);
     }
+
+    /** Merge proof (or other fields) into a cached list row after lazy /proof hydration. */
+    patchCachedItem(category: keyof ZelfKeysData, id: string, patch: Record<string, unknown>): void {
+        const data = this._data$.value;
+        if (!data) return;
+
+        const list = data[category];
+        if (!Array.isArray(list)) return;
+
+        const index = list.findIndex((item) => item?.id === id || item?.cid === id);
+        if (index < 0) return;
+
+        const current = list[index];
+        const next = {
+            ...current,
+            ...patch,
+            publicData: {
+                ...(current.publicData || {}),
+                ...(patch["publicData"] as Record<string, unknown> | undefined),
+                ...(patch["zelfProof"] ? { zelfProof: patch["zelfProof"] } : {}),
+            },
+        };
+
+        const updated: ZelfKeysData = {
+            ...data,
+            [category]: [...list.slice(0, index), next, ...list.slice(index + 1)],
+        };
+
+        this._data$.next(updated);
+
+        void this._persistPatchedCache(updated);
+    }
+
+    private async _persistPatchedCache(data: ZelfKeysData): Promise<void> {
+        const { cacheKey, ttlKey, ownerTag } = await this._getCacheKeys();
+
+        if (this._memoryOwnerTag !== ownerTag) return;
+
+        await this._chromeService.setItemSession(cacheKey, data);
+        await this._chromeService.setItemSession(ttlKey, Date.now() + TTL_ONE_HOUR);
+    }
 }

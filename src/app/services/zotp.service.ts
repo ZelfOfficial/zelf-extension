@@ -1,10 +1,17 @@
 import { Injectable } from "@angular/core";
 import { ChromeService } from "../chrome.service";
 import { VaultService } from "../vault.service";
+import {
+    parseZelfKeysProtection,
+    resolveZotpProtection,
+    ZELF_KEYS_PROTECTION_FACE_PASSWORD,
+    ZelfKeysProtection,
+} from "../models/zelf-keys-protection";
 import { ZOTP } from "../models/zotp.model";
 import { TagModel } from "../tags.service";
 import { WalletService } from "../wallet.service";
-import { ZelfKeysService } from "./zelf-keys.service";
+import { ZelfKeysProofService } from "./zelf-keys-proof.service";
+import { RetrieveRequest, ZelfKeysService } from "./zelf-keys.service";
 
 @Injectable({
     providedIn: "root",
@@ -24,6 +31,7 @@ export class ZOTPService {
         private _chromeService: ChromeService,
         private _vaultService: VaultService,
         private _walletService: WalletService,
+        private _zelfKeysProofService: ZelfKeysProofService,
         private _zelfKeysService: ZelfKeysService
     ) {}
 
@@ -130,6 +138,7 @@ export class ZOTPService {
                     if (publicData.algorithm) zotp.algorithm = publicData.algorithm;
                     if (publicData.digits) zotp.digits = publicData.digits;
                     if (publicData.period) zotp.period = publicData.period;
+                    zotp.protection = parseZelfKeysProtection(publicData.protection);
 
                     zotps.push(zotp);
                 }
@@ -239,7 +248,12 @@ export class ZOTPService {
      * @param faceBase64 - Encrypted face image from biometrics
      * @param masterPassword - Encrypted master password
      */
-    async storeZOTPToZelfKeys(zotp: ZOTP, faceBase64: string, masterPassword: string): Promise<ZOTP> {
+    async storeZOTPToZelfKeys(
+        zotp: ZOTP,
+        faceBase64: string,
+        masterPassword: string,
+        protection?: ZelfKeysProtection
+    ): Promise<ZOTP> {
         if (!zotp.zelfProof) {
             throw new Error("zelfProof is required to store ZOTP");
         }
@@ -256,7 +270,8 @@ export class ZOTPService {
             folder: "ZOTP",
             insideFolder: false,
             faceBase64: faceBase64,
-            masterPassword: masterPassword, // Encrypted master password
+            ...(masterPassword ? { masterPassword } : {}),
+            ...(protection ? { protection } : {}),
         };
 
         try {
@@ -272,6 +287,7 @@ export class ZOTPService {
             const updatedZotp: ZOTP = {
                 ...zotp,
                 secret: undefined, // Remove secret - it's stored encrypted in ZelfKeys
+                protection: protection || parseZelfKeysProtection(responseData.ipfs?.publicData?.protection) || zotp.protection,
                 zelfProof: responseData.zelfProof || zotp.zelfProof, // Use the ZOTP-specific zelfProof from backend
                 zelfKeysId: responseData.ipfs?.id || zotp.zelfKeysId,
                 zelfProofQRCode: responseData.zelfProofQRCode || zotp.zelfProofQRCode,
@@ -291,13 +307,46 @@ export class ZOTPService {
         }
     }
 
+    private _buildZotpRetrieveRequest(
+        zotp: ZOTP,
+        faceBase64: string,
+        clientPublicKey: string,
+        encryptedMasterPassword?: string
+    ): RetrieveRequest {
+        const protection = resolveZotpProtection(zotp);
+        const versionHint = zotp.ipfs?.publicData?.v;
+
+        if (protection === ZELF_KEYS_PROTECTION_FACE_PASSWORD && !encryptedMasterPassword) {
+            throw new Error("ERR_PASSWORD_REQUIRED");
+        }
+
+        const walletPasswordFields = encryptedMasterPassword
+            ? {
+                  // Store/delete use `masterPassword`; password export retrieve uses `password`.
+                  masterPassword: encryptedMasterPassword,
+                  password: encryptedMasterPassword,
+              }
+            : {};
+
+        return {
+            zelfProof: zotp.zelfProof!,
+            faceBase64,
+            type: "zotp",
+            clientPublicKey,
+            protection,
+            publicData: { protection },
+            ...walletPasswordFields,
+            ...(versionHint != null && String(versionHint).trim() ? { v: String(versionHint) } : {}),
+        };
+    }
+
     /**
      * Retrieve decrypted secret from ZelfKeys
      * @param zotp - ZOTP to retrieve
      * @param faceBase64 - Encrypted face image from biometrics
      * @returns The decrypted setupKey (secret)
      */
-    async retrieveZOTPSecret(zotp: ZOTP, faceBase64: string): Promise<string> {
+    async retrieveZOTPSecret(zotp: ZOTP, faceBase64: string, encryptedMasterPassword?: string): Promise<string> {
         if (!zotp.zelfProof) {
             throw new Error("zelfProof is required to retrieve ZOTP");
         }
@@ -305,12 +354,9 @@ export class ZOTPService {
         try {
             const { publicKey: clientPublicKey } = await this._vaultService.generateEphemeralKeyPair();
 
-            const response = await this._zelfKeysService.retrieve({
-                zelfProof: zotp.zelfProof,
-                faceBase64: faceBase64,
-                type: "zotp",
-                clientPublicKey,
-            });
+            const response = await this._zelfKeysService.retrieve(
+                this._buildZotpRetrieveRequest(zotp, faceBase64, clientPublicKey, encryptedMasterPassword)
+            );
 
             // Response structure: { data: { success, data: { metadata, publicData, ipfs } } }
             // For ZOTP, the setupKey is stored in metadata.setupKey
@@ -350,7 +396,7 @@ export class ZOTPService {
      * @param faceBase64 - Encrypted face image from biometrics
      * @returns The full metadata object containing setupKey and other fields
      */
-    async retrieveZOTPMetadata(zotp: ZOTP, faceBase64: string): Promise<any> {
+    async retrieveZOTPMetadata(zotp: ZOTP, faceBase64: string, encryptedMasterPassword?: string): Promise<any> {
         if (!zotp.zelfProof) {
             throw new Error("zelfProof is required to retrieve ZOTP");
         }
@@ -358,12 +404,9 @@ export class ZOTPService {
         try {
             const { publicKey: clientPublicKey } = await this._vaultService.generateEphemeralKeyPair();
 
-            const response = await this._zelfKeysService.retrieve({
-                zelfProof: zotp.zelfProof,
-                faceBase64: faceBase64,
-                type: "zotp",
-                clientPublicKey,
-            });
+            const response = await this._zelfKeysService.retrieve(
+                this._buildZotpRetrieveRequest(zotp, faceBase64, clientPublicKey, encryptedMasterPassword)
+            );
 
             // Response structure: { data: { success, data: { metadata, publicData, ipfs } } }
             if (response?.data) {
@@ -414,6 +457,50 @@ export class ZOTPService {
         const zotps = await this.getAllZOTPs();
 
         return zotps.find((z) => z.id === id) || null;
+    }
+
+    /**
+     * Ensure the item-specific ZelfKey proof is present (lazy GET /proof when list/cache omitted it).
+     */
+    async ensureZotpProof(zotp: ZOTP): Promise<ZOTP> {
+        if (zotp.zelfProof?.trim()) {
+            await this._syncZotpFromStoredResponse(zotp);
+            if (zotp.zelfProof?.trim()) {
+                return zotp;
+            }
+        }
+
+        const hydrated = await this._zelfKeysProofService.ensureProof(zotp);
+        const updated: ZOTP = {
+            ...zotp,
+            ...hydrated,
+            zelfProof: hydrated.zelfProof,
+            zelfProofQRCode: hydrated.zelfProofQRCode ?? zotp.zelfProofQRCode,
+            ipfs: zotp.ipfs
+                ? {
+                      ...zotp.ipfs,
+                      id: hydrated.ipfs?.id ?? zotp.ipfs.id,
+                      cid: hydrated.ipfs?.cid ?? zotp.ipfs.cid,
+                  }
+                : zotp.ipfs,
+        };
+
+        await this._addToCache(updated);
+
+        const responseKey = `zotp_response_${updated.id}`;
+        const storedResponse = await this._chromeService.getItem<any>(responseKey);
+        if (storedResponse?.response) {
+            await this._chromeService.setItem(responseKey, {
+                ...storedResponse,
+                response: {
+                    ...storedResponse.response,
+                    zelfProof: updated.zelfProof,
+                    zelfProofQRCode: updated.zelfProofQRCode,
+                },
+            });
+        }
+
+        return updated;
     }
 
     /**

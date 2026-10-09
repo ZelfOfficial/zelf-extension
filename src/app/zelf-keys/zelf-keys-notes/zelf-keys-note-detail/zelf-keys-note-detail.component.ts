@@ -12,6 +12,7 @@ import { PopoutDecryptorComponent } from "../../../popout-decryptor/popout-decry
 import { NoteDataService } from "../../../services/note-data.service";
 import { PopoutCommunicationService, PopoutDecryptionResult } from "../../../services/popout-communication.service";
 import { ScrollToSectionService } from "../../../services/scroll-to-section.service";
+import { extractZelfKeyProofErrorMessage, ZelfKeysProofService } from "../../../services/zelf-keys-proof.service";
 
 @Component({
     imports: [CommonModule, TranslocoModule, RouterModule, PopoutDecryptorComponent],
@@ -25,6 +26,7 @@ export class ZelfKeysNoteDetailComponent extends CopyToClipboardBase implements 
     decryptedData: DecryptedNoteData | null = null;
     decrypting = false;
     error: string | null = null;
+    hydratingProof = false;
     isPopout = false;
     loading = false;
     note: NoteItem | null = null;
@@ -37,6 +39,7 @@ export class ZelfKeysNoteDetailComponent extends CopyToClipboardBase implements 
         private _popoutCommunicationService: PopoutCommunicationService,
         private _router: Router,
         private _scrollToSectionService: ScrollToSectionService,
+        private _zelfKeysProofService: ZelfKeysProofService,
         protected _chromeService: ChromeService,
         protected _snackBar: MatSnackBar,
         protected _translocoService: TranslocoService
@@ -83,11 +86,36 @@ export class ZelfKeysNoteDetailComponent extends CopyToClipboardBase implements 
         }
     }
 
+    private async _ensureItemProofReady(): Promise<boolean> {
+        if (!this.note) return false;
+        if ((this.note as any).zelfProof?.trim() || this.note.publicData?.zelfProof?.trim()) return true;
+
+        this.hydratingProof = true;
+        this._changeDetectorRef.detectChanges();
+
+        try {
+            const hydrated = await this._zelfKeysProofService.ensureProof(this.note, { keysCategory: "notes" });
+            this.note = hydrated as NoteItem;
+            this._noteDataService.setCurrentNote(this.note);
+            return !!(hydrated as any).zelfProof?.trim();
+        } catch (error) {
+            console.error("Error hydrating note proof:", error);
+            const message = extractZelfKeyProofErrorMessage(error, this._translocoService);
+            this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
+            return false;
+        } finally {
+            this.hydratingProof = false;
+            this._changeDetectorRef.detectChanges();
+        }
+    }
+
     async onDecryptClick(): Promise<void> {
         if (this.decryptedData) {
             this._scrollToSectionService.scrollToSection("note-decrypted-content", "note");
             return;
         }
+
+        if (!(await this._ensureItemProofReady())) return;
 
         if (this.isPopout) {
             this.showPopoutDecryptor = true;

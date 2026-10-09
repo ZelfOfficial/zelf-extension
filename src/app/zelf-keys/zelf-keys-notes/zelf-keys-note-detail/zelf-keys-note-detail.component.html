@@ -37,10 +37,16 @@
         <button
             class="zelf-button zelf-button--primary note-detail__decrypt-button"
             (click)="onDecryptClick()"
-            [disabled]="decrypting"
+            [disabled]="decrypting || hydratingProof"
             *ngIf="!showBiometrics"
         >
-            {{ decrypting ? ("billing.notes.detail.decrypt.decrypting" | transloco) : ("billing.notes.detail.decrypt.button" | transloco) }}
+            {{
+                hydratingProof
+                    ? ("zelf_keys.common.proof_loading" | transloco)
+                    : decrypting
+                      ? ("billing.notes.detail.decrypt.decrypting" | transloco)
+                      : ("billing.notes.detail.decrypt.button" | transloco)
+            }}
         </button>
 
         <!-- Note Information -->
