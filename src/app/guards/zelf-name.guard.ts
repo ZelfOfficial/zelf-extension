@@ -4,14 +4,14 @@ import { WalletService } from "app/wallet.service";
 import { ZelfNameService } from "app/zelf-name-service.service";
 
 export const ZelfNameGuard: CanActivateFn = async () => {
+    // inject() must run synchronously, before any await (NG0203 otherwise).
     const _walletService = inject(WalletService);
+    const _zelfNameService = inject(ZelfNameService);
+    const router = inject(Router);
 
     const wallet = await _walletService.getCurrentWallet();
 
     if (wallet) return true;
-
-    const _zelfNameService = inject(ZelfNameService);
-    const router = inject(Router);
 
     const zelfNameObject = await _zelfNameService.getZelfNameObject();
     const zelfName = await _zelfNameService.getZelfName();
