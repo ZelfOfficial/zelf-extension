@@ -17,6 +17,9 @@ import { isV4Record, seedTakenOnboardingRecord } from "app/onboarding-stack";
 import { TagsService } from "app/tags.service";
 import { VaultService } from "app/vault.service";
 import { ZelfIdsService } from "app/zelf-ids.service";
+import { MatSnackBar } from "@angular/material/snack-bar";
+import { TranslocoService } from "@jsverse/transloco";
+import { ErrorService } from "app/services/error.service";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
 
 @Component({
@@ -54,6 +57,9 @@ export class WelcomeZelfidFindImportClaimComponent implements OnInit, OnDestroy,
         private _bottomSheet: MatBottomSheet,
         private _formBuilder: FormBuilder,
         private _router: Router,
+        private _snackBar: MatSnackBar,
+        private _translocoService: TranslocoService,
+        private _errorService: ErrorService,
         private _tagsService: TagsService,
         private _zelfIdsService: ZelfIdsService,
         private _vaultService: VaultService
@@ -217,7 +223,9 @@ export class WelcomeZelfidFindImportClaimComponent implements OnInit, OnDestroy,
 
     async searchZelfName(event: any): Promise<any> {
         if (!this.form.get("tagName")?.valid || !this.form.get("domain")?.valid) {
-            this.form.patchValue({ tagName: "" });
+            // Keep what the user typed and show the field error instead of silently erasing it.
+            this.form.get("tagName")?.markAsDirty();
+            this.form.get("tagName")?.markAsTouched();
 
             return;
         }
@@ -295,7 +303,21 @@ export class WelcomeZelfidFindImportClaimComponent implements OnInit, OnDestroy,
                 console.error({ exception });
 
                 this.loading = false;
+
+                this._showError(exception);
             });
+    }
+
+    private _showError(exception: unknown, fallbackKey: string = "errors.generic"): void {
+        const message = exception
+            ? this._errorService.translateErrorMessage(this._errorService.resolveErrorKey(exception), fallbackKey)
+            : this._translocoService.translate(fallbackKey);
+
+        this._snackBar.open(message, this._translocoService.translate("common.close"), {
+            duration: 5000,
+            panelClass: "zelf-snackbar",
+            verticalPosition: "top",
+        });
     }
 
     goBackToSearch(): void {

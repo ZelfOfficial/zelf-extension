@@ -350,9 +350,17 @@ export class WelcomeZelfidFindComponent implements OnInit, OnDestroy {
 
     // In this flow, we know who owns a zelfproof to the name, but it may have been taken if they let the grace period expire
     private async _redirectAfterZelfProofSearch(tagObject: TagModel | any): Promise<void> {
-        const ownedByThisUser = tagObject.ethAddress === this.ethAddress;
+        if (!tagObject) {
+            this.errorTitle = this._translocoService.translate("errors.incorrect_zelf_proof_title");
+            this.errorMessage = this._translocoService.translate("errors.incorrect_zelf_proof_message");
+            return;
+        }
 
-        if (tagObject && !tagObject.available) {
+        // TagModel keeps addresses under publicData; a free name (available) is not owned by anyone.
+        const currentEthAddress = (tagObject.publicData?.ethAddress || tagObject.ethAddress || "").toLowerCase();
+        const ownedByThisUser = !tagObject.available && !!currentEthAddress && currentEthAddress === (this.ethAddress || "").toLowerCase();
+
+        if (!tagObject.available) {
             await this._persistFoundTag(tagObject, this.zelfProof || tagObject.zelfProof);
         }
 
@@ -434,7 +442,10 @@ export class WelcomeZelfidFindComponent implements OnInit, OnDestroy {
 
         const zelfNameObject = await this._queryForZelfObject(query);
 
-        if (!zelfNameObject) return;
+        if (!zelfNameObject || zelfNameObject.available) {
+            this._setNotFound();
+            return;
+        }
 
         await this._redirectAfterTextSearch(zelfNameObject);
     }
@@ -450,7 +461,12 @@ export class WelcomeZelfidFindComponent implements OnInit, OnDestroy {
 
         const zelfNameObject = await this._queryForZelfObject(query);
 
-        if (!zelfNameObject) return;
+        // Unregistered address, API error (e.g. 409) or network failure: show "not found" instead of doing nothing
+        // (and instead of bouncing through /available, whose guard sends the user back to welcome).
+        if (!zelfNameObject || zelfNameObject.available) {
+            this._setNotFound();
+            return;
+        }
 
         await this._redirectAfterTextSearch(zelfNameObject);
     }

@@ -71,6 +71,9 @@ export class WelcomeZelfidCompleteComponent implements OnInit, OnDestroy {
 
         this.flow = await this._zelfIdsService.getFlow();
 
+        // Onboarding is finished: drop all in-memory + stored onboarding state (referral, names, proof, flow).
+        await this._zelfIdsService.cleanOnboardingState();
+
         this.loading = false;
 
         afterNextRender(
@@ -118,6 +121,10 @@ export class WelcomeZelfidCompleteComponent implements OnInit, OnDestroy {
         await this._zelfIdsService.setFlow("unlock");
 
         await this._zelfIdsService.setTagName(this.wallet?.name as string);
+
+        // Decrypt the wallet that was just created, not a proof left over from an earlier search.
+        await this._zelfIdsService.setZelfProof((this.wallet as TagModel)?.zelfProof || "");
+        if (this.wallet?.publicData?.domain) await this._zelfIdsService.setDomain(this.wallet.publicData.domain);
 
         this._router.navigate(["/security-zelfid/biometrics"], { queryParams: { return: "/welcome-zelfid/complete" } });
     }

@@ -20,6 +20,9 @@ import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
 import { WelcomeAvailableContentComponent } from "app/welcome-available/welcome-available-content.component";
 import { ZelfIdsService } from "app/zelf-ids.service";
+import { MatSnackBar } from "@angular/material/snack-bar";
+import { TranslocoService } from "@jsverse/transloco";
+import { ErrorService } from "app/services/error.service";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
 
 @Component({
@@ -71,6 +74,9 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
         private _formBuilder: FormBuilder,
         private _httpWrapperService: HttpWrapperService,
         private _router: Router,
+        private _snackBar: MatSnackBar,
+        private _translocoService: TranslocoService,
+        private _errorService: ErrorService,
         private _tagsService: TagsService,
         private _zelfIdsService: ZelfIdsService,
         private _vaultService: VaultService,
@@ -250,7 +256,9 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
 
     async searchZelfName(event: any): Promise<any> {
         if (!this.form.get("tagName")?.valid || !this.form.get("domain")?.valid) {
-            this.form.patchValue({ tagName: "" });
+            // Keep what the user typed and show the field error instead of silently erasing it.
+            this.form.get("tagName")?.markAsDirty();
+            this.form.get("tagName")?.markAsTouched();
 
             return;
         }
@@ -294,7 +302,12 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
 
                 if (await this._redirectIfOwnedOnV36(tagName, domain, captchaToken)) return;
 
-                this.isEnterMode = false;
+                // "Enter" means sign in to an existing ID: a free name is not registered, don't silently switch to Create.
+                if (this.isEnterMode) {
+                    this.loading = false;
+                    this._showError(null, "send.zelf_name_not_registered");
+                    return;
+                }
 
                 await this._zelfIdsService.setNewTagName(tagName);
                 await this._zelfIdsService.setDomain(domain);
@@ -336,7 +349,21 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
                 console.error({ exception });
 
                 this.loading = false;
+
+                this._showError(exception);
             });
+    }
+
+    private _showError(exception: unknown, fallbackKey: string = "errors.generic"): void {
+        const message = exception
+            ? this._errorService.translateErrorMessage(this._errorService.resolveErrorKey(exception), fallbackKey)
+            : this._translocoService.translate(fallbackKey);
+
+        this._snackBar.open(message, this._translocoService.translate("common.close"), {
+            duration: 5000,
+            panelClass: "zelf-snackbar",
+            verticalPosition: "top",
+        });
     }
 
     // --- Step transitions ---
