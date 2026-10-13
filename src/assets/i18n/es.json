@@ -699,11 +699,11 @@
         }
     },
     "welcomeZelfid": {
-        "plan_free": "Los nombres de 6 caracteres o más se reservan como Zelf ID gratuito. Puedes mejorar el plan después.",
-        "plan_short_hold": "Los nombres de 5 caracteres o menos son solo unlimited. Hasta el pago, quedan reservados 5 horas.",
-        "plan_unlimited": "Los nombres cortos se reservan como unlimited.",
+        "plan_free": "Zelf ID gratis: tuyo por 100 años. Puedes mejorar el plan después.",
+        "plan_short_hold": "Zelf ID gratis: tuyo por 100 años, nombres cortos incluidos.",
+        "plan_unlimited": "Zelf ID gratis: tuyo por 100 años.",
         "plan_label": "Plan: {{ plan }}",
-        "hold_subtitle": "Este nombre corto está reservado por 5 horas. Compra unlimited para dejarlo en mainnet."
+        "hold_subtitle": "Tu Zelf ID es gratis por 100 años."
     },
     "settings": {
         "networks_label": "Redes",

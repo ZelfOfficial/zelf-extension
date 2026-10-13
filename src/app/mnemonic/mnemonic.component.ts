@@ -8,6 +8,7 @@ import { RouterModule } from "@angular/router";
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { CopyToClipboardBase } from "app/base/copy-to-clipboard/copy-to-clipboard.base";
 import { ChromeService } from "app/chrome.service";
+import { spreadPinInput } from "app/utils/pin-input.util";
 import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
 import { TagModel } from "app/tags.service";
@@ -131,7 +132,8 @@ export class MnemonicComponent extends CopyToClipboardBase implements OnInit, On
         } catch (error) {
             this.wallet = (await this._walletService.getCurrentWallet()) as TagModel;
             this.remainingAttempts = this._vaultService.remainingAttempts;
-            this.passwordError = !!this.wallet?.pgp?.encryptedMessage && !!this.wallet?.pgp?.privateKey;
+            // Always tell the user the unlock failed instead of silently showing the placeholder words.
+            this.passwordError = true;
 
             this.hideMnemonics();
         } finally {
@@ -201,27 +203,14 @@ export class MnemonicComponent extends CopyToClipboardBase implements OnInit, On
 
     onPinInput(event: Event, index: number): void {
         const input = event.target as HTMLInputElement;
-        const value = input.value;
+        const digits = [...this.pinDigits];
+        const inputs = Array.from(document.querySelectorAll<HTMLInputElement>(".mnemonic__pin-input"));
+        const nextIndex = spreadPinInput(digits, index, input.value);
 
-        if (value.length > 1) {
-            const digits = value.slice(0, 6).split("");
-            this.pinDigits = [...digits, ...Array(6 - digits.length).fill("")].slice(0, 6);
-            const lastIndex = Math.min(digits.length - 1, 5);
-            setTimeout(() => {
-                const inputs = document.querySelectorAll<HTMLInputElement>(".mnemonic__pin-input");
-                if (inputs[lastIndex]) inputs[lastIndex].focus();
-            }, 0);
-            return;
-        }
+        this.pinDigits = digits;
+        inputs.forEach((el, i) => (el.value = digits[i] || ""));
 
-        this.pinDigits[index] = value;
-
-        if (value && index < 5) {
-            setTimeout(() => {
-                const inputs = document.querySelectorAll<HTMLInputElement>(".mnemonic__pin-input");
-                if (inputs[index + 1]) inputs[index + 1].focus();
-            }, 0);
-        }
+        if (nextIndex !== null && inputs[nextIndex]) inputs[nextIndex].focus();
     }
 
     onPinKeyDown(event: KeyboardEvent, index: number): void {
@@ -279,6 +268,7 @@ export class MnemonicComponent extends CopyToClipboardBase implements OnInit, On
         }
 
         this._vaultService.password = this.form.get("password")?.value;
+        this._vaultService.securityType = "securePassword";
 
         this.redirect.emit();
     }

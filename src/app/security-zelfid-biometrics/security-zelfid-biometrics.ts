@@ -101,7 +101,8 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
 
         if (tagObject) this.tagObject = new TagModel(tagObject);
 
-        this.isNew = this.flow === "create" || this.flow === "import" || (this.flow === "recover" && this.tagObject?.available);
+        // Same rule as the password step: recover unlocks the old proof.
+        this.isNew = this.flow === "create" || this.flow === "import";
 
         this.loading = false;
     }
@@ -178,6 +179,12 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
                 identifier: userFingerprint.hash,
             })
             .then(async (response) => {
+                // Older APIs answer 200 { available: true } for a name that doesn't exist; never store that as a wallet.
+                if (!response?.data || response.data.available) {
+                    this.onBiometricsFailed({ status: 404, error: { message: "tag_not_found", code: "NotFound" } });
+                    return;
+                }
+
                 await this._chromeService.removeItem("zelfIdFlow");
                 await this._chromeService.removeItem("newZelfIdName");
 

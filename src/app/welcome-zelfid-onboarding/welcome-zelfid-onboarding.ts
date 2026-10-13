@@ -11,6 +11,7 @@ import { ChromeService } from "app/chrome.service";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
+import { ZelfIdsService } from "app/zelf-ids.service";
 import { environment } from "environments/environment";
 
 @Component({
@@ -111,8 +112,11 @@ export class WelcomeZelfidOnboardingComponent implements OnInit, OnDestroy {
         private _httpWrapperService: HttpWrapperService,
         private _router: Router,
         private _vaultService: VaultService,
-        private _walletService: WalletService
+        private _walletService: WalletService,
+        private _zelfIdsService: ZelfIdsService
     ) {
+        // Clears both chrome storage and the service's in-memory cache (stale referral/name/proof/flow).
+        void this._zelfIdsService.cleanOnboardingState();
         this._clearChromeItems();
 
         this._vaultService.password = "";

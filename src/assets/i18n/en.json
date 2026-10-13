@@ -707,11 +707,11 @@
         }
     },
     "welcomeZelfid": {
-        "plan_free": "Names with 6 or more characters lease as a free Zelf ID. You can upgrade later.",
-        "plan_short_hold": "Names with 5 characters or fewer are unlimited only. Until payment, they stay reserved for 5 hours.",
-        "plan_unlimited": "Short names lease as unlimited.",
+        "plan_free": "Free Zelf ID — yours for 100 years. You can upgrade later.",
+        "plan_short_hold": "Free Zelf ID — yours for 100 years, short names included.",
+        "plan_unlimited": "Free Zelf ID — yours for 100 years.",
         "plan_label": "Plan: {{ plan }}",
-        "hold_subtitle": "This short name is reserved for 5 hours. Purchase unlimited to keep it on mainnet."
+        "hold_subtitle": "Your Zelf ID is free for 100 years."
     },
     "settings": {
         "networks_label": "Networks",

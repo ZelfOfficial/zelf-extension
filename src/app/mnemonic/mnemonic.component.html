@@ -53,7 +53,7 @@
                                 *ngFor="let digit of pinDigits; let i = index; trackBy: trackByIndex"
                                 class="mnemonic__pin-input"
                                 [type]="showPin ? 'text' : 'password'"
-                                maxlength="1"
+                                maxlength="6"
                                 [value]="digit"
                                 (input)="onPinInput($event, i)"
                                 (keydown)="onPinKeyDown($event, i)"

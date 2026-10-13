@@ -15,6 +15,8 @@ import { TagFlow, TagModel, TagsService } from "app/tags.service";
 import { VaultService } from "app/vault.service";
 import { ZelfIdsService } from "app/zelf-ids.service";
 
+import { spreadPinInput } from "app/utils/pin-input.util";
+
 export type SecurityOption = "securePassword" | "pin" | "withoutPassword" | null;
 
 @Component({
@@ -78,7 +80,8 @@ export class SecurityZelfidPasswordComponent implements OnInit, OnDestroy {
         this.tagModel = storedTag instanceof TagModel ? storedTag : new TagModel(storedTag || {});
         this.tagResponse = await this._zelfIdsService.getTagResponse();
 
-        this.isNew = this.flow === "create" || this.flow === "import" || (this.flow === "recover" && !this.tagModel?.available);
+        // Recover decrypts the OLD proof, so it needs the old ID's unlock form (password / PIN / face-only), not a new password.
+        this.isNew = this.flow === "create" || this.flow === "import";
 
         if (!this.isNew && this.tagModel?.publicData) {
             const skipped = await this._resolveUnlockSecurity();
@@ -289,38 +292,20 @@ export class SecurityZelfidPasswordComponent implements OnInit, OnDestroy {
 
     onPinInput(event: Event, index: number, isConfirm: boolean = false): void {
         const input = event.target as HTMLInputElement;
-        const value = input.value; // Allow any character as requested (letters or numbers)
+        const digits = isConfirm ? [...this.confirmPinDigits] : [...this.pinDigits];
+        const inputs = isConfirm ? this._getConfirmInputs() : this._getPinInputs();
 
-        if (value.length > 1) {
-            // If multiple digits pasted, handle accordingly
-            const digits = value.slice(0, 6).split("");
-            if (isConfirm) {
-                this.confirmPinDigits = [...digits, ...Array(6 - digits.length).fill("")].slice(0, 6);
-            } else {
-                this.pinDigits = [...digits, ...Array(6 - digits.length).fill("")].slice(0, 6);
-            }
-            // Focus the last filled input or the next empty one
-            const lastIndex = Math.min(digits.length - 1, 5);
-            setTimeout(() => {
-                const inputs = isConfirm ? this._getConfirmInputs() : this._getPinInputs();
-                if (inputs[lastIndex]) inputs[lastIndex].focus();
-            }, 0);
-            return;
-        }
+        // Letters or numbers are allowed. Fast typing or paste can put several characters in one box
+        // before focus moves, so spread them from this box forward instead of dropping them.
+        const nextIndex = spreadPinInput(digits, index, input.value);
 
-        if (isConfirm) {
-            this.confirmPinDigits[index] = value;
-        } else {
-            this.pinDigits[index] = value;
-        }
+        if (isConfirm) this.confirmPinDigits = digits;
+        else this.pinDigits = digits;
 
-        // Move to next input if value entered
-        if (value && index < 5) {
-            setTimeout(() => {
-                const inputs = isConfirm ? this._getConfirmInputs() : this._getPinInputs();
-                if (inputs[index + 1]) inputs[index + 1].focus();
-            }, 0);
-        }
+        inputs.forEach((el, i) => (el.value = digits[i] || ""));
+
+        // Move focus synchronously so the next keystroke lands in the next box.
+        if (nextIndex !== null && inputs[nextIndex]) inputs[nextIndex].focus();
     }
 
     onPinKeyDown(event: KeyboardEvent, index: number, isConfirm: boolean = false): void {
@@ -394,6 +379,7 @@ export class SecurityZelfidPasswordComponent implements OnInit, OnDestroy {
                 // PIN confirmed, save and continue
                 const pin = this.pinDigits.join("").trim();
                 this._vaultService.password = pin;
+                this._vaultService.securityType = "pin";
                 this._navigateToBiometrics();
             }
         }
