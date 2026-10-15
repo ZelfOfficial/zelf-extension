@@ -1329,7 +1329,11 @@
                     "label": "Pangalan ng Bangko *"
                 },
                 "card_holder": {
-                    "label": "Pangalan ng Bangko *"
+                    "label": "Pangalan ng Bangko *",
+                    "errors": {
+                        "invalid_chars": "Only letters and spaces (plus ' - .) are allowed in the card holder name.",
+                        "needs_letter": "The card holder name must include at least one letter."
+                    }
                 },
                 "expiry_month": {
                     "label": "Pangalan ng Bangko *",

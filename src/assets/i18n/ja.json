@@ -1329,7 +1329,11 @@
                     "label": "銀行名 *"
                 },
                 "card_holder": {
-                    "label": "銀行名 *"
+                    "label": "銀行名 *",
+                    "errors": {
+                        "invalid_chars": "Only letters and spaces (plus ' - .) are allowed in the card holder name.",
+                        "needs_letter": "The card holder name must include at least one letter."
+                    }
                 },
                 "expiry_month": {
                     "label": "銀行名 *",

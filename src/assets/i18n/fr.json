@@ -1329,7 +1329,11 @@
                     "label": "Nom de la Banque *"
                 },
                 "card_holder": {
-                    "label": "Nom de la Banque *"
+                    "label": "Nom de la Banque *",
+                    "errors": {
+                        "invalid_chars": "Only letters and spaces (plus ' - .) are allowed in the card holder name.",
+                        "needs_letter": "The card holder name must include at least one letter."
+                    }
                 },
                 "expiry_month": {
                     "label": "Nom de la Banque *",

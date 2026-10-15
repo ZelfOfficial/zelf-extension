@@ -1495,7 +1495,11 @@
                     "label": "Nombre del Banco *"
                 },
                 "card_holder": {
-                    "label": "Nombre del Banco *"
+                    "label": "Nombre del Banco *",
+                    "errors": {
+                        "invalid_chars": "El nombre del titular solo admite letras y espacios (y ' - .).",
+                        "needs_letter": "El nombre del titular debe tener al menos una letra."
+                    }
                 },
                 "expiry_month": {
                     "label": "Nombre del Banco *",

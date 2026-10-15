@@ -1336,7 +1336,11 @@
                     "label": "Número do Cartão *"
                 },
                 "card_holder": {
-                    "label": "Nome do Titular *"
+                    "label": "Nome do Titular *",
+                    "errors": {
+                        "invalid_chars": "Only letters and spaces (plus ' - .) are allowed in the card holder name.",
+                        "needs_letter": "The card holder name must include at least one letter."
+                    }
                 },
                 "expiry_month": {
                     "label": "Expiry Month *",
