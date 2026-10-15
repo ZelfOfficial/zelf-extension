@@ -284,11 +284,16 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
         this.apiLoading = false;
         this.apiSuccess = false;
 
-        const errorBody = exception?.error || {};
-        const message = errorBody.message || errorBody.error;
+        const errorKey = this._errorService.resolveErrorKey(exception);
+
+        if (this._errorService.isLivenessError(errorKey)) {
+            this.errorTitle = this._translocoService.translate("errors.liveness_failed");
+            this.errorMessage = this._translocoService.translate("errors.liveness_failed_help");
+            return;
+        }
 
         this.errorTitle = this._translocoService.translate("errors.generic_title");
-        this.errorMessage = this._errorService.translateErrorMessage(message, "errors.generic_identity");
+        this.errorMessage = this._errorService.translateErrorMessage(errorKey, "errors.generic_identity");
     };
 
     onBiometricsScanned = async (encryptedImage: string): Promise<void> => {

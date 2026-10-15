@@ -1074,12 +1074,12 @@
         "Duplicated_person": "El Zelf ID QR está siendo utilizado para otro registro",
         "empty_password": "La contraseña no puede estar vacía",
         "ERR_DESCRIPTION": "Asegúrate de seguir las instrucciones correctamente para desbloquear tu Zelf ID QR",
-        "ERR_INVALID_PASSWORD": "La contraseña para este Zelf ID QR no es válida",
+        "ERR_INVALID_PASSWORD": "La contraseña es incorrecta. Comprueba tu contraseña e inténtalo de nuevo.",
         "ERR_LIVENESS_FACE_ANGLE_TOO_LARGE": "El ángulo del rostro es demasiado grande",
         "ERR_LIVENESS_FACE_CLOSE_TO_BORDER": "El rostro está demasiado cerca del borde",
         "ERR_LIVENESS_FAILED": "La detección de autenticidad ha fallado",
         "ERR_UNPROCESSABLE_CONTENT": "No se pudo descifrar el Zelf ID QR",
-        "ERR_VERIFICATION_FAILED": "Tu rostro no coincide con esta contraseña. Centra tu cara e inténtalo de nuevo.",
+        "ERR_VERIFICATION_FAILED": "Tu rostro no coincide con este Zelf ID. Centra tu cara e inténtalo de nuevo.",
         "error_closing_popup": "Error closing window",
         "error_initializing_biometrics": "Error initializing biometrics",
         "error_sending_decryption_result_to_background": "Error communicating with extension",
@@ -1114,7 +1114,7 @@
         "no_zelfproof_available_for_password_decryption": "No Zelf ID QR available for password decryption",
         "not_found": "Registro no encontrado",
         "password_doesnt_match": "Las contraseñas no coinciden",
-        "password_incorrect": "La contraseña es incorrecta",
+        "password_incorrect": "La contraseña es incorrecta. Comprueba tu contraseña e inténtalo de nuevo.",
         "LIVENESS CHECK FAILED": {
             "": "La comprobación de autenticidad falló. Por favor, inténtelo de nuevo."
         },
@@ -1144,7 +1144,9 @@
         "stellar_classic_trustline_required": "The recipient must add a trustline for this asset before they can receive it.",
         "stellar_soroban_not_supported": "Soroban (contract) assets are not supported in this wallet yet.",
         "stellar_invalid_asset_format": "Invalid Stellar asset. Use CODE:ISSUER (for example USDC:G…).",
-        "swap_same_chain": "En el modo Intercambios, ambos tokens deben estar en la misma red. Cambia a Entre cadenas o ajusta tu selección."
+        "swap_same_chain": "En el modo Intercambios, ambos tokens deben estar en la misma red. Cambia a Entre cadenas o ajusta tu selección.",
+        "ERR_PASSWORD_REQUIRED": "Este Zelf ID requiere una contraseña. Introdúcela e inténtalo de nuevo.",
+        "THE PROVIDED PASSWORD IS INVALID.": "La contraseña que ingresaste es incorrecta. Comprueba tu contraseña e inténtalo de nuevo."
     },
     "swap": {
         "automatic": "Automático",
