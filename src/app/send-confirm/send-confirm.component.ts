@@ -89,6 +89,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
     price: number = 0;
     remainingAttempts: number = 0;
     requiresBiometrics: boolean = false;
+    isPinUnlock: boolean = false;
     selectedFeeRate: number = 0;
     sending: boolean = false;
     showFeeInfo: boolean = false;
@@ -554,29 +555,30 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
 
         const publicData = this.wallet.publicData as any;
 
-        // Check if wallet is password-less
+        // Always set securityType from this wallet (parity with dapp-sign) so biometrics
+        // does not reuse a stale withoutPassword / password flag from another ID.
         if (String(publicData.hasPassword) === "false") {
-            // For password-less wallets, we need biometric verification
-            // Set the placeholder password that will be used after biometrics
             this._password = "NO_PASSWORD_PLACEHOLDER";
             this._vaultService.password = "NO_PASSWORD_PLACEHOLDER";
             this._vaultService.securityType = "withoutPassword";
-
-            // Mark as requiring biometrics (will redirect user to biometric verification)
             this.requiresBiometrics = true;
-            this.passwordSet = true; // Keep password field hidden
-
-            // Trigger change detection to update UI
-            this._changeDetectorRef.detectChanges();
-        } else {
-            // Wallet has a password - show the password field
+            this.passwordSet = true;
+        } else if (publicData.st === "pin") {
+            this.isPinUnlock = true;
+            this._vaultService.securityType = "pin";
             this.passwordSet = false;
-
-            this._changeDetectorRef.detectChanges();
+        } else {
+            this._vaultService.securityType = "securePassword";
+            this.passwordSet = false;
         }
+
+        this._changeDetectorRef.detectChanges();
     }
 
     async _redirectToBiometrics(): Promise<void> {
+        // Re-assert securityType from the active wallet every send (avoids stale vault flags).
+        await this._checkPasswordlessWallet();
+
         // Only set password from form if it's not already set (e.g., for password-less wallets)
         if (!this._vaultService.password || this._vaultService.password.trim() === "") {
             this._vaultService.password = this.form.get("password")?.value || this._password;
