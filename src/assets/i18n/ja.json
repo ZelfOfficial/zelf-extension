@@ -1023,7 +1023,9 @@
         "stellar_classic_trustline_required": "The recipient must add a trustline for this asset before they can receive it.",
         "stellar_soroban_not_supported": "Soroban (contract) assets are not supported in this wallet yet.",
         "stellar_invalid_asset_format": "Invalid Stellar asset. Use CODE:ISSUER (for example USDC:G…).",
-        "swap_same_chain": "Swapsモードでは、両方のトークンが同じネットワーク上にある必要があります。Cross-chainに切り替えるか、選択を変更してください。"
+        "swap_same_chain": "Swapsモードでは、両方のトークンが同じネットワーク上にある必要があります。Cross-chainに切り替えるか、選択を変更してください。",
+        "ERR_MISSING_PASSWORD": "This key is protected with your master password. Enter it and try again.",
+        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name."
     },
     "swap": {
         "automatic": "自動",

@@ -1146,7 +1146,9 @@
         "stellar_invalid_asset_format": "Invalid Stellar asset. Use CODE:ISSUER (for example USDC:G…).",
         "swap_same_chain": "En el modo Intercambios, ambos tokens deben estar en la misma red. Cambia a Entre cadenas o ajusta tu selección.",
         "ERR_PASSWORD_REQUIRED": "Este Zelf ID requiere una contraseña. Introdúcela e inténtalo de nuevo.",
-        "THE PROVIDED PASSWORD IS INVALID.": "La contraseña que ingresaste es incorrecta. Comprueba tu contraseña e inténtalo de nuevo."
+        "THE PROVIDED PASSWORD IS INVALID.": "La contraseña que ingresaste es incorrecta. Comprueba tu contraseña e inténtalo de nuevo.",
+        "ERR_MISSING_PASSWORD": "Esta clave está protegida con tu contraseña maestra. Ingrésala e inténtalo de nuevo.",
+        "ERR_ZELF_ID_STILL_ACTIVE": "Este Zelf ID sigue activo. Inicia sesión con él en lugar de recuperarlo con otro nombre."
     },
     "swap": {
         "automatic": "Automático",

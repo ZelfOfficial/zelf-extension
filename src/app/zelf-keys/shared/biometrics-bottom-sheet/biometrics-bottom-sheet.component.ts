@@ -1,3 +1,4 @@
+import { ErrorService } from "../../../services/error.service";
 import { isCardHolderNameValidationError } from "../../zelf-keys-payment-cards/card-holder-name";
 import { CommonModule } from "@angular/common";
 import { ChangeDetectorRef, Component, Inject, OnInit } from "@angular/core";
@@ -44,6 +45,7 @@ export class BiometricsBottomSheetComponent implements OnInit {
         private _bottomSheetRef: MatBottomSheetRef<BiometricsBottomSheetComponent>,
         private _changeDetectorRef: ChangeDetectorRef,
         private _dataPassingService: DataPassingService,
+        private _errorService: ErrorService,
         private _translocoService: TranslocoService,
         private _vaultService: VaultService,
         private _walletService: WalletService,
@@ -289,11 +291,7 @@ export class BiometricsBottomSheetComponent implements OnInit {
             } catch (error: any) {
                 console.error(`Error deleting ${this.itemType} data:`, error);
                 this.isLoading = false;
-                this.errorMessage =
-                    error?.error?.error ||
-                    error?.error?.message ||
-                    error?.message ||
-                    this._translocoService.translate("zelf_keys.vault.delete_failed");
+                this.errorMessage = this._translateApiError(error, this._translocoService.translate("zelf_keys.vault.delete_failed"));
                 this._changeDetectorRef.detectChanges();
             }
 
@@ -317,17 +315,10 @@ export class BiometricsBottomSheetComponent implements OnInit {
 
                 this.isLoading = false;
 
-                let errorMessage = this._translocoService.translate("zelf_keys.errors.retrieving", { type: this.itemType });
-
-                if (error?.error?.error) {
-                    errorMessage = error.error.error;
-                } else if (error?.error?.message) {
-                    errorMessage = error.error.message;
-                } else if (error?.message) {
-                    errorMessage = error.message;
-                }
-
-                this.errorMessage = errorMessage;
+                this.errorMessage = this._translateApiError(
+                    error,
+                    this._translocoService.translate("zelf_keys.errors.retrieving", { type: this.itemType })
+                );
                 this._changeDetectorRef.detectChanges();
             }
 
@@ -405,6 +396,21 @@ export class BiometricsBottomSheetComponent implements OnInit {
 
             this._changeDetectorRef.detectChanges();
         }
+    }
+
+    /**
+     * Wrong password / password required / face mismatch / liveness → the same translated (en/es)
+     * messages as Zelf ID unlock (#50) instead of the raw API text ("ERR_INVALID_PASSWORD").
+     */
+    private _translateApiError(error: any, fallback: string): string {
+        const key = this._errorService.resolveErrorKey(error);
+
+        if (this._errorService.isLivenessError(key)) return this._translocoService.translate("errors.liveness_failed_help");
+
+        const formatted = `errors.${key}`;
+        const translated = this._translocoService.translate(formatted);
+
+        return translated !== formatted ? translated : fallback;
     }
 
     onBiometricsCancel(): void {
