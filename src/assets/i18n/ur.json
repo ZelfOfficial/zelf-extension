@@ -1313,7 +1313,11 @@
                     "label": "بینک کا نام *"
                 },
                 "card_holder": {
-                    "label": "بینک کا نام *"
+                    "label": "بینک کا نام *",
+                    "errors": {
+                        "invalid_chars": "Only letters and spaces (plus ' - .) are allowed in the card holder name.",
+                        "needs_letter": "The card holder name must include at least one letter."
+                    }
                 },
                 "expiry_month": {
                     "label": "بینک کا نام *",

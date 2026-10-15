@@ -112,10 +112,12 @@
                 <div class="field-row">
                     <div class="zelf-input zelf-input--wide">
                         <input
-                            (ngModelChange)="checkFormValidity()"
-                            [(ngModel)]="cardData.cardName"
+                            #cardNameInput
+                            (ngModelChange)="onCardNameChange($event, cardNameInput)"
+                            [ngModel]="cardData.cardName"
                             class="zelf-input__control zelf-input__control--floating-label"
                             id="cardName"
+                            maxlength="50"
                             name="cardName"
                             required
                             type="text"
@@ -130,6 +132,10 @@
                         >
                             {{ cardData.cardName.length || 0 }}/50
                         </div>
+
+                        @if (cardNameError) {
+                            <div class="card-holder-error" role="alert">{{ t("billing.payment_cards.form.card_holder.errors." + cardNameError) }}</div>
+                        }
                     </div>
                 </div>
 

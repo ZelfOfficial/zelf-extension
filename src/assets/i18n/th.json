@@ -1313,7 +1313,11 @@
                     "label": "หมายเลขบัตร *"
                 },
                 "card_holder": {
-                    "label": "ชื่อผู้ถือบัตร *"
+                    "label": "ชื่อผู้ถือบัตร *",
+                    "errors": {
+                        "invalid_chars": "Only letters and spaces (plus ' - .) are allowed in the card holder name.",
+                        "needs_letter": "The card holder name must include at least one letter."
+                    }
                 },
                 "expiry_month": {
                     "label": "เดือนหมดอายุ *",

@@ -11,6 +11,7 @@ import { HttpWrapperService } from "app/http-wrapper.service";
 import { ChromeService } from "../../../chrome.service";
 import { DataPassingService } from "../../../services/data-passing.service";
 import { environment } from "../../../../environments/environment";
+import { cardHolderNameHasLetter, isValidCardHolderName, normalizeCardHolderName, sanitizeCardHolderName } from "../card-holder-name";
 import {
     BiometricResult,
     BiometricsBottomSheetComponent,
@@ -38,6 +39,8 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
         useMasterPassword: false,
     };
 
+    /** Inline error under "Card Holder Name" (#574): invalid_chars | needs_letter | null. */
+    cardNameError: "invalid_chars" | "needs_letter" | null = null;
     formValid = false;
     hasMasterPassword = false;
     isNewCard = true;
@@ -98,7 +101,7 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
     }
 
     checkFormValidity(): void {
-        const hasCardName = !!this.cardData.cardName?.trim();
+        const hasCardName = isValidCardHolderName(this.cardData.cardName);
         const hasCardNumber = !!this.cardData.cardNumber?.trim() && this.cardData.cardNumber.length >= 13;
         const hasExpiryMonth = !!this.cardData.expiryMonth;
         const hasExpiryYear = !!this.cardData.expiryYear && String(this.cardData.expiryYear).length === 4;
@@ -110,7 +113,7 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
         const masterPasswordValid = this.hasMasterPassword ? hasMasterPassword : true;
 
         // Backend validation requirements:
-        // - cardName: required, minLength: 1
+        // - cardName: required, letters/spaces/' ’ - . · ・, at least one letter, max 50 (#574)
         // - cardNumber: required, minLength: 13, maxLength: 19
         // - expiryMonth: required, enum: ["01", "02", ..., "12"]
         // - expiryYear: required, minLength: 4, maxLength: 4
@@ -142,7 +145,7 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
         // Encrypt sensitive data before storing
         this.transformedCardData = {
             alias: this.cardData.alias.trim(),
-            cardName: this.cardData.cardName,
+            cardName: normalizeCardHolderName(this.cardData.cardName),
             cardNumber: await this._httpWrapperService.encryptMessage(this.cardData.cardNumber),
             expiryMonth: this.cardData.expiryMonth.padStart(2, "0"), // Ensure 2 digits
             expiryYear: this.cardData.expiryYear,
@@ -172,6 +175,23 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
         }
 
         this.cardData.cardNumber = value;
+        this.checkFormValidity();
+    }
+
+    // Card holder name (#574): drop digits/symbols/emojis while typing or pasting, no leading or
+    // double spaces. The warning clears on the next valid keystroke.
+    onCardNameChange(value: string, input?: HTMLInputElement): void {
+        const { value: clean, rejected } = sanitizeCardHolderName(value ?? "");
+
+        this.cardData.cardName = clean;
+        // The model may not change (e.g. "Ana" + "1"), so put the clean text back in the field.
+        if (input && input.value !== clean) input.value = clean;
+
+        if (rejected) this.cardNameError = "invalid_chars";
+        else if (clean.trim() && !cardHolderNameHasLetter(clean)) this.cardNameError = "needs_letter";
+        else this.cardNameError = null;
+
+        this._changeDetectorRef.detectChanges();
         this.checkFormValidity();
     }
 

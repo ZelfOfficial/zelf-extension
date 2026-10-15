@@ -1,3 +1,4 @@
+import { isCardHolderNameValidationError } from "../../zelf-keys-payment-cards/card-holder-name";
 import { CommonModule } from "@angular/common";
 import { ChangeDetectorRef, Component, Inject, OnInit } from "@angular/core";
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef } from "@angular/material/bottom-sheet";
@@ -371,9 +372,14 @@ export class BiometricsBottomSheetComponent implements OnInit {
 
             let translatedError: string | null = null;
 
+            // Backend 409 on the card holder name (#574): same message as the form.
+            if (this.itemType === "payment-card" && isCardHolderNameValidationError(error)) {
+                translatedError = this._translocoService.translate("billing.payment_cards.form.card_holder.errors.invalid_chars");
+            }
+
             const errorKeys = [error?.error?.error, error?.error?.message, error?.message].filter(Boolean);
 
-            for (const errorKey of errorKeys) {
+            for (const errorKey of translatedError ? [] : errorKeys) {
                 if (!errorKey) continue;
 
                 const formattedKey = `errors.${errorKey}`;

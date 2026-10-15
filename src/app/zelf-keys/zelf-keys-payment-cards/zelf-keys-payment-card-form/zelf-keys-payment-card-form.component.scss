@@ -374,3 +374,10 @@
         }
     }
 }
+
+.card-holder-error {
+    color: var(--zelf-error, #e5484d);
+    font-size: 12px;
+    line-height: 16px;
+    margin-top: 4px;
+}
