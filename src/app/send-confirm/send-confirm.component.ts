@@ -568,7 +568,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
             this._vaultService.securityType = "pin";
             this.passwordSet = false;
         } else {
-            this._vaultService.securityType = "securePassword";
+            this._vaultService.securityType = "password";
             this.passwordSet = false;
         }
 

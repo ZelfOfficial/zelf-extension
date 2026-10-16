@@ -17,7 +17,7 @@ import { ZelfIdsService } from "app/zelf-ids.service";
 
 import { spreadPinInput } from "app/utils/pin-input.util";
 
-export type SecurityOption = "securePassword" | "pin" | "withoutPassword" | null;
+export type SecurityOption = "password" | "pin" | "withoutPassword" | null;
 
 @Component({
     imports: [CommonModule, ReactiveFormsModule, RouterModule, TranslocoModule, MatButtonModule, PasswordStrengthComponent],
@@ -205,7 +205,7 @@ export class SecurityZelfidPasswordComponent implements OnInit, OnDestroy {
             if (this.form.invalid) return;
 
             this._vaultService.password = this.form.get("password")?.value.trim();
-            this._vaultService.securityType = "securePassword";
+            this._vaultService.securityType = "password";
         }
 
         await this._generateCaptcha();
@@ -245,13 +245,13 @@ export class SecurityZelfidPasswordComponent implements OnInit, OnDestroy {
     continueWithSelection(): void {
         if (!this.selectedSecurityOption) return;
 
-        if (this.selectedSecurityOption === "securePassword") {
+        if (this.selectedSecurityOption === "password") {
             // Validate form before continuing
             if (this.form.invalid) return;
 
             // Store password and security type, then navigate to biometrics
             this._vaultService.password = this.form.get("password")?.value.trim();
-            this._vaultService.securityType = "securePassword";
+            this._vaultService.securityType = "password";
             this._navigateToBiometrics();
         } else if (this.selectedSecurityOption === "pin") {
             // Handle PIN multi-step flow
@@ -277,7 +277,7 @@ export class SecurityZelfidPasswordComponent implements OnInit, OnDestroy {
         } else if (this.selectedSecurityOption === "withoutPassword") {
             // Skip password, mark as no password required and go to biometrics
             // Set a placeholder password to satisfy any validation that expects a password field
-            // The backend will ignore this based on securityType = "withoutPassword"
+            // The backend treats this placeholder as "no password" (face-only)
             this._vaultService.password = "NO_PASSWORD_PLACEHOLDER";
             this._vaultService.securityType = "withoutPassword";
             this._chromeService.setItem("noPasswordRequired", "true");
