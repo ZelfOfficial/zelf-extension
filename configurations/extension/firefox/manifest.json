@@ -14,7 +14,7 @@
         "storage",
         "tabs"
     ],
-    "version": "2.1.44",
+    "version": "2.1.45",
     "action": {
         "default_popup": "popup.html",
         "default_path": "index.html",
@@ -70,5 +70,5 @@
             ]
         }
     ],
-    "version_name": "2.1.44 (2026-10-16 9:55 am)"
+    "version_name": "2.1.45 (2026-10-16 10:23 am)"
 }
