@@ -268,7 +268,7 @@ export class MnemonicComponent extends CopyToClipboardBase implements OnInit, On
         }
 
         this._vaultService.password = this.form.get("password")?.value;
-        this._vaultService.securityType = "securePassword";
+        this._vaultService.securityType = "password";
 
         this.redirect.emit();
     }

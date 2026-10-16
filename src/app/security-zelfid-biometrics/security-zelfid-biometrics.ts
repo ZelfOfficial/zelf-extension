@@ -325,7 +325,6 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
             faceBase64: encryptedImage,
             os: "DESKTOP",
             password: await this._httpWrapperService.encryptMessage(this._vaultService.password),
-            securityType: this._vaultService.securityType,
             referralTagName,
             domain,
             tagName,

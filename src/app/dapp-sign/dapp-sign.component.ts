@@ -445,7 +445,7 @@ export class DappSignComponent implements OnInit {
             this.isPinUnlock = true;
             this._vaultService.securityType = "pin";
         } else {
-            this._vaultService.securityType = "securePassword";
+            this._vaultService.securityType = "password";
         }
     }
 

@@ -15,7 +15,7 @@ export class VaultService {
     private _password: string = "";
     private _password$: BehaviorSubject<void> = new BehaviorSubject<void>(undefined);
     private _passwordAttempts: number = 5;
-    private _securityType: "securePassword" | "pin" | "withoutPassword" = "securePassword";
+    private _securityType: "password" | "pin" | "withoutPassword" = "password";
 
     constructor(
         private _chromeService: ChromeService,
@@ -65,11 +65,11 @@ export class VaultService {
         }
     }
 
-    get securityType(): "securePassword" | "pin" | "withoutPassword" {
+    get securityType(): "password" | "pin" | "withoutPassword" {
         return this._securityType;
     }
 
-    set securityType(value: "securePassword" | "pin" | "withoutPassword") {
+    set securityType(value: "password" | "pin" | "withoutPassword") {
         this._securityType = value;
     }
 

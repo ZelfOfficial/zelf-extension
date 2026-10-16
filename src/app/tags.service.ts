@@ -404,8 +404,11 @@ export class TagsService {
     }
 
     // Utility Methods
+    // Zelf Link URL. ar.io is the primary gateway; the API's /api/zelf-link/<name> redirects to a working fallback.
     generateArNS(tagName: string): string {
-        return `https://${tagName.replace(".", "_")}.arweave.net`;
+        const [name, domain = "zelf"] = String(tagName || "").toLowerCase().split(".");
+        const label = domain === "zelf" ? `${name}_zelf` : `${name}_${domain}_zelf`;
+        return `https://${label}.ar.io`;
     }
 
     createTagModelFromSearchResponse(response: TagSearchResponse): TagModel | null {
