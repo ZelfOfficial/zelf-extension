@@ -2015,5 +2015,28 @@
         "estimated_gas_fee": "Tinantyang gas fee",
         "estimating": "Tinatantya...",
         "unable_to_estimate": "Hindi ma-estimate"
+    },
+    "zai": {
+        "signed_in_as": "Signed in as {{name}}",
+        "not_signed_in": "Not signed in",
+        "new_conversation": "New conversation",
+        "unavailable_title": "zAI isn't available yet",
+        "unavailable_desc": "We're still getting zAI ready. Check back soon.",
+        "locked_title": "Unlock to continue",
+        "locked_desc": "Unlock your Zelf ID with your face or password to chat with zAI.",
+        "unlock": "Unlock",
+        "welcome": "Hi! Ask me about your Zelf ID, balances, transactions or how Zelf works.",
+        "tool_working": "Looking that up…",
+        "suggest_balances": "My balances",
+        "suggest_recover": "How do I recover my Zelf ID?",
+        "suggest_face": "Is my face data safe?",
+        "never_asks": "zAI never asks for your password, seed phrase or keys.",
+        "placeholder": "Ask zAI anything…",
+        "send": "Send",
+        "stop": "Stop",
+        "error_rate_limited": "Too many messages. Try again in {{seconds}} s.",
+        "error_refused": "I can't help with that. I can only read your own public account data.",
+        "error_offline": "You seem to be offline. Check your connection and try again.",
+        "error_generic": "Something went wrong. Please try again."
     }
 }

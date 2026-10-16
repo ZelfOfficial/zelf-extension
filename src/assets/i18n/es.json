@@ -2230,5 +2230,28 @@
     "superapp": {
         "connecting_with": "Conectando con {{appName}}",
         "working_with": "Trabajando de forma segura con {{appName}}"
+    },
+    "zai": {
+        "signed_in_as": "Sesión iniciada como {{name}}",
+        "not_signed_in": "Sin sesión",
+        "new_conversation": "Nueva conversación",
+        "unavailable_title": "zAI aún no está disponible",
+        "unavailable_desc": "Estamos terminando de preparar zAI. Vuelve pronto.",
+        "locked_title": "Desbloquea para continuar",
+        "locked_desc": "Desbloquea tu Zelf ID con tu rostro o contraseña para hablar con zAI.",
+        "unlock": "Desbloquear",
+        "welcome": "¡Hola! Pregúntame sobre tu Zelf ID, saldos, transacciones o cómo funciona Zelf.",
+        "tool_working": "Consultando…",
+        "suggest_balances": "Mis saldos",
+        "suggest_recover": "¿Cómo recupero mi Zelf ID?",
+        "suggest_face": "¿Mis datos faciales están seguros?",
+        "never_asks": "zAI nunca te pedirá tu contraseña, frase semilla ni llaves.",
+        "placeholder": "Pregúntale a zAI…",
+        "send": "Enviar",
+        "stop": "Detener",
+        "error_rate_limited": "Demasiados mensajes. Intenta de nuevo en {{seconds}} s.",
+        "error_refused": "No puedo ayudarte con eso. Solo puedo leer los datos públicos de tu cuenta.",
+        "error_offline": "Parece que no tienes conexión. Revisa e intenta de nuevo.",
+        "error_generic": "Algo salió mal. Intenta de nuevo."
     }
 }
