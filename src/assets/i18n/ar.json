@@ -1848,6 +1848,7 @@
         "title": "المكافآت",
         "redeem_zns": "استبدال ZNS",
         "invite_friends": "دعوة الأصدقاء",
+        "invite_extra": "{{count}} إحالات إضافية محفوظة في السجل ولا تُحتسب ضمن المكافأة",
         "daily_rewards": "المكافآت اليومية",
         "claim_it_now": "طالب بها الآن",
         "your_tasks": "مهامك",

@@ -1848,6 +1848,7 @@
         "title": "पुरस्कार",
         "redeem_zns": "ZNS भुनाएं",
         "invite_friends": "दोस्तों को आमंत्रित करें",
+        "invite_extra": "{{count}} rujukan tambahan disimpan sebagai riwayat dan tidak dihitung untuk hadiah",
         "daily_rewards": "दैनिक पुरस्कार",
         "claim_it_now": "इसे अभी प्राप्त करें",
         "your_tasks": "आपके कार्य",

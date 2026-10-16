@@ -1848,6 +1848,7 @@
         "title": "보상",
         "redeem_zns": "ZNS 교환",
         "invite_friends": "친구 초대",
+        "invite_extra": "추가 추천 {{count}}건은 기록으로만 남으며 보상에 포함되지 않습니다",
         "daily_rewards": "일일 보상",
         "claim_it_now": "지금 받기",
         "your_tasks": "나의 작업",

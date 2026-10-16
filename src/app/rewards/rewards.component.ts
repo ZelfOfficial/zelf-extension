@@ -23,6 +23,16 @@ interface Task {
     action?: () => void;
 }
 
+export const DEFAULT_REFERRAL_LIMIT = 10;
+
+/** Clamp the referral counter to the reward cap: never 11/10, never a bar past 100%. */
+export function inviteProgress(total: number, limit: number): { counted: number; extra: number; percent: number } {
+    const cap = Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : DEFAULT_REFERRAL_LIMIT;
+    const safeTotal = Number.isFinite(total) && total > 0 ? Math.floor(total) : 0;
+    const counted = Math.min(safeTotal, cap);
+    return { counted, extra: safeTotal - counted, percent: (counted / cap) * 100 };
+}
+
 @Component({
     imports: [CommonModule, MatButtonModule, RouterModule, TranslocoModule],
     selector: "rewards",
@@ -34,7 +44,18 @@ export class RewardsComponent implements OnInit, OnDestroy {
     znsBalanceLoading: boolean = false;
     invitedFriends: number = 0;
     referralsLoading: boolean = false;
-    maxInvites: number = 10;
+    /** Reward cap, from the server (`limit` in /api/my-tags/referrals). 10 only until it answers. */
+    maxInvites: number = DEFAULT_REFERRAL_LIMIT;
+    /** Referrals past the cap: kept as history, they don't count toward the reward. */
+    extraInvites: number = 0;
+
+    get countedInvites(): number {
+        return inviteProgress(this.invitedFriends, this.maxInvites).counted;
+    }
+
+    get invitesPercent(): number {
+        return inviteProgress(this.invitedFriends, this.maxInvites).percent;
+    }
 
     dailyRewardLoading: boolean = false;
     dailyRewardAvailable: boolean = true;
@@ -128,7 +149,7 @@ export class RewardsComponent implements OnInit, OnDestroy {
             }
 
             let amount = 0;
-            
+
             try {
                 const response = await this._solanaService.getWalletDetails(solanaAddress, { source: "oklink" });
                 const tokens = response?.data?.tokenHoldings?.tokens ?? response?.tokenHoldings?.tokens ?? [];
@@ -163,10 +184,12 @@ export class RewardsComponent implements OnInit, OnDestroy {
         this.referralsLoading = true;
         try {
             // Check cache first
-            const cachedInvites = await this._chromeService.getItem("zns_invites_cache");
+            const cachedInvites = await this._chromeService.getItem("zns_invites_cache_v2");
             // Cache valid for 30 minutes
             if (cachedInvites && cachedInvites.timestamp > Date.now() - 30 * 60 * 1000) {
                 this.invitedFriends = cachedInvites.count;
+                this.maxInvites = cachedInvites.limit || DEFAULT_REFERRAL_LIMIT;
+                this.extraInvites = inviteProgress(this.invitedFriends, this.maxInvites).extra;
                 this.referralsLoading = false;
                 return;
             }
@@ -183,16 +206,20 @@ export class RewardsComponent implements OnInit, OnDestroy {
 
             // Group by unique friend (stripping .hold)
             const uniqueFriends = new Set(referrals.map((r: any) => (r.name || r.tagName).replace(/\.hold$/, "")));
-            this.invitedFriends = uniqueFriends.size;
+            this.invitedFriends = Number(response?.data?.friendsCount) || uniqueFriends.size;
+            this.maxInvites = Number(response?.data?.limit) || DEFAULT_REFERRAL_LIMIT;
+            this.extraInvites = inviteProgress(this.invitedFriends, this.maxInvites).extra;
 
             // Cache the result
-            await this._chromeService.setItem("zns_invites_cache", {
+            await this._chromeService.setItem("zns_invites_cache_v2", {
                 timestamp: Date.now(),
                 count: this.invitedFriends,
+                limit: this.maxInvites,
             });
         } catch (error) {
             console.error("Error loading referral count:", error);
             this.invitedFriends = 0;
+            this.extraInvites = 0;
         } finally {
             this.referralsLoading = false;
         }

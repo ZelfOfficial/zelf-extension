@@ -1848,6 +1848,7 @@
         "title": "奖励",
         "redeem_zns": "兑换 ZNS",
         "invite_friends": "邀请好友",
+        "invite_extra": "另有 {{count}} 位推荐仅作记录，不计入奖励",
         "daily_rewards": "每日奖励",
         "claim_it_now": "立即领取",
         "your_tasks": "您的任务",

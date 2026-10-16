@@ -63,7 +63,7 @@ export class RedeemZnsComponent implements OnInit {
             }
 
             let amount = 0;
-            
+
             try {
                 const response = await this._solanaService.getWalletDetails(solanaAddress, { source: "oklink" });
                 const tokens = response?.data?.tokenHoldings?.tokens ?? response?.tokenHoldings?.tokens ?? [];

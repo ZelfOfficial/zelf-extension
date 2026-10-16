@@ -1848,6 +1848,7 @@
         "title": "Récompenses",
         "redeem_zns": "Échanger des ZNS",
         "invite_friends": "Inviter des amis",
+        "invite_extra": "{{count}} parrainages supplémentaires conservés dans l'historique, ils ne comptent pas pour la récompense",
         "daily_rewards": "Récompenses quotidiennes",
         "claim_it_now": "Réclamer maintenant",
         "your_tasks": "Vos tâches",

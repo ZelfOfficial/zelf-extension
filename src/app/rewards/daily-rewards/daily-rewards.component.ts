@@ -145,7 +145,7 @@ export class DailyRewardsComponent implements OnInit, OnDestroy {
 
             if (!this.isAccountActive) {
                 this.errorMessage = this._translocoService.translate("rewards.error.account_not_active", {
-                    default: "Your Solana account is not activated yet. Please deposit some SOL to activate your wallet before spinning the wheel."
+                    default: "Your Solana account is not activated yet. Please deposit some SOL to activate your wallet before spinning the wheel.",
                 });
             } else if (wheelConfig.alreadyClaimedToday) {
                 this.hasSpunToday = true;

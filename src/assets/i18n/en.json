@@ -2074,6 +2074,7 @@
         "title": "Rewards",
         "redeem_zns": "Redeem ZNS",
         "invite_friends": "Invite friends",
+        "invite_extra": "{{count}} additional referrals kept as history; they don't count toward the reward",
         "daily_rewards": "Daily rewards",
         "claim_it_now": "Claim it now",
         "your_tasks": "Your tasks",

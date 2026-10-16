@@ -1848,6 +1848,7 @@
         "title": "報酬",
         "redeem_zns": "ZNSを換金",
         "invite_friends": "友達を招待",
+        "invite_extra": "追加の紹介 {{count}} 件は履歴として保存され、報酬の対象外です",
         "daily_rewards": "デイリー報酬",
         "claim_it_now": "今すぐ受け取る",
         "your_tasks": "あなたのタスク",
