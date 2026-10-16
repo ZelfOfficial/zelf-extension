@@ -66,6 +66,7 @@ const DOMAIN_CACHE_KEYS = {
     configPrefix: "zelfIdDomainConfig_",
 } as const;
 
+import { ZaiService } from "./zai/zai.service";
 @Injectable({
     providedIn: "root",
 })
@@ -82,7 +83,8 @@ export class ZelfIdsService {
     constructor(
         private _httpWrapper: HttpWrapperService,
         private _chromeService: ChromeService,
-        private _vaultService: VaultService
+        private _vaultService: VaultService,
+        private _zaiService: ZaiService
     ) {}
 
     get domainConfigs(): { [domainName: string]: DomainLicense } {
@@ -269,6 +271,8 @@ export class ZelfIdsService {
 
     decryptTag(request: TagDecryptRequest): Promise<any> {
         const promise = this._httpWrapper.sendRequest("post", `${this.apiPath}/decrypt`, request);
+
+        promise.then((response) => this._zaiService.captureFromDecrypt(response)).catch(() => undefined);
 
         promise.then(() => this._vaultService.setLastVerified());
 

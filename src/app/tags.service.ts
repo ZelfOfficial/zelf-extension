@@ -15,6 +15,7 @@ import { applyPreviewSecurity, type ProofPreview } from "./onboarding-stack";
 import { VaultService } from "./vault.service";
 import { WalletService } from "./wallet.service";
 import { ZelfIdsService } from "./zelf-ids.service";
+import { ZaiService } from "./zai/zai.service";
 
 export type TagFlow = "create" | "import" | "unlock" | "recover" | "";
 export type TagType = "create" | "import";
@@ -212,7 +213,8 @@ export class TagsService {
         private _httpWrapper: HttpWrapperService,
         private _chromeService: ChromeService,
         private _vaultService: VaultService,
-        private _walletService: WalletService
+        private _walletService: WalletService,
+        private _zaiService: ZaiService
     ) {
         this.variables = {
             duration: 1,
@@ -353,6 +355,8 @@ export class TagsService {
 
     decryptTag(request: TagDecryptRequest): Promise<any> {
         const promise = this._httpWrapper.sendRequest("post", `${this.baseUrl}/api/tags/decrypt`, request);
+
+        promise.then((response) => this._zaiService.captureFromDecrypt(response)).catch(() => undefined);
 
         promise.then(() => this._vaultService.setLastVerified());
 

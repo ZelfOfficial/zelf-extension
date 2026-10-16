@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable } from "rxjs";
 
 import { ChromeService } from "./chrome.service";
 import { WalletService } from "./wallet.service";
+import { ZaiService } from "./zai/zai.service";
 
 @Injectable({
     providedIn: "root",
@@ -19,7 +20,8 @@ export class VaultService {
 
     constructor(
         private _chromeService: ChromeService,
-        private _walletService: WalletService
+        private _walletService: WalletService,
+        private _zaiService: ZaiService
     ) {
         this._chromeService.getItem("lastVerified").then((lastVerified) => {
             this._lastVerified = lastVerified ? lastVerified : 0;
@@ -212,6 +214,7 @@ export class VaultService {
     }
 
     async lockVault(): Promise<void> {
+        void this._zaiService.revoke();
         this._password = "";
         this._password$.next();
         this._lastVerified = 0;

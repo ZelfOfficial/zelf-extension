@@ -15,6 +15,7 @@ import { ZelfSettingsLanguageComponent } from "./zelf-settings-language/zelf-set
 import { ZelfSettingsDappsComponent } from "./zelf-settings-dapps/zelf-settings-dapps.component";
 import { ZelfSettingsNotificationsComponent } from "./zelf-settings-notifications/zelf-settings-notifications.component";
 import { ZelfSettingsThemeComponent } from "./zelf-settings-theme/zelf-settings-theme.component";
+import { ZaiService } from "app/zai/zai.service";
 
 @Component({
     imports: [
@@ -114,6 +115,7 @@ export class ZelfSettingsComponent implements OnDestroy {
     ];
 
     constructor(
+        private readonly _zaiService: ZaiService,
         private _activatedRoute: ActivatedRoute,
         private _chromeService: ChromeService,
         private _dialog: MatDialog,
@@ -173,10 +175,11 @@ export class ZelfSettingsComponent implements OnDestroy {
     logout() {
         const dialogRef = this._createDialogRef();
 
-        dialogRef.afterClosed().subscribe((result) => {
+        dialogRef.afterClosed().subscribe(async (result) => {
             if (!result) return;
 
             this._chromeService.clearLocalStorage();
+            await this._zaiService.revoke();
             this._chromeService.clearSessionStorage();
 
             this._router.navigate(["/welcome-zelfid"], { replaceUrl: true });

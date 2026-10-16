@@ -20,6 +20,7 @@ import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { TagModel, TagsService, TagSearchResponse } from "app/tags.service";
 import { environment } from "environments/environment";
+import { ZaiService } from "app/zai/zai.service";
 
 @Component({
     imports: [ValidityYearsPipe, CommonModule, FirstLetterPipe, MatMenuModule, RouterModule, TimerPipe, TranslocoModule, ZelfLoaderComponent],
@@ -37,6 +38,7 @@ export class ManageDomainsComponent implements OnInit, OnDestroy {
     currentWallet: Partial<TagModel> = {};
 
     constructor(
+        private readonly _zaiService: ZaiService,
         private _bottomSheet: MatBottomSheet,
         private _changeDetectorRef: ChangeDetectorRef,
         private _chromeService: ChromeService,
@@ -127,7 +129,8 @@ export class ManageDomainsComponent implements OnInit, OnDestroy {
 
             if (isLastWallet) {
                 this._chromeService.clearLocalStorage();
-                this._chromeService.clearSessionStorage();
+                await this._zaiService.revoke();
+            this._chromeService.clearSessionStorage();
 
                 this._router.navigate(["/welcome-zelfid"], { replaceUrl: true });
 

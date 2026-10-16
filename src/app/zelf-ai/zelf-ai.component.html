@@ -1,0 +1,90 @@
+<div class="zelf-card home-hub zai" *transloco="let t">
+    <header class="zai__header">
+        <div class="zai__avatar" aria-hidden="true">z</div>
+        <div class="zai__title">
+            <div class="zai__name">zAI</div>
+            <div class="zai__identity" *ngIf="walletName; else noId">
+                <span class="zai__dot" aria-hidden="true"></span>{{ t("zai.signed_in_as", { name: walletName }) }}
+            </div>
+            <ng-template #noId><div class="zai__identity zai__identity--off">{{ t("zai.not_signed_in") }}</div></ng-template>
+        </div>
+        <button type="button" class="zai__new" *ngIf="messages.length" (click)="newConversation()" [attr.aria-label]="t('zai.new_conversation')" [title]="t('zai.new_conversation')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+    </header>
+
+    <div class="zai__body" #scroller>
+        <ng-container [ngSwitch]="state">
+            <div class="zai__status" *ngSwitchCase="'unavailable'">
+                <div class="zai__avatar zai__avatar--lg" aria-hidden="true">z</div>
+                <h2>{{ t("zai.unavailable_title") }}</h2>
+                <p>{{ t("zai.unavailable_desc") }}</p>
+            </div>
+
+            <div class="zai__status" *ngSwitchCase="'locked'">
+                <div class="zai__avatar zai__avatar--lg" aria-hidden="true">z</div>
+                <h2>{{ t("zai.locked_title") }}</h2>
+                <p>{{ t("zai.locked_desc") }}</p>
+                <button type="button" class="zai__btn" (click)="unlock()">{{ t("zai.unlock") }}</button>
+            </div>
+
+            <ng-container *ngSwitchDefault>
+                <div class="zai__welcome" *ngIf="!messages.length">
+                    <div class="zai__avatar zai__avatar--lg" aria-hidden="true">z</div>
+                    <p>{{ t("zai.welcome") }}</p>
+                </div>
+
+                <ng-container *ngFor="let m of messages">
+                    <div *ngIf="m.role === 'user'" class="zai__msg zai__msg--user">{{ m.content }}</div>
+
+                    <div *ngIf="m.role === 'assistant'" class="zai__row">
+                        <div class="zai__avatar zai__avatar--sm" aria-hidden="true">z</div>
+                        <div class="zai__col">
+                            <div class="zai__label">zAI</div>
+                            <div class="zai__msg zai__msg--ai" [class.zai__msg--error]="m.error">
+                                <span class="zai__text">{{ m.content }}</span>
+                                <span class="zai__typing" *ngIf="m.streaming && !m.content && !m.tool"><i></i><i></i><i></i></span>
+                                <span class="zai__caret" *ngIf="m.streaming && m.content" aria-hidden="true"></span>
+                                <span class="zai__tool" *ngIf="m.tool">{{ t("zai.tool_working") }}</span>
+                                <div class="zai__card" *ngFor="let c of m.cards">
+                                    <span aria-hidden="true">⛓</span>
+                                    <span>{{ c.chain ? c.chain + " · " : "" }}Tx {{ shortHash(c.hash) }}</span>
+                                    <span class="zai__card-status" [class.zai__card-status--bad]="c.status.toLowerCase() === 'failed'">· {{ c.status }}</span>
+                                    <span *ngIf="c.date">· {{ c.date }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+
+                <div class="zai__chips" *ngIf="!sending">
+                    <button type="button" class="zai__chip" *ngFor="let k of suggestionKeys" (click)="askSuggestion(k)">{{ t(k) }}</button>
+                </div>
+            </ng-container>
+        </ng-container>
+    </div>
+
+    <div class="zai__footer">
+        <div class="zai__note">{{ t("zai.never_asks") }}</div>
+        <form class="zai__composer" (ngSubmit)="send()">
+            <textarea
+                rows="1"
+                name="draft"
+                [(ngModel)]="draft"
+                maxlength="4000"
+                [disabled]="state !== 'ready'"
+                [placeholder]="t('zai.placeholder')"
+                (keydown)="onKeydown($event)"
+                autocomplete="off"
+            ></textarea>
+            <button *ngIf="!sending" type="submit" class="zai__send" [disabled]="!canSend" [attr.aria-label]="t('zai.send')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            </button>
+            <button *ngIf="sending" type="button" class="zai__send" (click)="stop()" [attr.aria-label]="t('zai.stop')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+            </button>
+        </form>
+    </div>
+
+    <zelf-footer [shareables]="{ wallet: wallet }"></zelf-footer>
+</div>
