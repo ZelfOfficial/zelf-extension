@@ -32,7 +32,7 @@
                     [routerLink]="settingItem.routerLink"
                 >
                     <div class="zelf-settings__icon-tile">
-                        <ng-container *ngTemplateOutlet="getTemplateIcon(settingItem)"></ng-container>
+                        <span class="material-symbols-outlined zelf-icon" aria-hidden="true">{{ settingItem.icon }}</span>
                     </div>
                     <span class="zelf-settings__label">{{ t(settingItem.text) }}</span>
                     <div class="zelf-settings__chevron" aria-hidden="true">
@@ -49,7 +49,7 @@
                     [queryParams]="{ externalUrl: link.url }"
                 >
                     <div class="zelf-settings__icon-tile">
-                        <ng-container *ngTemplateOutlet="externalLinkIcon"></ng-container>
+                        <span class="material-symbols-outlined zelf-icon" aria-hidden="true">{{ link.icon }}</span>
                     </div>
                     <span class="zelf-settings__label">{{ t(link.text) }}</span>
                     <div class="zelf-settings__chevron" aria-hidden="true">
@@ -98,40 +98,3 @@
         <zelf-settings-dapps></zelf-settings-dapps>
     </ng-container>
 </div>
-
-<ng-template #networksIcon>
-    <span class="material-symbols-outlined zelf-icon">lan</span>
-</ng-template>
-
-<ng-template #securityIcon>
-    <span class="material-symbols-outlined zelf-icon">security</span>
-</ng-template>
-
-<ng-template #notificationsIcon>
-    <span class="material-symbols-outlined zelf-icon">notifications</span>
-</ng-template>
-
-<ng-template #themeIcon>
-    <span class="material-symbols-outlined zelf-icon">dark_mode</span>
-</ng-template>
-
-<ng-template #languageIcon>
-    <span class="material-symbols-outlined zelf-icon">translate</span>
-</ng-template>
-
-<ng-template #subscriptionIcon>
-    <span class="material-symbols-outlined zelf-icon">license</span>
-</ng-template>
-
-<ng-template #dappsConnectionsIcon>
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="zelf-icon" xmlns="http://www.w3.org/2000/svg">
-        <path
-            d="M4 10V14H8V10H4ZM10 10V14H14V10H10ZM16 10V14H20V10H16ZM4 16V20H8V16H4ZM10 16V20H14V16H10ZM16 16V20H20V16H16ZM4 4V8H8V4H4ZM10 4V8H14V4H10ZM16 4V8H20V4H16Z"
-            fill="currentColor"
-        />
-    </svg>
-</ng-template>
-
-<ng-template #externalLinkIcon>
-    <span class="material-symbols-outlined zelf-icon">link</span>
-</ng-template>
