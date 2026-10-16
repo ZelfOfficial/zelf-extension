@@ -168,13 +168,13 @@ export class WalletService {
 
         switch (symbol) {
             case "AVAX":
-                assetSrc = "./assets/networks/avax.png";
+                assetSrc = "./assets/networks/avax.svg";
                 break;
             case "SOL":
                 assetSrc = "./assets/networks/sol.svg";
                 break;
             case "ETH":
-                assetSrc = "./assets/networks/eth.png";
+                assetSrc = "./assets/networks/eth.svg";
                 break;
             case "BDAG":
             case "BlockDAG":
@@ -188,7 +188,7 @@ export class WalletService {
                 break;
             case "BNB":
             case "BSC":
-                assetSrc = "./assets/networks/bnb.png";
+                assetSrc = "./assets/networks/bnb.svg";
                 break;
             case "POL":
             case "MATIC":
@@ -204,7 +204,7 @@ export class WalletService {
                 assetSrc = "./assets/networks/base.svg";
                 break;
             case "BTC":
-                assetSrc = "./assets/networks/btc.png";
+                assetSrc = "./assets/networks/btc.svg";
                 break;
             case "XLM":
                 assetSrc = "./assets/icons/xlm_logo.svg";

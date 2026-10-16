@@ -164,7 +164,7 @@ export class NetworkService {
         switch (network) {
             case "ethereum":
             case "ETH":
-                return "./assets/networks/eth.png";
+                return "./assets/networks/eth.svg";
             case "sui":
             case "SUI":
                 return "./assets/networks/sui.svg";
@@ -173,7 +173,7 @@ export class NetworkService {
                 return "./assets/networks/ton.png";
             case "avalanche":
             case "AVAX":
-                return "./assets/networks/avax.png";
+                return "./assets/networks/avax.svg";
             case "blockdag":
             case "BDAG":
                 return "/assets/networks/bdag.png";
@@ -182,10 +182,10 @@ export class NetworkService {
                 return "./assets/networks/sol.svg";
             case "bitcoin":
             case "BTC":
-                return "./assets/networks/btc.png";
+                return "./assets/networks/btc.svg";
             case "binance":
             case "BNB":
-                return "./assets/networks/bnb.png";
+                return "./assets/networks/bnb.svg";
             case "stellar":
             case "XLM":
                 return "./assets/icons/xlm_logo.svg";
