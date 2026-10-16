@@ -33,12 +33,11 @@
 
     &__header {
         display: grid;
-        grid-template-columns: repeat(10, 1fr);
+        grid-template-columns: calc(40px * var(--zns-space-scale, 1)) minmax(0, 1fr) calc(40px * var(--zns-space-scale, 1));
         column-gap: calc(12px * var(--zns-space-scale, 1));
         align-items: center;
         align-content: center;
         justify-content: start;
-        gap: calc(24px * var(--zns-space-scale, 1));
         width: 100%;
         padding: 0 calc(24px * var(--zns-space-scale, 1));
         z-index: 10;
@@ -47,7 +46,6 @@
 
     &__col1,
     &__col3 {
-        grid-column: span 3;
         display: flex;
         align-items: center;
     }
@@ -57,7 +55,7 @@
     }
 
     &__col2 {
-        grid-column: span 4;
+        min-width: 0;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -70,9 +68,11 @@
 
     &__title {
         font-family: variables.$themeTitleFamily;
-        font-weight: 300;
-        font-size: calc(24px * var(--zns-font-scale, 1));
-        line-height: calc(20px * var(--zns-font-scale, 1));
+        font-weight: 600;
+        font-size: calc(20px * var(--zns-font-scale, 1));
+        // Line-height must exceed font-size so a wrapped title never overlaps itself (#46).
+        line-height: 1.25;
+        overflow-wrap: anywhere;
         letter-spacing: 0.1px;
         text-align: center;
         vertical-align: middle;

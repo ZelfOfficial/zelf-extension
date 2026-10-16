@@ -65,6 +65,32 @@ html {
         )
     );
 
+    // Slide toggles (#48): theme-aware so on/off stay clearly distinct in light and dark mode.
+    // Material 20 reads --mat-slide-toggle-* tokens; the old --mdc-switch-* overrides no longer apply.
+    @include mat.slide-toggle-overrides(
+        (
+            selected-track-color: variables.$primaryColor,
+            selected-hover-track-color: variables.$primaryColor,
+            selected-focus-track-color: variables.$primaryColor,
+            selected-pressed-track-color: variables.$primaryColor,
+            selected-handle-color: variables.$themeButtonText,
+            selected-hover-handle-color: variables.$themeButtonText,
+            selected-focus-handle-color: variables.$themeButtonText,
+            selected-pressed-handle-color: variables.$themeButtonText,
+            selected-icon-color: variables.$primaryColor,
+            unselected-track-color: variables.$themeBorder,
+            unselected-hover-track-color: variables.$themeBorder,
+            unselected-focus-track-color: variables.$themeBorder,
+            unselected-pressed-track-color: variables.$themeBorder,
+            track-outline-color: variables.$themeBorderHover,
+            unselected-handle-color: variables.$themeTextMuted,
+            unselected-hover-handle-color: variables.$themeTextSecondary,
+            unselected-focus-handle-color: variables.$themeTextSecondary,
+            unselected-pressed-handle-color: variables.$themeTextSecondary,
+            unselected-icon-color: variables.$themeCard,
+        )
+    );
+
     @include mat.icon-button-overrides(
         (
             icon-size: 16px,
