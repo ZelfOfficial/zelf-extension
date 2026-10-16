@@ -44,6 +44,9 @@
                             <div class="zai__msg zai__msg--ai" [class.zai__msg--error]="m.error">
                                 <span class="zai__text">{{ m.content }}</span>
                                 <span class="zai__typing" *ngIf="m.streaming && !m.content"><i></i><i></i><i></i></span>
+                                <span class="zai__status" *ngIf="m.streaming && !m.content && (m.thinking || m.recovering)">{{
+                                    t(m.recovering ? "zai.recovering" : "zai.thinking")
+                                }}</span>
                                 <span class="zai__caret" *ngIf="m.streaming && m.content" aria-hidden="true"></span>
                                 <ng-container *ngFor="let c of m.cards">
                                     <a

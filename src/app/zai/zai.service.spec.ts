@@ -66,3 +66,60 @@ describe("sanitizeZaiCard", () => {
         });
     });
 });
+
+describe("ZaiService Angela flow", () => {
+    const sse = (t: string) => ({ ok: true, status: 200, body: sseBody(t), headers: new Headers() }) as any;
+    let svc: ZaiService;
+    beforeEach(() => {
+        sessionStorage.clear();
+        svc = new ZaiService();
+        (svc as any)._loaded = true;
+        (svc as any)._state = { identityToken: "id", zaiToken: "zt", zaiTokenExp: Math.floor(Date.now() / 1000) + 600 };
+    });
+
+    it("emits the thinking status and clears the pending id on done", async () => {
+        spyOn(window, "fetch").and.resolveTo(
+            sse('event: meta\ndata: {"requestId":"r1","rulesVersion":"v"}\n\nevent: status\ndata: {"state":"thinking"}\n\nevent: delta\ndata: {"text":"hi"}\n\nevent: done\ndata: {}\n\n')
+        );
+        const states: string[] = [];
+        await svc.chat({ conversationId: "c", message: "m", history: [], locale: "en" }, { onDelta: () => undefined, onStatus: (s) => states.push(s.state) });
+        expect(states).toEqual(["thinking"]);
+        expect(await svc.getPendingRequestId()).toBeUndefined();
+    });
+
+    it("ZAI_TIMEOUT error event → ZaiError kind timeout with requestId", async () => {
+        spyOn(window, "fetch").and.resolveTo(sse('event: meta\ndata: {"requestId":"r2"}\n\nevent: error\ndata: {"code":"ZAI_TIMEOUT","message":"x","requestId":"r2"}\n\n'));
+        try {
+            await svc.chat({ conversationId: "c", message: "m", history: [], locale: "en" }, { onDelta: () => undefined });
+            fail("should throw");
+        } catch (e: any) {
+            expect(e.kind).toBe("timeout");
+            expect(e.requestId).toBe("r2");
+        }
+    });
+
+    it("stream ending without done → dropped (with requestId kept pending for pickup)", async () => {
+        spyOn(window, "fetch").and.resolveTo(sse('event: meta\ndata: {"requestId":"r3"}\n\nevent: status\ndata: {"state":"thinking"}\n\n'));
+        try {
+            await svc.chat({ conversationId: "c", message: "m", history: [], locale: "en" }, { onDelta: () => undefined });
+            fail("should throw");
+        } catch (e: any) {
+            expect(e.kind).toBe("dropped");
+            expect(e.requestId).toBe("r3");
+        }
+        expect(await svc.getPendingRequestId()).toBe("r3");
+    });
+
+    it("pickupResult polls GET /api/zai/result until answered; sanitizes cards", async () => {
+        const replies = [
+            { status: "pending", text: null, cards: [] },
+            { status: "answered", text: "done", cards: [{ type: "doc", title: "t", url: "https://docs.zelf.world/docs/x" }, { type: "doc", url: "javascript:x" }] },
+        ];
+        const f = spyOn(window, "fetch").and.callFake(async () => ({ ok: true, status: 200, json: async () => ({ data: replies.shift() }) }) as any);
+        const r = await svc.pickupResult("r4", { intervalMs: 1, maxWaitMs: 1000 });
+        expect(r.status).toBe("answered");
+        expect(r.text).toBe("done");
+        expect(r.cards.length).toBe(1);
+        expect((f.calls.argsFor(0)[0] as string).endsWith("/api/zai/result/r4")).toBeTrue();
+    });
+});

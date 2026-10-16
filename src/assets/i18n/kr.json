@@ -2037,6 +2037,9 @@
         "error_rate_limited": "Too many messages. Try again in {{seconds}} s.",
         "error_refused": "I can't help with that. I can only read your own public account data.",
         "error_offline": "You seem to be offline. Check your connection and try again.",
-        "error_generic": "Something went wrong. Please try again."
+        "error_generic": "Something went wrong. Please try again.",
+        "thinking": "zAI가 생각 중이에요… 1~2분 정도 걸릴 수 있어요.",
+        "recovering": "답변을 가져오는 중…",
+        "error_timeout": "zAI가 제시간에 답하지 못했어요. 다시 시도해 주세요."
     }
 }

@@ -55,8 +55,17 @@ export interface ZaiDone {
     finishReason?: "stop" | "length" | "filtered" | string;
 }
 
+export interface ZaiResult {
+    requestId: string;
+    status: "pending" | "answered" | "failed" | "timeout";
+    text: string | null;
+    cards: ZaiCard[];
+}
+
 export interface ZaiStreamHandlers {
     onMeta?: (meta: ZaiMeta) => void;
+    /** "thinking": Angela is working on the answer (her runs queue; can take minutes). */
+    onStatus?: (status: { state: string }) => void;
     onDelta: (text: string) => void;
     onCard?: (card: ZaiCard) => void;
     onDone?: (done: ZaiDone) => void;
@@ -101,19 +110,21 @@ export function sanitizeZaiCard(raw: any): ZaiCard | null {
     }
 }
 
-export type ZaiErrorKind = "unavailable" | "unauthorized" | "rate_limited" | "refused" | "network" | "error";
+export type ZaiErrorKind = "unavailable" | "unauthorized" | "rate_limited" | "refused" | "network" | "timeout" | "dropped" | "error";
 
 export class ZaiError extends Error {
     constructor(
         public kind: ZaiErrorKind,
         public code?: string,
-        public retryAfter?: number
+        public retryAfter?: number,
+        public requestId?: string
     ) {
         super(code || kind);
     }
 }
 
 const SESSION_KEY = "zai_session";
+const PENDING_KEY = "zai_pending_request";
 
 interface ZaiSessionState {
     identityToken?: string;
@@ -152,6 +163,7 @@ export class ZaiService {
         const { identityToken, zaiToken } = this._state;
         this._state = {};
         await this._persist();
+        await this._setPending(undefined);
         if (!identityToken && !zaiToken) return;
         // Fire-and-forget so lock/logout never waits on the network.
         void fetch(`${this._baseUrl}/api/zai/revoke`, {
@@ -181,7 +193,99 @@ export class ZaiService {
         if (!res.ok) throw await this._toError(res);
         if (!res.body) throw new ZaiError("unavailable");
 
-        await this._readSse(res.body, handlers);
+        let requestId: string | undefined;
+        let finished = false;
+        const tracked: ZaiStreamHandlers = {
+            ...handlers,
+            onMeta: (m) => {
+                requestId = m?.requestId;
+                if (requestId) void this._setPending(requestId);
+                handlers.onMeta?.(m);
+            },
+            onDone: (d) => {
+                finished = true;
+                void this._setPending(undefined);
+                handlers.onDone?.(d);
+            },
+        };
+        try {
+            await this._readSse(res.body, tracked);
+        } catch (e: any) {
+            if (e instanceof ZaiError) {
+                if (e.kind !== "timeout") void this._setPending(undefined);
+                throw e;
+            }
+            if (e?.name === "AbortError") throw e;
+            finished = false;
+        }
+        // Stream ended (or broke) without done/error: the answer may still arrive → result pickup.
+        if (!finished) throw new ZaiError("dropped", "ZAI_STREAM_DROPPED", undefined, requestId);
+    }
+
+    /**
+     * Main recovery path: GET /api/zai/result/:requestId (same Zelf ID only).
+     * Polls until answered/failed/timeout or until `maxWaitMs`.
+     */
+    async pickupResult(requestId: string, opts: { intervalMs?: number; maxWaitMs?: number; signal?: AbortSignal } = {}): Promise<ZaiResult> {
+        const intervalMs = opts.intervalMs ?? 4000;
+        const until = Date.now() + (opts.maxWaitMs ?? 4 * 60 * 1000);
+        for (;;) {
+            if (opts.signal?.aborted) throw new DOMException("aborted", "AbortError");
+            const token = await this._getZaiToken();
+            let res: Response;
+            try {
+                res = await fetch(`${this._baseUrl}/api/zai/result/${encodeURIComponent(requestId)}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                    signal: opts.signal,
+                });
+            } catch (e: any) {
+                if (e?.name === "AbortError") throw e;
+                res = undefined as any;
+            }
+            if (res && res.ok) {
+                const json: any = await res.json().catch(() => ({}));
+                const data = json?.data || {};
+                const result: ZaiResult = {
+                    requestId,
+                    status: data.status,
+                    text: typeof data.text === "string" ? data.text : null,
+                    cards: (Array.isArray(data.cards) ? data.cards : []).map(sanitizeZaiCard).filter(Boolean) as ZaiCard[],
+                };
+                if (result.status !== "pending") {
+                    await this._setPending(undefined);
+                    return result;
+                }
+            } else if (res && res.status !== 401) {
+                await this._setPending(undefined);
+                throw await this._toError(res);
+            }
+            if (Date.now() + intervalMs > until) return { requestId, status: "timeout", text: null, cards: [] };
+            await new Promise((r) => setTimeout(r, intervalMs));
+        }
+    }
+
+    /** requestId of a question still in flight (survives the popup closing; chrome.storage.session only). */
+    async getPendingRequestId(): Promise<string | undefined> {
+        try {
+            const api: any = (globalThis as any).chrome?.storage?.session;
+            if (api) return (await api.get(PENDING_KEY))?.[PENDING_KEY] || undefined;
+            return sessionStorage.getItem(PENDING_KEY) || undefined;
+        } catch {
+            return undefined;
+        }
+    }
+
+    private async _setPending(requestId?: string): Promise<void> {
+        try {
+            const api: any = (globalThis as any).chrome?.storage?.session;
+            if (api) {
+                if (requestId) await api.set({ [PENDING_KEY]: requestId });
+                else await api.remove(PENDING_KEY);
+            } else if (requestId) sessionStorage.setItem(PENDING_KEY, requestId);
+            else sessionStorage.removeItem(PENDING_KEY);
+        } catch {
+            /* memory only */
+        }
     }
 
     private async _postChat(token: string, body: any, signal?: AbortSignal): Promise<Response> {
@@ -294,6 +398,9 @@ export class ZaiService {
             case "meta":
                 h.onMeta?.(data);
                 break;
+            case "status":
+                h.onStatus?.(data);
+                break;
             case "delta":
                 if (data?.text) h.onDelta(String(data.text));
                 break;
@@ -306,8 +413,8 @@ export class ZaiService {
                 h.onDone?.(data);
                 break;
             case "error": {
-                const kind: ZaiErrorKind = data?.code === "ZAI_RATE_LIMITED" ? "rate_limited" : "error";
-                throw new ZaiError(kind, data?.code, data?.retryAfter);
+                const kind: ZaiErrorKind = data?.code === "ZAI_RATE_LIMITED" ? "rate_limited" : data?.code === "ZAI_TIMEOUT" ? "timeout" : "error";
+                throw new ZaiError(kind, data?.code, data?.retryAfter, data?.requestId);
             }
         }
     }

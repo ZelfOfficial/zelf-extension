@@ -18,6 +18,10 @@ export interface ZaiMessage {
     streaming?: boolean;
     cards?: ZaiCard[];
     filtered?: boolean;
+    /** Angela is working on it (server "status: thinking"); can take minutes. */
+    thinking?: boolean;
+    /** Stream dropped; fetching the answer via GET /api/zai/result/:requestId. */
+    recovering?: boolean;
     error?: boolean;
 }
 
@@ -72,6 +76,17 @@ export class ZelfAiComponent implements OnInit, OnDestroy {
 
         if (!(await this._zaiService.hasIdentity())) this.state = "locked";
         this._changeDetectorRef.detectChanges();
+
+        // A question was still in flight when the popup closed: pick up its answer.
+        const pending = this.state === "ready" ? await this._zaiService.getPendingRequestId() : undefined;
+        if (pending) {
+            const reply: ZaiMessage = { role: "assistant", content: "", streaming: true, recovering: true };
+            this.messages.push(reply);
+            this.sending = true;
+            this._abort = new AbortController();
+            this._render();
+            await this._recover(pending, reply);
+        }
     }
 
     ngOnDestroy(): void {
@@ -141,7 +156,12 @@ export class ZelfAiComponent implements OnInit, OnDestroy {
                     locale: this._translocoService.getActiveLang() || "en",
                 },
                 {
+                    onStatus: (status) => {
+                        reply.thinking = status?.state === "thinking";
+                        this._render();
+                    },
                     onDelta: (delta) => {
+                        reply.thinking = false;
                         reply.content += delta;
                         this._render();
                     },
@@ -156,25 +176,58 @@ export class ZelfAiComponent implements OnInit, OnDestroy {
                 this._abort.signal
             );
         } catch (error: any) {
+            if (error instanceof ZaiError && error.kind === "dropped" && error.requestId) {
+                await this._recover(error.requestId, reply);
+                return;
+            }
             if (error?.name !== "AbortError") this._handleError(error, reply);
         } finally {
-            reply.streaming = false;
-            this.sending = false;
-            if (!reply.content && !reply.error && !reply.cards?.length) this.messages.splice(this.messages.indexOf(reply), 1);
-            this._render();
+            this._finish(reply);
         }
+    }
+
+    /** Result pickup after a dropped stream (main recovery path). */
+    private async _recover(requestId: string, reply: ZaiMessage): Promise<void> {
+        reply.recovering = true;
+        reply.thinking = true;
+        this._render();
+        try {
+            const result = await this._zaiService.pickupResult(requestId, { signal: this._abort?.signal });
+            if (result.status === "answered") {
+                reply.content = result.text || "";
+                for (const card of result.cards) this._addCard(reply, card);
+            } else if (result.status === "timeout") {
+                this._handleError(new ZaiError("timeout", "ZAI_TIMEOUT"), reply);
+            } else {
+                this._handleError(new ZaiError("error", "ZAI_UPSTREAM_ERROR"), reply);
+            }
+        } catch (error: any) {
+            if (error?.name !== "AbortError") this._handleError(error, reply);
+        } finally {
+            this._finish(reply);
+        }
+    }
+
+    private _finish(reply: ZaiMessage): void {
+        reply.streaming = false;
+        reply.thinking = false;
+        reply.recovering = false;
+        this.sending = false;
+        const i = this.messages.indexOf(reply);
+        if (i >= 0 && !reply.content && !reply.error && !reply.cards?.length) this.messages.splice(i, 1);
+        this._render();
     }
 
     private _handleError(error: unknown, reply: ZaiMessage): void {
         const kind = error instanceof ZaiError ? error.kind : "error";
         if (kind === "unavailable") {
             this.state = "unavailable";
-            this.messages.splice(this.messages.indexOf(reply), 1);
+            if (this.messages.includes(reply)) this.messages.splice(this.messages.indexOf(reply), 1);
             return;
         }
         if (kind === "unauthorized") {
             this.state = "locked";
-            this.messages.splice(this.messages.indexOf(reply), 1);
+            if (this.messages.includes(reply)) this.messages.splice(this.messages.indexOf(reply), 1);
             return;
         }
         reply.error = true;
@@ -183,6 +236,8 @@ export class ZelfAiComponent implements OnInit, OnDestroy {
             reply.content = this._translocoService.translate("zai.error_rate_limited", { seconds: this.retryAfter });
         } else if (kind === "refused") {
             reply.content = this._translocoService.translate("zai.error_refused");
+        } else if (kind === "timeout") {
+            reply.content = this._translocoService.translate("zai.error_timeout");
         } else if (kind === "network") {
             reply.content = this._translocoService.translate("zai.error_offline");
         } else {
@@ -222,6 +277,11 @@ export class ZelfAiComponent implements OnInit, OnDestroy {
     private _loadPreview(mode: string): void {
         if (mode === "unavailable") {
             this.state = "unavailable";
+        } else if (mode === "thinking") {
+            this.messages = [
+                { role: "user", content: "Why did my last transaction fail?" },
+                { role: "assistant", content: "", streaming: true, thinking: true },
+            ];
         } else if (mode === "locked") {
             this.state = "locked";
         } else if (mode !== "empty") {

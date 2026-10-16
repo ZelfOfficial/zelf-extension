@@ -2037,6 +2037,9 @@
         "error_rate_limited": "Too many messages. Try again in {{seconds}} s.",
         "error_refused": "I can't help with that. I can only read your own public account data.",
         "error_offline": "You seem to be offline. Check your connection and try again.",
-        "error_generic": "Something went wrong. Please try again."
+        "error_generic": "Something went wrong. Please try again.",
+        "thinking": "zAI 正在思考…可能需要一两分钟。",
+        "recovering": "正在获取你的回答…",
+        "error_timeout": "zAI 未能及时回答，请重试。"
     }
 }
