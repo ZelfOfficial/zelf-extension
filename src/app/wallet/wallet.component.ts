@@ -1,3 +1,4 @@
+import { ValidityYearsPipe } from "app/pipes/validity-years.pipe";
 import { CommonModule, NgFor, NgIf, NgTemplateOutlet } from "@angular/common";
 import { Component, DestroyRef, OnDestroy, OnInit } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
@@ -21,7 +22,7 @@ import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { environment } from "environments/environment";
 
 @Component({
-    imports: [
+    imports: [ValidityYearsPipe, 
         CommonModule,
         NgFor,
         NgIf,

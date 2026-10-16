@@ -57,8 +57,12 @@
                     </p>
 
                     <ng-container *ngIf="isFreeHold || isPremium">
+                        <p *ngIf="shareables.wallet?.publicData | validityYears as years" class="home-hub__countdown home-hub__countdown--in-card">
+                            {{ years === 1 ? t("common.validity_one_year") : t("common.validity_years", { years: years }) }}
+                        </p>
                         <div
                             *ngIf="subscriptionDhms as dc"
+                            [hidden]="!!(shareables.wallet?.publicData | validityYears)"
                             class="home-hub__countdown-dhms"
                             role="timer"
                         >

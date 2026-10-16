@@ -877,7 +877,9 @@
         "zelf_signals": "zSignals",
         "zelf_signals_coming_soon": "Zelf Signals sera bientôt disponible.",
         "zelf_wallet": "Zelf",
-        "ton_address": "Adresse TON"
+        "ton_address": "Adresse TON",
+        "validity_one_year": "Validité : 1 an",
+        "validity_years": "Validité : {{years}} ans"
     },
     "token": {
         "24h_performance": "Performance 24h",

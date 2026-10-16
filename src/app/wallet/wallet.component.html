@@ -161,7 +161,10 @@
 
                         <div class="wallet__detail" *ngIf="wallet && wallet.publicData && wallet.publicData?.type === 'mainnet'">
                             <p class="wallet__detail-title">{{ t("manage_domain.registered_until") }}</p>
-                            <p class="wallet__detail-value">{{ wallet.publicData.expiresAt | date: "dd MMM, yyyy, hh:mm aa" }}</p>
+                            <p class="wallet__detail-value">
+                                <ng-container *ngIf="wallet.publicData | validityYears as years; else exactExpiry">{{ years === 1 ? t("common.validity_one_year") : t("common.validity_years", { years: years }) }}</ng-container>
+                                <ng-template #exactExpiry>{{ wallet.publicData.expiresAt | date: "dd MMM, yyyy, hh:mm aa" }}</ng-template>
+                            </p>
                         </div>
                     </div>
                 </div>

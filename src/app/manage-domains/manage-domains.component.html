@@ -121,7 +121,8 @@
                                     />
                                 </svg>
 
-                                <span>{{ wallet.publicData?.expiresAt | timer }}</span>
+                                <span *ngIf="wallet.publicData | validityYears as years; else countdown">{{ years === 1 ? t("common.validity_one_year") : t("common.validity_years", { years: years }) }}</span>
+                                <ng-template #countdown><span>{{ wallet.publicData?.expiresAt | timer }}</span></ng-template>
                             </p>
                         </div>
 

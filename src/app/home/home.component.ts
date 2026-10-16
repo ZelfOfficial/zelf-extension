@@ -1,3 +1,4 @@
+import { ValidityYearsPipe } from "app/pipes/validity-years.pipe";
 import { parseTagExpiry } from "@shared/utils/tag-expiry";
 import { NgFor, NgIf, NgSwitch, NgSwitchCase, NgSwitchDefault } from "@angular/common";
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
@@ -24,7 +25,7 @@ import { ZelfFooterComponent } from "app/zelf-footer/zelf-footer.component";
 const QUICK_HUB_IDS = ["zelf-keys", "zelf-authenticator", "zelf-signals", "manage-domains"] as const;
 
 @Component({
-    imports: [
+    imports: [ValidityYearsPipe, 
         FlexLayoutModule,
         HomeHubHeaderComponent,
         HomeProfilePanelComponent,

@@ -1,3 +1,4 @@
+import { ValidityYearsPipe } from "app/pipes/validity-years.pipe";
 import { CommonModule, NgIf } from "@angular/common";
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
@@ -12,7 +13,7 @@ import { environment } from "environments/environment";
 
 @Component({
     selector: "manage-domain",
-    imports: [CommonModule, NgIf, MatButtonModule, TranslocoModule, RouterLink, RouterModule, ZelfLoaderComponent],
+    imports: [ValidityYearsPipe, CommonModule, NgIf, MatButtonModule, TranslocoModule, RouterLink, RouterModule, ZelfLoaderComponent],
     templateUrl: "./manage-domain.component.html",
     styleUrls: ["./manage-domain.component.scss"],
 })

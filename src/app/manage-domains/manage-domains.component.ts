@@ -1,3 +1,4 @@
+import { ValidityYearsPipe } from "app/pipes/validity-years.pipe";
 import { debounce, DebouncedFunc } from "lodash";
 import { Subject, take, takeUntil } from "rxjs";
 
@@ -21,7 +22,7 @@ import { TagModel, TagsService, TagSearchResponse } from "app/tags.service";
 import { environment } from "environments/environment";
 
 @Component({
-    imports: [CommonModule, FirstLetterPipe, MatMenuModule, RouterModule, TimerPipe, TranslocoModule, ZelfLoaderComponent],
+    imports: [ValidityYearsPipe, CommonModule, FirstLetterPipe, MatMenuModule, RouterModule, TimerPipe, TranslocoModule, ZelfLoaderComponent],
     selector: "manage-domains",
     styleUrls: ["./manage-domains.component.scss"],
     templateUrl: "./manage-domains.component.html",
