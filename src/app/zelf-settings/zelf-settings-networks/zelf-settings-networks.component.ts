@@ -134,6 +134,12 @@ export class ZelfSettingsNetworksComponent implements OnInit, OnDestroy {
         this._settingsService.settings = this.settings;
     }
 
+    onIconError(event: Event): void {
+        const img = event.target as HTMLImageElement;
+        const fallback = "./assets/tokens/placeholder-coin.png";
+        if (img && !img.src.endsWith("placeholder-coin.png")) img.src = fallback;
+    }
+
     getNetworkIcon(networkSymbol: string): string {
         return this._walletService.getAssetImage(networkSymbol);
     }

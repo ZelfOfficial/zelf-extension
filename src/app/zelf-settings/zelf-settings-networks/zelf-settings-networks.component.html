@@ -14,7 +14,13 @@
             >
                 <div class="zelf-settings-networks__item-left">
                     <div class="zelf-settings-networks__icon-wrapper">
-                        <img [src]="getNetworkIcon(network.symbol)" [alt]="network.name" class="zelf-settings-networks__icon" />
+                        <img
+                            [src]="getNetworkIcon(network.symbol)"
+                            [alt]="network.name"
+                            class="zelf-settings-networks__icon"
+                            loading="lazy"
+                            (error)="onIconError($event)"
+                        />
                     </div>
                     <div class="zelf-settings-networks__info">
                         <span class="zelf-settings-networks__name">{{ network.name }}</span>
