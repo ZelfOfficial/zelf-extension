@@ -11,7 +11,9 @@ import { ChromeService } from "app/chrome.service";
 import { spreadPinInput } from "app/utils/pin-input.util";
 import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
-import { TagModel } from "app/tags.service";
+import { previewProofSecurity, proofRequiresPassword } from "app/onboarding-stack";
+import { TagModel, TagsService } from "app/tags.service";
+import { ZelfIdsService } from "app/zelf-ids.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 
 @Component({
@@ -46,6 +48,8 @@ export class MnemonicComponent extends CopyToClipboardBase implements OnInit, On
         private _formBuilder: FormBuilder,
         private _vaultService: VaultService,
         private _walletService: WalletService,
+        private _tagsService: TagsService,
+        private _zelfIdsService: ZelfIdsService,
         protected _chromeService: ChromeService,
         protected _translocoService: TranslocoService,
         protected _snackbar: MatSnackBar
@@ -62,7 +66,6 @@ export class MnemonicComponent extends CopyToClipboardBase implements OnInit, On
         await this._chromeService.removeItem("flow");
 
         this.wallet = (await this._walletService.getCurrentWallet()) || ({} as TagModel);
-        this._vaultService.password = "";
 
         this._setRequiresBiometricsInterval();
     }
@@ -159,10 +162,38 @@ export class MnemonicComponent extends CopyToClipboardBase implements OnInit, On
         });
     }
 
-    handleUnhide(): void {
-        const publicData = this.wallet?.publicData as { hasPassword?: string; st?: string } | undefined;
+    /**
+     * publicData.hasPassword can be stale (e.g. "false" on IDs whose proof needs a password),
+     * so before skipping the password step we confirm against the proof itself.
+     */
+    private async _requiresPassword(): Promise<boolean> {
+        const publicData = this.wallet?.publicData as { hasPassword?: string } | undefined;
 
-        if (String(publicData?.hasPassword) === "false") {
+        if (String(publicData?.hasPassword) !== "false") return true;
+
+        const zelfProof = (this.wallet as { zelfProof?: string })?.zelfProof || "";
+
+        if (!zelfProof) return false;
+
+        try {
+            const preview = await previewProofSecurity(
+                zelfProof,
+                (proof) => this._zelfIdsService.previewZelfProof({ zelfProof: proof, os: "DESKTOP" }),
+                (proof) => this._tagsService.previewZelfProof({ zelfProof: proof, os: "DESKTOP" })
+            );
+
+            return proofRequiresPassword(preview?.passwordLayer, publicData?.hasPassword) !== false;
+        } catch {
+            return false;
+        }
+    }
+
+    async handleUnhide(): Promise<void> {
+        this.passwordError = false;
+        // Drop any leftover secret from an earlier flow; the value for this unlock is set right below / on submit.
+        this._vaultService.password = "";
+
+        if (!(await this._requiresPassword())) {
             if (this.canUnlockWithPasswordOnly) {
                 this._password = "NO_PASSWORD_PLACEHOLDER";
                 this._prepareWords();
@@ -267,8 +298,11 @@ export class MnemonicComponent extends CopyToClipboardBase implements OnInit, On
             return;
         }
 
-        this._vaultService.password = this.form.get("password")?.value;
-        this._vaultService.securityType = "password";
+        const password: string = this.form.get("password")?.value || "";
+
+        this._vaultService.password = password;
+        // Computed from the plaintext: 6 digits is a PIN, anything else a password.
+        this._vaultService.securityType = /^\d{6}$/.test(password) ? "pin" : "password";
 
         this.redirect.emit();
     }

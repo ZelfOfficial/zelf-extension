@@ -37,6 +37,12 @@ export class WalletSeedPhraseSheetComponent {
 
         await this._tagsService.setTagName(this.data?.wallet?.name as string);
 
+        // Point the unlock at THIS wallet so biometrics doesn't reuse a stale tag/proof from another flow.
+        const wallet = this.data?.wallet;
+        if (wallet) await this._tagsService.setTagNameObject(wallet);
+        const zelfProof = (wallet as { zelfProof?: string } | undefined)?.zelfProof;
+        if (zelfProof) await this._tagsService.setZelfProof(zelfProof);
+
         await this._router.navigate(["/security/biometrics"], { queryParams: { return: "/wallet-manage" } });
     }
 }
