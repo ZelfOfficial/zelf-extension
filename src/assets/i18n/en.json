@@ -1015,7 +1015,9 @@
         "wallet_short": "Wallet",
         "auth_short": "Auth",
         "coming_soon": "Coming Soon",
-        "ton_address": "TON Address"
+        "ton_address": "TON Address",
+        "validity_one_year": "Validity: 1 year",
+        "validity_years": "Validity: {{years}} years"
     },
     "token": {
         "24h_performance": "24h Performance",
