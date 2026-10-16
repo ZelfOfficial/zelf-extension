@@ -17,11 +17,88 @@ export interface ZaiHistoryItem {
     content: string;
 }
 
+export interface ZaiTransactionCard {
+    type: "transaction";
+    hash: string;
+    chain: string;
+    status: "success" | "pending" | "failed" | string;
+    amount?: string;
+    symbol?: string;
+    timestamp?: string | null;
+    explorerUrl?: string | null;
+}
+
+export interface ZaiBalanceCard {
+    type: "balance";
+    chain: string;
+    symbol: string;
+    amount: string;
+    usdValue?: number | null;
+}
+
+export interface ZaiDocCard {
+    type: "doc";
+    title: string;
+    url: string;
+}
+
+/** Cards are built by the server from tool results only (event: card); never parsed from reply text. */
+export type ZaiCard = ZaiTransactionCard | ZaiBalanceCard | ZaiDocCard;
+
+export interface ZaiMeta {
+    requestId: string;
+    rulesVersion: string;
+}
+
+export interface ZaiDone {
+    usage?: { inputTokens?: number; outputTokens?: number };
+    finishReason?: "stop" | "length" | "filtered" | string;
+}
+
 export interface ZaiStreamHandlers {
-    onMeta?: (meta: any) => void;
-    onTool?: (tool: { name: string; status: "start" | "done" | "error" }) => void;
+    onMeta?: (meta: ZaiMeta) => void;
     onDelta: (text: string) => void;
-    onDone?: (done: any) => void;
+    onCard?: (card: ZaiCard) => void;
+    onDone?: (done: ZaiDone) => void;
+}
+
+const SAFE_URL = /^https:\/\//i;
+
+/** Validate a server card before it reaches the UI (unknown types and non-https links are dropped). */
+export function sanitizeZaiCard(raw: any): ZaiCard | null {
+    if (!raw || typeof raw !== "object") return null;
+    const str = (v: any) => (v === undefined || v === null ? undefined : String(v));
+    const url = (v: any) => (typeof v === "string" && SAFE_URL.test(v) ? v : null);
+    switch (raw.type) {
+        case "transaction":
+            if (!raw.hash || !raw.chain) return null;
+            return {
+                type: "transaction",
+                hash: String(raw.hash),
+                chain: String(raw.chain),
+                status: String(raw.status || "success"),
+                amount: str(raw.amount),
+                symbol: str(raw.symbol),
+                timestamp: str(raw.timestamp) ?? null,
+                explorerUrl: url(raw.explorerUrl),
+            };
+        case "balance":
+            if (!raw.chain || !raw.symbol) return null;
+            return {
+                type: "balance",
+                chain: String(raw.chain),
+                symbol: String(raw.symbol),
+                amount: String(raw.amount ?? ""),
+                usdValue: typeof raw.usdValue === "number" ? raw.usdValue : null,
+            };
+        case "doc": {
+            const u = url(raw.url);
+            if (!u) return null;
+            return { type: "doc", title: String(raw.title || u), url: u };
+        }
+        default:
+            return null;
+    }
 }
 
 export type ZaiErrorKind = "unavailable" | "unauthorized" | "rate_limited" | "refused" | "network" | "error";
@@ -217,13 +294,14 @@ export class ZaiService {
             case "meta":
                 h.onMeta?.(data);
                 break;
-            case "tool":
-                h.onTool?.(data);
-                break;
             case "delta":
-            case "message":
                 if (data?.text) h.onDelta(String(data.text));
                 break;
+            case "card": {
+                const card = sanitizeZaiCard(data);
+                if (card) h.onCard?.(card);
+                break;
+            }
             case "done":
                 h.onDone?.(data);
                 break;
