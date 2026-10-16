@@ -1855,6 +1855,7 @@
         "title": "Recompensas",
         "redeem_zns": "Resgatar ZNS",
         "invite_friends": "Convidar amigos",
+        "invite_extra": "{{count}} indicações adicionais ficam no histórico e não contam para a recompensa",
         "daily_rewards": "Recompensas diárias",
         "claim_it_now": "Resgate agora",
         "your_tasks": "Suas tarefas",

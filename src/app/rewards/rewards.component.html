@@ -86,20 +86,25 @@
                         <span class="rewards__action-title">{{ t("rewards.invite_friends") }}</span>
                         <div class="rewards__action-progress" *ngIf="!referralsLoading">
                             <div class="rewards__action-progress-bar">
-                                <div class="rewards__action-progress-fill" [style.width.%]="(invitedFriends / maxInvites) * 100"></div>
+                                <div class="rewards__action-progress-fill" [style.width.%]="invitesPercent"></div>
                             </div>
-                            <span class="rewards__action-progress-text">{{ invitedFriends }}/{{ maxInvites }}</span>
+                            <span class="rewards__action-progress-text">{{ countedInvites }}/{{ maxInvites }}</span>
                         </div>
+                        <span class="rewards__action-extra" *ngIf="!referralsLoading && extraInvites > 0">{{
+                            t("rewards.invite_extra", { count: extraInvites })
+                        }}</span>
                         <div class="rewards__stat-skeleton" *ngIf="referralsLoading"></div>
                     </div>
                 </div>
 
                 <!-- Daily Rewards Card -->
-                <div class="rewards__action-card" 
-                     [class.rewards__action-card--highlight]="dailyRewardAvailable && !dailyRewardLoading"
-                     [style.opacity]="dailyRewardLoading ? '0.7' : '1'"
-                     [style.cursor]="!dailyRewardAvailable ? 'not-allowed' : 'pointer'"
-                     (click)="onDailyRewardsClick()">
+                <div
+                    class="rewards__action-card"
+                    [class.rewards__action-card--highlight]="dailyRewardAvailable && !dailyRewardLoading"
+                    [style.opacity]="dailyRewardLoading ? '0.7' : '1'"
+                    [style.cursor]="!dailyRewardAvailable ? 'not-allowed' : 'pointer'"
+                    (click)="onDailyRewardsClick()"
+                >
                     <div class="rewards__action-icon">
                         <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <rect x="8" y="14" width="32" height="26" rx="4" fill="white" />
@@ -119,7 +124,9 @@
                             <ng-container *ngIf="dailyRewardAvailable && !dailyRewardLoading">{{ t("rewards.claim_it_now") }}</ng-container>
                             <ng-container *ngIf="dailyRewardLoading">...</ng-container>
                             <ng-container *ngIf="!dailyRewardAvailable && !dailyRewardLoading">
-                                {{ countdownHours.toString().padStart(2, '0') }}:{{ countdownMinutes.toString().padStart(2, '0') }}:{{ countdownSeconds.toString().padStart(2, '0') }}
+                                {{ countdownHours.toString().padStart(2, "0") }}:{{ countdownMinutes.toString().padStart(2, "0") }}:{{
+                                    countdownSeconds.toString().padStart(2, "0")
+                                }}
                             </ng-container>
                         </div>
                     </div>

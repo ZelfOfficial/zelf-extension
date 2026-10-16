@@ -1848,6 +1848,7 @@
         "title": "Mga Reward",
         "redeem_zns": "I-redeem ang ZNS",
         "invite_friends": "Mag-imbita ng mga kaibigan",
+        "invite_extra": "{{count}} karagdagang referral ay nasa kasaysayan lamang at hindi binibilang sa gantimpala",
         "daily_rewards": "Mga araw-araw na reward",
         "claim_it_now": "I-claim na",
         "your_tasks": "Iyong mga gawain",

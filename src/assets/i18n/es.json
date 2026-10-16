@@ -2059,6 +2059,7 @@
         "title": "Recompensas",
         "redeem_zns": "Canjear ZNS",
         "invite_friends": "Invitar amigos",
+        "invite_extra": "{{count}} referidos adicionales quedan en el historial y no cuentan para la recompensa",
         "daily_rewards": "Recompensas diarias",
         "claim_it_now": "Reclámalo ahora",
         "your_tasks": "Tus tareas",
