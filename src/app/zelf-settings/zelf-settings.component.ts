@@ -1,5 +1,5 @@
-import { NgFor, NgIf, NgTemplateOutlet } from "@angular/common";
-import { Component, OnDestroy, TemplateRef, ViewChild } from "@angular/core";
+import { NgFor, NgIf } from "@angular/common";
+import { Component, OnDestroy } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
@@ -24,7 +24,6 @@ import { ZelfSettingsThemeComponent } from "./zelf-settings-theme/zelf-settings-
         TranslocoModule,
         MatButtonModule,
         RouterLink,
-        NgTemplateOutlet,
         ZelfSettingsNetworksComponent,
         ZelfSettingsSecurityComponent,
         ZelfSettingsLanguageComponent,
@@ -37,13 +36,6 @@ import { ZelfSettingsThemeComponent } from "./zelf-settings-theme/zelf-settings-
     templateUrl: "./zelf-settings.component.html",
 })
 export class ZelfSettingsComponent implements OnDestroy {
-    @ViewChild("networksIcon", { static: true }) networksIcon: TemplateRef<HTMLDivElement> = {} as TemplateRef<HTMLDivElement>;
-    @ViewChild("securityIcon", { static: true }) securityIcon: TemplateRef<HTMLDivElement> = {} as TemplateRef<HTMLDivElement>;
-    @ViewChild("notificationsIcon", { static: true }) notificationsIcon: TemplateRef<HTMLDivElement> = {} as TemplateRef<HTMLDivElement>;
-    @ViewChild("themeIcon", { static: true }) themeIcon: TemplateRef<HTMLDivElement> = {} as TemplateRef<HTMLDivElement>;
-    @ViewChild("languageIcon", { static: true }) languageIcon: TemplateRef<HTMLDivElement> = {} as TemplateRef<HTMLDivElement>;
-    @ViewChild("subscriptionIcon", { static: true }) subscriptionIcon: TemplateRef<HTMLDivElement> = {} as TemplateRef<HTMLDivElement>;
-    @ViewChild("dappsConnectionsIcon", { static: true }) dappsConnectionsIcon: TemplateRef<HTMLDivElement> = {} as TemplateRef<HTMLDivElement>;
 
     private unsubscriber$: Subject<void> = new Subject<void>();
 
@@ -56,43 +48,43 @@ export class ZelfSettingsComponent implements OnDestroy {
     }[] = [
         {
             text: "settings.networks_label",
-            icon: "networksIcon",
+            icon: "lan",
             routerLink: ["./"],
             queryParams: { edit: "networks" },
         },
         {
             text: "settings.security_label",
-            icon: "securityIcon",
+            icon: "shield_lock",
             routerLink: ["./"],
             queryParams: { edit: "security" },
         },
         {
             text: "settings.notifications_label",
-            icon: "notificationsIcon",
+            icon: "notifications",
             routerLink: ["./"],
             queryParams: { edit: "notifications" },
         },
         {
             text: "settings.theme_label",
-            icon: "themeIcon",
+            icon: "contrast",
             routerLink: ["./"],
             queryParams: { edit: "theme" },
         },
         {
             text: "settings.language_label",
-            icon: "languageIcon",
+            icon: "translate",
             routerLink: ["./"],
             queryParams: { edit: "language" },
         },
         {
             text: "settings.dapps_label",
-            icon: "dappsConnectionsIcon",
+            icon: "cable",
             routerLink: ["./"],
             queryParams: { edit: "dapps" },
         },
         {
             text: "settings.subscription_label",
-            icon: "subscriptionIcon",
+            icon: "workspace_premium",
             routerLink: ["/zelf-keys/billing"],
             queryParams: { redirect: "/settings" },
         },
@@ -102,18 +94,22 @@ export class ZelfSettingsComponent implements OnDestroy {
         {
             url: "https://docs.zelf.world/",
             text: "common.documentation",
+            icon: "menu_book",
         },
         {
             url: "https://docs.zelf.world/docs/legal/terms-of-use",
             text: "common.terms_and_conditions",
+            icon: "gavel",
         },
         {
             url: "https://docs.zelf.world/docs/legal/privacy-policy",
             text: "common.privacy",
+            icon: "privacy_tip",
         },
         {
             url: "https://zelf.world/pricing",
             text: "common.pricing",
+            icon: "sell",
         },
     ];
 
@@ -154,9 +150,6 @@ export class ZelfSettingsComponent implements OnDestroy {
         });
     }
 
-    getTemplateIcon(settingItem: { icon: string }): TemplateRef<any> | null {
-        return (this[settingItem.icon as keyof ZelfSettingsComponent] as TemplateRef<any>) || null;
-    }
 
     get pageTitle(): string {
         switch (this.selectedSettings) {

@@ -132,7 +132,10 @@ $settings-hub-coral-icon: #ff5c45;
 
         .zelf-icon {
             font-size: calc(22px * var(--zns-font-scale, 1));
+            line-height: 1;
             color: $settings-hub-coral-icon;
+            // Same outline style/weight for every row.
+            font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
         }
 
         svg.zelf-icon {
