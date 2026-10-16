@@ -17,26 +17,114 @@ export interface ZaiHistoryItem {
     content: string;
 }
 
-export interface ZaiStreamHandlers {
-    onMeta?: (meta: any) => void;
-    onTool?: (tool: { name: string; status: "start" | "done" | "error" }) => void;
-    onDelta: (text: string) => void;
-    onDone?: (done: any) => void;
+export interface ZaiTransactionCard {
+    type: "transaction";
+    hash: string;
+    chain: string;
+    status: "success" | "pending" | "failed" | string;
+    amount?: string;
+    symbol?: string;
+    timestamp?: string | null;
+    explorerUrl?: string | null;
 }
 
-export type ZaiErrorKind = "unavailable" | "unauthorized" | "rate_limited" | "refused" | "network" | "error";
+export interface ZaiBalanceCard {
+    type: "balance";
+    chain: string;
+    symbol: string;
+    amount: string;
+    usdValue?: number | null;
+}
+
+export interface ZaiDocCard {
+    type: "doc";
+    title: string;
+    url: string;
+}
+
+/** Cards are built by the server from tool results only (event: card); never parsed from reply text. */
+export type ZaiCard = ZaiTransactionCard | ZaiBalanceCard | ZaiDocCard;
+
+export interface ZaiMeta {
+    requestId: string;
+    rulesVersion: string;
+}
+
+export interface ZaiDone {
+    usage?: { inputTokens?: number; outputTokens?: number };
+    finishReason?: "stop" | "length" | "filtered" | string;
+}
+
+export interface ZaiResult {
+    requestId: string;
+    status: "pending" | "answered" | "failed" | "timeout";
+    text: string | null;
+    cards: ZaiCard[];
+}
+
+export interface ZaiStreamHandlers {
+    onMeta?: (meta: ZaiMeta) => void;
+    /** "thinking": Angela is working on the answer (her runs queue; can take minutes). */
+    onStatus?: (status: { state: string }) => void;
+    onDelta: (text: string) => void;
+    onCard?: (card: ZaiCard) => void;
+    onDone?: (done: ZaiDone) => void;
+}
+
+const SAFE_URL = /^https:\/\//i;
+
+/** Validate a server card before it reaches the UI (unknown types and non-https links are dropped). */
+export function sanitizeZaiCard(raw: any): ZaiCard | null {
+    if (!raw || typeof raw !== "object") return null;
+    const str = (v: any) => (v === undefined || v === null ? undefined : String(v));
+    const url = (v: any) => (typeof v === "string" && SAFE_URL.test(v) ? v : null);
+    switch (raw.type) {
+        case "transaction":
+            if (!raw.hash || !raw.chain) return null;
+            return {
+                type: "transaction",
+                hash: String(raw.hash),
+                chain: String(raw.chain),
+                status: String(raw.status || "success"),
+                amount: str(raw.amount),
+                symbol: str(raw.symbol),
+                timestamp: str(raw.timestamp) ?? null,
+                explorerUrl: url(raw.explorerUrl),
+            };
+        case "balance":
+            if (!raw.chain || !raw.symbol) return null;
+            return {
+                type: "balance",
+                chain: String(raw.chain),
+                symbol: String(raw.symbol),
+                amount: String(raw.amount ?? ""),
+                usdValue: typeof raw.usdValue === "number" ? raw.usdValue : null,
+            };
+        case "doc": {
+            const u = url(raw.url);
+            if (!u) return null;
+            return { type: "doc", title: String(raw.title || u), url: u };
+        }
+        default:
+            return null;
+    }
+}
+
+export type ZaiErrorKind = "unavailable" | "unauthorized" | "rate_limited" | "refused" | "network" | "timeout" | "dropped" | "error";
 
 export class ZaiError extends Error {
     constructor(
         public kind: ZaiErrorKind,
         public code?: string,
-        public retryAfter?: number
+        public retryAfter?: number,
+        public requestId?: string
     ) {
         super(code || kind);
     }
 }
 
 const SESSION_KEY = "zai_session";
+const PENDING_KEY = "zai_pending_request";
 
 interface ZaiSessionState {
     identityToken?: string;
@@ -75,6 +163,7 @@ export class ZaiService {
         const { identityToken, zaiToken } = this._state;
         this._state = {};
         await this._persist();
+        await this._setPending(undefined);
         if (!identityToken && !zaiToken) return;
         // Fire-and-forget so lock/logout never waits on the network.
         void fetch(`${this._baseUrl}/api/zai/revoke`, {
@@ -104,7 +193,99 @@ export class ZaiService {
         if (!res.ok) throw await this._toError(res);
         if (!res.body) throw new ZaiError("unavailable");
 
-        await this._readSse(res.body, handlers);
+        let requestId: string | undefined;
+        let finished = false;
+        const tracked: ZaiStreamHandlers = {
+            ...handlers,
+            onMeta: (m) => {
+                requestId = m?.requestId;
+                if (requestId) void this._setPending(requestId);
+                handlers.onMeta?.(m);
+            },
+            onDone: (d) => {
+                finished = true;
+                void this._setPending(undefined);
+                handlers.onDone?.(d);
+            },
+        };
+        try {
+            await this._readSse(res.body, tracked);
+        } catch (e: any) {
+            if (e instanceof ZaiError) {
+                if (e.kind !== "timeout") void this._setPending(undefined);
+                throw e;
+            }
+            if (e?.name === "AbortError") throw e;
+            finished = false;
+        }
+        // Stream ended (or broke) without done/error: the answer may still arrive → result pickup.
+        if (!finished) throw new ZaiError("dropped", "ZAI_STREAM_DROPPED", undefined, requestId);
+    }
+
+    /**
+     * Main recovery path: GET /api/zai/result/:requestId (same Zelf ID only).
+     * Polls until answered/failed/timeout or until `maxWaitMs`.
+     */
+    async pickupResult(requestId: string, opts: { intervalMs?: number; maxWaitMs?: number; signal?: AbortSignal } = {}): Promise<ZaiResult> {
+        const intervalMs = opts.intervalMs ?? 4000;
+        const until = Date.now() + (opts.maxWaitMs ?? 4 * 60 * 1000);
+        for (;;) {
+            if (opts.signal?.aborted) throw new DOMException("aborted", "AbortError");
+            const token = await this._getZaiToken();
+            let res: Response;
+            try {
+                res = await fetch(`${this._baseUrl}/api/zai/result/${encodeURIComponent(requestId)}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                    signal: opts.signal,
+                });
+            } catch (e: any) {
+                if (e?.name === "AbortError") throw e;
+                res = undefined as any;
+            }
+            if (res && res.ok) {
+                const json: any = await res.json().catch(() => ({}));
+                const data = json?.data || {};
+                const result: ZaiResult = {
+                    requestId,
+                    status: data.status,
+                    text: typeof data.text === "string" ? data.text : null,
+                    cards: (Array.isArray(data.cards) ? data.cards : []).map(sanitizeZaiCard).filter(Boolean) as ZaiCard[],
+                };
+                if (result.status !== "pending") {
+                    await this._setPending(undefined);
+                    return result;
+                }
+            } else if (res && res.status !== 401) {
+                await this._setPending(undefined);
+                throw await this._toError(res);
+            }
+            if (Date.now() + intervalMs > until) return { requestId, status: "timeout", text: null, cards: [] };
+            await new Promise((r) => setTimeout(r, intervalMs));
+        }
+    }
+
+    /** requestId of a question still in flight (survives the popup closing; chrome.storage.session only). */
+    async getPendingRequestId(): Promise<string | undefined> {
+        try {
+            const api: any = (globalThis as any).chrome?.storage?.session;
+            if (api) return (await api.get(PENDING_KEY))?.[PENDING_KEY] || undefined;
+            return sessionStorage.getItem(PENDING_KEY) || undefined;
+        } catch {
+            return undefined;
+        }
+    }
+
+    private async _setPending(requestId?: string): Promise<void> {
+        try {
+            const api: any = (globalThis as any).chrome?.storage?.session;
+            if (api) {
+                if (requestId) await api.set({ [PENDING_KEY]: requestId });
+                else await api.remove(PENDING_KEY);
+            } else if (requestId) sessionStorage.setItem(PENDING_KEY, requestId);
+            else sessionStorage.removeItem(PENDING_KEY);
+        } catch {
+            /* memory only */
+        }
     }
 
     private async _postChat(token: string, body: any, signal?: AbortSignal): Promise<Response> {
@@ -217,19 +398,23 @@ export class ZaiService {
             case "meta":
                 h.onMeta?.(data);
                 break;
-            case "tool":
-                h.onTool?.(data);
+            case "status":
+                h.onStatus?.(data);
                 break;
             case "delta":
-            case "message":
                 if (data?.text) h.onDelta(String(data.text));
                 break;
+            case "card": {
+                const card = sanitizeZaiCard(data);
+                if (card) h.onCard?.(card);
+                break;
+            }
             case "done":
                 h.onDone?.(data);
                 break;
             case "error": {
-                const kind: ZaiErrorKind = data?.code === "ZAI_RATE_LIMITED" ? "rate_limited" : "error";
-                throw new ZaiError(kind, data?.code, data?.retryAfter);
+                const kind: ZaiErrorKind = data?.code === "ZAI_RATE_LIMITED" ? "rate_limited" : data?.code === "ZAI_TIMEOUT" ? "timeout" : "error";
+                throw new ZaiError(kind, data?.code, data?.retryAfter, data?.requestId);
             }
         }
     }

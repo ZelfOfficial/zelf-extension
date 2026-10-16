@@ -179,7 +179,7 @@ $f: var(--zns-font-scale, 1);
     &:nth-child(3) { animation-delay: 0.3s; }
 }
 
-.zai__tool { font-size: 12px; color: variables.$themeTextMuted; font-style: italic; }
+.zai__status { display: block; margin-top: 4px; font-size: 12px; color: variables.$themeTextMuted; font-style: italic; }
 
 .zai__card {
     display: flex;
@@ -193,7 +193,9 @@ $f: var(--zns-font-scale, 1);
     padding: 6px 8px;
     background: variables.$themeCard;
     white-space: normal;
+    text-decoration: none;
 }
+a.zai__card[href]:hover { border-color: variables.$themeTextMuted; }
 .zai__card-status--bad { color: var(--zns-theme-error, #d33); }
 
 .zai__chips { display: flex; gap: 6px; flex-wrap: wrap; }

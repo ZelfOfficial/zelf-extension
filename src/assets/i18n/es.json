@@ -2252,6 +2252,9 @@
         "error_rate_limited": "Demasiados mensajes. Intenta de nuevo en {{seconds}} s.",
         "error_refused": "No puedo ayudarte con eso. Solo puedo leer los datos públicos de tu cuenta.",
         "error_offline": "Parece que no tienes conexión. Revisa e intenta de nuevo.",
-        "error_generic": "Algo salió mal. Intenta de nuevo."
+        "error_generic": "Algo salió mal. Intenta de nuevo.",
+        "thinking": "zAI está pensando… puede tardar uno o dos minutos.",
+        "recovering": "Recuperando tu respuesta…",
+        "error_timeout": "zAI no pudo responder a tiempo. Inténtalo de nuevo."
     }
 }

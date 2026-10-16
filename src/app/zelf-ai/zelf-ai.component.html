@@ -43,15 +43,35 @@
                             <div class="zai__label">zAI</div>
                             <div class="zai__msg zai__msg--ai" [class.zai__msg--error]="m.error">
                                 <span class="zai__text">{{ m.content }}</span>
-                                <span class="zai__typing" *ngIf="m.streaming && !m.content && !m.tool"><i></i><i></i><i></i></span>
+                                <span class="zai__typing" *ngIf="m.streaming && !m.content"><i></i><i></i><i></i></span>
+                                <span class="zai__status" *ngIf="m.streaming && !m.content && (m.thinking || m.recovering)">{{
+                                    t(m.recovering ? "zai.recovering" : "zai.thinking")
+                                }}</span>
                                 <span class="zai__caret" *ngIf="m.streaming && m.content" aria-hidden="true"></span>
-                                <span class="zai__tool" *ngIf="m.tool">{{ t("zai.tool_working") }}</span>
-                                <div class="zai__card" *ngFor="let c of m.cards">
-                                    <span aria-hidden="true">⛓</span>
-                                    <span>{{ c.chain ? c.chain + " · " : "" }}Tx {{ shortHash(c.hash) }}</span>
-                                    <span class="zai__card-status" [class.zai__card-status--bad]="c.status.toLowerCase() === 'failed'">· {{ c.status }}</span>
-                                    <span *ngIf="c.date">· {{ c.date }}</span>
-                                </div>
+                                <ng-container *ngFor="let c of m.cards">
+                                    <a
+                                        *ngIf="c.type === 'transaction'"
+                                        class="zai__card"
+                                        [attr.href]="c.explorerUrl || null"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        <span aria-hidden="true">⛓</span>
+                                        <span>{{ c.chain | uppercase }} · Tx {{ shortHash(c.hash) }}</span>
+                                        <span *ngIf="c.amount">· {{ c.amount }} {{ c.symbol }}</span>
+                                        <span class="zai__card-status" [class.zai__card-status--bad]="c.status === 'failed'">· {{ c.status }}</span>
+                                        <span *ngIf="txDate(c.timestamp)">· {{ txDate(c.timestamp) }}</span>
+                                    </a>
+                                    <div *ngIf="c.type === 'balance'" class="zai__card">
+                                        <span aria-hidden="true">◎</span>
+                                        <span>{{ c.chain | uppercase }} · {{ c.amount }} {{ c.symbol }}</span>
+                                        <span *ngIf="usd(c.usdValue)">· {{ usd(c.usdValue) }}</span>
+                                    </div>
+                                    <a *ngIf="c.type === 'doc'" class="zai__card" [attr.href]="c.url" target="_blank" rel="noopener noreferrer">
+                                        <span aria-hidden="true">📄</span>
+                                        <span>{{ c.title }}</span>
+                                    </a>
+                                </ng-container>
                             </div>
                         </div>
                     </div>

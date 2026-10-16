@@ -8,30 +8,27 @@ import { Subject, distinctUntilChanged, filter, map, skip, takeUntil } from "rxj
 import { ChromeService } from "app/chrome.service";
 import { TagModel } from "app/tags.service";
 import { WalletService } from "app/wallet.service";
-import { ZaiError, ZaiHistoryItem, ZaiService } from "app/zai/zai.service";
+import { ZaiCard, ZaiError, ZaiHistoryItem, ZaiService } from "app/zai/zai.service";
 import { ZelfFooterComponent } from "app/zelf-footer/zelf-footer.component";
 import { environment } from "environments/environment";
-
-export interface ZaiTxCard {
-    chain?: string;
-    hash: string;
-    status: string;
-    date?: string;
-}
 
 export interface ZaiMessage {
     role: "user" | "assistant";
     content: string;
     streaming?: boolean;
-    tool?: string;
-    cards?: ZaiTxCard[];
+    cards?: ZaiCard[];
+    filtered?: boolean;
+    /** Angela is working on it (server "status: thinking"); can take minutes. */
+    thinking?: boolean;
+    /** Stream dropped; fetching the answer via GET /api/zai/result/:requestId. */
+    recovering?: boolean;
     error?: boolean;
 }
 
 type ZaiState = "ready" | "unavailable" | "locked";
 
 const MAX_TURNS = 20;
-const TX_TOKEN = /\[\[tx:([^|\]]+)\|([^|\]]+)(?:\|([^|\]]+))?(?:\|([^|\]]+))?\]\]/g;
+const MAX_CARDS_PER_REPLY = 12;
 
 @Component({
     selector: "zelf-ai",
@@ -79,6 +76,17 @@ export class ZelfAiComponent implements OnInit, OnDestroy {
 
         if (!(await this._zaiService.hasIdentity())) this.state = "locked";
         this._changeDetectorRef.detectChanges();
+
+        // A question was still in flight when the popup closed: pick up its answer.
+        const pending = this.state === "ready" ? await this._zaiService.getPendingRequestId() : undefined;
+        if (pending) {
+            const reply: ZaiMessage = { role: "assistant", content: "", streaming: true, recovering: true };
+            this.messages.push(reply);
+            this.sending = true;
+            this._abort = new AbortController();
+            this._render();
+            await this._recover(pending, reply);
+        }
     }
 
     ngOnDestroy(): void {
@@ -148,40 +156,78 @@ export class ZelfAiComponent implements OnInit, OnDestroy {
                     locale: this._translocoService.getActiveLang() || "en",
                 },
                 {
-                    onTool: (tool) => {
-                        reply.tool = tool.status === "start" ? tool.name : undefined;
+                    onStatus: (status) => {
+                        reply.thinking = status?.state === "thinking";
                         this._render();
                     },
                     onDelta: (delta) => {
-                        reply.tool = undefined;
+                        reply.thinking = false;
                         reply.content += delta;
-                        this._applyCards(reply);
                         this._render();
+                    },
+                    onCard: (card) => {
+                        this._addCard(reply, card);
+                        this._render();
+                    },
+                    onDone: (done) => {
+                        reply.filtered = done?.finishReason === "filtered";
                     },
                 },
                 this._abort.signal
             );
         } catch (error: any) {
+            if (error instanceof ZaiError && error.kind === "dropped" && error.requestId) {
+                await this._recover(error.requestId, reply);
+                return;
+            }
             if (error?.name !== "AbortError") this._handleError(error, reply);
         } finally {
-            reply.streaming = false;
-            reply.tool = undefined;
-            this.sending = false;
-            if (!reply.content && !reply.error) this.messages.splice(this.messages.indexOf(reply), 1);
-            this._render();
+            this._finish(reply);
         }
+    }
+
+    /** Result pickup after a dropped stream (main recovery path). */
+    private async _recover(requestId: string, reply: ZaiMessage): Promise<void> {
+        reply.recovering = true;
+        reply.thinking = true;
+        this._render();
+        try {
+            const result = await this._zaiService.pickupResult(requestId, { signal: this._abort?.signal });
+            if (result.status === "answered") {
+                reply.content = result.text || "";
+                for (const card of result.cards) this._addCard(reply, card);
+            } else if (result.status === "timeout") {
+                this._handleError(new ZaiError("timeout", "ZAI_TIMEOUT"), reply);
+            } else {
+                this._handleError(new ZaiError("error", "ZAI_UPSTREAM_ERROR"), reply);
+            }
+        } catch (error: any) {
+            if (error?.name !== "AbortError") this._handleError(error, reply);
+        } finally {
+            this._finish(reply);
+        }
+    }
+
+    private _finish(reply: ZaiMessage): void {
+        reply.streaming = false;
+        reply.thinking = false;
+        reply.recovering = false;
+        this.sending = false;
+        const i = this.messages.indexOf(reply);
+        if (i >= 0 && !reply.content && !reply.error && !reply.cards?.length) this.messages.splice(i, 1);
+        this._render();
     }
 
     private _handleError(error: unknown, reply: ZaiMessage): void {
         const kind = error instanceof ZaiError ? error.kind : "error";
         if (kind === "unavailable") {
             this.state = "unavailable";
-            this.messages.splice(this.messages.indexOf(reply), 1);
+            if (this.messages.includes(reply)) this.messages.splice(this.messages.indexOf(reply), 1);
             return;
         }
         if (kind === "unauthorized") {
             this.state = "locked";
-            this.messages.splice(this.messages.indexOf(reply), 1);
+            if (this.messages.includes(reply)) this.messages.splice(this.messages.indexOf(reply), 1);
             return;
         }
         reply.error = true;
@@ -190,6 +236,8 @@ export class ZelfAiComponent implements OnInit, OnDestroy {
             reply.content = this._translocoService.translate("zai.error_rate_limited", { seconds: this.retryAfter });
         } else if (kind === "refused") {
             reply.content = this._translocoService.translate("zai.error_refused");
+        } else if (kind === "timeout") {
+            reply.content = this._translocoService.translate("zai.error_timeout");
         } else if (kind === "network") {
             reply.content = this._translocoService.translate("zai.error_offline");
         } else {
@@ -197,14 +245,23 @@ export class ZelfAiComponent implements OnInit, OnDestroy {
         }
     }
 
-    /** Pulls [[tx:hash|status|date|chain]] tokens out of the text into inline cards. */
-    private _applyCards(msg: ZaiMessage): void {
-        const cards: ZaiTxCard[] = [];
-        msg.content = msg.content.replace(TX_TOKEN, (_m, hash, status, date, chain) => {
-            cards.push({ hash: hash.trim(), status: status.trim(), date: date?.trim(), chain: chain?.trim() });
-            return "";
-        });
-        if (cards.length) msg.cards = [...(msg.cards || []), ...cards];
+    /** Cards arrive as server `card` events (built from tool results); text is never parsed for cards. */
+    private _addCard(msg: ZaiMessage, card: ZaiCard): void {
+        const cards = msg.cards || (msg.cards = []);
+        if (cards.length >= MAX_CARDS_PER_REPLY) return;
+        const key = JSON.stringify(card);
+        if (cards.some((c) => JSON.stringify(c) === key)) return;
+        cards.push(card);
+    }
+
+    txDate(ts?: string | null): string {
+        if (!ts) return "";
+        const d = new Date(ts);
+        return isNaN(d.getTime()) ? "" : d.toLocaleDateString(this._translocoService.getActiveLang() || undefined, { month: "short", day: "numeric" });
+    }
+
+    usd(value?: number | null): string {
+        return typeof value === "number" ? `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : "";
     }
 
     shortHash(hash: string): string {
@@ -220,6 +277,11 @@ export class ZelfAiComponent implements OnInit, OnDestroy {
     private _loadPreview(mode: string): void {
         if (mode === "unavailable") {
             this.state = "unavailable";
+        } else if (mode === "thinking") {
+            this.messages = [
+                { role: "user", content: "Why did my last transaction fail?" },
+                { role: "assistant", content: "", streaming: true, thinking: true },
+            ];
         } else if (mode === "locked") {
             this.state = "locked";
         } else if (mode !== "empty") {
@@ -229,7 +291,20 @@ export class ZelfAiComponent implements OnInit, OnDestroy {
                     role: "assistant",
                     content:
                         "Your Solana transfer of 2.5 USDC failed because the wallet didn't have enough SOL to pay the network fee. Add a little SOL and try again.",
-                    cards: [{ hash: "4fKx8s9qP", status: "Failed", date: "Oct 16", chain: "Solana" }],
+                    cards: [
+                        {
+                            type: "transaction",
+                            hash: "4fKx8s9qPsample",
+                            chain: "sol",
+                            status: "failed",
+                            amount: "2.5",
+                            symbol: "USDC",
+                            timestamp: "2026-10-16T15:00:00Z",
+                            explorerUrl: "https://solscan.io/tx/4fKx8s9qPsample",
+                        },
+                        { type: "balance", chain: "sol", symbol: "SOL", amount: "0.000001", usdValue: 0.0002 },
+                        { type: "doc", title: "Network fees", url: "https://docs.zelf.world/docs/fees" },
+                    ],
                 },
                 { role: "user", content: "How much SOL do I need?" },
                 { role: "assistant", content: "About 0.000005 SOL covers one transfer, so", streaming: true },
