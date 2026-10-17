@@ -879,7 +879,8 @@
         "zelf_wallet": "Zelf",
         "ton_address": "TON पता",
         "validity_one_year": "Masa berlaku: 1 tahun",
-        "validity_years": "Masa berlaku: {{years}} tahun"
+        "validity_years": "Masa berlaku: {{years}} tahun",
+        "aptos_address": "Aptos पता"
     },
     "token": {
         "24h_performance": "24 घंटे का प्रदर्शन",

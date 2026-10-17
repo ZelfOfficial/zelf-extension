@@ -879,7 +879,8 @@
         "zelf_wallet": "Zelf",
         "ton_address": "TON地址",
         "validity_one_year": "有效期：1 年",
-        "validity_years": "有效期：{{years}} 年"
+        "validity_years": "有效期：{{years}} 年",
+        "aptos_address": "Aptos地址"
     },
     "token": {
         "24h_performance": "24小时表现",

@@ -1017,7 +1017,8 @@
         "coming_soon": "Coming Soon",
         "ton_address": "TON Address",
         "validity_one_year": "Validity: 1 year",
-        "validity_years": "Validity: {{years}} years"
+        "validity_years": "Validity: {{years}} years",
+        "aptos_address": "Aptos Address"
     },
     "token": {
         "24h_performance": "24h Performance",

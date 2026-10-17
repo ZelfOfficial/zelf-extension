@@ -5,6 +5,7 @@ export type NetworkName =
     | "ethereum"
     | "sui"
     | "ton"
+    | "aptos"
     | "avalanche"
     | "solana"
     | "bitcoin"
@@ -25,6 +26,7 @@ export type NetworkSymbol =
     | "avax"
     | "sui"
     | "ton"
+    | "apt"
     | "btc"
     | "bdag"
     | "bnb"
@@ -34,6 +36,7 @@ export type NetworkSymbol =
     | "AVAX"
     | "SUI"
     | "TON"
+    | "APT"
     | "BTC"
     | "BDAG"
     | "BNB"
@@ -57,6 +60,8 @@ export class NetworkService {
                 return "SUI";
             case "ton":
                 return "TON";
+            case "aptos":
+                return "APT";
             case "polygon":
                 return "POL";
             case "optimism":
@@ -100,6 +105,8 @@ export class NetworkService {
                 return "sui";
             case "TON":
                 return "ton";
+            case "APT":
+                return "aptos";
             case "BTC":
                 return "bitcoin";
             case "BDAG":
@@ -140,6 +147,8 @@ export class NetworkService {
                 return 1399811149;
             case "sui":
                 return 784;
+            case "aptos":
+                return 1;
             case "polygon":
                 return 137;
             case "optimism":
@@ -171,6 +180,9 @@ export class NetworkService {
             case "ton":
             case "TON":
                 return "./assets/networks/ton.svg";
+            case "aptos":
+            case "APT":
+                return "./assets/networks/aptos.svg";
             case "avalanche":
             case "AVAX":
                 return "./assets/networks/avax.svg";

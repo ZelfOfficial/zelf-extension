@@ -29,7 +29,8 @@ import { ArbitrumService } from "./arbitrum.service";
 import { StellarService } from "./stellar.service";
 import { SuiService } from "./sui.service";
 import { TonService } from "./ton.service";
-import { readPublicDataDotAddress, readPublicDataKsmAddress, readPublicDataTonAddress, readPublicDataXlmAddress } from "@shared/types/tag.types";
+import { AptosService } from "./aptos.service";
+import { readPublicDataDotAddress, readPublicDataAptosAddress, readPublicDataKsmAddress, readPublicDataTonAddress, readPublicDataXlmAddress } from "@shared/types/tag.types";
 import { TagModel } from "app/tags.service";
 import { SubstrateRelayService } from "./substrate-relay.service";
 
@@ -51,6 +52,7 @@ export class BlockchainTransactionsService {
         private _stellarService: StellarService,
         private _suiService: SuiService,
         private _tonService: TonService,
+        private _aptosService: AptosService,
         private _substrateRelayService: SubstrateRelayService
     ) {}
 
@@ -64,6 +66,10 @@ export class BlockchainTransactionsService {
 
     private _getKsmAddress(wallet: Partial<TagModel> | null | undefined): string {
         return readPublicDataKsmAddress(wallet?.publicData as Record<string, unknown> | undefined);
+    }
+
+    private _getAptosAddress(wallet: Partial<TagModel> | null | undefined): string {
+        return readPublicDataAptosAddress(wallet?.publicData as Record<string, unknown> | undefined);
     }
 
     private _getTonAddress(wallet: Partial<TagModel> | null | undefined): string {
@@ -112,6 +118,17 @@ export class BlockchainTransactionsService {
                 ...responses.ton.data.transactions.map((tx: any) => ({
                     ...tx,
                     network: tx.network || "ton",
+                }))
+            );
+        }
+        if (responses.aptos?.data?.transactions) {
+            transactions.push(
+                ...responses.aptos.data.transactions.map((tx: any) => ({
+                    ...tx,
+                    fiatAmount: Number(tx.fiatBalance || 0),
+                    gasFee: Number(tx.gas || tx.txnFee || 0),
+                    network: "aptos",
+                    tokenType: tx.asset === "APT" ? "APT" : "APTOS_FA",
                 }))
             );
         }
@@ -214,6 +231,13 @@ export class BlockchainTransactionsService {
                     return await this._substrateRelayService.calculateTransactionFees("kusama", params.senderAddress || "", receiverAddress, amount, tokenPrice || 0);
                 case "ton":
                     return await this._tonService.calculateTransactionFees(amount, tokenPrice || 0);
+                case "aptos":
+                    return await this._aptosService.calculateTransactionFees(
+                        params.senderAddress || "",
+                        receiverAddress,
+                        amount,
+                        tokenPrice || 0
+                    );
                 case "ethereum":
                 default:
                     return await this._ethereumService.calculateTransactionFees(
@@ -254,6 +278,7 @@ export class BlockchainTransactionsService {
         if (network === "stellar") return `https://stellar.expert/explorer/public/tx/${hash}`;
         if (network === "sui") return `https://suiscan.xyz/tx/${hash}`;
         if (network === "ton") return `https://tonviewer.com/transaction/${hash}`;
+        if (network === "aptos") return `https://explorer.aptoslabs.com/txn/${hash}?network=mainnet`;
         if (network === "polkadot") return `https://polkadot.subscan.io/extrinsic/${hash}`;
         if (network === "kusama") return `https://kusama.subscan.io/extrinsic/${hash}`;
 
@@ -325,6 +350,10 @@ export class BlockchainTransactionsService {
                 isEnabled("ton") && this._getTonAddress(wallet)
                     ? from(this._tonService.getWalletDetails(this._getTonAddress(wallet))).pipe(catchError(() => of(null)))
                     : of(null),
+            aptos:
+                isEnabled("aptos") && this._getAptosAddress(wallet)
+                    ? from(this._aptosService.getWalletDetails(this._getAptosAddress(wallet))).pipe(catchError(() => of(null)))
+                    : of(null),
             polkadot:
                 isEnabled("polkadot") && dotAddr
                     ? from(this._substrateRelayService.getWalletDetails("polkadot", dotAddr)).pipe(catchError(() => of(null)))
@@ -350,6 +379,7 @@ export class BlockchainTransactionsService {
                     stellar: responses.stellar,
                     sui: responses.sui,
                     ton: responses.ton,
+                    aptos: responses.aptos,
                     polkadot: responses.polkadot,
                     kusama: responses.kusama,
                     transactions: this._processTransactions(responses),
@@ -398,6 +428,10 @@ export class BlockchainTransactionsService {
             observable = forkJoin({ ton: from(this._tonService.getWalletDetails(tonAddress)) });
         }
 
+        if (this._getAptosAddress(wallet) && token === "APT") {
+            observable = forkJoin({ aptos: from(this._aptosService.getWalletDetails(this._getAptosAddress(wallet))) });
+        }
+
         const xlmAddr = this._getXlmAddress(wallet);
 
         if (xlmAddr) {
@@ -433,6 +467,7 @@ export class BlockchainTransactionsService {
                           stellar: responses.stellar,
                           sui: responses.sui,
                           ton: responses.ton,
+                          aptos: responses.aptos,
                           polkadot: responses.polkadot,
                           kusama: responses.kusama,
                           transactions: this._processTransactions(responses),
@@ -515,6 +550,10 @@ export class BlockchainTransactionsService {
                 isEnabled("ton") && this._getTonAddress(wallet)
                     ? from(this._tonService.requestTransactionHistory(this._getTonAddress(wallet), pagination)).pipe(catchError(() => of(null)))
                     : of(null),
+            aptos:
+                isEnabled("aptos") && this._getAptosAddress(wallet)
+                    ? from(this._aptosService.requestTransactionHistory(this._getAptosAddress(wallet), pagination)).pipe(catchError(() => of(null)))
+                    : of(null),
         }).pipe(map((responses) => this._processTransactions(responses)));
     }
 
@@ -570,6 +609,14 @@ export class BlockchainTransactionsService {
                 return new SuiTransactionModel(response.data).toTransaction();
             case "ton":
                 return new TransactionModel({ ...response.data, network: "ton" }) as Transaction;
+            case "aptos":
+                return new TransactionModel({
+                    ...response.data,
+                    fiatAmount: Number(response.data.fiatBalance || 0),
+                    gasFee: Number(response.data.gas || response.data.txnFee || 0),
+                    network: "aptos",
+                    tokenType: response.data.asset === "APT" ? "APT" : "APTOS_FA",
+                }) as Transaction;
             case "bitcoin":
                 return new BitcoinTransactionModel(response.data[0]).toTransaction();
             default:
@@ -602,6 +649,9 @@ export class BlockchainTransactionsService {
                     break;
                 case "ton":
                     promise = this._tonService.requestTransactionDetails(hash);
+                    break;
+                case "aptos":
+                    promise = this._aptosService.requestTransactionDetails(hash);
                     break;
                 case "solana":
                     promise = this._solanaService.requestTransactionDetails(hash);
@@ -680,6 +730,8 @@ export class BlockchainTransactionsService {
                     return await this._substrateRelayService.sendTransaction({ ...params, network: "kusama" });
                 case "ton":
                     return await this._tonService.sendTransaction(params);
+                case "aptos":
+                    return await this._aptosService.sendTransaction(params);
                 default:
                     throw new Error(`Unsupported network: ${network}`);
             }

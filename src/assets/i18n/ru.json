@@ -879,7 +879,8 @@
         "zelf_wallet": "Zelf",
         "ton_address": "TON Адрес",
         "validity_one_year": "Срок действия: 1 год",
-        "validity_years": "Срок действия (лет): {{years}}"
+        "validity_years": "Срок действия (лет): {{years}}",
+        "aptos_address": "Адрес Aptos"
     },
     "token": {
         "24h_performance": "Изменение за 24ч",

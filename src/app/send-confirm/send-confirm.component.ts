@@ -302,7 +302,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
 
             let tokenAddress = this.transactionData.token?.address_token;
 
-            const isNativeToken = ["AVAX", "ETH", "BNB", "MATIC", "BDAG", "XLM", "DOT", "KSM"].includes(tokenSymbol);
+            const isNativeToken = ["AVAX", "ETH", "BNB", "MATIC", "BDAG", "XLM", "DOT", "KSM", "APT"].includes(tokenSymbol);
 
             if (!tokenAddress && this.wallet && this.wallet.publicData?.ethAddress && !isNativeToken) {
                 try {
@@ -444,7 +444,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
         const sessionTokens = await this._assetService.loadTokensFromSession();
 
         // Check if we're sending a native token (doesn't need token contract address)
-        const isNativeToken = ["AVAX", "ETH", "BNB", "MATIC", "BDAG", "BTC", "SOL", "SUI", "XLM", "DOT", "KSM"].includes(
+        const isNativeToken = ["AVAX", "ETH", "BNB", "MATIC", "BDAG", "BTC", "SOL", "SUI", "XLM", "DOT", "KSM", "APT"].includes(
             this.transactionData.token?.symbol || ""
         );
 
@@ -794,7 +794,9 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
                             ? "DOT"
                             : this.transactionData.network === "kusama"
                               ? "KSM"
-                              : this.transactionData.tokenType,
+                              : this.transactionData.network === "aptos"
+                                ? "APT"
+                                : this.transactionData.tokenType,
         });
 
         this.sending = false;

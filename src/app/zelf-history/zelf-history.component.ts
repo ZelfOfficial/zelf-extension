@@ -4,7 +4,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatRippleModule } from "@angular/material/core";
 import { Router } from "@angular/router";
 import { TranslocoModule } from "@jsverse/transloco";
-import { readPublicDataTonAddress } from "@shared/types/tag.types";
+import { readPublicDataAptosAddress, readPublicDataTonAddress } from "@shared/types/tag.types";
 import { AddressMaskPipe } from "app/pipes/address-mask.pipe";
 import { BlockchainTransactionsService } from "app/services/blockchain-transactions.service";
 import { Transaction } from "@shared/types/wallet.types";
@@ -126,6 +126,7 @@ export class ZelfHistoryComponent implements OnInit {
         const walletBtc = (publicData?.btcAddress || "").toLowerCase();
         const walletSui = (publicData?.suiAddress || "").toLowerCase();
         const walletTon = readPublicDataTonAddress(publicData as Record<string, unknown> | undefined);
+        const walletAptos = readPublicDataAptosAddress(publicData as Record<string, unknown> | undefined).toLowerCase();
         const walletBDAG = (publicData?.blockDAGAddress || "").toLowerCase();
         const walletXlm = publicData?.xlmAddress || "";
 
@@ -142,6 +143,7 @@ export class ZelfHistoryComponent implements OnInit {
             (walletSol && fromAddrLower === walletSol) ||
             (walletBtc && fromAddrLower === walletBtc) ||
             (walletSui && fromAddrLower === walletSui) ||
+            (walletAptos && fromAddrLower === walletAptos) ||
             (walletBDAG && fromAddrLower === walletBDAG)
         ) {
             tx.traffic = "OUT";

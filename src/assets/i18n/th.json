@@ -863,7 +863,8 @@
         "zelf_wallet": "Zelf",
         "ton_address": "ที่อยู่ TON",
         "validity_one_year": "อายุการใช้งาน: 1 ปี",
-        "validity_years": "อายุการใช้งาน: {{years}} ปี"
+        "validity_years": "อายุการใช้งาน: {{years}} ปี",
+        "aptos_address": "ที่อยู่ Aptos"
     },
     "token": {
         "24h_performance": "ประสิทธิภาพ 24 ชั่วโมง",
