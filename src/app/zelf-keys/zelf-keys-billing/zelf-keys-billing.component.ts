@@ -1,9 +1,9 @@
-import { CommonModule, NgTemplateOutlet } from "@angular/common";
+import { CommonModule, Location, NgTemplateOutlet } from "@angular/common";
 import { ChangeDetectorRef, Component, HostListener, OnInit } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { Router } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 
 import { TransactionData } from "@shared/types/wallet.types";
@@ -14,6 +14,7 @@ import { NetworkService } from "app/services/network.service";
 import { TagModel } from "app/tags.service";
 import { TransactionService } from "app/transaction.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
+import { resolveBackNavigation } from "app/core/utils/back-navigation.util";
 import { BillingService, PricingPlan } from "../../services/billing.service";
 import { WalletService } from "../../wallet.service";
 
@@ -73,11 +74,33 @@ export class ZelfKeysBillingComponent implements OnInit {
         private _router: Router,
         private _transactionService: TransactionService,
         private _translocoService: TranslocoService,
-        private _walletService: WalletService
+        private _walletService: WalletService,
+        private _activatedRoute: ActivatedRoute,
+        private _location: Location
     ) {
         this.shareables = {
             wallet: {},
         };
+    }
+
+    /**
+     * Back button (v3 #266): return to the screen the user came from (e.g. Settings > Subscription),
+     * or to the `redirect` query param / Zelf Keys when the page was opened directly.
+     */
+    goBack(): void {
+        const target = resolveBackNavigation({
+            hasPreviousInAppNavigation: !!this._router.lastSuccessfulNavigation?.previousNavigation,
+            redirect: this._activatedRoute.snapshot.queryParamMap.get("redirect"),
+            fallback: "/zelf-keys",
+        });
+
+        if (target.kind === "history") {
+            this._location.back();
+
+            return;
+        }
+
+        this._router.navigateByUrl(target.url);
     }
 
     async ngOnInit(): Promise<void> {
