@@ -80,11 +80,9 @@ export class HomeCollectiblesComponent implements OnInit, OnChanges {
     }
 
     private _isBlockdagNetworkEnabled(): boolean {
-        const nets = this._settingsService.settings?.networks;
-        if (!nets?.length) return true;
-        const bdag = nets.find((n) => n.id === "blockdag");
-        if (!bdag) return true;
-        return bdag.enabled;
+        // License allowlist + user toggles (undefined = no license config known yet: legacy "show").
+        const enabledIds = this._settingsService.getEnabledNetworkIds();
+        return !enabledIds || enabledIds.includes("blockdag");
     }
 
     private async _fetch(): Promise<void> {

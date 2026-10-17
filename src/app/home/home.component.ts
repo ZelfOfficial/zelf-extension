@@ -21,7 +21,7 @@ import { HomeProfilePanelComponent } from "./home-profile-panel/home-profile-pan
 import { WalletBalanceTopCardComponent } from "app/zelf-wallet/wallet-balance-top-card/wallet-balance-top-card.component";
 import { FooterNavDestination, FooterNavigationService } from "app/zelf-footer/footer-navigation.service";
 import { ZelfFooterComponent } from "app/zelf-footer/zelf-footer.component";
-import { getPriorityBalanceNetworks, getSecondaryBalanceNetworks } from "app/core/network-settings.util";
+import { SUPPORTED_NETWORK_IDS, splitBalanceStages } from "app/core/network-settings.util";
 
 const QUICK_HUB_IDS = ["zelf-keys", "zelf-authenticator", "zelf-signals", "manage-domains"] as const;
 
@@ -146,7 +146,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     private async _getBalances(): Promise<void> {
         this.balancesLoading = true;
 
-        const enabledNetworks = this._getEnabledNetworkIds();
+        const enabledNetworks = await this._settingsService.getEnabledNetworkIdsFromLicense();
         const loadedFromSession = await this._loadBalancesFromSession(enabledNetworks);
 
         if (loadedFromSession) {
@@ -173,12 +173,15 @@ export class HomeComponent implements OnInit, OnDestroy {
 
 
     private async _fetchBalancesFromNetwork(enabledNetworks?: string[]): Promise<void> {
-        const priorityToFetch = getPriorityBalanceNetworks(enabledNetworks);
+        // Which chains, and their order, come from the domain license (see SettingsService.getEnabledNetworkIds).
+        const { priority: priorityToFetch, background: remainingToFetch } = splitBalanceStages(
+            enabledNetworks ?? SUPPORTED_NETWORK_IDS
+        );
 
         const currentWalletTag = this._wallet?.tagName;
 
         try {
-            // Stage 1: Load priority networks (ETH & SOL) first to unblock UI immediately
+            // Stage 1: first license networks (one call) to unblock the UI immediately
             const priorityResponse = await firstValueFrom(
                 this._blockchainTransactionsService
                     .getAddressData(this._wallet as TagModel, priorityToFetch)
@@ -193,14 +196,13 @@ export class HomeComponent implements OnInit, OnDestroy {
 
             this._updateTokenState(filtered);
         } catch (error) {
-            console.error("Error getting priority tokens (ETH/SOL):", error);
+            console.error("Error getting priority tokens:", error);
         } finally {
             this.balancesLoading = false;
             this._changeDetectorRef.detectChanges();
         }
 
         // Stage 2: Fetch remaining networks in the background one by one without blocking
-        const remainingToFetch = getSecondaryBalanceNetworks(enabledNetworks);
 
         this._fetchRemainingBalancesInBackground(remainingToFetch, currentWalletTag);
     }
@@ -308,7 +310,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
         await this._authService.reauthenticateSession();
 
-        const enabledNetworks = this._getEnabledNetworkIds();
+        const enabledNetworks = await this._settingsService.getEnabledNetworkIdsFromLicense();
         await this._fetchBalancesFromNetwork(enabledNetworks);
 
         await this._refreshWallets(true);

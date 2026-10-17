@@ -21,70 +21,64 @@ export const DEFAULT_NETWORK_CONFIGS: NetworkConfig[] = [
 ];
 
 /**
- * Home / Wallet balance loading: these chains load first (one call) to unblock the UI.
+ * Chain ids the extension can talk to. This is a capability catalog only: which chains a user
+ * actually sees is decided by the domain license (`tags.wallet.networks`), see
+ * {@link getLicenseWalletNetworkIds}.
  */
-export const BALANCE_PRIORITY_NETWORKS: readonly string[] = ["ethereum", "solana"];
+export const SUPPORTED_NETWORK_IDS: readonly string[] = DEFAULT_NETWORK_CONFIGS.map((n) => n.id);
 
-/**
- * Home / Wallet balance loading: every other chain in {@link DEFAULT_NETWORK_CONFIGS}, fetched one by one
- * in the background, in this order. Must cover every default network id that is not a priority network,
- * otherwise that chain's balance never loads (Optimism/Arbitrum/Base were missing here before).
- */
-export const BALANCE_SECONDARY_NETWORKS: readonly string[] = [
-    "avalanche",
-    "binance",
-    "polygon",
-    "optimism",
-    "arbitrum",
-    "base",
-    "bitcoin",
-    "sui",
-    "ton",
-    "aptos",
-    "stellar",
-    "polkadot",
-    "kusama",
-    "blockdag",
-];
-
-const isNetworkEnabled = (id: string, enabledNetworks?: string[] | null): boolean =>
-    !enabledNetworks || enabledNetworks.includes(id);
-
-/** Priority balance networks the user has enabled (all of them when no filter is given). */
-export function getPriorityBalanceNetworks(enabledNetworks?: string[] | null): string[] {
-    return BALANCE_PRIORITY_NETWORKS.filter((id) => isNetworkEnabled(id, enabledNetworks));
+/** Minimal license shape we read: `tags.wallet.networks = { [chainId]: { enabled } }`, set by the license admin. */
+export interface LicenseWithWalletNetworks {
+    tags?: { wallet?: { networks?: Record<string, { enabled?: boolean } | null | undefined> } };
 }
 
 /**
- * Background balance networks the user has enabled. Any default network id missing from
- * {@link BALANCE_SECONDARY_NETWORKS} is appended so a newly added chain is never silently skipped.
+ * Wallet chain ids the license administrator enabled, in license order, limited to chains this
+ * build supports. Returns null when the license has no wallet network config (nothing to apply).
  */
-export function getSecondaryBalanceNetworks(enabledNetworks?: string[] | null): string[] {
-    const ordered = [...BALANCE_SECONDARY_NETWORKS];
+export function getLicenseWalletNetworkIds(license: LicenseWithWalletNetworks | null | undefined): string[] | null {
+    const networks = license?.tags?.wallet?.networks;
 
-    for (const { id } of DEFAULT_NETWORK_CONFIGS) {
-        if (!BALANCE_PRIORITY_NETWORKS.includes(id) && !ordered.includes(id)) ordered.push(id);
+    if (!networks || typeof networks !== "object") return null;
+
+    return Object.entries(networks)
+        .filter(([id, cfg]) => !!cfg?.enabled && SUPPORTED_NETWORK_IDS.includes(id))
+        .map(([id]) => id);
+}
+
+/**
+ * Chains to show/fetch: the license allowlist minus chains the user switched off in Manage networks.
+ * - licenseIds null (license never loaded): legacy behaviour, the user's toggles or no filter.
+ * - user switched every licensed chain off: same as legacy "all off" = the full license list.
+ */
+export function resolveEnabledNetworkIds(
+    licenseIds: readonly string[] | null,
+    userNetworks?: NetworkConfig[] | null
+): string[] | undefined {
+    const userOff = new Set((userNetworks || []).filter((n) => n && n.enabled === false).map((n) => n.id));
+
+    if (!licenseIds) {
+        if (!userNetworks?.length) return undefined;
+
+        const ids = userNetworks.filter((n) => n.enabled).map((n) => n.id);
+
+        return ids.length ? ids : undefined;
     }
 
-    return ordered.filter((id) => !BALANCE_PRIORITY_NETWORKS.includes(id) && isNetworkEnabled(id, enabledNetworks));
+    const ids = licenseIds.filter((id) => !userOff.has(id));
+
+    return ids.length ? ids : [...licenseIds];
 }
 
 /**
- * Chain ids the app supports but `tags.wallet.networks` on the domain license may omit.
- * Merge these into the license allowlist so Manage Networks matches {@link DEFAULT_NETWORK_CONFIGS}.
+ * Home / Wallet load balances in two stages: the first `priorityCount` chains (license order) in one
+ * call to unblock the UI, then the rest one by one in the background.
  */
-export const NETWORK_IDS_ENSURED_FROM_LICENSE_GAP: readonly string[] = [
-    "stellar",
-    "bitcoin",
-    "sui",
-    "ton",
-    "aptos",
-    "polkadot",
-    "kusama",
-    "optimism",
-    "arbitrum",
-    "base",
-];
+export function splitBalanceStages(networkIds: readonly string[], priorityCount = 2): { priority: string[]; background: string[] } {
+    const ids = [...new Set(networkIds)];
+
+    return { priority: ids.slice(0, priorityCount), background: ids.slice(priorityCount) };
+}
 
 /**
  * Merge saved toggles into defaults so new chains (e.g. stellar) appear enabled
