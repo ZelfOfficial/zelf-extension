@@ -22,6 +22,7 @@ import { WalletBalanceTopCardComponent } from "app/zelf-wallet/wallet-balance-to
 import { FooterNavDestination, FooterNavigationService } from "app/zelf-footer/footer-navigation.service";
 import { ZelfFooterComponent } from "app/zelf-footer/zelf-footer.component";
 import { SUPPORTED_NETWORK_IDS, splitBalanceStages } from "app/core/network-settings.util";
+import { dedupeBalanceTokens, mergeBalanceTokens, sumFiatBalance } from "app/core/utils/balance-tokens.util";
 
 const QUICK_HUB_IDS = ["zelf-keys", "zelf-authenticator", "zelf-signals", "manage-domains"] as const;
 
@@ -64,6 +65,9 @@ export class HomeComponent implements OnInit, OnDestroy {
     showProfilePanel: boolean = false;
     allWallets: TagModel[] = [];
     totalFiatBalance: number = 0;
+
+    /** Tokens loaded in this view; the running total is computed from these (session storage is only a cache). */
+    private _tokens: any[] = [];
     private _wallet!: Partial<TagModel>;
 
     /** Checklist steps (placeholder until wired to rewards/onboarding API). */
@@ -180,6 +184,8 @@ export class HomeComponent implements OnInit, OnDestroy {
 
         const currentWalletTag = this._wallet?.tagName;
 
+        this._tokens = [];
+
         try {
             // Stage 1: first license networks (one call) to unblock the UI immediately
             const priorityResponse = await firstValueFrom(
@@ -195,6 +201,7 @@ export class HomeComponent implements OnInit, OnDestroy {
             const filtered = this._filterEnabledTokens(deduped);
 
             this._updateTokenState(filtered);
+            await this._assetService.saveTokensToSession(deduped);
         } catch (error) {
             console.error("Error getting priority tokens:", error);
         } finally {
@@ -223,8 +230,8 @@ export class HomeComponent implements OnInit, OnDestroy {
                 if (response) {
                     const result = await this._assetService.processTokensFromResponse(response);
                     if (result?.tokens?.length) {
-                        const existingSessionTokens = (await this._assetService.loadTokensFromSession()) || [];
-                        const merged = this._dedupeTokens([...existingSessionTokens, ...result.tokens]);
+                        // Merge into what this view already loaded (stage 1 + earlier networks), not session storage.
+                        const merged = mergeBalanceTokens(this._tokens, result.tokens);
                         const filtered = this._filterEnabledTokens(merged);
 
                         this._updateTokenState(filtered);
@@ -239,9 +246,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     private _updateTokenState(tokens: any[]): void {
-        this.totalFiatBalance = tokens.reduce((total, token) => {
-            return total + (parseFloat(token.fiatBalance) || 0);
-        }, 0);
+        this._tokens = tokens;
+        this.totalFiatBalance = sumFiatBalance(tokens);
     }
 
     private _initializeWallet = async (wallet: TagModel): Promise<void> => {
@@ -320,29 +326,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     private _dedupeTokens(tokens: Array<any>): Array<any> {
-        const byKey = new Map<string, any>();
-
-        for (const token of tokens || []) {
-            const symbol = (token?.symbol || "").toString().trim();
-            const name = (token?.name || "").toString().trim();
-            const id = (symbol || name).toUpperCase();
-            const network = (token?.network || "").toString();
-            const tokenType = (token?.tokenType || "").toString();
-            const key = `${network}|${tokenType}|${id}`;
-
-            if (!byKey.has(key)) {
-                byKey.set(key, token);
-                continue;
-            }
-
-            const existing = byKey.get(key);
-            const existingFiat = parseFloat(existing?.fiatBalance || "0") || 0;
-            const candidateFiat = parseFloat(token?.fiatBalance || "0") || 0;
-
-            if (candidateFiat > existingFiat) byKey.set(key, token);
-        }
-
-        return Array.from(byKey.values());
+        return dedupeBalanceTokens(tokens);
     }
 
     get walletName(): string {
