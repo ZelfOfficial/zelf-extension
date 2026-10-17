@@ -4,6 +4,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatRippleModule } from "@angular/material/core";
 import { Router } from "@angular/router";
 import { TranslocoModule } from "@jsverse/transloco";
+import { readPublicDataTonAddress } from "@shared/types/tag.types";
 import { AddressMaskPipe } from "app/pipes/address-mask.pipe";
 import { BlockchainTransactionsService } from "app/services/blockchain-transactions.service";
 import { Transaction } from "@shared/types/wallet.types";
@@ -124,7 +125,7 @@ export class ZelfHistoryComponent implements OnInit {
         const walletSol = (publicData?.solanaAddress || "").toLowerCase();
         const walletBtc = (publicData?.btcAddress || "").toLowerCase();
         const walletSui = (publicData?.suiAddress || "").toLowerCase();
-        const walletTon = publicData?.tonAddress || "";
+        const walletTon = readPublicDataTonAddress(publicData as Record<string, unknown> | undefined);
         const walletBDAG = (publicData?.blockDAGAddress || "").toLowerCase();
         const walletXlm = publicData?.xlmAddress || "";
 

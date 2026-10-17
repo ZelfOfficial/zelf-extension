@@ -170,7 +170,7 @@ export class NetworkService {
                 return "./assets/networks/sui.svg";
             case "ton":
             case "TON":
-                return "./assets/networks/ton.png";
+                return "./assets/networks/ton.svg";
             case "avalanche":
             case "AVAX":
                 return "./assets/networks/avax.svg";

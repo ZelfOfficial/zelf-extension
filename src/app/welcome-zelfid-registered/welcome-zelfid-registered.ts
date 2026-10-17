@@ -95,7 +95,7 @@ export class WelcomeZelfidRegisteredComponent extends CopyToClipboardBase implem
             {
                 address: data.tonAddress,
                 labelKey: "common.ton_address",
-                logo: "assets/networks/ton.png",
+                logo: "assets/networks/ton.svg",
                 value: tagModel.displayTonAddress,
             },
             {
