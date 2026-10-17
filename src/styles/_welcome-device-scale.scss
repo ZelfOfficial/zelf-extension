@@ -1,10 +1,31 @@
+// Welcome / onboarding screens are designed on a 402x852 device frame and scaled with a CSS transform.
+// v3 #269: on common laptop screens (1366x768 => ~650px viewport) the old height-driven steps shrank
+// the frame to 0.49-0.55, so 14px copy rendered at ~7px. The scale now never drops below a readable
+// floor; instead the frame gets shorter (screens keep their own inner scroll areas).
+$welcome-design-height: 852px;
+$welcome-min-height: 560px;
+$welcome-fullscreen-min-scale: 0.9;
+$welcome-fullscreen-reserved: 140px; // top bar + breathing room around the frame
+$welcome-popout-scale: 0.93; // 375px popup / 402px design width
+$welcome-popout-reserved: 8px;
+
 @mixin welcome-device-tokens {
     --welcome-onboarding-scale: 1;
     --welcome-onboarding-width: 402px;
-    --welcome-onboarding-height: 852px;
+    --welcome-onboarding-height: #{$welcome-design-height};
 }
 
-@mixin welcome-device-scale {
+@mixin _fit-height($reserved) {
+    --welcome-onboarding-height: clamp(
+        #{$welcome-min-height},
+        calc((100vh - #{$reserved}) / var(--welcome-onboarding-scale)),
+        #{$welcome-design-height}
+    );
+}
+
+@mixin _legacy-height-steps {
+    // Fixed 852px frame scaled to the viewport height. Used by screens whose artwork is absolutely
+    // positioned for the full design height (welcome onboarding carousel).
     :host-context(.main-div--fullscreen) {
         --welcome-onboarding-scale: 1;
     }
@@ -65,5 +86,35 @@
 
     :host-context(.main-div--popout) {
         --welcome-onboarding-scale: 0.68;
+    }
+}
+
+/// @param $fit-height  true (default): readable scale floor + shorter frame (v3 #269).
+///                     false: legacy behaviour for fixed-height artwork (onboarding carousel).
+@mixin welcome-device-scale($fit-height: true) {
+    @if not $fit-height {
+        @include _legacy-height-steps;
+    } @else {
+        :host-context(.main-div--fullscreen) {
+            --welcome-onboarding-scale: 1;
+            @include _fit-height($welcome-fullscreen-reserved);
+        }
+
+        @media screen and (max-height: 1032px) {
+            :host-context(.main-div--fullscreen) {
+                --welcome-onboarding-scale: 0.95;
+            }
+        }
+
+        @media screen and (max-height: 980px) {
+            :host-context(.main-div--fullscreen) {
+                --welcome-onboarding-scale: #{$welcome-fullscreen-min-scale};
+            }
+        }
+
+        :host-context(.main-div--popout) {
+            --welcome-onboarding-scale: #{$welcome-popout-scale};
+            @include _fit-height($welcome-popout-reserved);
+        }
     }
 }

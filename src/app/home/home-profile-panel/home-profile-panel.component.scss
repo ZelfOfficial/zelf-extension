@@ -209,3 +209,22 @@
         display: block;
     }
 }
+
+// Dark mode: config_icon.svg / profile_icon.svg are drawn in a dark fill (#1A1D2E / black) and
+// disappear on the dark panel surface (v3 #268). Render them in the theme's light text colour.
+// NOTE: :host-context — a plain `html.zns-theme-dark` selector never matches under emulated encapsulation.
+:host-context(html.zns-theme-dark) {
+    .panel__settings-icon,
+    .panel__avatar-img {
+        filter: brightness(0) invert(1);
+    }
+
+    .panel__settings-btn {
+        background: variables.$themeCardBorder;
+        border: 1px solid variables.$themeBorder;
+
+        &:hover {
+            background: variables.$themeBorder;
+        }
+    }
+}

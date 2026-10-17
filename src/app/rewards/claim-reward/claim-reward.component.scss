@@ -44,7 +44,7 @@
     // LOADING STATE
     // ============================================
     &__screen--loading {
-        background: linear-gradient(180deg, #fff 0%, #fafafa 100%);
+        background: linear-gradient(180deg, variables.$themeCard 0%, variables.$themeBackgroundSecondary 100%);
     }
 
     &__loader-container {
@@ -100,7 +100,7 @@
         font-family: variables.$themeTitleFamily;
         font-size: calc(26px * var(--zns-font-scale, 1));
         font-weight: 700;
-        color: #1c1c1e;
+        color: variables.$themeText;
         margin: 0;
     }
 
@@ -108,14 +108,14 @@
         font-family: variables.$themeBodyFamily;
         font-size: calc(16px * var(--zns-font-scale, 1));
         font-weight: 500;
-        color: #636366;
+        color: variables.$themeTextSecondary;
         margin: 0;
     }
 
     &__loader-subtext {
         font-family: variables.$themeBodyFamily;
         font-size: calc(14px * var(--zns-font-scale, 1));
-        color: #8e8e93;
+        color: variables.$themeTextMuted;
         margin: calc(8px * var(--zns-space-scale, 1)) 0 0;
     }
 
@@ -123,7 +123,7 @@
     // SUCCESS STATE
     // ============================================
     &__screen--success {
-        background: white;
+        background: variables.$themeCard;
     }
 
     &__confetti-container {
@@ -205,7 +205,7 @@
         font-family: variables.$themeBodyFamily;
         font-size: calc(18px * var(--zns-font-scale, 1));
         font-weight: 500;
-        color: #8e8e93;
+        color: variables.$themeTextMuted;
         margin: 0;
     }
 
@@ -213,7 +213,7 @@
         font-family: variables.$themeTitleFamily;
         font-size: calc(34px * var(--zns-font-scale, 1));
         font-weight: 800;
-        color: #1c1c1e;
+        color: variables.$themeText;
         margin: 0;
         letter-spacing: -0.5px;
     }
@@ -221,14 +221,14 @@
     &__success-desc {
         font-family: variables.$themeBodyFamily;
         font-size: calc(15px * var(--zns-font-scale, 1));
-        color: #8e8e93;
+        color: variables.$themeTextMuted;
         margin: calc(4px * var(--zns-space-scale, 1)) 0 calc(28px * var(--zns-space-scale, 1));
         display: flex;
         align-items: center;
         gap: calc(6px * var(--zns-space-scale, 1));
 
         strong {
-            color: #1c1c1e;
+            color: variables.$themeText;
         }
     }
 
@@ -240,12 +240,12 @@
         font-family: variables.$themeBodyFamily;
         font-size: calc(16px * var(--zns-font-scale, 1));
         font-weight: 500;
-        color: #8e8e93;
+        color: variables.$themeTextMuted;
         margin: 0 0 calc(16px * var(--zns-space-scale, 1));
     }
 
     &__success-amount-box {
-        background: white;
+        background: variables.$themeCard;
         border: 2px solid #ff6b35;
         border-radius: calc(24px * var(--zns-space-scale, 1));
         padding: calc(24px * var(--zns-space-scale, 1)) calc(56px * var(--zns-space-scale, 1));
@@ -271,7 +271,7 @@
         font-family: variables.$themeTitleFamily;
         font-size: calc(44px * var(--zns-font-scale, 1));
         font-weight: 800;
-        color: #636366;
+        color: variables.$themeTextSecondary;
         letter-spacing: -1px;
     }
 
@@ -279,7 +279,7 @@
     // ERROR STATE
     // ============================================
     &__screen--error {
-        background: white;
+        background: variables.$themeCard;
     }
 
     &__error-content {
@@ -295,7 +295,7 @@
     &__error-icon {
         width: calc(100px * var(--zns-space-scale, 1));
         height: calc(100px * var(--zns-space-scale, 1));
-        background: #fff5f5;
+        background: var(--zns-theme-error-text, #fff5f5);
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -323,7 +323,7 @@
         font-family: variables.$themeTitleFamily;
         font-size: calc(26px * var(--zns-font-scale, 1));
         font-weight: 700;
-        color: #1c1c1e;
+        color: variables.$themeText;
         margin: 0;
     }
 
@@ -331,7 +331,7 @@
         font-family: variables.$themeBodyFamily;
         font-size: calc(16px * var(--zns-font-scale, 1));
         font-weight: 500;
-        color: #ff3b30;
+        color: var(--zns-theme-error, #ff3b30);
         margin: 0;
         max-width: calc(300px * var(--zns-space-scale, 1));
     }
@@ -339,7 +339,7 @@
     &__error-subtext {
         font-family: variables.$themeBodyFamily;
         font-size: calc(14px * var(--zns-font-scale, 1));
-        color: #8e8e93;
+        color: variables.$themeTextMuted;
         margin: calc(8px * var(--zns-space-scale, 1)) 0 0;
         max-width: calc(320px * var(--zns-space-scale, 1));
     }
@@ -368,12 +368,13 @@
         transition: all 0.25s ease;
 
         &--primary {
-            background: #1c1c1e;
-            color: white;
+            background: variables.$themeButton;
+            color: variables.$themeButtonText;
             margin-top: auto;
 
             &:hover {
-                background: #2c2c2e;
+                background: variables.$themeButton;
+                opacity: 0.9;
                 transform: translateY(-2px);
                 box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
             }
@@ -385,10 +386,10 @@
 
         &--secondary {
             background: transparent;
-            color: #636366;
+            color: variables.$themeTextSecondary;
 
             &:hover {
-                background: #f2f2f7;
+                background: variables.$themeCardBorder;
             }
         }
     }
