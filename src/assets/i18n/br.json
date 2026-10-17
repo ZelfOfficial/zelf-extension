@@ -886,7 +886,8 @@
         "zelf_wallet": "Zelf",
         "ton_address": "Endereço TON",
         "validity_one_year": "Validade: 1 ano",
-        "validity_years": "Validade: {{years}} anos"
+        "validity_years": "Validade: {{years}} anos",
+        "aptos_address": "Endereço Aptos"
     },
     "token": {
         "24h_performance": "Desempenho 24h",

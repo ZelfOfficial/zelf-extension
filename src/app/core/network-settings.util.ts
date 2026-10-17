@@ -15,6 +15,7 @@ export const DEFAULT_NETWORK_CONFIGS: NetworkConfig[] = [
     { id: "stellar", name: "Stellar", symbol: "XLM", enabled: true },
     { id: "sui", name: "Sui", symbol: "SUI", enabled: true },
     { id: "ton", name: "TON", symbol: "TON", enabled: true },
+    { id: "aptos", name: "Aptos", symbol: "APT", enabled: true },
     { id: "polkadot", name: "Polkadot", symbol: "DOT", enabled: true },
     { id: "kusama", name: "Kusama", symbol: "KSM", enabled: true },
 ];
@@ -28,6 +29,7 @@ export const NETWORK_IDS_ENSURED_FROM_LICENSE_GAP: readonly string[] = [
     "bitcoin",
     "sui",
     "ton",
+    "aptos",
     "polkadot",
     "kusama",
     "optimism",

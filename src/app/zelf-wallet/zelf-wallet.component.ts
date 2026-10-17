@@ -210,6 +210,7 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
         "bitcoin",
         "sui",
         "ton",
+        "aptos",
         "stellar",
         "polkadot",
         "kusama",

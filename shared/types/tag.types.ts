@@ -109,6 +109,16 @@ export function readPublicDataTonAddress(pd: Record<string, unknown> | null | un
     return s.trim();
 }
 
+/** API / IPFS `publicData` uses `aptosAddress`; packed records keep it as short key `aptos` inside `addresses*` chunks (API `APP_TO_SHORT_STORAGE`). */
+export function readPublicDataAptosAddress(pd: Record<string, unknown> | null | undefined): string {
+    if (!pd) return "";
+    const m = withMergedAddressChunkFields(pd);
+    const primary = m.aptosAddress;
+    const short = (m as Record<string, string>).aptos;
+    const s = (typeof primary === "string" ? primary : "") || (typeof short === "string" ? short : "");
+    return s.trim();
+}
+
 export interface TagPublicData {
     btcAddress: string;
     domain: string;
@@ -117,6 +127,7 @@ export interface TagPublicData {
     xlmAddress: string;
     suiAddress: string;
     tonAddress: string;
+    aptosAddress: string;
     dotAddress: string;
     ksmAddress: string;
     tagName: string;
@@ -148,6 +159,7 @@ export class TagPublicDataModel {
     xlmAddress: string;
     suiAddress: string;
     tonAddress: string;
+    aptosAddress: string;
     dotAddress: string;
     ksmAddress: string;
     tagName: string;
@@ -170,6 +182,7 @@ export class TagPublicDataModel {
         this.xlmAddress = readPublicDataXlmAddress(data as Record<string, unknown>);
         this.suiAddress = data.suiAddress || "";
         this.tonAddress = readPublicDataTonAddress(data as Record<string, unknown>);
+        this.aptosAddress = readPublicDataAptosAddress(data as Record<string, unknown>);
         this.dotAddress = readPublicDataDotAddress(data as Record<string, unknown>);
         this.ksmAddress = readPublicDataKsmAddress(data as Record<string, unknown>);
         this.tagName = data.tagName || "";
@@ -310,6 +323,7 @@ export class TagModel {
             solanaAddress: data.publicData?.solanaAddress || "",
             suiAddress: data.publicData?.suiAddress || "",
             tonAddress: data.publicData?.tonAddress || "",
+            aptosAddress: readPublicDataAptosAddress(data.publicData as Record<string, unknown> | undefined),
             tagName: rawTagName,
             type: data.publicData?.type || "",
             st: data.publicData?.st || "",
@@ -334,6 +348,10 @@ export class TagModel {
 
     get displayTonAddress(): string {
         return this._parseAddress(this.publicData?.tonAddress);
+    }
+
+    get displayAptosAddress(): string {
+        return this._parseAddress(this.publicData?.aptosAddress);
     }
 
     get displayAvalancheAddress(): string {

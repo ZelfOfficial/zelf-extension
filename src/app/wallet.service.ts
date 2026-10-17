@@ -6,6 +6,7 @@ import { BehaviorSubject, Observable } from "rxjs";
 
 import { environment } from "environments/environment";
 import {
+    readPublicDataAptosAddress,
     readPublicDataDotAddress,
     readPublicDataKsmAddress,
     readPublicDataTonAddress,
@@ -186,6 +187,9 @@ export class WalletService {
                 break;
             case "TON":
                 assetSrc = "./assets/networks/ton.svg";
+                break;
+            case "APT":
+                assetSrc = "./assets/networks/aptos.svg";
                 break;
             case "BNB":
             case "BSC":
@@ -1176,6 +1180,8 @@ export class WalletService {
             address = wallet?.publicData?.suiAddress || "";
         } else if (tokenType === "TON" || tokenType === "ton") {
             address = readPublicDataTonAddress(wallet?.publicData as Record<string, unknown> | undefined);
+        } else if (tokenType === "APT" || tokenType === "apt") {
+            address = readPublicDataAptosAddress(wallet?.publicData as Record<string, unknown> | undefined);
         } else if (tokenType === "XLM" || tokenType === "STELLAR") {
             address = wallet?.publicData?.xlmAddress || "";
         }
@@ -1311,6 +1317,16 @@ export class WalletService {
                 image: this.getAssetImage("TON"),
                 name: "TON",
                 symbol: "TON",
+            });
+        }
+
+        const aptosAddr = readPublicDataAptosAddress(pdForSubstrate);
+        if (aptosAddr) {
+            networks.push({
+                address: aptosAddr,
+                image: this.getAssetImage("APT"),
+                name: "Aptos",
+                symbol: "APT",
             });
         }
 

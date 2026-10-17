@@ -863,7 +863,8 @@
         "zelf_wallet": "Zelf",
         "ton_address": "TON پتہ",
         "validity_one_year": "مدت: 1 سال",
-        "validity_years": "مدت: {{years}} سال"
+        "validity_years": "مدت: {{years}} سال",
+        "aptos_address": "Aptos پتہ"
     },
     "token": {
         "24h_performance": "24 گھنٹے کی کارکردگی",

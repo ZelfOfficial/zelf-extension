@@ -879,7 +879,8 @@
         "zelf_wallet": "Zelf",
         "ton_address": "TON 주소",
         "validity_one_year": "유효 기간: 1년",
-        "validity_years": "유효 기간: {{years}}년"
+        "validity_years": "유효 기간: {{years}}년",
+        "aptos_address": "Aptos 주소"
     },
     "token": {
         "24h_performance": "24시간 성과",

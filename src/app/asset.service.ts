@@ -13,6 +13,7 @@ import { TokenData } from "@shared/types/wallet.types";
 const WSOL_MINT = "So11111111111111111111111111111111111111112";
 
 export interface NetworkPermissions {
+    APT?: boolean;
     AVAX?: boolean;
     BDAG?: boolean;
     BNB?: boolean;
@@ -71,6 +72,7 @@ export class AssetService {
 
     get canSwap(): NetworkPermissions {
         return {
+            APT: false,
             AVAX: true,
             BDAG: false,
             BNB: true,
@@ -89,6 +91,8 @@ export class AssetService {
 
     get canSend(): NetworkPermissions {
         return {
+            // Aptos send stays off until a small real test send is approved (same policy as TON).
+            APT: false,
             AVAX: true,
             BDAG: true,
             BNB: true,
@@ -155,6 +159,8 @@ export class AssetService {
                     return "SUI";
                 case "Ton":
                     return "TON";
+                case "Aptos":
+                    return "APT";
                 case "Binance":
                     return "BNB";
                 case "Polygon":
@@ -191,6 +197,8 @@ export class AssetService {
                 return "SUI-TOKEN";
             case "Ton":
                 return "JETTON";
+            case "Aptos":
+                return "APTOS_FA";
             case "Bitcoin":
                 return "BTC-TOKEN";
             default:
@@ -212,6 +220,7 @@ export class AssetService {
             Stellar: ["XLM", "STELLAR"],
             Sui: ["SUI", "SUI-TOKEN"],
             Ton: ["TON", "TONCOIN"],
+            Aptos: ["APT", "APTOS", "APTOS COIN"],
             Polkadot: ["DOT", "POLKADOT"],
             Kusama: ["KSM", "KUSAMA"],
         };
@@ -342,6 +351,7 @@ export class AssetService {
                     (network === "BlockDAG" && !permissions.BDAG) ||
                     (network === "Sui" && !permissions.SUI) ||
                     (network === "Ton" && !permissions.TON) ||
+                    (network === "Aptos" && !permissions.APT) ||
                     (network === "Binance" && !permissions.BNB) ||
                     (network === "Polygon" && !permissions.POL) ||
                     (network === "Optimism" && !permissions.OP) ||
@@ -428,6 +438,10 @@ export class AssetService {
 
         if (response?.ton?.data?.tokenHoldings?.tokens && (!permissions || permissions.TON)) {
             tokens = this.processTokens("Ton", response.ton.data.tokenHoldings.tokens, tokens, permissions);
+        }
+
+        if (response?.aptos?.data?.tokenHoldings?.tokens && (!permissions || permissions.APT)) {
+            tokens = this.processTokens("Aptos", response.aptos.data.tokenHoldings.tokens, tokens, permissions);
         }
 
         if (response?.polkadot?.data?.tokenHoldings?.tokens && (!permissions || permissions.DOT)) {

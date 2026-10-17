@@ -178,6 +178,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         "bitcoin",
         "sui",
         "ton",
+        "aptos",
         "stellar",
         "polkadot",
         "kusama",
