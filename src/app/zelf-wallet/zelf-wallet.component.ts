@@ -25,7 +25,8 @@ import { ZelfNameService } from "app/zelf-name-service.service";
 import { HomeCollectiblesComponent } from "./home-collectibles/home-collectibles.component";
 import { HomeHubHeaderComponent } from "app/home/home-hub-header/home-hub-header.component";
 import { HomeProfilePanelComponent } from "app/home/home-profile-panel/home-profile-panel.component";
-import { SUPPORTED_NETWORK_IDS, splitBalanceStages } from "app/core/network-settings.util";
+import { BACKGROUND_BALANCE_CONCURRENCY, SUPPORTED_NETWORK_IDS, splitBalanceStages } from "app/core/network-settings.util";
+import { forEachWithConcurrency } from "app/core/utils/concurrency.util";
 import { TokenCardComponent } from "./token-card/token-card.component";
 import { WalletBalanceTopCardComponent } from "./wallet-balance-top-card/wallet-balance-top-card.component";
 
@@ -251,9 +252,9 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
     }
 
     private async _fetchRemainingBalancesInBackground(networks: string[], walletTag?: string): Promise<void> {
-        for (const network of networks) {
-            if (((this.wallet?.tagName || this.wallet?.name) as string) !== walletTag) break;
-
+        // v3 #263: background networks run a few at a time instead of strictly one after another,
+        // so one slow chain (e.g. BSC ~15s) no longer delays every chain queued behind it.
+        await forEachWithConcurrency(networks, BACKGROUND_BALANCE_CONCURRENCY, async (network) => {
             try {
                 const response = await firstValueFrom(
                     this._blockchainTransactionsService
@@ -261,7 +262,7 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
                         .pipe(takeUntil(this.unsubscriberForBalances$))
                 );
 
-                if (((this.wallet?.tagName || this.wallet?.name) as string) !== walletTag) break;
+                if (((this.wallet?.tagName || this.wallet?.name) as string) !== walletTag) return;
 
                 if (response) {
                     const result = await this._assetService.processTokensFromResponse(response);
@@ -277,7 +278,7 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
             } catch (err) {
                 console.warn(`[Background Balance] ${network} fetch failed:`, err);
             }
-        }
+        }, () => ((this.wallet?.tagName || this.wallet?.name) as string) === walletTag);
     }
 
     private _updateTokenState(tokens: any[]): void {

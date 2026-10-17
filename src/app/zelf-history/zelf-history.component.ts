@@ -1,5 +1,5 @@
 import { CurrencyPipe, DatePipe, DecimalPipe, NgClass, NgFor, NgIf, NgTemplateOutlet } from "@angular/common";
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input, OnDestroy, OnInit } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatRippleModule } from "@angular/material/core";
 import { Router } from "@angular/router";
@@ -11,6 +11,9 @@ import { Transaction } from "@shared/types/wallet.types";
 import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { SettingsService } from "app/services/settings.service";
+import { SUPPORTED_NETWORK_IDS } from "app/core/network-settings.util";
+import { isDisplayableTransaction, transactionTime } from "app/core/utils/transaction-history.util";
+import { Subscription } from "rxjs";
 
 type TransactionType = "send" | "receive" | "swap" | "approve" | "";
 
@@ -50,13 +53,15 @@ type ProcessedTransaction = {
     styleUrls: ["./zelf-history.component.scss"],
     templateUrl: "./zelf-history.component.html",
 })
-export class ZelfHistoryComponent implements OnInit {
+export class ZelfHistoryComponent implements OnInit, OnDestroy {
     @Input("token") token?: string = "";
 
     private currentPage = 0;
 
     public history: Record<string, ProcessedTransaction[]> | null = null;
     public loading = false;
+    /** True while some networks are still answering after the first transactions are on screen. */
+    public syncing = false;
     public noMoreTransactions = false;
     public transactionHashMap: Record<string, boolean> = {};
 
@@ -67,8 +72,15 @@ export class ZelfHistoryComponent implements OnInit {
         private _walletService: WalletService
     ) {}
 
+    private _subscriptions = new Subscription();
+    private _firstPageTransactions: Transaction[] = [];
+
     async ngOnInit(): Promise<void> {
         this._loadFirstTransactions();
+    }
+
+    ngOnDestroy(): void {
+        this._subscriptions.unsubscribe();
     }
 
     get orderedHistory(): { date: string; transactions: ProcessedTransaction[] }[] {
@@ -91,29 +103,80 @@ export class ZelfHistoryComponent implements OnInit {
 
         const wallet = await this._walletService.getCurrentWallet();
 
-        const enabledNetworks = this._getEnabledNetworkIds();
+        if (this.token) {
+            this._subscriptions.add(
+                this._blockchainTransactions.getAddressDataByToken(wallet, this.token).subscribe({
+                    next: async (response) => {
+                        if (response?.transactions?.length) await this._processTransactions(response.transactions);
+                        else this.noMoreTransactions = true;
 
-        (this.token
-            ? this._blockchainTransactions.getAddressDataByToken(wallet, this.token)
-            : this._blockchainTransactions.getAddressData(wallet, enabledNetworks)
-        ).subscribe({
-            next: async (response) => {
-                if (!response) {
-                    this.currentPage = 0;
-                    this.loading = false;
-                    this.noMoreTransactions = true;
+                        this.loading = false;
+                    },
+                    error: (error) => {
+                        console.error("Error loading transactions:", error);
+                        this.loading = false;
+                    },
+                })
+            );
 
-                    return;
-                }
+            return;
+        }
 
-                await this._processTransactions(response.transactions);
+        // v3 #270: query each license network on its own and show transactions as they arrive,
+        // so one slow network (e.g. BSC ~20s) no longer keeps the whole list on the skeleton.
+        const networks = (await this._settingsService.getEnabledNetworkIdsFromLicense()) ?? [...SUPPORTED_NETWORK_IDS];
+        let pending = networks.length;
 
-                this.loading = false;
-            },
-            error: (error) => {
-                console.error("Error loading transactions:", error);
-            },
-        });
+        this._firstPageTransactions = [];
+        this.syncing = pending > 0;
+
+        // Serialise processing so a network's "complete" never runs before its transactions were merged.
+        let queue: Promise<void> = Promise.resolve();
+
+        const settle = (): void => {
+            pending -= 1;
+
+            if (pending > 0) return;
+
+            this.syncing = false;
+            this.loading = false;
+
+            if (!this.history) this.noMoreTransactions = true;
+        };
+
+        if (!pending) {
+            this.loading = false;
+            this.noMoreTransactions = true;
+
+            return;
+        }
+
+        for (const network of networks) {
+            this._subscriptions.add(
+                this._blockchainTransactions.getAddressData(wallet, [network]).subscribe({
+                    next: (response) => {
+                        const incoming: Transaction[] = response?.transactions || [];
+
+                        if (!incoming.length) return;
+
+                        queue = queue.then(async () => {
+                            this._firstPageTransactions = [...this._firstPageTransactions, ...incoming];
+                            this.transactionHashMap = {};
+                            await this._processTransactions(this._firstPageTransactions);
+
+                            if (this.history) this.loading = false;
+                        });
+                    },
+                    error: (error) => {
+                        console.error(`Error loading ${network} transactions:`, error);
+                        queue = queue.then(settle);
+                    },
+                    complete: () => {
+                        queue = queue.then(settle);
+                    },
+                })
+            );
+        }
     }
 
     private _determineTransactionTraffic(tx: Transaction, wallet: any): void {
@@ -155,11 +218,9 @@ export class ZelfHistoryComponent implements OnInit {
     private async _processTransactions(transactions: Transaction[], isPagination = false): Promise<void> {
         if (!transactions || !transactions.length) return;
 
-        transactions.sort(
-            (a, b) =>
-                new Date(typeof b.date === "string" ? b.date : b.date * 1000).getTime() -
-                new Date(typeof a.date === "string" ? a.date : a.date * 1000).getTime()
-        );
+        // Drop backend error placeholders / rows without a usable date (they crashed the date pipe).
+        transactions = transactions.filter((tx) => isDisplayableTransaction(tx as any));
+        transactions.sort((a, b) => (transactionTime(b as any) ?? 0) - (transactionTime(a as any) ?? 0));
 
         const groupedByDate: Record<string, any[]> = isPagination ? { ...this.history } : {};
         const wallet = await this._walletService.getCurrentWallet();
@@ -167,10 +228,9 @@ export class ZelfHistoryComponent implements OnInit {
         transactions.forEach((tx) => {
             if (this.transactionHashMap[tx.hash] || !wallet) return;
 
-            if (!tx.from || !tx.date) return;
             if (this.token && tx.asset !== this.token) return;
 
-            const dateStr = new Date(tx.date).toLocaleDateString("en-US");
+            const dateStr = new Date(transactionTime(tx as any) as number).toLocaleDateString("en-US");
 
             if (!groupedByDate[dateStr]) groupedByDate[dateStr] = [];
 
@@ -207,7 +267,7 @@ export class ZelfHistoryComponent implements OnInit {
             this.transactionHashMap[tx.hash] = true;
         });
 
-        this.history = groupedByDate;
+        this.history = Object.keys(groupedByDate).length ? groupedByDate : null;
     }
 
     async loadMoreTransactions(): Promise<void> {
@@ -233,6 +293,7 @@ export class ZelfHistoryComponent implements OnInit {
             },
             error: (error) => {
                 console.error("Error loading transactions:", error);
+                this.loading = false;
             },
         });
     }
