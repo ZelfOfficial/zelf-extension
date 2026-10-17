@@ -21,8 +21,9 @@ import { HomeProfilePanelComponent } from "./home-profile-panel/home-profile-pan
 import { WalletBalanceTopCardComponent } from "app/zelf-wallet/wallet-balance-top-card/wallet-balance-top-card.component";
 import { FooterNavDestination, FooterNavigationService } from "app/zelf-footer/footer-navigation.service";
 import { ZelfFooterComponent } from "app/zelf-footer/zelf-footer.component";
-import { SUPPORTED_NETWORK_IDS, splitBalanceStages } from "app/core/network-settings.util";
+import { BACKGROUND_BALANCE_CONCURRENCY, SUPPORTED_NETWORK_IDS, splitBalanceStages } from "app/core/network-settings.util";
 import { dedupeBalanceTokens, mergeBalanceTokens, sumFiatBalance } from "app/core/utils/balance-tokens.util";
+import { forEachWithConcurrency } from "app/core/utils/concurrency.util";
 
 const QUICK_HUB_IDS = ["zelf-keys", "zelf-authenticator", "zelf-signals", "manage-domains"] as const;
 
@@ -215,9 +216,9 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     private async _fetchRemainingBalancesInBackground(networks: string[], walletTag?: string): Promise<void> {
-        for (const network of networks) {
-            if (this._wallet?.tagName !== walletTag) break;
-
+        // v3 #263: background networks run a few at a time instead of strictly one after another,
+        // so one slow chain (e.g. BSC ~15s) no longer delays every chain queued behind it.
+        await forEachWithConcurrency(networks, BACKGROUND_BALANCE_CONCURRENCY, async (network) => {
             try {
                 const response = await firstValueFrom(
                     this._blockchainTransactionsService
@@ -225,7 +226,7 @@ export class HomeComponent implements OnInit, OnDestroy {
                         .pipe(takeUntil(this._unsubscriberForBalances$))
                 );
 
-                if (this._wallet?.tagName !== walletTag) break;
+                if (this._wallet?.tagName !== walletTag) return;
 
                 if (response) {
                     const result = await this._assetService.processTokensFromResponse(response);
@@ -242,7 +243,7 @@ export class HomeComponent implements OnInit, OnDestroy {
             } catch (err) {
                 console.warn(`[Background Balance] ${network} fetch failed:`, err);
             }
-        }
+        }, () => this._wallet?.tagName === walletTag);
     }
 
     private _updateTokenState(tokens: any[]): void {

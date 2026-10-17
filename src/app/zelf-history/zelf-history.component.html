@@ -118,7 +118,7 @@
         </ng-container>
 
         <button
-            [disabled]="loading || noMoreTransactions"
+            [disabled]="loading || syncing || noMoreTransactions"
             (click)="loadMoreTransactions()"
             class="zelf-button zelf-button--wide zelf-button--primary zelf-history__load-more"
         >

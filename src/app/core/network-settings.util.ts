@@ -70,9 +70,12 @@ export function resolveEnabledNetworkIds(
     return ids.length ? ids : [...licenseIds];
 }
 
+/** How many background networks Home / Wallet fetch at the same time after the priority stage (v3 #263). */
+export const BACKGROUND_BALANCE_CONCURRENCY = 4;
+
 /**
  * Home / Wallet load balances in two stages: the first `priorityCount` chains (license order) in one
- * call to unblock the UI, then the rest one by one in the background.
+ * call to unblock the UI, then the rest in the background (BACKGROUND_BALANCE_CONCURRENCY at a time).
  */
 export function splitBalanceStages(networkIds: readonly string[], priorityCount = 2): { priority: string[]; background: string[] } {
     const ids = [...new Set(networkIds)];
