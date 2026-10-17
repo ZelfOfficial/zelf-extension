@@ -25,6 +25,7 @@ import { ZelfNameService } from "app/zelf-name-service.service";
 import { HomeCollectiblesComponent } from "./home-collectibles/home-collectibles.component";
 import { HomeHubHeaderComponent } from "app/home/home-hub-header/home-hub-header.component";
 import { HomeProfilePanelComponent } from "app/home/home-profile-panel/home-profile-panel.component";
+import { getPriorityBalanceNetworks, getSecondaryBalanceNetworks } from "app/core/network-settings.util";
 import { TokenCardComponent } from "./token-card/token-card.component";
 import { WalletBalanceTopCardComponent } from "./wallet-balance-top-card/wallet-balance-top-card.component";
 
@@ -202,28 +203,12 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
         return true;
     }
 
-    private readonly _priorityNetworks = ["ethereum", "solana"];
-    private readonly _secondaryNetworks = [
-        "avalanche",
-        "binance",
-        "polygon",
-        "bitcoin",
-        "sui",
-        "ton",
-        "aptos",
-        "stellar",
-        "polkadot",
-        "kusama",
-        "blockdag",
-    ];
 
     /**
      * Fetch balances from network
      */
     private async _fetchBalancesFromNetwork(enabledNetworks?: string[]): Promise<void> {
-        const priorityToFetch = this._priorityNetworks.filter(
-            (net) => !enabledNetworks || enabledNetworks.includes(net)
-        );
+        const priorityToFetch = getPriorityBalanceNetworks(enabledNetworks);
 
         const currentWalletTag = (this.wallet?.tagName || this.wallet?.name) as string;
 
@@ -258,9 +243,7 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
         }
 
         // Stage 2: Fetch remaining networks in the background one by one without blocking
-        const remainingToFetch = this._secondaryNetworks.filter(
-            (net) => (!enabledNetworks || enabledNetworks.includes(net)) && !this._priorityNetworks.includes(net)
-        );
+        const remainingToFetch = getSecondaryBalanceNetworks(enabledNetworks);
 
         this._fetchRemainingBalancesInBackground(remainingToFetch, currentWalletTag);
     }

@@ -8,6 +8,7 @@ import { HttpWrapperService } from "app/http-wrapper.service";
 import { RpcProviderService } from "app/services/rpc-provider.service";
 import { environment } from "environments/environment";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
+import { ensureDataEnvelope } from "app/core/utils/api-data-envelope.util";
 
 @Injectable({
     providedIn: "root",
@@ -204,7 +205,8 @@ export class OptimismService {
         try {
             return this._httpWrapper
                 .sendRequest("get", url)
-                .then((response) => response)
+                // This endpoint answers the payload without the usual { data } envelope.
+                .then((response) => ensureDataEnvelope(response))
                 .catch(() => this._defaultResponse());
         } catch (error) {
             console.error("Exception in Optimism getWalletDetails:", error);

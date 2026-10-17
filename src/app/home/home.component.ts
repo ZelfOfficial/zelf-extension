@@ -21,6 +21,7 @@ import { HomeProfilePanelComponent } from "./home-profile-panel/home-profile-pan
 import { WalletBalanceTopCardComponent } from "app/zelf-wallet/wallet-balance-top-card/wallet-balance-top-card.component";
 import { FooterNavDestination, FooterNavigationService } from "app/zelf-footer/footer-navigation.service";
 import { ZelfFooterComponent } from "app/zelf-footer/zelf-footer.component";
+import { getPriorityBalanceNetworks, getSecondaryBalanceNetworks } from "app/core/network-settings.util";
 
 const QUICK_HUB_IDS = ["zelf-keys", "zelf-authenticator", "zelf-signals", "manage-domains"] as const;
 
@@ -170,25 +171,9 @@ export class HomeComponent implements OnInit, OnDestroy {
         return true;
     }
 
-    private readonly _priorityNetworks = ["ethereum", "solana"];
-    private readonly _secondaryNetworks = [
-        "avalanche",
-        "binance",
-        "polygon",
-        "bitcoin",
-        "sui",
-        "ton",
-        "aptos",
-        "stellar",
-        "polkadot",
-        "kusama",
-        "blockdag",
-    ];
 
     private async _fetchBalancesFromNetwork(enabledNetworks?: string[]): Promise<void> {
-        const priorityToFetch = this._priorityNetworks.filter(
-            (net) => !enabledNetworks || enabledNetworks.includes(net)
-        );
+        const priorityToFetch = getPriorityBalanceNetworks(enabledNetworks);
 
         const currentWalletTag = this._wallet?.tagName;
 
@@ -215,9 +200,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         }
 
         // Stage 2: Fetch remaining networks in the background one by one without blocking
-        const remainingToFetch = this._secondaryNetworks.filter(
-            (net) => (!enabledNetworks || enabledNetworks.includes(net)) && !this._priorityNetworks.includes(net)
-        );
+        const remainingToFetch = getSecondaryBalanceNetworks(enabledNetworks);
 
         this._fetchRemainingBalancesInBackground(remainingToFetch, currentWalletTag);
     }
