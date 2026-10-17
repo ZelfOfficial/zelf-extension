@@ -25,6 +25,7 @@ import { ZelfNameService } from "app/zelf-name-service.service";
 import { HomeCollectiblesComponent } from "./home-collectibles/home-collectibles.component";
 import { HomeHubHeaderComponent } from "app/home/home-hub-header/home-hub-header.component";
 import { HomeProfilePanelComponent } from "app/home/home-profile-panel/home-profile-panel.component";
+import { SUPPORTED_NETWORK_IDS, splitBalanceStages } from "app/core/network-settings.util";
 import { TokenCardComponent } from "./token-card/token-card.component";
 import { WalletBalanceTopCardComponent } from "./wallet-balance-top-card/wallet-balance-top-card.component";
 
@@ -162,7 +163,7 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
         this.balancesLoading = true;
         this.tokens = [];
 
-        const enabledNetworks = this._getEnabledNetworkIds();
+        const enabledNetworks = await this._settingsService.getEnabledNetworkIdsFromLicense();
         const loadedFromSession = await this._loadBalancesFromSession(enabledNetworks);
 
         if (loadedFromSession) {
@@ -202,33 +203,20 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
         return true;
     }
 
-    private readonly _priorityNetworks = ["ethereum", "solana"];
-    private readonly _secondaryNetworks = [
-        "avalanche",
-        "binance",
-        "polygon",
-        "bitcoin",
-        "sui",
-        "ton",
-        "aptos",
-        "stellar",
-        "polkadot",
-        "kusama",
-        "blockdag",
-    ];
 
     /**
      * Fetch balances from network
      */
     private async _fetchBalancesFromNetwork(enabledNetworks?: string[]): Promise<void> {
-        const priorityToFetch = this._priorityNetworks.filter(
-            (net) => !enabledNetworks || enabledNetworks.includes(net)
+        // Which chains, and their order, come from the domain license (see SettingsService.getEnabledNetworkIds).
+        const { priority: priorityToFetch, background: remainingToFetch } = splitBalanceStages(
+            enabledNetworks ?? SUPPORTED_NETWORK_IDS
         );
 
         const currentWalletTag = (this.wallet?.tagName || this.wallet?.name) as string;
 
         try {
-            // Stage 1: Load priority networks (ETH & SOL) first to unblock UI immediately
+            // Stage 1: first license networks (one call) to unblock the UI immediately
             const priorityResponse = await firstValueFrom(
                 this._blockchainTransactionsService
                     .getAddressData(this.wallet, priorityToFetch)
@@ -243,7 +231,7 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
 
             this._updateTokenState(filtered);
         } catch (error) {
-            console.error("Error getting priority tokens (ETH/SOL):", error);
+            console.error("Error getting priority tokens:", error);
         } finally {
             this.balancesLoading = false;
             this._changeDetectorRef.detectChanges();
@@ -258,9 +246,6 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
         }
 
         // Stage 2: Fetch remaining networks in the background one by one without blocking
-        const remainingToFetch = this._secondaryNetworks.filter(
-            (net) => (!enabledNetworks || enabledNetworks.includes(net)) && !this._priorityNetworks.includes(net)
-        );
 
         this._fetchRemainingBalancesInBackground(remainingToFetch, currentWalletTag);
     }
@@ -389,7 +374,7 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
 
         await this._authService.reauthenticateSession();
 
-        const enabledNetworks = this._getEnabledNetworkIds();
+        const enabledNetworks = await this._settingsService.getEnabledNetworkIdsFromLicense();
         await this._fetchBalancesFromNetwork(enabledNetworks);
 
         await this._refreshWallets(true);

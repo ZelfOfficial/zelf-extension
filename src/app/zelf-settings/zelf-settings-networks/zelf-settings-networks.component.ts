@@ -3,10 +3,9 @@ import { Component, OnDestroy, OnInit } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { TranslocoModule } from "@jsverse/transloco";
-import { DomainLicense, DomainWallet } from "app/core/models/domain.type";
-import { DEFAULT_NETWORK_CONFIGS, NETWORK_IDS_ENSURED_FROM_LICENSE_GAP } from "app/core/network-settings.util";
-import { DomainService } from "app/domain.service";
+import { DEFAULT_NETWORK_CONFIGS } from "app/core/network-settings.util";
 import { NetworkConfig, Settings } from "app/models/settings.model";
+import { LicenseNetworksService } from "app/services/license-networks.service";
 import { SettingsService } from "app/services/settings.service";
 import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
@@ -21,14 +20,14 @@ import { takeUntil } from "rxjs/operators";
 })
 export class ZelfSettingsNetworksComponent implements OnInit, OnDestroy {
     private unsubscriber$: Subject<void> = new Subject<void>();
-    private _licenseWalletNetworks: DomainWallet["networks"] | null = null;
+    private _licenseNetworkIds: string[] | null = null;
 
     loading = true;
     networks: NetworkConfig[] = [];
     settings!: Settings;
 
     constructor(
-        private _domainService: DomainService,
+        private _licenseNetworks: LicenseNetworksService,
         private _settingsService: SettingsService,
         private _walletService: WalletService
     ) {}
@@ -58,70 +57,32 @@ export class ZelfSettingsNetworksComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * Fetch the license for the current wallet's domain to get allowed networks
+     * Networks come only from the domain license (`tags.wallet.networks`), set by the license admin.
      */
     private async _fetchLicenseNetworks(): Promise<void> {
         try {
-            const wallet = await this._walletService.getCurrentWallet();
-            const domain = wallet?.domain || wallet?.publicData?.domain || "zelf";
-
-            // Fetch fresh license data from API
-            const response = await this._domainService.getDomains();
-
-            if (response?.data && response.data[domain]) {
-                const license: DomainLicense = response.data[domain];
-                this._licenseWalletNetworks = license.tags?.wallet?.networks || null;
-            }
+            this._licenseNetworkIds = await this._licenseNetworks.ensureLoaded(true);
         } catch (error) {
             console.error("Error fetching license networks:", error);
-            this._licenseWalletNetworks = null;
+            this._licenseNetworkIds = this._licenseNetworks.allowedNetworkIds;
         }
-    }
-
-    /**
-     * Get the list of networks allowed by the license
-     */
-    private _getAllowedNetworkIds(): string[] | null {
-        if (!this._licenseWalletNetworks) return null;
-
-        const allowedIds: string[] = [];
-
-        for (const [networkId, config] of Object.entries(this._licenseWalletNetworks)) {
-            if (config && config.enabled) {
-                allowedIds.push(networkId);
-            }
-        }
-
-        return allowedIds.length > 0 ? allowedIds : null;
     }
 
     private _initNetworks(): void {
-        let allowedNetworkIds = this._getAllowedNetworkIds();
+        const allowedNetworkIds = this._licenseNetworkIds;
 
-        if (allowedNetworkIds) {
-            const missing = NETWORK_IDS_ENSURED_FROM_LICENSE_GAP.filter((id) => !allowedNetworkIds!.includes(id));
-            if (missing.length) {
-                allowedNetworkIds = [...allowedNetworkIds, ...missing];
-            }
-        }
+        // License order; display names/icons from the supported-chain catalog. No license config known yet: show the catalog.
+        const availableNetworks: NetworkConfig[] = allowedNetworkIds
+            ? allowedNetworkIds
+                  .map((id) => DEFAULT_NETWORK_CONFIGS.find((n) => n.id === id))
+                  .filter((n): n is NetworkConfig => !!n)
+            : DEFAULT_NETWORK_CONFIGS;
 
-        // Filter default networks based on license if available
-        let availableNetworks = DEFAULT_NETWORK_CONFIGS;
-
-        if (allowedNetworkIds) {
-            availableNetworks = DEFAULT_NETWORK_CONFIGS.filter((network) => allowedNetworkIds.includes(network.id));
-        }
-
-        // If networks are already saved in settings, use them (but only those allowed by license)
-        if (this.settings.networks && this.settings.networks.length > 0) {
-            this.networks = availableNetworks.map((defaultNetwork) => {
-                const savedNetwork = this.settings.networks?.find((n) => n.id === defaultNetwork.id);
-                return savedNetwork || defaultNetwork;
-            });
-        } else {
-            // Use available networks
-            this.networks = [...availableNetworks];
-        }
+        // Saved user toggles apply only to networks the license allows
+        this.networks = availableNetworks.map((defaultNetwork) => {
+            const savedNetwork = this.settings.networks?.find((n) => n.id === defaultNetwork.id);
+            return savedNetwork ? { ...defaultNetwork, ...savedNetwork } : { ...defaultNetwork };
+        });
     }
 
     onNetworkToggle(network: NetworkConfig): void {

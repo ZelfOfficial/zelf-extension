@@ -1,5 +1,6 @@
 import { Injectable } from "@angular/core";
-import { mergeNetworkSettings, shouldPersistNetworkMerge } from "app/core/network-settings.util";
+import { mergeNetworkSettings, resolveEnabledNetworkIds, shouldPersistNetworkMerge } from "app/core/network-settings.util";
+import { LicenseNetworksService } from "app/services/license-networks.service";
 import { ChromeService } from "app/chrome.service";
 import { Settings } from "app/models/settings.model";
 import { VaultService } from "app/vault.service";
@@ -16,7 +17,8 @@ export class SettingsService {
     constructor(
         private _chromeService: ChromeService,
         private _vaultService: VaultService,
-        private _walletService: WalletService
+        private _walletService: WalletService,
+        private _licenseNetworks: LicenseNetworksService
     ) {
         this._settings = {
             security: {
@@ -32,6 +34,9 @@ export class SettingsService {
         this._chromeService.getItem("settings").then((settings) => {
             this._applySettingsFromStorage(settings);
         });
+
+        // Warm the license network allowlist so every screen filters by the license.
+        void this._licenseNetworks.ensureLoaded().catch(() => undefined);
     }
 
     private _applySettingsFromStorage(raw: Settings | null | undefined): void {
@@ -64,16 +69,21 @@ export class SettingsService {
     }
 
     /**
-     * Enabled chain ids for portfolio / history / send filters.
-     * Returns undefined when networks are unset, or when every toggle is off — same as legacy "no filter" behavior.
-     * (An empty array would otherwise make `getAddressData` skip every chain.)
+     * Enabled chain ids for portfolio / history / send / swap filters, in license order.
+     * The domain license (`tags.wallet.networks`, managed by the license admin) decides which chains exist;
+     * the user's Manage networks toggles can only switch licensed chains off.
+     * Returns undefined only when no license config is known yet and the user has no toggles (legacy "no filter").
+     * Call `LicenseNetworksService.ensureLoaded()` first when you need the license applied.
      */
     getEnabledNetworkIds(): string[] | undefined {
-        if (!this._settings?.networks?.length) return undefined;
+        return resolveEnabledNetworkIds(this._licenseNetworks.allowedNetworkIds, this._settings?.networks);
+    }
 
-        const ids = this._settings.networks.filter((n) => n.enabled).map((n) => n.id);
+    /** Same as {@link getEnabledNetworkIds} after making sure the license allowlist is loaded. */
+    async getEnabledNetworkIdsFromLicense(): Promise<string[] | undefined> {
+        await this._licenseNetworks.ensureLoaded();
 
-        return ids.length > 0 ? ids : undefined;
+        return this.getEnabledNetworkIds();
     }
 
     set settings(value: Settings) {
