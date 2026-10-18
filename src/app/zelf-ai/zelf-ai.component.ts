@@ -6,7 +6,8 @@ import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { Subject, distinctUntilChanged, filter, map, skip, takeUntil } from "rxjs";
 
 import { ChromeService } from "app/chrome.service";
-import { TagModel } from "app/tags.service";
+import { TagModel, TagsService } from "app/tags.service";
+import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
 import { ZaiCard, ZaiError, ZaiHistoryItem, ZaiService } from "app/zai/zai.service";
 import { ZelfFooterComponent } from "app/zelf-footer/zelf-footer.component";
@@ -60,7 +61,9 @@ export class ZelfAiComponent implements OnInit, OnDestroy {
         private readonly _router: Router,
         private readonly _translocoService: TranslocoService,
         private readonly _walletService: WalletService,
-        private readonly _zaiService: ZaiService
+        private readonly _zaiService: ZaiService,
+        private readonly _tagsService: TagsService,
+        private readonly _vaultService: VaultService
     ) {}
 
     async ngOnInit(): Promise<void> {
@@ -126,8 +129,29 @@ export class ZelfAiComponent implements OnInit, OnDestroy {
         this._abort?.abort();
     }
 
-    unlock(): void {
-        void this._router.navigate(["/home"]);
+    /**
+     * zAI needs an identityToken, which only comes back from a server decrypt (password + face).
+     * Seed the unlock flow with the current wallet and run it, returning here afterwards;
+     * TagsService.decryptTag captures the token on success.
+     */
+    async unlock(): Promise<void> {
+        const wallet = ((await this._walletService.getCurrentWallet()) || this.wallet) as TagModel;
+        const publicData: any = wallet?.publicData || {};
+        const tagName = String(publicData.tagName || (wallet as any)?.tagName || wallet?.name || "").split(".")[0].toLowerCase();
+
+        if (!tagName) {
+            void this._router.navigate(["/home"]);
+            return;
+        }
+
+        this._vaultService.password = "";
+        await this._tagsService.setTagName(tagName, null);
+        await this._tagsService.setDomain(publicData.domain || (wallet as any)?.domain || "zelf");
+        await this._tagsService.setZelfProof((wallet as any)?.zelfProof || "");
+        await this._tagsService.setTagNameObject(wallet);
+        await this._tagsService.setFlow("unlock");
+
+        void this._router.navigate(["/security/password"], { queryParams: { return: "/zelf-ai" } });
     }
 
     async send(): Promise<void> {

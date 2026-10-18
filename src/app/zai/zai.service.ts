@@ -152,9 +152,18 @@ export class ZaiService {
         if (token) void this.setIdentityToken(token);
     }
 
+    /** True while a non-expired identity token is held (an expired one would only fail at /session). */
     async hasIdentity(): Promise<boolean> {
         await this._load();
-        return !!this._state.identityToken;
+        const token = this._state.identityToken;
+        if (!token) return false;
+        const exp = this._jwtExp(token);
+        if (exp && exp - 30 <= Math.floor(Date.now() / 1000)) {
+            this._state = {};
+            await this._persist();
+            return false;
+        }
+        return true;
     }
 
     /** Revoke on lock/logout (best effort), then clear session memory. */

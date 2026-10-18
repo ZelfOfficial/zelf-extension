@@ -123,3 +123,24 @@ describe("ZaiService Angela flow", () => {
         expect((f.calls.argsFor(0)[0] as string).endsWith("/api/zai/result/r4")).toBeTrue();
     });
 });
+
+describe("ZaiService identity expiry", () => {
+    const jwt = (exp: number) => `x.${btoa(JSON.stringify({ typ: "identity", exp })).replace(/=+$/, "")}.y`;
+
+    it("treats an expired identity token as locked and clears it", async () => {
+        const svc: any = new ZaiService();
+        svc._loaded = true;
+        svc._persist = async () => undefined;
+        svc._state = { identityToken: jwt(Math.floor(Date.now() / 1000) - 10) };
+        expect(await svc.hasIdentity()).toBeFalse();
+        expect(svc._state.identityToken).toBeUndefined();
+    });
+
+    it("keeps a live identity token", async () => {
+        const svc: any = new ZaiService();
+        svc._loaded = true;
+        svc._persist = async () => undefined;
+        svc._state = { identityToken: jwt(Math.floor(Date.now() / 1000) + 600) };
+        expect(await svc.hasIdentity()).toBeTrue();
+    });
+});
