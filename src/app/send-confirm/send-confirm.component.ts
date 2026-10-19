@@ -29,9 +29,10 @@ import { TagModel } from "app/tags.service";
 import { TagsService } from "app/tags.service";
 import { StellarFeeBreakdown } from "app/services/stellar-send.types";
 import { StellarSendSummaryComponent } from "app/stellar-send-summary/stellar-send-summary.component";
+import { DisplayAmountPipe, DisplayFiatPipe } from "../pipes/display-number.pipe";
 
 @Component({
-    imports: [
+    imports: [DisplayAmountPipe, DisplayFiatPipe, 
         AddressMaskPipe,
         CommonModule,
         MatButtonModule,

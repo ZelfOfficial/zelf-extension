@@ -31,7 +31,7 @@
                     </div>
 
                     <h3 class="home-balance__amount" *ngIf="!balancesLoading && !hideBalances">
-                        {{ totalFiatBalance || 0 | currency: "USD" : "symbol" : "1.2-5" }}
+                        {{ totalFiatBalance || 0 | displayFiat }}
                     </h3>
 
                     <h3 class="home-balance__amount" *ngIf="hideBalances">••••••</h3>

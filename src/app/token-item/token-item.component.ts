@@ -7,9 +7,10 @@ import { TranslocoService } from "@jsverse/transloco";
 import { CopyToClipboardBase } from "app/base/copy-to-clipboard/copy-to-clipboard.base";
 import { ChromeService } from "app/chrome.service";
 import { WalletService } from "app/wallet.service";
+import { DisplayAmountPipe, DisplayFiatPipe } from "../pipes/display-number.pipe";
 
 @Component({
-    imports: [NgIf, NgTemplateOutlet, CurrencyPipe, DecimalPipe, MatButtonModule],
+    imports: [DisplayAmountPipe, DisplayFiatPipe, NgIf, NgTemplateOutlet, CurrencyPipe, DecimalPipe, MatButtonModule],
     selector: "token-item",
     styleUrls: ["./token-item.component.scss"],
     templateUrl: "./token-item.component.html",

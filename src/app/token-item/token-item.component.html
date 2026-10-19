@@ -31,9 +31,9 @@
     </div>
 
     <div class="token-item__balance" *ngIf="showPrice">
-        <span class="token-item__balance-amount">{{ token.amount | number: "1.2-8" }}</span>
-        <div class="token-item__fiat-amount" *ngIf="!showFiatBalance">{{ token.price | currency: "USD" : "symbol" : "1.2-5" }}</div>
-        <div class="token-item__fiat-amount" *ngIf="showFiatBalance">{{ token.fiatBalance | currency: "USD" : "symbol" : "1.2-5" }}</div>
+        <span class="token-item__balance-amount">{{ token.amount | displayAmount }}</span>
+        <div class="token-item__fiat-amount" *ngIf="!showFiatBalance">{{ token.price | displayFiat }}</div>
+        <div class="token-item__fiat-amount" *ngIf="showFiatBalance">{{ token.fiatBalance | displayFiat }}</div>
     </div>
 </div>
 

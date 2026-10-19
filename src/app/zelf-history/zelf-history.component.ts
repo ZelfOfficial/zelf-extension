@@ -14,6 +14,7 @@ import { SettingsService } from "app/services/settings.service";
 import { SUPPORTED_NETWORK_IDS } from "app/core/network-settings.util";
 import { isDisplayableTransaction, transactionTime } from "app/core/utils/transaction-history.util";
 import { Subscription } from "rxjs";
+import { DisplayAmountPipe, DisplayFiatPipe } from "../pipes/display-number.pipe";
 
 type TransactionType = "send" | "receive" | "swap" | "approve" | "";
 
@@ -35,7 +36,7 @@ type ProcessedTransaction = {
 };
 
 @Component({
-    imports: [
+    imports: [DisplayAmountPipe, DisplayFiatPipe, 
         AddressMaskPipe,
         CurrencyPipe,
         DatePipe,
