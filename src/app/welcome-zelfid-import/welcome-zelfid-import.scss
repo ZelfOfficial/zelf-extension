@@ -1,14 +1,16 @@
 @use "../../styles/variables";
 @use "../../styles/buttons";
 @use "../../styles/elements";
+@use "../../styles/welcome-device-frame" as device-frame;
 
 :host {
-    align-items: center;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    justify-content: center;
+    @include device-frame.welcome-device-host;
 }
+
+@include device-frame.welcome-device-scale-rules;
+@include device-frame.welcome-device-shell;
+@include device-frame.welcome-device-scaled-zelf-card(welcome-import__card);
+
 
 .welcome-import {
     &__card,

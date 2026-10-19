@@ -3,7 +3,9 @@
 </ng-container>
 
 <ng-container *ngIf="!errorTitle">
-    <div (paste)="onPaste($event)" class="zelf-card welcome-import__card" *transloco="let t">
+    <div class="welcome-device-shell" *transloco="let t">
+        <div class="welcome-device-shell__item">
+            <div (paste)="onPaste($event)" class="zelf-card welcome-import__card">
         <div class="zelf-card__header welcome-import__header">
             <button mat-icon-button class="zelf-icon-button zelf-icon-button--40 welcome-import__back" [routerLink]="['/welcome-zelfid/find']">
                 <svg viewBox="0 0 22 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -84,6 +86,8 @@
                 </button>
             </div>
         </form>
+            </div>
+        </div>
     </div>
 </ng-container>
 

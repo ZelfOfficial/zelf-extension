@@ -16,7 +16,7 @@
     --welcome-onboarding-font: "Aloevera Display", var(--zns-theme-body-family, "Poppins", Arial, sans-serif);
 }
 
-@include device-scale.welcome-device-scale($fit-height: false);
+@include device-scale.welcome-device-scale;
 
 .welcome-onboarding {
     align-items: center;

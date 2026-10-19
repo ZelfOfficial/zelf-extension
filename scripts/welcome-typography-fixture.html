@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Welcome typography — 1366×768 effective sizes</title>
+  <style>
+    body { font-family: Poppins, sans-serif; margin: 24px; background: #f7f6f4; color: #181818; }
+    h1 { font-size: 20px; }
+    table { border-collapse: collapse; width: 100%; max-width: 960px; background: #fff; }
+    th, td { border: 1px solid #ddd; padding: 10px 12px; text-align: left; font-size: 14px; }
+    th { background: #f0eeeb; }
+    .demo { margin-top: 8px; padding: 8px; background: #faf9f7; border-radius: 8px; }
+    .subtitle { font-size: calc(14px * var(--zns-font-scale, 1)); font-weight: 500; color: #5c5c5c; }
+    .scaled { transform: scale(var(--welcome-onboarding-scale)); transform-origin: top left; display: inline-block; }
+  </style>
+</head>
+<body>
+  <h1>Onboarding / login body copy at 1366×768 (~650px tall chrome viewport)</h1>
+  <p>14px design subtitle × scale factors (matches <code>.zelf-card__subtitle</code>).</p>
+  <table>
+    <thead>
+      <tr><th>Flow</th><th>Before (2.1.51)</th><th>After (this PR)</th></tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <script>
+    const vh650 = { zns: 0.87, scaleBefore: 0.55, scaleAfter: 0.95 };
+    const flows = [
+      { name: "Zelf ID onboarding carousel", before: 14 * vh650.zns * vh650.scaleBefore, after: 14 * vh650.scaleAfter },
+      { name: "Login / claim (device frame)", before: 14 * vh650.zns * 0.9, after: 14 * vh650.scaleAfter },
+      { name: "Find / import (no frame)", before: 14 * vh650.zns, after: 14 * vh650.scaleAfter },
+      { name: "Unlock password / PIN", before: 14 * vh650.zns * 0.9, after: 14 * vh650.scaleAfter },
+      { name: "Popup unlock", before: 14 * 0.97 * 0.68, after: 14 * 0.95 },
+    ];
+    const tbody = document.getElementById("rows");
+    for (const f of flows) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${f.name}</td><td>${f.before.toFixed(1)}px</td><td>${f.after.toFixed(1)}px</td>`;
+      tbody.appendChild(tr);
+    }
+  </script>
+</body>
+</html>

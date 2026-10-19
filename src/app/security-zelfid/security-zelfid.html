@@ -1,4 +1,6 @@
-<div class="zelf-card" *transloco="let t">
+<div class="welcome-device-shell" *transloco="let t">
+    <div class="welcome-device-shell__item">
+        <div class="zelf-card security-zelfid">
     <div class="zelf-card__header security__header">
         <div class="security__header-button">
             <button (click)="confirmBack()" mat-icon-button class="zelf-icon-button zelf-icon-button--40">
@@ -24,5 +26,7 @@
         <button (click)="setMnemonicCount(24)" class="zelf-button zelf-button--primary zelf-button--wide" mat-flat-button>
             {{ t("common.24_word_phrase") }}
         </button>
+    </div>
+</div>
     </div>
 </div>

@@ -1,0 +1,81 @@
+@use "variables";
+@use "welcome-device-scale" as device-scale;
+
+@mixin welcome-device-host($fit-height: true) {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: center;
+    max-width: 100%;
+    overflow-x: hidden;
+    @include device-scale.welcome-device-tokens;
+}
+
+@mixin welcome-device-scale-rules($fit-height: true) {
+    @include device-scale.welcome-device-scale($fit-height);
+}
+
+@mixin welcome-device-shell {
+    .welcome-device-shell {
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+        max-width: 100%;
+        overflow-x: hidden;
+        position: relative;
+        width: min(100%, calc(var(--welcome-onboarding-width) * var(--welcome-onboarding-scale)));
+
+        &__item {
+            align-items: center;
+            display: flex;
+            justify-content: center;
+            min-height: calc(var(--welcome-onboarding-height) * var(--welcome-onboarding-scale));
+            position: relative;
+            width: calc(var(--welcome-onboarding-width) * var(--welcome-onboarding-scale));
+        }
+    }
+}
+
+@mixin welcome-device-scaled-zelf-card($block-class) {
+    .zelf-card.#{$block-class} {
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        height: var(--welcome-onboarding-height);
+        left: 50%;
+        min-height: var(--welcome-onboarding-height);
+        overflow: hidden;
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%) scale(var(--welcome-onboarding-scale));
+        transform-origin: center;
+        width: var(--welcome-onboarding-width);
+
+        @media screen and (max-width: variables.$medium) {
+            border-radius: calc(64px * var(--zns-space-scale, 1));
+            padding: calc(24px * var(--zns-space-scale, 1));
+            width: var(--welcome-onboarding-width);
+        }
+
+        .zelf-card__title,
+        .zelf-card__subtitle {
+            max-width: 100%;
+            overflow-wrap: anywhere;
+        }
+
+        .zelf-card__content {
+            align-items: stretch;
+            flex: 1 1 auto;
+            justify-content: flex-start;
+            min-height: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        .zelf-card__actions {
+            flex-shrink: 0;
+            margin-top: auto;
+        }
+    }
+}
