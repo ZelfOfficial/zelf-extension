@@ -3,7 +3,9 @@
 </ng-container>
 
 <ng-container *ngIf="!errorTitle">
-    <div class="zelf-card welcome-find" *transloco="let t">
+    <div class="welcome-device-shell" *transloco="let t">
+        <div class="welcome-device-shell__item">
+            <div class="zelf-card welcome-find">
         <!-- Cards List Section -->
         <ng-container *ngIf="activeSection === 'cards'">
             <div class="zelf-card__header welcome-find__header">
@@ -213,6 +215,8 @@
                 </div>
             </form>
         </ng-container>
+            </div>
+        </div>
     </div>
 </ng-container>
 

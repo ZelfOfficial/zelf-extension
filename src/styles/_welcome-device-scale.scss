@@ -4,15 +4,20 @@
 // floor; instead the frame gets shorter (screens keep their own inner scroll areas).
 $welcome-design-height: 852px;
 $welcome-min-height: 560px;
-$welcome-fullscreen-min-scale: 0.9;
+// 0.95 => 14px body copy renders ~13.3px at the fullscreen floor (1366x768 laptops).
+$welcome-fullscreen-min-scale: 0.95;
 $welcome-fullscreen-reserved: 140px; // top bar + breathing room around the frame
-$welcome-popout-scale: 0.93; // 375px popup / 402px design width
+$welcome-popout-scale: 0.95; // slightly above 375/402 so popup copy stays >= ~13px
 $welcome-popout-reserved: 8px;
 
 @mixin welcome-device-tokens {
     --welcome-onboarding-scale: 1;
     --welcome-onboarding-width: 402px;
     --welcome-onboarding-height: #{$welcome-design-height};
+    // The card is scaled with transform; do not also shrink typography via main-div tokens.
+    --zns-font-scale: 1;
+    --zns-space-scale: 1;
+    --zns-action-scale: 1;
 }
 
 @mixin _fit-height($reserved) {
