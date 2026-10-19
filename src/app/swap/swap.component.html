@@ -195,7 +195,7 @@
                             {{ selectedSourceAsset.symbol }} {{ heroSecondaryTokenAmount | number: "1.0-8" }}
                         </p>
                         <p class="swap__hero-balance" *ngIf="hasSelectedSourceAsset">
-                            {{ selectedSourceAsset.amount | number: "1.2-8" }} {{ selectedSourceAsset.symbol }}
+                            {{ selectedSourceAsset.amount | displayAmount }} {{ selectedSourceAsset.symbol }}
                             {{ t("swap.available_suffix") }}
                         </p>
                         <div class="swap__hero-pills">
@@ -306,7 +306,7 @@
                                     </div>
                                 </div>
                                 <div class="swap__detail-field swap__detail-field--primary">
-                                    <p class="swap__details-value">{{ form.get("fee")?.value | currency: "USD" : "symbol" : "1.2-8" }}</p>
+                                    <p class="swap__details-value">{{ form.get("fee")?.value | displayFiat }}</p>
                                 </div>
                             </div>
 

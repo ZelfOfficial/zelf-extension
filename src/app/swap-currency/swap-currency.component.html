@@ -106,7 +106,7 @@
                         <p class="swap-currency__asset-balance-fiat-hot">
                             {{ asset.fiatBalance | currency: "USD" : "symbol" : "1.2-2" }}
                         </p>
-                        <p class="swap-currency__asset-balance-hot">{{ asset.amount | number: "1.2-8" }}</p>
+                        <p class="swap-currency__asset-balance-hot">{{ asset.amount | displayAmount }}</p>
                     </div>
                 </div>
             </div>

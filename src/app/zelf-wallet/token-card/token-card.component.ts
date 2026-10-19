@@ -3,6 +3,7 @@ import { CurrencyPipe, DecimalPipe, NgClass, NgIf } from "@angular/common";
 import { FlexLayoutModule } from "@angular/flex-layout";
 import { TranslocoModule } from "@jsverse/transloco";
 import { WalletService } from "app/wallet.service";
+import { DisplayAmountPipe, DisplayFiatPipe } from "../../pipes/display-number.pipe";
 
 @Component({
     selector: "token-card",
@@ -34,7 +35,7 @@ import { WalletService } from "app/wallet.service";
                     </p>
                 </div>
 
-                <p class="token-card__name" *ngIf="!hideBalances">{{ data.price | currency: "USD" : "symbol" : "1.2-5" }}</p>
+                <p class="token-card__name" *ngIf="!hideBalances">{{ data.price | displayFiat }}</p>
                 <p class="token-card__name token-card__name--masked" *ngIf="hideBalances">••••</p>
             </div>
 
@@ -47,13 +48,13 @@ import { WalletService } from "app/wallet.service";
                             'stats__percentage--negative': false,
                         }"
                     >
-                        <span class="stats__text stats__text--colored" *ngIf="!hideBalances">{{ (data.amount ?? data.balance) | number: "1.0-6" }}</span>
+                        <span class="stats__text stats__text--colored" *ngIf="!hideBalances">{{ (data.amount ?? data.balance) | displayAmount }}</span>
                         <span class="stats__text stats__text--colored" *ngIf="hideBalances">••••</span>
                     </div>
                 </h4>
 
                 <div class="token-card__balance" *ngIf="!hideBalances">
-                    {{ data.fiatBalance | currency: "USD" : "symbol" : "1.2-5" }}
+                    {{ data.fiatBalance | displayFiat }}
                 </div>
                 <div class="token-card__balance" *ngIf="hideBalances">••••</div>
             </div>
@@ -69,7 +70,7 @@ import { WalletService } from "app/wallet.service";
         </div>
     `,
     styleUrls: ["./token-card.component.scss"],
-    imports: [CurrencyPipe, NgClass, NgIf, DecimalPipe, FlexLayoutModule, TranslocoModule],
+    imports: [DisplayAmountPipe, DisplayFiatPipe, CurrencyPipe, NgClass, NgIf, DecimalPipe, FlexLayoutModule, TranslocoModule],
 })
 export class TokenCardComponent implements OnInit {
     @Input() data: any;

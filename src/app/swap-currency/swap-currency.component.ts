@@ -25,6 +25,8 @@ import { TokenData } from "@shared/types/wallet.types";
 import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { SettingsService } from "app/services/settings.service";
+import { DisplayAmountPipe, DisplayFiatPipe } from "../pipes/display-number.pipe";
+import { formatDisplayFiat } from "../core/utils/display-number.util";
 
 export interface AssetChangeData {
     asset: TokenData;
@@ -32,7 +34,7 @@ export interface AssetChangeData {
 }
 
 @Component({
-    imports: [
+    imports: [DisplayAmountPipe, DisplayFiatPipe, 
         NgIf,
         NgFor,
         NgClass,
@@ -470,9 +472,7 @@ export class SwapCurrencyComponent implements OnInit, OnChanges {
 
         if (p == null || Number.isNaN(p) || p <= 0) return "—";
 
-        if (p < 0.0001) return `$${p.toExponential(2)}`;
-
-        return `$${p.toFixed(p < 1 ? 6 : 2)}`;
+        return formatDisplayFiat(p);
     }
 
     formatPriceChange(asset: TokenData): string | null {

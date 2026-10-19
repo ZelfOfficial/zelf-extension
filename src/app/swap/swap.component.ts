@@ -29,6 +29,7 @@ import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { SettingsService } from "app/services/settings.service";
 import { environment } from "environments/environment";
 import { AssetChangeData, SwapCurrencyComponent } from "../swap-currency/swap-currency.component";
+import { DisplayAmountPipe, DisplayFiatPipe } from "../pipes/display-number.pipe";
 
 export type SwapFlowMode = "swaps" | "cross_chain";
 
@@ -41,7 +42,7 @@ export interface SwapNetworkRow {
 }
 
 @Component({
-    imports: [
+    imports: [DisplayAmountPipe, DisplayFiatPipe, 
         CurrencyPipe,
         DecimalPipe,
         MatButtonModule,
