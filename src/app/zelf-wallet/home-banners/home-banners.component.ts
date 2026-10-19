@@ -6,9 +6,10 @@ import { TranslocoModule } from "@jsverse/transloco";
 
 import { TagModel } from "@shared/types/tag.types";
 import { WalletService } from "app/wallet.service";
+import { DisplayAmountPipe, DisplayFiatPipe } from "../../pipes/display-number.pipe";
 
 @Component({
-    imports: [CommonModule, DecimalPipe, RouterModule, TranslocoModule],
+    imports: [DisplayAmountPipe, DisplayFiatPipe, CommonModule, DecimalPipe, RouterModule, TranslocoModule],
     selector: "home-banners",
     styleUrls: ["./home-banners.component.scss"],
     templateUrl: "./home-banners.component.html",

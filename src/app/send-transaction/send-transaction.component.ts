@@ -30,6 +30,7 @@ import { AddressBook, TransactionData } from "@shared/types/wallet.types";
 import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { TagModel, TagsService } from "app/tags.service";
+import { formatDisplayAmount } from "../core/utils/display-number.util";
 
 @Component({
     imports: [
@@ -155,8 +156,9 @@ export class SendTransactionComponent implements OnDestroy {
     }
 
     /** Matches truncated max used for validation and "withdraw all". */
+    /** Display only (max 4 decimals, floored so it never shows more than can be sent). "Max" still fills the exact amount. */
     get displaySendableBalance(): string {
-        return this._getMaxSendableAmount();
+        return formatDisplayAmount(this._getMaxSendableAmount(), { rounding: "floor" }) || "0";
     }
 
     /** Smallest amount we allow without treating as dust (matches ~8 leading fractional zeros). */

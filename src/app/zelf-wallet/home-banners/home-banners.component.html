@@ -84,7 +84,7 @@
                         class="home-banners__tile-zns-value home-banners__tile-zns-value--tabular"
                         *ngIf="!balancesLoading && !hideBalances"
                     >
-                        {{ znsAmount | number: "1.0-6" }}
+                        {{ znsAmount | displayAmount }}
                     </p>
 
                     <p class="home-banners__tile-zns-value" *ngIf="hideBalances">••••</p>

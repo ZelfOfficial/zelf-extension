@@ -32,7 +32,7 @@
 
             <h3 class="token-detail__amount">{{ formattedBalance }} {{ asset.symbol }}</h3>
 
-            <p class="token-detail__price">{{ asset.price | currency: "USD" : "symbol" : "1.2-5" }}</p>
+            <p class="token-detail__price">{{ asset.price | displayFiat }}</p>
 
             <div class="token-detail__intervals" *ngIf="hasValidChartData || loadingChart">
                 <p class="token-detail__interval-label">{{ t("token.price_detail") }}</p>
@@ -53,10 +53,10 @@
                 <div class="chart-box__inner">
                     <div class="chart-box__left">
                         <ng-container *ngIf="!loadingDetails && details">
-                            <h5 class="chart-box__fiat">{{ details.price.price | currency: "USD" : "symbol" : "1.2-4" }}</h5>
+                            <h5 class="chart-box__fiat">{{ details.price.price | displayFiat }}</h5>
 
                             <div class="chart-box__lower" *ngIf="hasValidPriceChangeData">
-                                <p class="chart-box__percentage" *ngIf="hasValidChartData">{{ priceChangeUsd | currency: "USD" : "symbol" : "1.2-6" }}</p>
+                                <p class="chart-box__percentage" *ngIf="hasValidChartData">{{ priceChangeUsd | displayFiat }}</p>
 
                                 <p
                                     class="diff-chip"

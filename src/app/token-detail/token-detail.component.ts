@@ -15,9 +15,11 @@ import { ZelfHistoryComponent } from "app/zelf-history/zelf-history.component";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { AreaData, AreaSeries, AreaSeriesOptions, ChartOptionsBase, ColorType, createChart, IChartApi, ISeriesApi } from "lightweight-charts";
 import { Subject, takeUntil } from "rxjs";
+import { DisplayAmountPipe, DisplayFiatPipe } from "../pipes/display-number.pipe";
+import { formatDisplayAmount } from "../core/utils/display-number.util";
 
 @Component({
-    imports: [
+    imports: [DisplayAmountPipe, DisplayFiatPipe, 
         CurrencyPipe,
         DecimalPipe,
         MatButtonModule,
@@ -133,15 +135,7 @@ export class TokenDetailComponent implements AfterViewInit, OnDestroy {
     }
 
     get formattedBalance(): string {
-        const raw = this.asset.amount ?? 0;
-        const amount = typeof raw === "string" ? parseFloat(raw) : raw;
-        const abs = Math.abs(amount);
-
-        if (isNaN(amount) || abs === 0) return "0";
-        if (abs >= 10_000) return amount.toLocaleString("en-US", { maximumFractionDigits: 2 });
-        if (abs >= 1) return amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
-        if (abs >= 0.0001) return amount.toLocaleString("en-US", { minimumFractionDigits: 4, maximumFractionDigits: 6 });
-        return amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 8 });
+        return formatDisplayAmount(this.asset.amount ?? 0) || "0";
     }
 
     get networkSymbol(): string {

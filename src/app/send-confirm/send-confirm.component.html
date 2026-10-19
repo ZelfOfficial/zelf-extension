@@ -46,7 +46,7 @@
                         <p class="send-confirm__price-currency">{{ transactionData.symbol }}</p>
                     </div>
 
-                    <p class="send-confirm__price-currency">~{{ fiatPrice | currency: "USD" : "symbol" : "1.2-8" }}</p>
+                    <p class="send-confirm__price-currency">~{{ fiatPrice | displayFiat }}</p>
                 </div>
 
                 <div class="send-confirm__zelf-name-display" *ngIf="transactionData.sender">
@@ -100,7 +100,7 @@
                             <div class="send-confirm__value send-confirm__value-row">
                                 <p class="send-confirm__value send-confirm__value--col send-confirm__value--items-end">
                                     <span>{{ transactionData.fee | number: "1.2-8" }} {{ networkCurrency }}</span>
-                                    <span class="send-confirm__fee">~{{ fiatFeePrice | currency: "USD" : "symbol" : "1.2-8" }}</span>
+                                    <span class="send-confirm__fee">~{{ fiatFeePrice | displayFiat }}</span>
                                 </p>
 
                                 <ng-container *ngIf="transactionData.network === 'bitcoin'">
@@ -115,7 +115,7 @@
                             <p class="send-confirm__label">{{ t("common.total") }}</p>
 
                             <p class="send-confirm__value" [ngClass]="{ 'send-confirm__value--error': !hasBalance }">
-                                {{ total | currency: "USD" : "symbol" : "1.2-8" }}
+                                {{ total | displayFiat }}
                             </p>
                         </div>
                     </div>
