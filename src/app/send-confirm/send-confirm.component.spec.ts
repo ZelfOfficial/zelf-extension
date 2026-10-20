@@ -67,7 +67,8 @@ describe("SendConfirmComponent signing rule (#88)", () => {
             { translate: (k: string) => k } as any,
             vault,
             { getCurrentWallet: jasmine.createSpy().and.resolveTo(wallet), addTransactionToPending: jasmine.createSpy().and.resolveTo() } as any,
-            signingAuth
+            signingAuth,
+            { previewZelfProof: jasmine.createSpy().and.resolveTo(null) } as any
         );
         component.wallet = wallet;
         component.transactionData = txData as any;
@@ -176,6 +177,28 @@ describe("SendConfirmComponent signing rule (#88)", () => {
             await t.component.confirmTransaction();
 
             expect(t.sendTransaction).not.toHaveBeenCalled();
+        });
+
+        it("stellar: does not open face without a password when the signing grant does not match", async () => {
+            const t = setup("stellar", "password", true, { carried: PASSWORD });
+            t.approveFace();
+            spyOn(t.component as any, "_signingScope").and.returnValue("mismatched-scope");
+
+            await t.component.confirmTransaction();
+
+            expect(t.navigate).not.toHaveBeenCalledWith(...BIOMETRICS);
+            expect(t.sendTransaction).not.toHaveBeenCalled();
+            expect(t.snack).toHaveBeenCalled();
+        });
+
+        it("stellar: carries the typed password into the face step after the verification window", async () => {
+            const t = setup("stellar", "password", false);
+            t.type(PASSWORD);
+
+            await t.component.confirmTransaction();
+
+            expect(t.navigate).toHaveBeenCalledWith(...BIOMETRICS);
+            expect(t.vault.password).toBe(PASSWORD);
         });
     });
 

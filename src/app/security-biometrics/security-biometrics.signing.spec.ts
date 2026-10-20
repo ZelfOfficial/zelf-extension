@@ -83,4 +83,33 @@ describe("SecurityBiometricsComponent signing authorization (#88)", () => {
 
         expect(signingAuth.approvePending()).toBeFalse();
     });
+
+    it("returns to Send when face decrypt reports a missing password", () => {
+        const signingAuth = new SigningAuthorizationService();
+        const goBack = jasmine.createSpy("goBack");
+        const component = new SecurityBiometricsComponent(
+            { snapshot: { queryParams: { return: "/send/confirmation" } }, queryParams: of({}) } as any,
+            {} as any,
+            { removeItem: jasmine.createSpy().and.resolveTo(), setItem: jasmine.createSpy() } as any,
+            {
+                resolveErrorKey: () => "ERR_PASSWORD_REQUIRED",
+                isLivenessError: () => false,
+                translateErrorMessage: () => "x",
+            } as any,
+            new FormBuilder(),
+            {} as any,
+            { navigate: jasmine.createSpy().and.resolveTo(true) } as any,
+            { getZelfProof: jasmine.createSpy().and.resolveTo("proof"), decryptTag: jasmine.createSpy() } as any,
+            { translate: (k: string) => k } as any,
+            { securityType: "password", password: "" } as any,
+            { getUserFingerprint: () => ({ hash: "fp" }), switchWallet: jasmine.createSpy().and.resolveTo() } as any,
+            signingAuth
+        );
+        component.returnState = "/send/confirmation";
+        spyOn(component, "goBack").and.callFake(goBack);
+
+        component.onBiometricsFailed({ error: { code: "ERR_PASSWORD_REQUIRED", message: "PASSWORD REQUIRED" } });
+
+        expect(goBack).toHaveBeenCalled();
+    });
 });
