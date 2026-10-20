@@ -72,6 +72,7 @@ export function extractPowChallengeFromError(error: { error?: Record<string, unk
         expiresAt: typeof source["expiresAt"] === "string" ? source["expiresAt"] : undefined,
         signature: typeof source["signature"] === "string" ? source["signature"] : undefined,
         algorithm: typeof source["algorithm"] === "string" ? source["algorithm"] : undefined,
+        difficultyMode: typeof source["difficultyMode"] === "string" ? source["difficultyMode"] : undefined,
     };
 }
 

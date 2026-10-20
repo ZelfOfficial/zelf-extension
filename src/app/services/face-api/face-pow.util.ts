@@ -6,6 +6,8 @@ export interface FacePowChallenge {
     expiresAt?: string;
     signature?: string;
     algorithm?: string;
+    /** Server: `leading_zero_bits` (default on API) or legacy `leading_hex_zeros`. */
+    difficultyMode?: string;
 }
 
 /** Matches server `Repositories/Face/modules/face-pow.module.js` verify payload. */
@@ -20,48 +22,60 @@ export interface FacePowPayload {
 
 const HEX = "0123456789abcdef";
 
-export type PowDifficultyMode = "hex-leading-zeros" | "leading-zero-bits";
+/** Matches server `DIFFICULTY_MODE` / stored challenge mode strings. */
+export type FacePowDifficultyMode = "leading_zero_bits" | "leading_hex_zeros";
 
-/** Read algorithm hint from challenge (server currently uses SHA-256 + hex zeroes). */
-export function powDifficultyMode(challenge?: FacePowChallenge): PowDifficultyMode {
-    const algo = String(challenge?.algorithm ?? "SHA-256").toUpperCase();
-    if (algo.includes("BIT")) {
-        return "leading-zero-bits";
+/**
+ * Resolves how to interpret `difficulty` — mirrors API `face-pow.module.js` (commit 022d968).
+ * Legacy challenges omit `difficultyMode` and use leading hex zero characters.
+ */
+export function resolvePowDifficultyMode(challenge?: FacePowChallenge): FacePowDifficultyMode {
+    const mode = challenge?.difficultyMode;
+    if (!mode || mode === "leading_hex_zeros") {
+        return "leading_hex_zeros";
     }
-    return "hex-leading-zeros";
+    if (mode === "leading_zero_bits") {
+        return "leading_zero_bits";
+    }
+    return "leading_zero_bits";
 }
 
-export function countLeadingZeroBitsHex(hashHex: string): number {
+/** Byte-based leading zero bits — mirrors server `leadingZeroBits(hashHex)`. */
+export function leadingZeroBits(hashHex: string): number {
+    const normalized = hashHex.length % 2 === 0 ? hashHex : `0${hashHex}`;
+    const bytes = new Uint8Array(normalized.length / 2);
+    for (let i = 0; i < bytes.length; i++) {
+        bytes[i] = parseInt(normalized.slice(i * 2, i * 2 + 2), 16);
+    }
+
     let bits = 0;
-    for (let i = 0; i < hashHex.length; i++) {
-        const nibble = parseInt(hashHex[i], 16);
-        if (Number.isNaN(nibble)) break;
-        if (nibble === 0) {
-            bits += 4;
+    for (const byte of bytes) {
+        if (byte === 0) {
+            bits += 8;
             continue;
         }
-        for (let bit = 3; bit >= 0; bit--) {
-            if ((nibble >> bit) & 1) {
-                return bits;
+        for (let j = 7; j >= 0; j--) {
+            if (byte & (1 << j)) {
+                return bits + (7 - j);
             }
-            bits++;
         }
-        break;
+        return bits;
     }
     return bits;
 }
 
-/**
- * Leading hex zero characters — mirrors `FacePow.hashMeetsDifficulty` on API branch f99e.
- */
-export function hashMeetsDifficulty(hashHex: string, difficulty: number, mode: PowDifficultyMode = "hex-leading-zeros"): boolean {
-    const d = Math.max(0, Math.floor(difficulty));
-    if (d === 0) return true;
+export function hashMeetsDifficulty(
+    hashHex: string,
+    difficulty: number,
+    mode: FacePowDifficultyMode = "leading_hex_zeros"
+): boolean {
+    const required = Math.max(0, Math.floor(difficulty));
+    if (required === 0) return true;
     const lower = hashHex.toLowerCase();
-    if (mode === "leading-zero-bits") {
-        return countLeadingZeroBitsHex(lower) >= d;
+    if (mode === "leading_zero_bits") {
+        return leadingZeroBits(lower) >= required;
     }
-    return lower.startsWith("0".repeat(d));
+    return lower.startsWith("0".repeat(required));
 }
 
 export async function sha256Hex(input: string): Promise<string> {
@@ -92,7 +106,7 @@ const YIELD_BATCH_SIZE = 2_000;
 export async function solveFacePow(challenge: FacePowChallenge, startAt = 0, deadlineMs?: number): Promise<string> {
     const salt = challenge.salt ?? "";
     const difficulty = challenge.difficulty ?? 0;
-    const mode = powDifficultyMode(challenge);
+    const mode = resolvePowDifficultyMode(challenge);
     const end = deadlineMs ?? getPowDeadlineMs(challenge);
     let n = startAt;
 

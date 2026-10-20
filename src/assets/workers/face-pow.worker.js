@@ -1,15 +1,50 @@
 /* eslint-disable no-restricted-globals */
 /**
- * Standalone PoW worker (bundled as extension asset). Algorithm matches
- * Repositories/Face/modules/face-pow.module.js (leading hex zeroes).
+ * Standalone PoW worker (bundled as extension asset). Matches
+ * Repositories/Face/modules/face-pow.module.js (leading_zero_bits + legacy hex).
  */
 (function () {
     const HEX = "0123456789abcdef";
 
-    function hashMeetsDifficulty(hashHex, difficulty) {
-        const d = Math.max(0, Math.floor(difficulty));
-        if (d === 0) return true;
-        return hashHex.toLowerCase().startsWith("0".repeat(d));
+    function resolvePowDifficultyMode(challenge) {
+        const mode = challenge && challenge.difficultyMode;
+        if (!mode || mode === "leading_hex_zeros") {
+            return "leading_hex_zeros";
+        }
+        if (mode === "leading_zero_bits") {
+            return "leading_zero_bits";
+        }
+        return "leading_zero_bits";
+    }
+
+    function leadingZeroBits(hashHex) {
+        const normalized = hashHex.length % 2 === 0 ? hashHex : "0" + hashHex;
+        const byteLen = normalized.length / 2;
+        let bits = 0;
+        for (let i = 0; i < byteLen; i++) {
+            const byte = parseInt(normalized.slice(i * 2, i * 2 + 2), 16);
+            if (byte === 0) {
+                bits += 8;
+                continue;
+            }
+            for (let j = 7; j >= 0; j--) {
+                if (byte & (1 << j)) {
+                    return bits + (7 - j);
+                }
+            }
+            return bits;
+        }
+        return bits;
+    }
+
+    function hashMeetsDifficulty(hashHex, difficulty, mode) {
+        const required = Math.max(0, Math.floor(difficulty));
+        if (required === 0) return true;
+        const lower = hashHex.toLowerCase();
+        if (mode === "leading_zero_bits") {
+            return leadingZeroBits(lower) >= required;
+        }
+        return lower.startsWith("0".repeat(required));
     }
 
     async function sha256Hex(input) {
@@ -42,6 +77,7 @@
 
         const salt = challenge.salt;
         const difficulty = challenge.difficulty || 0;
+        const mode = resolvePowDifficultyMode(challenge);
         const end = deadlineMs(challenge);
         let n = startAt;
 
@@ -49,7 +85,7 @@
             while (Date.now() < end) {
                 for (let batch = 0; batch < 4000 && Date.now() < end; batch++, n++) {
                     const hash = await sha256Hex(`${salt}${n}`);
-                    if (hashMeetsDifficulty(hash, difficulty)) {
+                    if (hashMeetsDifficulty(hash, difficulty, mode)) {
                         self.postMessage({ solution: String(n) });
                         return;
                     }
