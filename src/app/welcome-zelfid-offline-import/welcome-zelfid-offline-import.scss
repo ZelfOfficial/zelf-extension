@@ -174,3 +174,22 @@
         justify-content: flex-end;
     }
 }
+
+// Short frames (1366x650 viewport hits the 560px floor; content box 512px): trim the lock art and spacing so the
+// search field and button stay visible without inner scroll. Text sizes are unchanged.
+@container welcome-frame (max-height: 540px) {
+    .welcome-offline-import {
+        gap: 12px;
+    }
+
+    .welcome-offline-import__wrapper {
+        margin-top: 0;
+        padding-top: 0;
+        padding-bottom: 8px;
+
+        img {
+            height: 120px;
+            width: auto;
+        }
+    }
+}

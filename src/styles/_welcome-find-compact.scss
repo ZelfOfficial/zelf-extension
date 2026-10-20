@@ -1,0 +1,74 @@
+// Import / find hub (welcome-zelfid-find and legacy welcome-find).
+// After the readable-scale change (#72 / PR #81) the frame is shorter on 1366x768 laptops and in the popup,
+// and the decorative QR art pushed the last method card ("Import seed phrase") below the fold.
+// On short frames shrink the decorative art and spacing (never the text) so all three options fit
+// without inner scroll. Container heights are the card's unscaled content box (frame height minus
+// its 2x24px padding), see welcome-device-frame.
+
+@mixin welcome-find-compact {
+    // 1366x768-class tabs (frame ~660px, content ~613px).
+    @container welcome-frame (max-height: 700px) {
+        .welcome-find__content--split {
+            gap: 16px;
+        }
+
+        .welcome-find__hero {
+            gap: 4px;
+            margin-top: 0;
+        }
+
+        .welcome-find__fake-qr {
+            border-radius: 16px;
+            height: 120px;
+            width: 120px;
+
+            svg {
+                height: 96px;
+                width: 96px;
+            }
+        }
+
+        .welcome-find__title {
+            margin-top: 8px;
+        }
+
+        .welcome-find__methods {
+            gap: 8px;
+        }
+
+        .welcome-method-card {
+            padding: 12px 14px;
+
+            &__icon {
+                height: 44px;
+                width: 44px;
+            }
+        }
+    }
+
+    // Popup (content ~544px) and the 560px frame floor (e.g. 1366x650 browser viewport, content 512px).
+    @container welcome-frame (max-height: 580px) {
+        .welcome-find__content--split {
+            gap: 12px;
+        }
+
+        .welcome-find__fake-qr {
+            border-radius: 14px;
+            height: 76px;
+            width: 76px;
+
+            svg {
+                height: 60px;
+                width: 60px;
+            }
+        }
+
+        .welcome-find__title {
+            margin-top: 4px;
+        }
+
+        .welcome-method-card {
+            padding: 10px 14px;
+        }
+    }
+}
