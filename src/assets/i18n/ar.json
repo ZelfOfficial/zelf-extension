@@ -700,7 +700,8 @@
         "retrieving_vault": "جاري استرجاع الخزنة...",
         "decrypting_vault": "جاري فك تشفير الخزنة...",
         "vault_unlocked": "تم فتح الخزنة!",
-        "wallet_created": "المحفظة جاهزة!"
+        "wallet_created": "المحفظة جاهزة!",
+        "face_verifying": "Verifying…"
     },
     "receive": {
         "information": "يمكن استخدام هذا العنوان فقط لاستلام الرموز المتوافقة.",
@@ -1032,7 +1033,11 @@
         "stellar_invalid_asset_format": "Invalid Stellar asset. Use CODE:ISSUER (for example USDC:G…).",
         "swap_same_chain": "في وضع Swaps، يجب أن يكون كلا الرمزين على نفس الشبكة. انتقل إلى Cross-chain أو غيّر اختيارك.",
         "ERR_MISSING_PASSWORD": "This key is protected with your master password. Enter it and try again.",
-        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name."
+        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name.",
+        "face_locked_title": "Too many attempts",
+        "face_locked": "Face verification is temporarily locked. Try again in {{ time }}.",
+        "face_locked_about_minutes": "about {{ minutes }} minutes",
+        "face_locked_about_hours": "about {{ hours }} hours"
     },
     "swap": {
         "automatic": "تلقائي",

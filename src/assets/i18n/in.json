@@ -700,7 +700,8 @@
         "retrieving_vault": "वॉल्ट प्राप्त किया जा रहा है...",
         "decrypting_vault": "वॉल्ट डिक्रिप्ट किया जा रहा है...",
         "vault_unlocked": "वॉल्ट अनलॉक!",
-        "wallet_created": "वॉलेट तैयार!"
+        "wallet_created": "वॉलेट तैयार!",
+        "face_verifying": "Verifying…"
     },
     "receive": {
         "information": "यह पता केवल संगत टोकन प्राप्त करने के लिए उपयोग किया जा सकता है।",
@@ -1032,7 +1033,11 @@
         "stellar_invalid_asset_format": "Invalid Stellar asset. Use CODE:ISSUER (for example USDC:G…).",
         "swap_same_chain": "Swaps मोड में दोनों टोकन एक ही नेटवर्क पर होने चाहिए। Cross-chain पर जाएँ या अपना चयन बदलें।",
         "ERR_MISSING_PASSWORD": "This key is protected with your master password. Enter it and try again.",
-        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name."
+        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name.",
+        "face_locked_title": "Too many attempts",
+        "face_locked": "Face verification is temporarily locked. Try again in {{ time }}.",
+        "face_locked_about_minutes": "about {{ minutes }} minutes",
+        "face_locked_about_hours": "about {{ hours }} hours"
     },
     "swap": {
         "automatic": "स्वचालित",

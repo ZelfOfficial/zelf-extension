@@ -32,7 +32,8 @@ describe("SecurityBiometricsComponent signing authorization (#88)", () => {
             { securityType: "withoutPassword", password: "" } as any,
             { getUserFingerprint: () => ({ hash: "fp" }), switchWallet: jasmine.createSpy().and.resolveTo() } as any,
             signingAuth,
-            { verifying$: of(false) } as FaceApiService
+            { verifying$: of(false), verifying: false } as FaceApiService,
+            { markForCheck: () => undefined } as any
         );
         spyOn(component as any, "_showSuccessAndContinue").and.callFake(async (cb: () => void) => cb());
 

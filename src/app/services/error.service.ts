@@ -80,8 +80,24 @@ export class ErrorService {
               : this._defaultErrorMessage;
     }
 
+    formatFaceLockDuration(retryAfterSeconds: number): string {
+        const total = Math.max(0, Math.floor(retryAfterSeconds));
+        if (total >= 3600) {
+            const hours = Math.max(1, Math.ceil(total / 3600));
+            return this._translocoService.translate("errors.face_locked_about_hours", { hours });
+        }
+        if (total >= 120) {
+            const minutes = Math.max(1, Math.ceil(total / 60));
+            return this._translocoService.translate("errors.face_locked_about_minutes", { minutes });
+        }
+        const minutes = Math.floor(total / 60);
+        const seconds = total % 60;
+        return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    }
+
     translateFaceLocked(retryAfterSeconds: number): { title: string; message: string } {
-        const params = { seconds: retryAfterSeconds };
+        const time = this.formatFaceLockDuration(retryAfterSeconds);
+        const params = { time, seconds: retryAfterSeconds };
         return {
             title: this._translocoService.translate("errors.face_locked_title", params),
             message: this._translocoService.translate("errors.face_locked", params),

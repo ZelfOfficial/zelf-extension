@@ -684,7 +684,8 @@
         "retrieving_vault": "กำลังดึงตู้นิรภัย...",
         "decrypting_vault": "กำลังถอดรหัสตู้นิรภัย...",
         "vault_unlocked": "ปลดล็อกตู้นิรภัยแล้ว!",
-        "wallet_created": "พร้อมใช้งานกระเป๋าแล้ว!"
+        "wallet_created": "พร้อมใช้งานกระเป๋าแล้ว!",
+        "face_verifying": "Verifying…"
     },
     "receive": {
         "information": "ที่อยู่นี้สามารถใช้รับโทเคนที่เข้ากันได้เท่านั้น",
@@ -1016,7 +1017,11 @@
         "stellar_invalid_asset_format": "Invalid Stellar asset. Use CODE:ISSUER (for example USDC:G…).",
         "swap_same_chain": "ในโหมด Swaps โทเค็นทั้งสองต้องอยู่บนเครือข่ายเดียวกัน สลับไปที่ Cross-chain หรือเปลี่ยนการเลือกของคุณ",
         "ERR_MISSING_PASSWORD": "This key is protected with your master password. Enter it and try again.",
-        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name."
+        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name.",
+        "face_locked_title": "Too many attempts",
+        "face_locked": "Face verification is temporarily locked. Try again in {{ time }}.",
+        "face_locked_about_minutes": "about {{ minutes }} minutes",
+        "face_locked_about_hours": "about {{ hours }} hours"
     },
     "swap": {
         "automatic": "อัตโนมัติ",

@@ -700,7 +700,8 @@
         "retrieving_vault": "Recuperando cofre...",
         "decrypting_vault": "Descriptografando cofre...",
         "vault_unlocked": "Cofre desbloqueado!",
-        "wallet_created": "Carteira pronta!"
+        "wallet_created": "Carteira pronta!",
+        "face_verifying": "Verifying…"
     },
     "receive": {
         "information": "Este endereço só pode ser usado para receber tokens compatíveis.",
@@ -1039,7 +1040,11 @@
         "stellar_invalid_asset_format": "Invalid Stellar asset. Use CODE:ISSUER (for example USDC:G…).",
         "swap_same_chain": "No modo Swaps, ambos os tokens devem estar na mesma rede. Alterne para Cross-chain ou altere sua seleção.",
         "ERR_MISSING_PASSWORD": "This key is protected with your master password. Enter it and try again.",
-        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name."
+        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name.",
+        "face_locked_title": "Too many attempts",
+        "face_locked": "Face verification is temporarily locked. Try again in {{ time }}.",
+        "face_locked_about_minutes": "about {{ minutes }} minutes",
+        "face_locked_about_hours": "about {{ hours }} hours"
     },
     "swap": {
         "automatic": "Automático",

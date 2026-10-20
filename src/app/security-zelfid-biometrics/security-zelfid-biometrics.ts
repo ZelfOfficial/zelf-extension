@@ -2,7 +2,7 @@ import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { Subject, takeUntil } from "rxjs";
 
 import { CommonModule } from "@angular/common";
-import { Component, OnDestroy, OnInit } from "@angular/core";
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from "@angular/forms";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
 import { MatButtonModule } from "@angular/material/button";
@@ -72,7 +72,8 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
         private _translocoService: TranslocoService,
         private _vaultService: VaultService,
         private _walletService: WalletService,
-        private _faceApi: FaceApiService
+        private _faceApi: FaceApiService,
+        private _changeDetectorRef: ChangeDetectorRef
     ) {
         this.form = this._formBuilder.group({
             hideBiometricsCheckbox: [false],
@@ -115,6 +116,7 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
 
         this._faceApi.verifying$.pipe(takeUntil(this.unsubscriber$)).subscribe((verifying) => {
             this.facePowVerifying = verifying;
+            this._changeDetectorRef.markForCheck();
         });
     }
 
@@ -134,7 +136,7 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
     }
 
     get apiLoadingTextKey(): string {
-        if (this.facePowVerifying) {
+        if (this.facePowVerifying || this._faceApi.verifying) {
             return "security.face_verifying";
         }
 

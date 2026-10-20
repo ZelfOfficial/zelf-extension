@@ -1,8 +1,10 @@
-import { Injectable } from "@angular/core";
+import { inject, Injectable, Injector } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
 
 import { environment } from "environments/environment";
+import { ChromeService } from "../../chrome.service";
 import { HttpWrapperService } from "../../http-wrapper.service";
+import { WalletService } from "../../wallet.service";
 import { pickFaceWhitelistedBody } from "./face-body-whitelist.util";
 import {
     extractPowChallengeFromError,
@@ -13,8 +15,9 @@ import {
     shouldRetryWithFreshNonce,
     shouldRetryWithFreshPow,
 } from "./face-api.errors";
-import { buildFaceIdentifier } from "./face-identifier.util";
-import { buildPowPayload, solveFacePow, type FacePowChallenge, type FacePowPayload } from "./face-pow.util";
+import { buildFaceIdentifier, resolveFaceIdentifier } from "./face-identifier.util";
+import { solveFacePowInWorker } from "./face-pow-worker";
+import { buildPowPayload, type FacePowChallenge, type FacePowPayload } from "./face-pow.util";
 
 export type FaceApiAction =
     | "decrypt"
@@ -34,7 +37,6 @@ export type FaceApiAction =
 
 export interface FaceRequestContext {
     action: FaceApiAction | string;
-    /** When set, used for POST /api/face/nonce (must match server `buildIdentifier` for the body). */
     identifier?: string;
 }
 
@@ -50,6 +52,7 @@ export interface FaceNonceResponse {
 export class FaceApiService {
     private readonly _baseUrl = environment.v4ApiUrl;
     private readonly _verifying$ = new BehaviorSubject<boolean>(false);
+    private readonly _injector = inject(Injector);
 
     readonly verifying$ = this._verifying$.asObservable();
 
@@ -60,18 +63,47 @@ export class FaceApiService {
     }
 
     buildIdentifier(body: object): string {
-        return buildFaceIdentifier(body as Record<string, unknown>);
+        const record = body as Record<string, unknown>;
+        const direct = buildFaceIdentifier(record);
+        if (direct) {
+            return direct;
+        }
+        return resolveFaceIdentifier(record, {});
     }
 
-    /**
-     * POST /api/face/nonce — returns null when the API is unavailable (404 / no nonce).
-     */
+    async resolveIdentifier(body: object, explicit?: string): Promise<string> {
+        if (explicit?.trim() && explicit !== "unknown") {
+            return explicit.trim();
+        }
+
+        const record = body as Record<string, unknown>;
+        const fromBody = buildFaceIdentifier(record);
+        if (fromBody) {
+            return fromBody;
+        }
+
+        const walletService = this._injector.get(WalletService);
+        const chromeService = this._injector.get(ChromeService);
+        const wallet = await walletService.getCurrentWallet();
+        const sessionKey = (await chromeService.getItem("sessionIdentifier")) as string | null;
+
+        return resolveFaceIdentifier(record, {
+            zelfProof: wallet?.zelfProof ?? null,
+            tagName: wallet?.name ?? (wallet as { tagName?: string })?.tagName ?? null,
+            domain: wallet?.domain ?? null,
+            sessionKey,
+        });
+    }
+
     async fetchNonce(action: string, identifier: string): Promise<FaceNonceResponse | null> {
+        const resolvedId =
+            identifier?.trim() && identifier !== "unknown" ? identifier.trim() : await this.resolveIdentifier({});
+
         try {
             const response = await this._httpWrapper.sendRequest<{ data?: FaceNonceResponse } & FaceNonceResponse>(
                 "post",
                 `${this._baseUrl}/api/face/nonce`,
-                { action, identifier }
+                { action, identifier: resolvedId }
             );
             const data = (response?.data ?? response) as FaceNonceResponse;
             if (!data?.nonce) return null;
@@ -110,7 +142,7 @@ export class FaceApiService {
 
         const action = context.action;
         const sanitized = this.prepareBodyForFaceAction(action, body);
-        const identifier = context.identifier ?? this.buildIdentifier(sanitized);
+        const identifier = await this.resolveIdentifier(sanitized, context.identifier);
 
         return this._sendFaceAttempt<T>(method, url, sanitized, { action, identifier }, options, {
             nonceRetried: false,
@@ -201,49 +233,10 @@ export class FaceApiService {
     private async _solveChallengeToPayload(challenge: FacePowChallenge): Promise<FacePowPayload> {
         this._verifying$.next(true);
         try {
-            const solution = await this._solveInWorker(challenge);
+            const solution = await solveFacePowInWorker(challenge);
             return buildPowPayload(challenge, solution);
         } finally {
             this._verifying$.next(false);
         }
-    }
-
-    private async _solveInWorker(challenge: FacePowChallenge): Promise<string> {
-        if (typeof Worker === "undefined") {
-            return solveFacePow(challenge);
-        }
-
-        return new Promise<string>((resolve, reject) => {
-            let worker: Worker | null = null;
-            try {
-                worker = new Worker(new URL("./face-pow.worker", import.meta.url), { type: "module" });
-            } catch {
-                solveFacePow(challenge).then(resolve).catch(reject);
-                return;
-            }
-
-            const timeout = setTimeout(() => {
-                worker?.terminate();
-                reject(new Error("face_pow_timeout"));
-            }, 120_000);
-
-            worker.onmessage = (event: MessageEvent<{ solution?: string; error?: string }>) => {
-                clearTimeout(timeout);
-                worker?.terminate();
-                if (event.data?.solution) {
-                    resolve(event.data.solution);
-                } else {
-                    reject(new Error(event.data?.error ?? "face_pow_worker_error"));
-                }
-            };
-
-            worker.onerror = (event) => {
-                clearTimeout(timeout);
-                worker?.terminate();
-                solveFacePow(challenge).then(resolve).catch(() => reject(event.error ?? new Error("face_pow_worker_error")));
-            };
-
-            worker.postMessage({ challenge });
-        });
     }
 }

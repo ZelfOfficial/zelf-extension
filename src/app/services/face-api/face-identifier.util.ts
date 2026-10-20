@@ -1,19 +1,22 @@
 /**
  * Mirrors `Repositories/Face/modules/face-security.module.js` → `buildIdentifier`.
  */
-export function buildFaceIdentifier(body: Record<string, unknown>, extractedDomain?: string): string {
+export function buildFaceIdentifier(body: Record<string, unknown>, extractedDomain?: string): string | null {
     if (body["zelfProof"] != null && String(body["zelfProof"]).trim()) {
         return `zelfProof:${String(body["zelfProof"]).slice(0, 64)}`;
     }
 
     const domain = body["domain"] ?? extractedDomain ?? "zelf";
     const tagName = body["tagName"] ?? body["newTagName"];
-    if (tagName != null && domain != null) {
+    if (tagName != null && String(tagName).trim() && domain != null) {
         return `${String(tagName).toLowerCase()}@${String(domain).toLowerCase()}`;
     }
 
-    if (body["identifier"] != null) {
-        return String(body["identifier"]);
+    if (body["identifier"] != null && String(body["identifier"]).trim()) {
+        const id = String(body["identifier"]).trim();
+        if (id !== "unknown") {
+            return id;
+        }
     }
 
     if (body["zelfName"] != null) {
@@ -28,5 +31,37 @@ export function buildFaceIdentifier(body: Record<string, unknown>, extractedDoma
         return `wallet:${String(body["owner"]).toLowerCase()}`;
     }
 
-    return "unknown";
+    return null;
+}
+
+export interface FaceIdentifierFallbacks {
+    zelfProof?: string | null;
+    tagName?: string | null;
+    domain?: string | null;
+    sessionKey?: string | null;
+}
+
+/**
+ * Never returns the literal "unknown"; uses wallet/session fallbacks when body lacks fields.
+ */
+export function resolveFaceIdentifier(body: Record<string, unknown>, fallbacks: FaceIdentifierFallbacks = {}): string {
+    const fromBody = buildFaceIdentifier(body);
+    if (fromBody) {
+        return fromBody;
+    }
+
+    if (fallbacks.zelfProof?.trim()) {
+        return `zelfProof:${fallbacks.zelfProof.slice(0, 64)}`;
+    }
+
+    if (fallbacks.tagName?.trim()) {
+        const domain = (fallbacks.domain || "zelf").toLowerCase();
+        return `${fallbacks.tagName.toLowerCase()}@${domain}`;
+    }
+
+    if (fallbacks.sessionKey?.trim()) {
+        return `session:${fallbacks.sessionKey}`;
+    }
+
+    return "session:anonymous";
 }

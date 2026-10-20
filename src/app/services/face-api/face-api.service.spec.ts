@@ -1,8 +1,11 @@
 import { TestBed } from "@angular/core/testing";
 
+import { ChromeService } from "../../chrome.service";
 import { HttpWrapperService } from "../../http-wrapper.service";
+import { WalletService } from "../../wallet.service";
 import { FaceApiService } from "./face-api.service";
 import { FaceLockedError } from "./face-api.errors";
+import { buildPowPayload } from "./face-pow.util";
 
 describe("FaceApiService", () => {
     let service: FaceApiService;
@@ -17,6 +20,14 @@ describe("FaceApiService", () => {
                     provide: HttpWrapperService,
                     useValue: { sendRequest },
                 },
+                {
+                    provide: WalletService,
+                    useValue: { getCurrentWallet: () => Promise.resolve({ zelfProof: "proof-abc", name: "alice", domain: "zelf" }) },
+                },
+                {
+                    provide: ChromeService,
+                    useValue: { getItem: () => Promise.resolve("sess-hash") },
+                },
             ],
         });
         service = TestBed.inject(FaceApiService);
@@ -27,6 +38,11 @@ describe("FaceApiService", () => {
         expect(service.buildIdentifier({ zelfProof: "x".repeat(80) })).toBe(`zelfProof:${"x".repeat(64)}`);
     });
 
+    it("resolveIdentifier uses wallet zelfProof when body has only face", async () => {
+        const id = await service.resolveIdentifier({ faceBase64: "enc" });
+        expect(id).toBe("zelfProof:proof-abc");
+    });
+
     it("fetchNonce returns null on 404", async () => {
         sendRequest.and.returnValue(Promise.reject({ status: 404 }));
         const result = await service.fetchNonce("decrypt", "alice@zelf");
@@ -34,7 +50,9 @@ describe("FaceApiService", () => {
     });
 
     it("sendWithFace retries once on 428 pow_required", async () => {
-        spyOn(service as any, "_solveInWorker").and.resolveTo("42");
+        spyOn(service as unknown as { _solveChallengeToPayload: (c: { challengeId: string }) => Promise<unknown> }, "_solveChallengeToPayload").and.callFake(
+            async (challenge) => buildPowPayload(challenge as import("./face-pow.util").FacePowChallenge, "42")
+        );
 
         let decryptCalls = 0;
         sendRequest.and.callFake((_method: string, url: string) => {
@@ -69,7 +87,7 @@ describe("FaceApiService", () => {
     });
 
     it("sendWithFace throws FaceLockedError on 429", async () => {
-        sendRequest.and.callFake((method: string, url: string) => {
+        sendRequest.and.callFake((_method: string, url: string) => {
             if (url.includes("/api/face/nonce")) {
                 return Promise.resolve({ data: { nonce: "n1" } });
             }
@@ -94,7 +112,6 @@ describe("FaceApiService", () => {
     });
 
     it("sendWithFace refetches nonce on 409 face_nonce_used", async () => {
-        spyOn(service as any, "_solveInWorker").and.stub();
         let nonceCalls = 0;
         let decryptCalls = 0;
         sendRequest.and.callFake((_method: string, url: string) => {
