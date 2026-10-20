@@ -129,16 +129,16 @@ export class ZelfKeysService {
         private _authService: AuthService
     ) {}
 
-    private _postWithFace(url: string, body: object, options: Record<string, unknown> = {}): Promise<any> {
+    private _postWithFace(action: string, url: string, body: object, options: Record<string, unknown> = {}): Promise<any> {
         return this._faceApi.sendWithFace("post", url, body, {
-            action: "zelf-keys",
+            action,
             identifier: this._faceApi.buildIdentifier(body),
         }, options);
     }
 
-    private _putWithFace(url: string, body: object, options: Record<string, unknown> = {}): Promise<any> {
+    private _putWithFace(action: string, url: string, body: object, options: Record<string, unknown> = {}): Promise<any> {
         return this._faceApi.sendWithFace("put", url, body, {
-            action: "zelf-keys",
+            action,
             identifier: this._faceApi.buildIdentifier(body),
         }, options);
     }
@@ -176,7 +176,7 @@ export class ZelfKeysService {
     }): Promise<any> {
         const token = await this._authService.checkAccessToken();
 
-        return this._postWithFace(`${this.baseUrl}${this.apiPath}/store/notes`, request, {
+        return this._postWithFace("store-notes", `${this.baseUrl}${this.apiPath}/store/notes`, request, {
             headers: { Authorization: `Bearer ${token}` },
         });
     }
@@ -189,7 +189,7 @@ export class ZelfKeysService {
     async storePassword(request: StorePasswordRequest): Promise<any> {
         const url = `${this.baseUrl}${this.apiPath}/store/password`;
 
-        return this._postWithFace(url, request);
+        return this._postWithFace("store-password", url, request);
     }
 
     /**
@@ -200,7 +200,7 @@ export class ZelfKeysService {
     async storeZOTP(request: StoreZOTPRequest): Promise<any> {
         const url = `${this.baseUrl}${this.apiPath}/store/zotp`;
 
-        return this._postWithFace(url, request);
+        return this._postWithFace("store-zotp", url, request);
     }
 
     /**
@@ -212,7 +212,7 @@ export class ZelfKeysService {
         const token = await this._authService.checkAccessToken();
         const url = `${this.baseUrl}${this.apiPath}/retrieve`;
 
-        return this._postWithFace(url, request, {
+        return this._postWithFace("retrieve", url, request, {
             headers: { Authorization: `Bearer ${token}` },
         });
     }
@@ -225,7 +225,7 @@ export class ZelfKeysService {
     async preview(request: PreviewRequest): Promise<any> {
         const url = `${this.baseUrl}${this.apiPath}/preview`;
 
-        return this._postWithFace(url, request);
+        return this._postWithFace("preview", url, request);
     }
 
     /**
@@ -288,7 +288,7 @@ export class ZelfKeysService {
         const token = await this._authService.checkAccessToken();
         const url = `${this.baseUrl}${this.apiPath}/store/password`;
 
-        return this._postWithFace(url, request, {
+        return this._postWithFace("store-password", url, request, {
             headers: { Authorization: `Bearer ${token}` },
         });
     }
@@ -301,7 +301,7 @@ export class ZelfKeysService {
         const token = await this._authService.checkAccessToken();
         const url = `${this.baseUrl}${this.apiPath}/store/passwords`;
 
-        return this._postWithFace(url, request, {
+        return this._postWithFace("store-passwords-bulk", url, request, {
             headers: { Authorization: `Bearer ${token}` },
         });
     }
@@ -325,7 +325,7 @@ export class ZelfKeysService {
     }): Promise<any> {
         const token = await this._authService.checkAccessToken();
         const url = `${this.baseUrl}${this.apiPath}/store/credit-card`;
-        return this._postWithFace(url, request, {
+        return this._postWithFace("store-credit-card", url, request, {
             headers: { Authorization: `Bearer ${token}` },
         });
     }
@@ -341,8 +341,10 @@ export class ZelfKeysService {
         const url = `${this.baseUrl}${this.apiPath}/delete/${id}`;
 
         return this._putWithFace(
+            "delete",
             url,
             {
+                id,
                 faceBase64,
                 masterPassword,
             },

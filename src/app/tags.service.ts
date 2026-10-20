@@ -338,9 +338,14 @@ export class TagsService {
     }
 
     leaseRecovery(request: TagLeaseRecoveryRequest): Promise<any> {
-        const promise = this._faceApi.sendWithFace("post", `${this.baseUrl}/api/tags/lease-recovery`, request, {
+        const { newTagName, ...rest } = request;
+        const body = {
+            ...rest,
+            tagName: newTagName,
+        };
+        const promise = this._faceApi.sendWithFace("post", `${this.baseUrl}/api/tags/lease-recovery`, body, {
             action: "lease-recovery",
-            identifier: this._faceApi.buildIdentifier(request),
+            identifier: this._faceApi.buildIdentifier(body),
         });
 
         promise.then(() => this._vaultService.setLastVerified());
@@ -388,7 +393,7 @@ export class TagsService {
     // User-specific Tag Management (My Tags)
     transferTag(request: TagTransferRequest): Promise<any> {
         return this._faceApi.sendWithFace("post", `${this.baseUrl}/api/my-tags/transfer`, request, {
-            action: "transfer",
+            action: "my-tags-transfer",
             identifier: this._faceApi.buildIdentifier(request),
         });
     }

@@ -1,4 +1,4 @@
-/** Proof-of-work challenge returned by POST /api/face/nonce or 428 pow_required. */
+/** Proof-of-work challenge returned by POST /api/face/nonce or error bodies. */
 export interface FacePowChallenge {
     challengeId: string;
     salt: string;
@@ -8,37 +8,26 @@ export interface FacePowChallenge {
     algorithm?: string;
 }
 
-export interface FacePowSolution {
+/** Matches server `Repositories/Face/modules/face-pow.module.js` verify payload. */
+export interface FacePowPayload {
     challengeId: string;
     solution: string;
+    salt?: string;
+    difficulty?: number;
+    expiresAt?: string;
+    signature?: string;
 }
 
 const HEX = "0123456789abcdef";
 
-/** Count leading zero bits in a lowercase hex digest (4 bits per hex char). */
-export function countLeadingZeroBitsHex(hashHex: string): number {
-    let bits = 0;
-    for (let i = 0; i < hashHex.length; i++) {
-        const nibble = parseInt(hashHex[i], 16);
-        if (Number.isNaN(nibble)) break;
-        if (nibble === 0) {
-            bits += 4;
-            continue;
-        }
-        for (let bit = 3; bit >= 0; bit--) {
-            if ((nibble >> bit) & 1) {
-                return bits;
-            }
-            bits++;
-        }
-        break;
-    }
-    return bits;
-}
-
+/**
+ * Leading hex **zero characters** (not bits) — mirrors `FacePow.hashMeetsDifficulty`.
+ */
 export function hashMeetsDifficulty(hashHex: string, difficulty: number): boolean {
-    if (!difficulty || difficulty <= 0) return true;
-    return countLeadingZeroBitsHex(hashHex.toLowerCase()) >= difficulty;
+    const d = Math.max(0, Math.floor(difficulty));
+    if (d === 0) return true;
+    const prefix = "0".repeat(d);
+    return hashHex.toLowerCase().startsWith(prefix);
 }
 
 export async function sha256Hex(input: string): Promise<string> {
@@ -54,14 +43,14 @@ export async function sha256Hex(input: string): Promise<string> {
 }
 
 /**
- * Find the smallest non-negative integer n such that SHA-256(salt + n) meets difficulty.
- * Used by unit tests and as a main-thread fallback.
+ * Find n such that SHA-256(`${salt}${n}`) has `difficulty` leading hex zeroes.
+ * Same loop as `tests/unit/face-security.test.js` in zelf-online-version.
  */
-export async function solveFacePow(challenge: FacePowChallenge, startAt = 0): Promise<string> {
+export async function solveFacePow(challenge: FacePowChallenge, startAt = 0, maxAttempts = 500_000): Promise<string> {
     const salt = challenge.salt ?? "";
     const difficulty = challenge.difficulty ?? 0;
 
-    for (let n = startAt; n < Number.MAX_SAFE_INTEGER; n++) {
+    for (let n = startAt; n < startAt + maxAttempts; n++) {
         const hash = await sha256Hex(`${salt}${n}`);
         if (hashMeetsDifficulty(hash, difficulty)) {
             return String(n);
@@ -69,4 +58,15 @@ export async function solveFacePow(challenge: FacePowChallenge, startAt = 0): Pr
     }
 
     throw new Error("face_pow_unsolved");
+}
+
+export function buildPowPayload(challenge: FacePowChallenge, solution: string): FacePowPayload {
+    return {
+        challengeId: challenge.challengeId,
+        solution,
+        salt: challenge.salt,
+        difficulty: challenge.difficulty,
+        expiresAt: challenge.expiresAt,
+        signature: challenge.signature,
+    };
 }
