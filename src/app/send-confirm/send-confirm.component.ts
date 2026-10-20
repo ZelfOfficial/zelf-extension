@@ -19,6 +19,7 @@ import { AddressMaskPipe } from "app/pipes/address-mask.pipe";
 import { BitcoinService, MempoolFeeRates } from "app/services/bitcoin.service";
 import { BlockDAGService } from "app/services/blockdag.service";
 import { BlockchainTransactionsService } from "app/services/blockchain-transactions.service";
+import { SigningAuthorizationService } from "app/services/signing-authorization.service";
 import { NetworkName, NetworkService } from "app/services/network.service";
 import { TransactionService } from "app/transaction.service";
 import { VaultService } from "app/vault.service";
@@ -119,7 +120,8 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
         private _transactionService: TransactionService,
         private _translocoService: TranslocoService,
         private _vaultService: VaultService,
-        private _walletService: WalletService
+        private _walletService: WalletService,
+        private _signingAuthorization: SigningAuthorizationService
     ) {
         this.loading = true;
         this.remainingAttempts = this._vaultService.remainingAttempts;
@@ -145,6 +147,16 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
             this.transactionData?.receiver?.address,
             this.transactionData
         );
+    }
+
+    /** #88: binds the face step to this exact transaction (sender, network, receiver, amount, token). */
+    private _signingScope(): string {
+        return SigningAuthorizationService.scopeFor(this.transactionData as any);
+    }
+
+    /** #88: a face step approved for this transaction in this app instance (never a cached session). */
+    private _hasSigningGrant(): boolean {
+        return this._signingAuthorization.has(this._signingScope());
     }
 
     async ngOnInit(): Promise<void> {
@@ -392,7 +404,9 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
     private async _decryptMnemonics(): Promise<boolean> {
         const biometricsRequired = await this._vaultService.biometricsRequired();
 
-        if (!this.wallet?.pgp?.encryptedMessage || !this.wallet?.pgp?.privateKey || biometricsRequired) {
+        // #88: the biometric verification interval (lastVerified + cached PGP keys) is not enough to sign a
+        // Send. Without a face step approved for this transaction, do not decrypt anything: ask for the face.
+        if (!this.wallet?.pgp?.encryptedMessage || !this.wallet?.pgp?.privateKey || biometricsRequired || !this._hasSigningGrant()) {
             const isPasswordless = String((this.wallet?.publicData as any)?.hasPassword) === "false";
             this.passwordSet = isPasswordless;
             this.requiresBiometrics = true;
@@ -589,6 +603,9 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
 
         await this._tagsService.setFlow("unlock");
 
+        // #88: the biometrics screen can only authorize the transaction that started it.
+        this._signingAuthorization.requestAuthorization(this._signingScope());
+
         this._router.navigate(["security/biometrics"], { queryParams: { return: "/send/confirmation" } });
     }
 
@@ -599,7 +616,9 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
             return false;
         }
 
-        if (this.requiresBiometrics) {
+        if (this.requiresBiometrics || !this._hasSigningGrant()) {
+            this._mnemonics = "";
+            this.requiresBiometrics = true;
             await this._redirectToBiometrics();
 
             return false;
@@ -634,6 +653,15 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
     async confirmTransaction() {
         if (this.sending) return;
         if (!(await this._validateCredentials())) return;
+
+        // #88: single-use face authorization, checked immediately before anything is signed or broadcast.
+        if (!this._signingAuthorization.consume(this._signingScope())) {
+            this._mnemonics = "";
+            this.requiresBiometrics = true;
+            await this._redirectToBiometrics();
+
+            return;
+        }
 
         this.sending = true;
 
@@ -685,6 +713,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
 
         this._vaultService.password = "";
         this._vaultService.mnemonic = "";
+        this._signingAuthorization.revoke();
 
         this.transactionData.fee = 0;
         this.transactionData.fiatFee = 0;
