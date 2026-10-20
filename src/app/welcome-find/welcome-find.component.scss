@@ -2,6 +2,7 @@
 @use "../../styles/buttons";
 @use "../../styles/drag-and-drop";
 @use "../../styles/welcome-device-frame" as device-frame;
+@use "../../styles/welcome-find-compact" as find-compact;
 
 :host {
     @include device-frame.welcome-device-host;
@@ -242,3 +243,6 @@
         opacity: 1;
     }
 }
+
+// Must stay after the base rules: container queries add no specificity.
+@include find-compact.welcome-find-compact;

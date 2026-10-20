@@ -40,6 +40,9 @@
 @mixin welcome-device-scaled-zelf-card($block-class) {
     .zelf-card.#{$block-class} {
         box-sizing: border-box;
+        // Size container so screens can compact their layout by the frame's real (unscaled) height,
+        // which is the same signal in a full tab and in the popup.
+        container: welcome-frame / size;
         display: flex;
         flex-direction: column;
         height: var(--welcome-onboarding-height);
