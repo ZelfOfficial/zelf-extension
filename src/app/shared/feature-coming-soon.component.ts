@@ -37,12 +37,15 @@ import { TranslocoModule } from "@jsverse/transloco";
             <div class="feature-coming-soon__body">
                 <!-- Squircle Hero Icon Tile -->
                 <div class="feature-coming-soon__hero-tile">
-                    <svg width="34" height="34" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path
-                            d="M18.9125 8.52775L19.973 9.58825L13.25 16.3105L9.5 12.5605L4.5605 17.5H7.25V19H3.5C2.67275 19 2 18.3272 2 17.5V13.75H3.5V16.4395L9.5 10.4395L13.25 14.1895L18.9125 8.52775ZM18.5 1H14.75V2.5H17.4395L12.5 7.4395L8.75 3.6895L2.05625 10.3832L3.11675 11.4438L8.75 5.8105L12.5 9.5605L18.5 3.5605V6.25H20V2.5C20 1.67275 19.3272 1 18.5 1Z"
-                            fill="#FD6337"
-                        />
-                    </svg>
+                    <img *ngIf="iconUrl; else defaultHeroIcon" [src]="iconUrl" alt="" class="feature-coming-soon__hero-icon" />
+                    <ng-template #defaultHeroIcon>
+                        <svg width="34" height="34" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M18.9125 8.52775L19.973 9.58825L13.25 16.3105L9.5 12.5605L4.5605 17.5H7.25V19H3.5C2.67275 19 2 18.3272 2 17.5V13.75H3.5V16.4395L9.5 10.4395L13.25 14.1895L18.9125 8.52775ZM18.5 1H14.75V2.5H17.4395L12.5 7.4395L8.75 3.6895L2.05625 10.3832L3.11675 11.4438L8.75 5.8105L12.5 9.5605L18.5 3.5605V6.25H20V2.5C20 1.67275 19.3272 1 18.5 1Z"
+                                fill="#FD6337"
+                            />
+                        </svg>
+                    </ng-template>
                 </div>
 
                 <!-- Glowing Status Pill -->
@@ -52,36 +55,8 @@ import { TranslocoModule } from "@jsverse/transloco";
                 </div>
 
                 <!-- Typography -->
-                <h2 class="feature-coming-soon__heading">{{ t('home_hub.signals_heading') }}</h2>
+                <h2 class="feature-coming-soon__heading">{{ t(titleKey) }}</h2>
                 <p class="feature-coming-soon__description">{{ t(bodyKey) }}</p>
-
-                <!-- Privy-Style Inset Preview Block -->
-                <div class="feature-coming-soon__preview">
-                    <div class="feature-coming-soon__preview-row">
-                        <div class="feature-coming-soon__preview-icon" aria-hidden="true">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-                                <polyline points="17 6 23 6 23 12"></polyline>
-                            </svg>
-                        </div>
-                        <div class="feature-coming-soon__preview-text">
-                            <p class="feature-coming-soon__preview-title">{{ t('home_hub.signals_placeholder_title') }}</p>
-                            <p class="feature-coming-soon__preview-subtitle">{{ t('home_hub.signals_placeholder_body') }}</p>
-                        </div>
-                    </div>
-
-                    <div class="feature-coming-soon__preview-row">
-                        <div class="feature-coming-soon__preview-icon" aria-hidden="true">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                            </svg>
-                        </div>
-                        <div class="feature-coming-soon__preview-text">
-                            <p class="feature-coming-soon__preview-title">{{ t('common.activity') }}</p>
-                            <p class="feature-coming-soon__preview-subtitle">{{ t('common.come_back_later') }}</p>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Bottom Full-Width High-Contrast CTA Button -->
@@ -98,8 +73,10 @@ import { TranslocoModule } from "@jsverse/transloco";
     `,
 })
 export class FeatureComingSoonComponent implements OnInit {
-    titleKey: string = "common.zelf_signals";
-    bodyKey: string = "common.zelf_signals_coming_soon";
+    /** Route `data` sets these (e.g. /legacy). Defaults are a generic "coming soon". */
+    titleKey: string = "common.coming_soon";
+    bodyKey: string = "common.coming_soon_desc";
+    iconUrl: string | null = null;
 
     constructor(
         private route: ActivatedRoute,
@@ -110,6 +87,7 @@ export class FeatureComingSoonComponent implements OnInit {
         this.route.data.subscribe((data) => {
             if (data["titleKey"]) this.titleKey = data["titleKey"];
             if (data["bodyKey"]) this.bodyKey = data["bodyKey"];
+            if (data["iconUrl"]) this.iconUrl = data["iconUrl"];
         });
     }
 

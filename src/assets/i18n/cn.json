@@ -233,7 +233,7 @@
         },
         "subscription_banner": {
             "title": "解锁高级功能",
-            "description": "通过 ZelfKeys Premium 获得无限访问、高级安全等"
+            "description": "通过 Password Manager Premium 获得无限访问、高级安全等"
         },
         "data_card": {
             "details": "详情",
@@ -546,7 +546,7 @@
         "transfer_done": "转移完成",
         "upload_zelf_proof": "或上传您的Zelf ID QR二维码继续：",
         "you_can_transfer_this_domain": "您可以转移此域名",
-        "you_will_register_this_domain": "您在 Zelf Name Service 上的新身份",
+        "you_will_register_this_domain": "您的新 Zelf ID",
         "safeguard_your_crypto": "保护您的加密货币！",
         "offline_import_subtitle": "在导入您的离线钱包之前，您需要选择一个新的Zelf ID。",
         "your_zelf_name": "您的Zelf ID",
@@ -722,10 +722,11 @@
         }
     },
     "apps_hub": {
-        "label_wallet": "zWallet",
-        "label_keys": "zKeys",
-        "label_auth": "zAuth",
-        "label_id": "zID",
+        "label_wallet": "Wallet",
+        "label_keys": "Password Manager",
+        "label_auth": "2FA",
+        "label_id": "ID",
+        "label_legacy": "Legacy",
         "label_ai": "zAI"
     },
     "common": {
@@ -743,7 +744,7 @@
         "apps": "应用",
         "are_you_sure": "您确定吗？",
         "asset": "资产",
-        "auth_short": "认证",
+        "auth_short": "2FA",
         "authorized": "已授权",
         "available": "可用",
         "avax_address": "AVAX 地址",
@@ -861,22 +862,25 @@
         "unlock": "继续进行生物识别",
         "upload_qr_image": "上传二维码图片",
         "verify": "验证",
-        "wallet_short": "钱包",
+        "wallet_short": "Wallet",
+        "keys_short": "Pass",
         "website": "网站",
         "withdraw": "提现",
         "withdrawal_network": "提现网络",
         "yes": "是",
         "your_token": "您的{{ symbol }}",
         "zelf_ai": "zAI",
-        "zelf_authenticator": "zAuth",
+        "zelf_authenticator": "2FA",
         "zelf_chat": "zChat",
         "zelf_chat_coming_soon": "Zelf Chat 即将推出。",
         "zelf_chats": "z 聊天",
-        "zelf_keys": "Zelf 密钥",
+        "zelf_keys": "Password Manager",
         "zelf_link": "Zelf 链接",
         "zelf_signals": "zSignals",
         "zelf_signals_coming_soon": "Zelf Signals 即将推出。",
-        "zelf_wallet": "Zelf",
+        "legacy": "Legacy",
+        "legacy_coming_soon": "Legacy 即将推出。",
+        "zelf_wallet": "Wallet",
         "ton_address": "TON地址",
         "validity_one_year": "有效期：1 年",
         "validity_years": "有效期：{{years}} 年",
@@ -1244,7 +1248,7 @@
             "unknown": "未知",
             "premium": {
                 "title": "解锁高级功能",
-                "description": "获取高级安全功能及更多，使用 ZelfKeys Premium"
+                "description": "获取高级安全功能及更多，使用 Password Manager Premium"
             },
             "add_card": {
                 "title": "添加新卡",
@@ -1392,7 +1396,7 @@
             },
             "premium": {
                 "title": "解锁高级功能",
-                "description": "获取高级安全功能及更多，使用 ZelfKeys Premium"
+                "description": "获取高级安全功能及更多，使用 Password Manager Premium"
             },
             "add_note": {
                 "title": "添加新笔记",
@@ -1480,7 +1484,7 @@
             },
             "premium": {
                 "title": "解锁高级功能",
-                "description": "获取高级安全功能及更多，使用 ZelfKeys Premium"
+                "description": "获取高级安全功能及更多，使用 Password Manager Premium"
             },
             "add_password": {
                 "title": "添加新密码",
@@ -1630,7 +1634,7 @@
         }
     },
     "start": {
-        "title": "欢迎使用 ZelfKeys",
+        "title": "欢迎使用 Password Manager",
         "subtitle": "您的安全密码管理器",
         "features": {
             "install_extension": {
@@ -1754,6 +1758,7 @@
     },
     "zotp": {
         "add_zotp": "添加 ZOTP",
+        "vault_eyebrow": "ZELF",
         "empty_preview_name": "工作账户",
         "empty_preview_issuer": "例如您的银行或应用",
         "empty_add_hint": "点击卡片添加您的第一个 ZOTP。",
@@ -2042,5 +2047,12 @@
         "thinking": "zAI 正在思考…可能需要一两分钟。",
         "recovering": "正在获取你的回答…",
         "error_timeout": "zAI 未能及时回答，请重试。"
+    },
+    "home_hub": {
+        "quick_label_keys": "Pass",
+        "quick_label_auth": "2FA",
+        "quick_label_legacy": "Legacy",
+        "quick_label_id": "ID",
+        "more_apps": "更多"
     }
 }

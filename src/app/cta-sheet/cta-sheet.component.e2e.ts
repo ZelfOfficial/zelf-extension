@@ -323,7 +323,7 @@ describe("CTA Sheet Component E2E Tests", function () {
             return document.querySelector(".cta-sheet__pretitle")?.textContent?.trim();
         });
 
-        expect(preTitleMessage).toContain("Love your ZelfName");
+        expect(preTitleMessage).toContain("Love your Zelf ID");
 
         const infoPretitleMessage = await page.evaluate(() => {
             return document.querySelector(".cta-sheet__info-pretitle")?.textContent;
@@ -388,7 +388,7 @@ describe("CTA Sheet Component E2E Tests", function () {
             return document.querySelector(".cta-sheet__pretitle")?.textContent?.trim();
         });
 
-        expect(preTitleMessage).toContain("Love your ZelfName");
+        expect(preTitleMessage).toContain("Love your Zelf ID");
 
         const infoPretitleMessage = await page.evaluate(() => {
             return document.querySelector(".cta-sheet__info-pretitle")?.textContent;

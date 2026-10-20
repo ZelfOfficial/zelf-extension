@@ -233,14 +233,14 @@
         },
         "subscription_banner": {
             "title": "فتح الميزات المميزة",
-            "description": "احصل على وصول غير محدود وأمان متقدم والمزيد مع ZelfKeys Premium"
+            "description": "احصل على وصول غير محدود وأمان متقدم والمزيد مع Password Manager Premium"
         },
         "data_card": {
             "details": "التفاصيل",
             "no_qr": "لا يوجد رمز QR",
             "untitled": "بدون عنوان",
             "username_label": "اسم المستخدم: {{ username }}",
-            "zelf_name_label": "اسم التاج: {{ zelfName }}",
+            "zelf_name_label": "Zelf ID: {{ zelfName }}",
             "category_label": "الفئة: {{ category }}",
             "type_label": "النوع: {{ type }}",
             "secure_credential": "بيانات اعتماد آمنة"
@@ -350,7 +350,7 @@
                         "folder": "المجلد",
                         "type": "النوع",
                         "category": "الفئة",
-                        "zelf_name": "اسم التاج",
+                        "zelf_name": "Zelf ID",
                         "timestamp": "الطابع الزمني"
                     }
                 },
@@ -546,7 +546,7 @@
         "transfer_done": "تم النقل",
         "upload_zelf_proof": "أو قم بتحميل رمز QR الخاص بزيلف بروف للمتابعة:",
         "you_can_transfer_this_domain": "يمكنك نقل هذا النطاق",
-        "you_will_register_this_domain": "هويتك الجديدة على Zelf Name Service",
+        "you_will_register_this_domain": "Zelf ID الجديد الخاص بك",
         "safeguard_your_crypto": "حماية عملاتك المشفرة!",
         "offline_import_subtitle": "قبل أن تتمكن من استيراد محفظتك دون اتصال ، تحتاج إلى اختيار Zelf ID جديد.",
         "your_zelf_name": "Zelf ID الخاص بك",
@@ -680,7 +680,7 @@
         "pin_title": "PIN",
         "secure_password_description": "طبقة أمان إضافية",
         "secure_password_title": "كلمة مرور آمنة",
-        "security_layer_subtitle": "يرجى اختيار طبقة كلمة المرور المخصصة لعلامتك الجديدة",
+        "security_layer_subtitle": "يرجى اختيار طبقة كلمة المرور المخصصة لـ Zelf ID الجديد الخاص بك",
         "security_layer_title": "طبقة الأمان",
         "strong": "قوي",
         "subtitle": "حدد طول عبارة البذور الخاصة بك وانتقل إلى عملية التشفير.",
@@ -722,10 +722,11 @@
         }
     },
     "apps_hub": {
-        "label_wallet": "zWallet",
-        "label_keys": "zKeys",
-        "label_auth": "zAuth",
-        "label_id": "zID",
+        "label_wallet": "Wallet",
+        "label_keys": "Password Manager",
+        "label_auth": "2FA",
+        "label_id": "ID",
+        "label_legacy": "Legacy",
         "label_ai": "zAI"
     },
     "common": {
@@ -743,7 +744,7 @@
         "apps": "التطبيقات",
         "are_you_sure": "هل أنت متأكد؟",
         "asset": "الأصل",
-        "auth_short": "توثيق",
+        "auth_short": "2FA",
         "authorized": "معتمد",
         "available": "متاح",
         "avax_address": "عنوان AVAX",
@@ -861,22 +862,25 @@
         "unlock": "المتابعة إلى البيانات الحيوية",
         "upload_qr_image": "تحميل صورة QR",
         "verify": "تحقق",
-        "wallet_short": "محفظة",
+        "wallet_short": "Wallet",
+        "keys_short": "Pass",
         "website": "الموقع الإلكتروني",
         "withdraw": "سحب",
         "withdrawal_network": "شبكة السحب",
         "yes": "نعم",
         "your_token": "{{ symbol }} الخاص بك",
         "zelf_ai": "zAI",
-        "zelf_authenticator": "zAuth",
+        "zelf_authenticator": "2FA",
         "zelf_chat": "zChat",
         "zelf_chat_coming_soon": "سيتوفر Zelf Chat قريباً.",
         "zelf_chats": "zChats",
-        "zelf_keys": "Zelf Keys",
+        "zelf_keys": "Password Manager",
         "zelf_link": "Zelf Link",
         "zelf_signals": "zSignals",
         "zelf_signals_coming_soon": "ستتوفر Zelf Signals قريباً.",
-        "zelf_wallet": "Zelf",
+        "legacy": "Legacy",
+        "legacy_coming_soon": "سيتوفر Legacy قريباً.",
+        "zelf_wallet": "Wallet",
         "ton_address": "عنوان TON",
         "validity_one_year": "الصلاحية: سنة واحدة",
         "validity_years": "الصلاحية: {{years}} سنة",
@@ -1141,7 +1145,7 @@
         "choose_new_zelfname": "اختر Zelf ID جديد",
         "recover_it_now": "استعده الآن",
         "delete_wallet_title": "إزالة Zelf ID",
-        "delete_wallet_message": "قبل إزالة علامتك، تأكد من نسخ رمز زيلف بروف QR احتياطيًا.",
+        "delete_wallet_message": "قبل إزالة Zelf ID الخاص بك، تأكد من نسخ رمز Zelf ID QR احتياطيًا.",
         "yes_because": "نعم، لأن:",
         "thanks_for_subscribing": "شكرًا على الاشتراك",
         "make_zelfname_yours": "اجعل {{ zelfName }} ملكك",
@@ -1197,7 +1201,7 @@
             "payment_method": "طريقة الدفع:",
             "status": "الحالة",
             "transaction": "المعاملة",
-            "zelf_name": "اسم التاج",
+            "zelf_name": "Zelf ID",
             "start_date": "تاريخ البدء:",
             "expires_on": "تنتهي صلاحيته في:",
             "next_billing": "الموعد القادم للدفع:",
@@ -1244,7 +1248,7 @@
             "unknown": "غير معروف",
             "premium": {
                 "title": "فتح الميزات المميزة",
-                "description": "احصل على أمان متقدم والمزيد مع ZelfKeys Premium"
+                "description": "احصل على أمان متقدم والمزيد مع Password Manager Premium"
             },
             "add_card": {
                 "title": "إضافة بطاقة جديدة",
@@ -1392,7 +1396,7 @@
             },
             "premium": {
                 "title": "فتح الميزات المميزة",
-                "description": "احصل على أمان متقدم والمزيد مع ZelfKeys Premium"
+                "description": "احصل على أمان متقدم والمزيد مع Password Manager Premium"
             },
             "add_note": {
                 "title": "إضافة ملاحظة جديدة",
@@ -1480,7 +1484,7 @@
             },
             "premium": {
                 "title": "فتح الميزات المميزة",
-                "description": "احصل على أمان متقدم والمزيد مع ZelfKeys Premium"
+                "description": "احصل على أمان متقدم والمزيد مع Password Manager Premium"
             },
             "add_password": {
                 "title": "إضافة كلمة مرور جديدة",
@@ -1506,7 +1510,7 @@
                 "no_username": "لا يوجد اسم مستخدم",
                 "no_website": "لا يوجد موقع إلكتروني",
                 "no_category": "لا توجد فئة",
-                "no_zelf_name": "لا يوجد اسم تاج",
+                "no_zelf_name": "لا يوجد Zelf ID",
                 "unknown_date": "تاريخ غير معروف",
                 "decrypt": {
                     "button": "فك تشفير كلمة المرور",
@@ -1520,7 +1524,7 @@
                     "username": "اسم المستخدم",
                     "category": "الفئة",
                     "created": "تم الإنشاء",
-                    "zelf_name": "اسم التاج",
+                    "zelf_name": "Zelf ID",
                     "ipfs_hash": "هاش IPFS",
                     "copy_url": "نسخ رابط الموقع",
                     "launch_website": "فتح الموقع",
@@ -1630,7 +1634,7 @@
         }
     },
     "start": {
-        "title": "مرحباً بك في ZelfKeys",
+        "title": "مرحباً بك في Password Manager",
         "subtitle": "مدير كلمات المرور الآمن الخاص بك",
         "features": {
             "install_extension": {
@@ -1665,7 +1669,7 @@
                     "username": "اسم المستخدم",
                     "type": "النوع",
                     "category": "الفئة",
-                    "zelf_name": "اسم التاج",
+                    "zelf_name": "Zelf ID",
                     "timestamp": "الطابع الزمني"
                 }
             },
@@ -1750,10 +1754,11 @@
         }
     },
     "domain_selection": {
-        "title": "اختر النطاق لاسم التاج الخاص بك"
+        "title": "اختر النطاق لـ Zelf ID الخاص بك"
     },
     "zotp": {
         "add_zotp": "إضافة ZOTP",
+        "vault_eyebrow": "ZELF",
         "empty_preview_name": "حساب العمل",
         "empty_preview_issuer": "مثل البنك أو التطبيق",
         "empty_add_hint": "اضغط على البطاقة لإضافة أول ZOTP لديك.",
@@ -2042,5 +2047,12 @@
         "thinking": "zAI يفكر… قد يستغرق ذلك دقيقة أو دقيقتين.",
         "recovering": "جارٍ جلب إجابتك…",
         "error_timeout": "لم يتمكن zAI من الرد في الوقت المحدد. حاول مرة أخرى."
+    },
+    "home_hub": {
+        "quick_label_keys": "Pass",
+        "quick_label_auth": "2FA",
+        "quick_label_legacy": "Legacy",
+        "quick_label_id": "ID",
+        "more_apps": "المزيد"
     }
 }

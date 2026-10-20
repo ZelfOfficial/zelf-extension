@@ -101,18 +101,15 @@ const routes: Routes = [
                 redirectTo: "wallet-manage",
                 pathMatch: "full",
             },
+            // #29: zAI, zChats and zSignals are retired from the app. Old links/bookmarks land on Home.
+            { path: "zelf-ai", redirectTo: "home", pathMatch: "full" },
+            { path: "zelf-chat", redirectTo: "home", pathMatch: "full" },
+            { path: "zelf-signals", redirectTo: "home", pathMatch: "full" },
             {
-                path: "zelf-ai",
-                loadComponent: () => import("./zelf-ai/zelf-ai.component").then((m) => m.ZelfAiComponent),
-            },
-            {
-                path: "zelf-chat",
-                loadComponent: () => import("./zelf-chat/zelf-chat.component").then((m) => m.ZelfChatComponent),
-            },
-            {
-                path: "zelf-signals",
+                // #29: Legacy has no extension module yet; the menu entry opens a "coming soon" screen.
+                path: "legacy",
                 loadComponent: () => import("./shared/feature-coming-soon.component").then((m) => m.FeatureComingSoonComponent),
-                data: { titleKey: "common.zelf_signals", bodyKey: "common.zelf_signals_coming_soon" },
+                data: { titleKey: "common.legacy", bodyKey: "common.legacy_coming_soon", iconUrl: "assets/icons/legacy_icon.svg" },
             },
             { path: "swap", loadComponent: () => import("./swap/swap.component").then((m) => m.SwapComponent) },
             {

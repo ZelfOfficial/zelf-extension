@@ -27,13 +27,13 @@ export class RedeemZnsComponent implements OnInit {
     useRpcForZnsBalance: boolean = false;
 
     readonly options: RedeemOption[] = [
-        { id: "zelfname-1m", title: "Get one month for your ZelfName", costZns: 100 },
-        { id: "zelfname-2m", title: "Get two months for your ZelfName", costZns: 200 },
-        { id: "zelfname-5m", title: "Get five months for your ZelfName", costZns: 500 },
-        { id: "zns-3y-6-15", title: "Buy an ZNS (3 years) of 6 - 15 length", costZns: 3000 },
-        { id: "zns-1y-6-15", title: "Buy an ZNS (1 year) of 6 - 15 length", costZns: 1000 },
-        { id: "zns-2y-6-15", title: "Buy an ZNS (2 years) of 6 - 15 length", costZns: 2000 },
-        { id: "zns-3y-6-15-b", title: "Buy an ZNS (3 years) of 6 - 15 length", costZns: 3000 },
+        { id: "zelfname-1m", title: "Get one month for your Zelf ID", costZns: 100 },
+        { id: "zelfname-2m", title: "Get two months for your Zelf ID", costZns: 200 },
+        { id: "zelfname-5m", title: "Get five months for your Zelf ID", costZns: 500 },
+        { id: "zns-3y-6-15", title: "Buy a Zelf ID (3 years) of 6 - 15 length", costZns: 3000 },
+        { id: "zns-1y-6-15", title: "Buy a Zelf ID (1 year) of 6 - 15 length", costZns: 1000 },
+        { id: "zns-2y-6-15", title: "Buy a Zelf ID (2 years) of 6 - 15 length", costZns: 2000 },
+        { id: "zns-3y-6-15-b", title: "Buy a Zelf ID (3 years) of 6 - 15 length", costZns: 3000 },
     ];
 
     constructor(

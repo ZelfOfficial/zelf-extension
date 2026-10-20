@@ -233,7 +233,7 @@
         },
         "subscription_banner": {
             "title": "프리미엄 기능 잠금 해제",
-            "description": "ZelfKeys Premium으로 무제한 액세스, 고급 보안 등을 이용하세요"
+            "description": "Password Manager Premium으로 무제한 액세스, 고급 보안 등을 이용하세요"
         },
         "data_card": {
             "details": "상세 정보",
@@ -481,8 +481,8 @@
         "recent_addresses": "최근",
         "used": "{{days}}일 전에 사용됨",
         "withdrawal_amount": "출금 금액",
-        "zelf_name_not_registered": "Zelf ID이 등록되지 않음",
-        "zelf_name_registered": "Zelf ID이 등록됨",
+        "zelf_name_not_registered": "Zelf ID가 등록되지 않음",
+        "zelf_name_registered": "Zelf ID가 등록됨",
         "from_address": "보내는 주소",
         "private_transaction": "프라이빗 트랜잭션",
         "amount_inline_required": "Required",
@@ -513,11 +513,11 @@
         "decrypt_and_reserve": "복호화 및 예약",
         "decrypt_now_pay_later": "지금 복호화하고 나중에 결제",
         "decrypt_now_renew_later": "지금 복호화하고 나중에 갱신",
-        "dont_lose_your_zelfname": "안녕하세요! 다른 사람이 구매하기 전에 오늘 Zelf ID을 갱신하거나 예약하세요.",
-        "dont_remember_zelfname": "Zelf ID을 기억하지 못하시나요?",
+        "dont_lose_your_zelfname": "안녕하세요! 다른 사람이 구매하기 전에 오늘 Zelf ID를 갱신하거나 예약하세요.",
+        "dont_remember_zelfname": "Zelf ID를 기억하지 못하시나요?",
         "enjoy_your_domain": "Zelf ID를 즐기세요. 임대를 완료해 계속 본인의 것으로 유지하세요.",
         "expiration_date": "만료일 {{ date }}",
-        "find_zelf_name_subtitle": "아래에 공개 주소를 입력하여 기존 Zelf ID을 찾으세요:",
+        "find_zelf_name_subtitle": "아래에 공개 주소를 입력하여 기존 Zelf ID를 찾으세요:",
         "find_zelf_name_title": "Zelf ID 찾기",
         "got_it": "알겠습니다. 나중에 하겠습니다",
         "grace_period_until": "유예 기간 만료일",
@@ -527,14 +527,14 @@
         "name_expires": "이름 만료",
         "new_domain": "새 도메인",
         "offline_subtitle": "이 Zelf ID QR는 오프라인에서 생성되어 다른 보안 시스템을 사용합니다. 현재는 확장 프로그램과 호환되지 않습니다. 곧 사용 가능해질 예정입니다.",
-        "offline_tip": "하지만 걱정하지 마세요! 다른 Zelf ID으로 Zelf ID QR를 가져와서 확장 프로그램에서 접근할 수 있습니다.",
+        "offline_tip": "하지만 걱정하지 마세요! 다른 Zelf ID로 Zelf ID QR를 가져와서 확장 프로그램에서 접근할 수 있습니다.",
         "i_understand_go_back": "이해했습니다. 홈으로 돌아가기",
         "old_domain": "기존 도메인",
         "paste_your_recovery_phrase": "비밀 복구 구문 전체를 아무 필드에 붙여넣을 수 있습니다",
-        "pick_your_new_zelfname_description": "<strong>{{ zelfName }}</strong>이(가) 이미 사용 중이지만 걱정하지 마세요! 동일한 시드 구문으로 Zelf ID QR에 접근하고 새로운 Zelf ID을 예약할 수 있습니다.",
+        "pick_your_new_zelfname_description": "<strong>{{ zelfName }}</strong>이(가) 이미 사용 중이지만 걱정하지 마세요! 동일한 시드 구문으로 Zelf ID QR에 접근하고 새로운 Zelf ID를 예약할 수 있습니다.",
         "pick_your_new_zelfname": "새로운 Zelf ID 선택",
         "public_address_input": "ETH 또는 SOL 공개 주소를 여기에 입력하세요",
-        "recover_your_zelfname_description": "<strong>{{ zelfName }}</strong>이(가) 아직 사용 가능합니다. 동일한 시드 구문으로 Zelf ID QR에 접근하고 Zelf ID을 복구할 수 있습니다.",
+        "recover_your_zelfname_description": "<strong>{{ zelfName }}</strong>이(가) 아직 사용 가능합니다. 동일한 시드 구문으로 Zelf ID QR에 접근하고 Zelf ID를 복구할 수 있습니다.",
         "recover_your_zelfname": "Zelf ID 복구",
         "referral_code": "추천 코드 (선택사항)",
         "referral_successfully_registered": "추천 코드가 성공적으로 등록됨",
@@ -546,9 +546,9 @@
         "transfer_done": "이체 완료",
         "upload_zelf_proof": "또는 Zelf ID QR 코드를 업로드하여 계속하세요:",
         "you_can_transfer_this_domain": "이 도메인을 이전할 수 있습니다",
-        "you_will_register_this_domain": "Zelf Name Service의 새로운 신원",
+        "you_will_register_this_domain": "새로운 Zelf ID",
         "safeguard_your_crypto": "암호화폐를 안전하게 보호하세요!",
-        "offline_import_subtitle": "오프라인 지갑을 가져오기 전에 새로운 Zelf ID을 선택해야 합니다.",
+        "offline_import_subtitle": "오프라인 지갑을 가져오기 전에 새로운 Zelf ID를 선택해야 합니다.",
         "your_zelf_name": "귀하의 Zelf ID",
         "create_new_account": "Zelf ID 만들기",
         "i_already_have_a_wallet": "이미 지갑이 있어요",
@@ -680,7 +680,7 @@
         "pin_title": "PIN",
         "secure_password_description": "추가 보안 레이어",
         "secure_password_title": "보안 비밀번호",
-        "security_layer_subtitle": "새 태그에 할당된 비밀번호 레이어를 선택하세요",
+        "security_layer_subtitle": "새 Zelf ID에 할당된 비밀번호 레이어를 선택하세요",
         "security_layer_title": "보안 레이어",
         "strong": "강함",
         "subtitle": "시드 구문의 길이를 선택하고 암호화 프로세스를 진행하세요.",
@@ -722,10 +722,11 @@
         }
     },
     "apps_hub": {
-        "label_wallet": "zWallet",
-        "label_keys": "zKeys",
-        "label_auth": "zAuth",
-        "label_id": "zID",
+        "label_wallet": "Wallet",
+        "label_keys": "Password Manager",
+        "label_auth": "2FA",
+        "label_id": "ID",
+        "label_legacy": "Legacy",
         "label_ai": "zAI"
     },
     "common": {
@@ -743,7 +744,7 @@
         "apps": "앱",
         "are_you_sure": "확실합니까?",
         "asset": "자산",
-        "auth_short": "인증",
+        "auth_short": "2FA",
         "authorized": "인증됨",
         "available": "사용 가능",
         "avax_address": "AVAX 주소",
@@ -861,22 +862,25 @@
         "unlock": "본인 인증 계속하기",
         "upload_qr_image": "QR 이미지 업로드",
         "verify": "확인",
-        "wallet_short": "지갑",
+        "wallet_short": "Wallet",
+        "keys_short": "Pass",
         "website": "웹사이트",
         "withdraw": "출금",
         "withdrawal_network": "출금 네트워크",
         "yes": "예",
         "your_token": "귀하의 {{ symbol }}",
         "zelf_ai": "zAI",
-        "zelf_authenticator": "zAuth",
+        "zelf_authenticator": "2FA",
         "zelf_chat": "zChat",
         "zelf_chat_coming_soon": "Zelf Chat이 곧 제공됩니다.",
         "zelf_chats": "zChats",
-        "zelf_keys": "Zelf 키",
+        "zelf_keys": "Password Manager",
         "zelf_link": "Zelf 링크",
         "zelf_signals": "zSignals",
         "zelf_signals_coming_soon": "Zelf Signals가 곧 제공됩니다.",
-        "zelf_wallet": "Zelf",
+        "legacy": "Legacy",
+        "legacy_coming_soon": "Legacy가 곧 제공됩니다.",
+        "zelf_wallet": "Wallet",
         "ton_address": "TON 주소",
         "validity_one_year": "유효 기간: 1년",
         "validity_years": "유효 기간: {{years}}년",
@@ -931,9 +935,9 @@
     },
     "manage_domains": {
         "are_you_sure_you_want_to_delete": "이 Zelf ID QR를 제거하시겠습니까?",
-        "domain_error": "{{ zelfName }}의 체험 기간이 종료되었습니다. 이 Zelf ID을 계속 사용하려면 구독을 구매해야 합니다",
+        "domain_error": "{{ zelfName }}의 체험 기간이 종료되었습니다. 이 Zelf ID를 계속 사용하려면 구독을 구매해야 합니다",
         "domain_warning": "아직 구매할 시간이 있습니다",
-        "expired_wallet_logout_message": "Zelf ID으로 검색하면 이 Zelf ID QR를 다시 복호화할 수 있습니다. 그러나 곧 구매하지 않으면 잃을 위험이 있습니다.",
+        "expired_wallet_logout_message": "Zelf ID로 검색하면 이 Zelf ID QR를 다시 복호화할 수 있습니다. 그러나 곧 구매하지 않으면 잃을 위험이 있습니다.",
         "logout_of_wallet_message": "Zelf ID로 검색하거나 Zelf ID QR 코드를 로드하여 이 Zelf ID QR를 다시 복호화할 수 있습니다.",
         "purchase_new_domain": "새 Zelf ID 추가",
         "zelfproof_removed_successfully": "Zelf ID QR가 성공적으로 제거되었습니다"
@@ -1018,7 +1022,7 @@
         "try_again": "다시 시도",
         "unknown_error": "알 수 없는 오류가 발생했습니다",
         "user_cancelled_decryption": "복호화가 취소되었습니다",
-        "zelfName_is_taken": "이 Zelf ID은 이미 사용 중입니다",
+        "zelfName_is_taken": "이 Zelf ID는 이미 사용 중입니다",
         "solana_insufficient_sol_for_fees": "Insufficient SOL. You do not have enough SOL to cover the transaction fees or account creation.",
         "solana_insufficient_sol_for_rent": "Insufficient SOL. You do not have enough SOL to pay for the destination account creation.",
         "stellar_amount_below_reserve": "The amount is below the minimum required to open this Stellar account.",
@@ -1137,23 +1141,23 @@
         "ru": "러시아어"
     },
     "cta_sheet": {
-        "i_dont_want_this_wallet": "이 Zelf ID을 더 이상 원하지 않습니다",
+        "i_dont_want_this_wallet": "이 Zelf ID를 더 이상 원하지 않습니다",
         "choose_new_zelfname": "새로운 Zelf ID 선택",
         "recover_it_now": "지금 복구하기",
-        "delete_wallet_title": "태그 제거",
-        "delete_wallet_message": "태그를 제거하기 전에 Zelf ID QR 코드를 백업했는지 확인하세요.",
+        "delete_wallet_title": "Zelf ID 제거",
+        "delete_wallet_message": "Zelf ID를 제거하기 전에 Zelf ID QR 코드를 백업했는지 확인하세요.",
         "yes_because": "네, 그 이유는:",
         "thanks_for_subscribing": "구독해 주셔서 감사합니다",
         "make_zelfname_yours": "{{ zelfName }}을(를) 당신의 것으로 만들기",
         "keep_zelfname_yours": "{{ zelfName }}을(를) 당신의 것으로 유지하기",
-        "love_your_zelfname": "당신의 Zelf ID이 마음에 드시나요?",
+        "love_your_zelfname": "당신의 Zelf ID가 마음에 드시나요?",
         "time_is_running_out": "시간이 얼마 남지 않았습니다",
-        "not_much_time_left": "당신의 Zelf ID이 조금 더 예약되어 있지만, 너무 오래 기다리지 마세요!",
+        "not_much_time_left": "당신의 Zelf ID가 조금 더 예약되어 있지만, 너무 오래 기다리지 마세요!",
         "oh_no": "이런!",
         "thanks_for_reserving": "예약해 주셔서 감사합니다",
         "is_no_longer_available": "더 이상 사용할 수 없습니다",
         "has_been_taken": "이미 사용 중입니다",
-        "benefit_title": "Zelf ID으로 얻을 수 있는 혜택:",
+        "benefit_title": "Zelf ID로 얻을 수 있는 혜택:",
         "benefit_1_title": "오프라인 암호화",
         "benefit_1_subtitle": "당신의 키, 당신의 통제",
         "benefit_2_title": "초개인정보 복호화",
@@ -1174,9 +1178,9 @@
         "is_still_available": "아직 사용 가능합니다",
         "resubscribe_within": "{{ days }}일 이내에 재구독하세요",
         "complete_purchase_within": "1년 보안을 위해 {{ days }}일 이내에 구매를 완료하세요",
-        "have_you_explored_the_benefits": "Zelf ID과 ZkProofs의 혜택을 살펴보셨나요?",
+        "have_you_explored_the_benefits": "Zelf ID와 ZkProofs의 혜택을 살펴보셨나요?",
         "but_someone_else_could_grab_it": "다른 사람이 가져갈 수 있습니다! 종이에 시드 구문을 적어두는 위험을 감수하지 마세요!",
-        "but_dont_worry_you_can_access_your_zelfproof": "걱정하지 마세요. 같은 시드 구문으로 Zelf ID에 접근하고 새로운 Zelf ID을 예약할 수 있습니다.",
+        "but_dont_worry_you_can_access_your_zelfproof": "걱정하지 마세요. 같은 시드 구문으로 Zelf ID에 접근하고 새로운 Zelf ID를 예약할 수 있습니다.",
         "considerations_description_1": "깨지지 않는 보안.",
         "considerations_description_2": "고유한 정체성.",
         "considerations_description_3": "미래 지향적 보호."
@@ -1244,7 +1248,7 @@
             "unknown": "알 수 없음",
             "premium": {
                 "title": "프리미엄 기능 잠금 해제",
-                "description": "ZelfKeys Premium으로 고급 보안 및 더 많은 기능"
+                "description": "Password Manager Premium으로 고급 보안 및 더 많은 기능"
             },
             "add_card": {
                 "title": "새 카드 추가",
@@ -1392,7 +1396,7 @@
             },
             "premium": {
                 "title": "프리미엄 기능 잠금 해제",
-                "description": "ZelfKeys Premium으로 고급 보안 및 더 많은 기능"
+                "description": "Password Manager Premium으로 고급 보안 및 더 많은 기능"
             },
             "add_note": {
                 "title": "새 노트 추가",
@@ -1480,7 +1484,7 @@
             },
             "premium": {
                 "title": "프리미엄 기능 잠금 해제",
-                "description": "ZelfKeys Premium으로 고급 보안 및 더 많은 기능"
+                "description": "Password Manager Premium으로 고급 보안 및 더 많은 기능"
             },
             "add_password": {
                 "title": "새 비밀번호 추가",
@@ -1630,7 +1634,7 @@
         }
     },
     "start": {
-        "title": "ZelfKeys에 오신 것을 환영합니다",
+        "title": "Password Manager에 오신 것을 환영합니다",
         "subtitle": "안전한 비밀번호 관리자",
         "features": {
             "install_extension": {
@@ -1754,6 +1758,7 @@
     },
     "zotp": {
         "add_zotp": "ZOTP 추가",
+        "vault_eyebrow": "ZELF",
         "empty_preview_name": "직장 계정",
         "empty_preview_issuer": "예: 은행 또는 앱",
         "empty_add_hint": "카드를 눌러 첫 ZOTP를 추가하세요.",
@@ -2042,5 +2047,12 @@
         "thinking": "zAI가 생각 중이에요… 1~2분 정도 걸릴 수 있어요.",
         "recovering": "답변을 가져오는 중…",
         "error_timeout": "zAI가 제시간에 답하지 못했어요. 다시 시도해 주세요."
+    },
+    "home_hub": {
+        "quick_label_keys": "Pass",
+        "quick_label_auth": "2FA",
+        "quick_label_legacy": "Legacy",
+        "quick_label_id": "ID",
+        "more_apps": "더보기"
     }
 }

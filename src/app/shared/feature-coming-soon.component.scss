@@ -97,6 +97,12 @@
         margin-bottom: calc(14px * var(--zns-space-scale, 1));
     }
 
+    &__hero-icon {
+        width: 34px;
+        height: 34px;
+        object-fit: contain;
+    }
+
     &__pill {
         display: inline-flex;
         align-items: center;
@@ -138,60 +144,6 @@
     }
 
     /* Privy Inset Information Block */
-    &__preview {
-        width: 100%;
-        background: var(--zns-theme-card, #ffffff);
-        border: 1px solid var(--zns-theme-border, #e3e3e3);
-        border-radius: 18px;
-        padding: calc(14px * var(--zns-space-scale, 1)) calc(16px * var(--zns-space-scale, 1));
-        display: flex;
-        flex-direction: column;
-        gap: calc(12px * var(--zns-space-scale, 1));
-        box-shadow: 0 4px 16px -4px var(--zns-theme-shadow, rgba(0, 0, 0, 0.04));
-    }
-
-    &__preview-row {
-        display: flex;
-        align-items: flex-start;
-        gap: calc(12px * var(--zns-space-scale, 1));
-        text-align: left;
-    }
-
-    &__preview-icon {
-        width: 36px;
-        height: 36px;
-        border-radius: 11px;
-        background: #fff0eb;
-        color: #FD6337;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        margin-top: 1px;
-    }
-
-    &__preview-text {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        min-width: 0;
-    }
-
-    &__preview-title {
-        margin: 0;
-        font-size: calc(13px * var(--zns-font-scale, 1));
-        font-weight: 600;
-        color: var(--zns-theme-text, #181818);
-    }
-
-    &__preview-subtitle {
-        margin: 0;
-        font-size: calc(12px * var(--zns-font-scale, 1));
-        color: var(--zns-theme-text-muted, #96939e);
-        line-height: 1.45;
-    }
-
     &__actions {
         width: 100%;
         margin-top: calc(16px * var(--zns-space-scale, 1));

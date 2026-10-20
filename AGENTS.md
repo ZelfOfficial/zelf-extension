@@ -6,8 +6,8 @@ The extension does **not** ship **Zelf Chat** (no chat routes, components, or se
 
 ## Shell layout (hub vs deep)
 
-- **Hub** screens show `home-hub-header` and footer AI.
-- **Deep** screens (detail/form/result) hide the hub header and show footer **+ Add** instead of AI.
+- **Hub** screens show `home-hub-header`; the footer pill shows the active section and the apps grid (the zAI star was removed in #29).
+- **Deep** screens (detail/form/result) hide the hub header and the footer pill adds **+ Add**.
 - Register deep paths in `src/app/services/shell-layout.service.ts`. Rule: `.cursor/rules/extension-shell-layout.mdc`.
 
 ## Zelf ID onboarding cards
