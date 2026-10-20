@@ -27,6 +27,8 @@ import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { SettingsService } from "app/services/settings.service";
+import { SigningAuthorizationService } from "app/services/signing-authorization.service";
+import { FACE_ONLY_PASSPHRASE, SigningGateInput, resolveSigningGate, signingNeedsFace } from "app/core/security/signing-gate.util";
 import { environment } from "environments/environment";
 import { AssetChangeData, SwapCurrencyComponent } from "../swap-currency/swap-currency.component";
 import { DisplayAmountPipe, DisplayFiatPipe } from "../pipes/display-number.pipe";
@@ -64,7 +66,10 @@ export interface SwapNetworkRow {
 export class SwapComponent implements OnInit, OnDestroy {
     private _feeUpdateInterval: ReturnType<typeof setInterval> | null = null;
     private _mnemonics: string = "";
-    private _password: string = "";
+    /** Password/PIN typed before this swap's face step (vault). Only used with a face approval for this swap (#88). */
+    private _carriedSecret: string = "";
+    /** Wallet without password/PIN: face on every swap (#88). */
+    isFaceOnly: boolean = false;
     private _requiresBiometricsInterval: ReturnType<typeof setInterval> | null = null;
 
     private CAN_SWAP: NetworkPermissions = {};
@@ -127,22 +132,18 @@ export class SwapComponent implements OnInit, OnDestroy {
         private _vaultService: VaultService,
         private _walletService: WalletService,
         private _tagsService: TagsService,
-        private _settingsService: SettingsService
+        private _settingsService: SettingsService,
+        private _signingAuthorization: SigningAuthorizationService
     ) {
         this.CAN_SWAP = this._assetService.canSwap;
         this.wallet = {} as TagModel;
         this.remainingAttempts = this._vaultService.remainingAttempts;
 
         this._mnemonics = "";
-        this._password = this._vaultService.password;
+        this._carriedSecret = this._vaultService.password;
 
         this._vaultService.mnemonic = "";
         this._vaultService.password = "";
-
-        if (this._password && this._password.trim()) {
-            this.passwordSet = true;
-            this.requiresBiometrics = false;
-        }
 
         this._setRequiresBiometricsInterval();
     }
@@ -160,6 +161,7 @@ export class SwapComponent implements OnInit, OnDestroy {
             });
 
         this.wallet = (await this._walletService.getCurrentWallet()) as TagModel;
+        this.isFaceOnly = String((this.wallet?.publicData as any)?.hasPassword) === "false";
 
         this._initForm();
 
@@ -366,49 +368,66 @@ export class SwapComponent implements OnInit, OnDestroy {
         clearInterval(this._requiresBiometricsInterval as ReturnType<typeof setInterval>);
     }
 
-    private async _decryptMnemonics(): Promise<any> {
-        this.requiresBiometrics = await this._vaultService.biometricsRequired();
+    /** #88: binds a face approval to this swap (wallet, source/target asset and network, amount). */
+    private _signingScope(): string {
+        const v = this.form?.value || {};
+        const src = this.selectedSourceAsset || {};
+        const dst = this.selectedTargetAsset || {};
+        const amount = String(v.sourceAmount ?? "");
 
-        if (!this.wallet?.pgp?.encryptedMessage || !this.wallet?.pgp?.privateKey || this.requiresBiometrics) {
-            this.requiresBiometrics = true;
+        if (!src.symbol || !dst.symbol || !amount) return "";
 
-            return;
-        }
-
-        if (!this._password && !this.form.get("password")?.value) return;
-
-        const secret = JSON.parse(await this._decryptMessage());
-
-        this._mnemonics = secret?.mnemonic?.trim()?.toLowerCase();
-        this.requiresBiometrics = !this._mnemonics;
+        return ["swap", this.wallet?.fullTagName || this.wallet?.tagName || "", src.network, src.symbol, dst.network, dst.symbol, amount]
+            .join("|")
+            .toLowerCase();
     }
 
-    private async _decryptMessage(): Promise<any> {
+    private async _signingGateInput(): Promise<SigningGateInput> {
+        return {
+            faceOnly: this.isFaceOnly,
+            hasVaultKeys: !!(this.wallet?.pgp?.encryptedMessage && this.wallet?.pgp?.privateKey),
+            windowOpen: !(await this._vaultService.biometricsRequired()),
+            faceApproved: this._signingAuthorization.has(this._signingScope()),
+            typedSecret: this.form?.get("password")?.value || "",
+            carriedSecret: this._carriedSecret,
+        };
+    }
+
+    /** Which button (Verify = face / Swap) and whether the password/PIN field is shown. Never decrypts. */
+    private async _decryptMnemonics(): Promise<void> {
+        const input = await this._signingGateInput();
+
+        this.requiresBiometrics = signingNeedsFace(input);
+        this.passwordSet = this.isFaceOnly || (input.faceApproved && input.hasVaultKeys && !!(input.carriedSecret || "").trim());
+    }
+
+    /** Decrypts the local seed with this passphrase. Wrong passphrase / expired keys: returns "" and nothing is signed. */
+    private async _decryptSeed(passphrase: string): Promise<string> {
         const encryptedMessage = this.wallet?.pgp?.encryptedMessage as string;
         const privateKeyArmoured = this.wallet?.pgp?.privateKey as string;
-        const passphrase = this._password || this.form.get("password")?.value;
-
-        if (!encryptedMessage || !privateKeyArmoured || !passphrase) return;
 
         try {
-            return await this._vaultService.decryptMessage(encryptedMessage, privateKeyArmoured, passphrase);
-        } catch (error) {
-            this.wallet = (await this._walletService.getCurrentWallet()) as TagModel;
+            const raw = await this._vaultService.decryptMessage(encryptedMessage, privateKeyArmoured, passphrase);
 
-            this.remainingAttempts = this._vaultService.remainingAttempts + 1;
+            this.passwordError = false;
 
-            if (!this.wallet?.pgp) {
-                this._mnemonics = "";
-                this._password = "";
+            return JSON.parse(raw)?.mnemonic?.trim()?.toLowerCase() || "";
+        } catch (error: any) {
+            this._carriedSecret = "";
+            this.form?.get("password")?.setValue("");
+            this.wallet = ((await this._walletService.getCurrentWallet()) as TagModel) || this.wallet;
+            this.remainingAttempts = this._vaultService.remainingAttempts;
 
-                this.passwordError = false;
-                this.passwordSet = false;
-                this.requiresBiometrics = true;
-            } else {
-                this.passwordError = true;
-            }
+            const expired = error === "expired" || error?.message === "expired";
+            const keysGone = !this.wallet?.pgp?.encryptedMessage || !this.wallet?.pgp?.privateKey;
 
-            throw error;
+            this.passwordError = !expired && !keysGone && !this.isFaceOnly;
+
+            if (expired || keysGone) this.openErrorSnackBar("errors.private_key_locked");
+
+            await this._decryptMnemonics();
+
+            return "";
         }
     }
 
@@ -647,7 +666,8 @@ export class SwapComponent implements OnInit, OnDestroy {
                 commission: [0, [Validators.required, Validators.min(0)]],
                 commissionToggle: ["automatic", [Validators.required]],
                 fee: [0, [Validators.required, Validators.min(0)]],
-                password: [this._password || "", [Validators.required]],
+                // #88: never pre-filled; the password/PIN is typed for each swap.
+                password: ["", [Validators.required]],
                 slippage: [0.5, [Validators.required, Validators.min(0), Validators.max(0.8)]],
                 slippageToggle: ["automatic", [Validators.required]],
                 sourceAmount: ["", [Validators.required, this._greaterThanZero]],
@@ -762,7 +782,10 @@ export class SwapComponent implements OnInit, OnDestroy {
             swapFlowMode: this.swapMode,
             selectedSwapNetworkId: this.selectedSwapNetworkId,
         });
-        this._vaultService.password = this.form.get("password")?.value;
+        // #88: the face step needs the password/PIN typed for this swap (face-only wallets: placeholder),
+        // and it can only approve this swap.
+        this._vaultService.password = this.isFaceOnly ? FACE_ONLY_PASSPHRASE : this.form.get("password")?.value || "";
+        this._signingAuthorization.requestAuthorization(this._signingScope());
         this._router.navigate(["/security/biometrics"], { queryParams: { return: "/swap" } });
     }
 
@@ -782,10 +805,7 @@ export class SwapComponent implements OnInit, OnDestroy {
         if (this._requiresBiometricsInterval) this._clearRequiresBiometricsInterval();
 
         this._requiresBiometricsInterval = setInterval(() => {
-            this._vaultService.biometricsRequired().then((result) => {
-                if (!this.wallet?.pgp) this.requiresBiometrics = true;
-                else this.requiresBiometrics = result;
-            });
+            void this._signingGateInput().then((input) => (this.requiresBiometrics = signingNeedsFace(input)));
         }, 1000);
     }
 
@@ -849,43 +869,37 @@ export class SwapComponent implements OnInit, OnDestroy {
             });
     }
 
+    /** #88 signing rule (core/security/signing-gate.util.ts). Sets this._mnemonics only when signing is allowed. */
     private async _validateCredentials(): Promise<boolean> {
-        if (!this._password && !this.form.get("password")?.value) {
+        this._mnemonics = "";
+
+        const gate = resolveSigningGate(await this._signingGateInput());
+
+        if (gate.action === "ask-secret") {
+            await this._decryptMnemonics();
             this.openErrorSnackBar("errors.empty_password");
 
             return false;
         }
 
-        if (this.requiresBiometrics) {
+        if (gate.action === "face") {
+            this.requiresBiometrics = true;
             await this._redirectToBiometrics();
 
             return false;
         }
 
-        if (this._mnemonics) return true;
-
-        try {
-            await this._decryptMnemonics();
-
-            if (this._mnemonics) return true;
-        } catch (error: unknown) {
-            if ((error as { message?: string })?.message === "expired") {
-                await this._redirectToBiometrics();
-
-                return false;
-            }
-
-            this.openErrorSnackBar("errors.invalid_credentials");
+        if (gate.consumeApproval && !this._signingAuthorization.consume(this._signingScope())) {
+            this.requiresBiometrics = true;
+            await this._redirectToBiometrics();
 
             return false;
         }
 
-        if (this.requiresBiometrics) return false;
-        if (this._mnemonics) return true;
+        this._mnemonics = await this._decryptSeed(gate.passphrase);
+        this._carriedSecret = "";
 
-        this.openErrorSnackBar("errors.private_key_locked");
-
-        return false;
+        return !!this._mnemonics;
     }
 
     async confirmSwap(): Promise<void> {
@@ -934,6 +948,7 @@ export class SwapComponent implements OnInit, OnDestroy {
             this.swapError = this._translocoService.translate(messageKey);
             this.openErrorSnackBar(messageKey);
         } finally {
+            this._mnemonics = "";
             this.sending = false;
             this._changeDetectionRef.detectChanges();
         }
