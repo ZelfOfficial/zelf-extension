@@ -231,7 +231,8 @@ export class ZelfKeysNotesComponent implements OnInit, OnDestroy {
         if (note.publicData?.description) return note.publicData.description;
         if (note.subtitle) return note.subtitle;
         if (note.publicData?.content) return note.publicData.content;
-        if (note.publicData?.zelfName) return `Zelf Name: ${note.publicData.zelfName}`;
+        if (note.publicData?.zelfName)
+            return this._translocoService.translate("zelf_keys.data_card.zelf_name_label", { zelfName: note.publicData.zelfName });
         if (note.publicData?.category) return `Category: ${note.publicData.category}`;
 
         return this._translocoService.translate("zelf_keys.data_card.secure_note");

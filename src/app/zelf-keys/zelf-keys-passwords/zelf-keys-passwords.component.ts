@@ -233,7 +233,8 @@ export class ZelfKeysPasswordsComponent implements OnInit, OnDestroy {
         if (password.publicData?.username) return `Username: ${password.publicData.username}`;
         if (password.publicData?.description) return password.publicData.description;
         if (password.subtitle) return password.subtitle;
-        if (password.publicData?.zelfName) return `Zelf Name: ${password.publicData.zelfName}`;
+        if (password.publicData?.zelfName)
+            return this._translocoService.translate("zelf_keys.data_card.zelf_name_label", { zelfName: password.publicData.zelfName });
         if (password.publicData?.category) return `Category: ${password.publicData.category}`;
         if (password.publicData?.type) return `Type: ${password.publicData.type}`;
 

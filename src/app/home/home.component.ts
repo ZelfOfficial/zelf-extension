@@ -25,7 +25,8 @@ import { BACKGROUND_BALANCE_CONCURRENCY, SUPPORTED_NETWORK_IDS, splitBalanceStag
 import { dedupeBalanceTokens, mergeBalanceTokens, sumFiatBalance } from "app/core/utils/balance-tokens.util";
 import { forEachWithConcurrency } from "app/core/utils/concurrency.util";
 
-const QUICK_HUB_IDS = ["zelf-keys", "zelf-authenticator", "zelf-signals", "manage-domains"] as const;
+/** Home quick-access row (#29): Pass, 2FA, Legacy, ID, then "More". */
+const QUICK_HUB_IDS = ["zelf-keys", "zelf-authenticator", "legacy", "manage-domains"] as const;
 
 @Component({
     imports: [ValidityYearsPipe, 
@@ -102,8 +103,8 @@ export class HomeComponent implements OnInit, OnDestroy {
                 return "home_hub.quick_label_keys";
             case "zelf-authenticator":
                 return "home_hub.quick_label_auth";
-            case "zelf-signals":
-                return "home_hub.quick_label_signals";
+            case "legacy":
+                return "home_hub.quick_label_legacy";
             case "manage-domains":
                 return "home_hub.quick_label_id";
             default:

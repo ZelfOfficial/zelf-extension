@@ -140,7 +140,7 @@ export class InviteFriendsComponent implements OnInit, OnDestroy {
     }
 
     getStatusLabel(status: InviteFriendStatus): string {
-        return status === "tag_name_purchased" ? "Tag name purchased" : "Tag name created";
+        return status === "tag_name_purchased" ? "Zelf ID purchased" : "Zelf ID created";
     }
 
     isRewardRedeemable(friend: InvitedFriend): boolean {

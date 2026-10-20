@@ -28,7 +28,8 @@ export class FooterNavigationService {
         },
         {
             id: "zelf-keys",
-            labelKey: "common.zelf_keys",
+            // Short "Pass" label: the footer pill also holds "+ Add" on deep screens.
+            labelKey: "common.keys_short",
             iconUrl: "assets/icons/key_icon.svg",
             route: "/zelf-keys",
         },
@@ -39,28 +40,16 @@ export class FooterNavigationService {
             route: "/zelf-authenticator",
         },
         {
+            id: "legacy",
+            labelKey: "common.legacy",
+            iconUrl: "assets/icons/legacy_icon.svg",
+            route: "/legacy",
+        },
+        {
             id: "manage-domains",
             labelKey: "common.manage_domains",
             iconUrl: "assets/icons/zelf_id_icon.svg",
             route: "/manage-domains",
-        },
-        {
-            id: "zelf-chat",
-            labelKey: "common.zelf_chat",
-            iconUrl: "assets/icons/chat_icon.svg",
-            route: "/zelf-chat",
-        },
-        {
-            id: "zelf-signals",
-            labelKey: "common.zelf_signals",
-            iconUrl: "assets/icons/signals_icon.svg",
-            route: "/zelf-signals",
-        },
-        {
-            id: "zelf-ai",
-            labelKey: "common.zelf_ai",
-            iconUrl: "assets/icons/ai_icon.svg",
-            route: "/zelf-ai",
         },
         {
             id: "settings",
@@ -114,17 +103,8 @@ export class FooterNavigationService {
         return false;
     }
 
-    /** Order for full-page apps hub (screenshot 1). */
-    private readonly _hubDestinationIds: string[] = [
-        "home",
-        "wallet",
-        "zelf-keys",
-        "zelf-authenticator",
-        "zelf-chat",
-        "zelf-signals",
-        "manage-domains",
-        "zelf-ai",
-    ];
+    /** Order for the full-page apps hub (Figma "ZELF App 3.0" full menu, #29). zChats, zSignals and zAI are retired. */
+    private readonly _hubDestinationIds: string[] = ["home", "wallet", "zelf-keys", "zelf-authenticator", "legacy", "manage-domains"];
 
     public getHubDestinations(): FooterNavDestination[] {
         return this._hubDestinationIds
@@ -132,7 +112,7 @@ export class FooterNavigationService {
             .filter((d): d is FooterNavDestination => !!d);
     }
 
-    /** Short z-prefixed labels for the full-screen Apps Hub list (reference UI). */
+    /** Labels for the full-screen Apps Hub list: Wallet, Password Manager, 2FA, Legacy, ID. */
     public hubLabelKey(dest: FooterNavDestination): string {
         switch (dest.id) {
             case "wallet":
@@ -141,14 +121,10 @@ export class FooterNavigationService {
                 return "apps_hub.label_keys";
             case "zelf-authenticator":
                 return "apps_hub.label_auth";
-            case "zelf-chat":
-                return "common.zelf_chats";
-            case "zelf-signals":
-                return "common.zelf_signals";
+            case "legacy":
+                return "apps_hub.label_legacy";
             case "manage-domains":
                 return "apps_hub.label_id";
-            case "zelf-ai":
-                return "apps_hub.label_ai";
             default:
                 return dest.labelKey;
         }

@@ -1,15 +1,17 @@
 import { NgFor, NgIf } from "@angular/common";
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
+import { MatMenuModule } from "@angular/material/menu";
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from "@angular/router";
-import { TranslocoModule } from "@jsverse/transloco";
+import { LangDefinition, TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { filter, Subject, takeUntil } from "rxjs";
 
+import { LanguageService } from "app/language.service";
 import { FooterNavigationService, FooterNavDestination } from "../zelf-footer/footer-navigation.service";
 import { getAppBuildDate, getAppVersion } from "../../environments/version";
 
 @Component({
-    imports: [NgFor, NgIf, MatButtonModule, RouterLink, RouterLinkActive, TranslocoModule],
+    imports: [NgFor, NgIf, MatButtonModule, MatMenuModule, RouterLink, RouterLinkActive, TranslocoModule],
     selector: "apps-hub",
     styleUrls: ["./apps-hub.component.scss"],
     templateUrl: "./apps-hub.component.html",
@@ -19,6 +21,10 @@ export class AppsHubComponent implements OnInit, OnDestroy {
 
     currentUrl: string = "";
     readonly hubDestinations: FooterNavDestination[];
+
+    activeLang: string;
+    readonly availableLangs: LangDefinition[];
+    readonly flagCodes: Record<string, string>;
 
     get appVersion(): string {
         return getAppVersion();
@@ -30,13 +36,22 @@ export class AppsHubComponent implements OnInit, OnDestroy {
 
     constructor(
         private readonly _router: Router,
-        public readonly navService: FooterNavigationService
+        public readonly navService: FooterNavigationService,
+        private readonly _languageService: LanguageService,
+        private readonly _translocoService: TranslocoService
     ) {
         this.hubDestinations = this.navService.getHubDestinations();
+        this.activeLang = this._languageService.getAppLanguage();
+        this.availableLangs = this._languageService.getAvailableLanguages();
+        this.flagCodes = this._languageService.flagCodes;
     }
 
     ngOnInit(): void {
         this._updateUrl(this._router.url);
+
+        this._translocoService.langChanges$.pipe(takeUntil(this._destroy$)).subscribe((lang) => {
+            this.activeLang = lang;
+        });
 
         this._router.events
             .pipe(
@@ -72,6 +87,15 @@ export class AppsHubComponent implements OnInit, OnDestroy {
 
     navigateTo(dest: FooterNavDestination): void {
         void this._router.navigate([dest.route]);
+    }
+
+    /** Same persistence as Settings > Language (chrome storage `currentLanguage`). */
+    setLanguage(lang: string): void {
+        this._languageService.setAppLanguage(lang);
+    }
+
+    getLanguageName(lang: string): string {
+        return this._languageService.getLanguageName(lang);
     }
 
 }

@@ -233,7 +233,7 @@
         },
         "subscription_banner": {
             "title": "ปลดล็อกฟีเจอร์พรีเมียม",
-            "description": "รับการเข้าถึงไม่จำกัด ความปลอดภัยขั้นสูง และอื่นๆ กับ ZelfKeys Premium"
+            "description": "รับการเข้าถึงไม่จำกัด ความปลอดภัยขั้นสูง และอื่นๆ กับ Password Manager Premium"
         },
         "data_card": {
             "details": "รายละเอียด",
@@ -508,7 +508,7 @@
         "share_transaction": "แชร์ธุรกรรม"
     },
     "welcome": {
-        "code_name": "ชื่อแท็กอ้างอิง",
+        "code_name": "Zelf ID ผู้แนะนำ",
         "domain_expired_since": "โดเมนหมดอายุตั้งแต่ {{ date }}",
         "decrypt_and_reserve": "ถอดรหัสและจอง",
         "decrypt_now_pay_later": "ถอดรหัสตอนนี้ จ่ายทีหลัง",
@@ -527,14 +527,14 @@
         "name_expires": "ชื่อหมดอายุ",
         "new_domain": "โดเมนใหม่",
         "offline_subtitle": "Zelf ID QR นี้ถูกสร้างแบบออฟไลน์ จึงใช้ระบบความปลอดภัยที่แตกต่างกัน ในขณะนี้ยังไม่รองรับส่วนขยาย จะมีให้ใช้เร็วๆ นี้",
-        "offline_tip": "แต่ไม่ต้องกังวล! คุณสามารถนำเข้า Zelf ID QR ของคุณด้วยชื่อแท็กอื่นเพื่อให้สามารถเข้าถึงจากส่วนขยายได้",
+        "offline_tip": "แต่ไม่ต้องกังวล! คุณสามารถนำเข้า Zelf ID QR ของคุณด้วย Zelf ID อื่นเพื่อให้สามารถเข้าถึงจากส่วนขยายได้",
         "i_understand_go_back": "เข้าใจแล้ว กลับหน้าหลัก",
         "old_domain": "โดเมนเก่า",
         "paste_your_recovery_phrase": "คุณสามารถวางวลีกู้คืนลับทั้งหมดของคุณในช่องใดก็ได้",
-        "pick_your_new_zelfname_description": "<strong>{{ zelfName }}</strong> ถูกใช้ไปแล้ว แต่ไม่ต้องกังวล! คุณสามารถเข้าถึง Zelf ID QR ของคุณและจองชื่อแท็กใหม่ด้วยวลีเริ่มต้นเดียวกัน",
+        "pick_your_new_zelfname_description": "<strong>{{ zelfName }}</strong> ถูกใช้ไปแล้ว แต่ไม่ต้องกังวล! คุณสามารถเข้าถึง Zelf ID QR ของคุณและจอง Zelf ID ใหม่ด้วยวลีเริ่มต้นเดียวกัน",
         "pick_your_new_zelfname": "เลือก Zelf ID ใหม่ของคุณ",
         "public_address_input": "ป้อนที่อยู่สาธารณะ ETH หรือ SOL ของคุณที่นี่",
-        "recover_your_zelfname_description": "<strong>{{ zelfName }}</strong> ยังว่างอยู่ คุณสามารถเข้าถึง Zelf ID QR ของคุณและกู้คืนชื่อแท็กของคุณด้วยวลีเริ่มต้นเดียวกัน",
+        "recover_your_zelfname_description": "<strong>{{ zelfName }}</strong> ยังว่างอยู่ คุณสามารถเข้าถึง Zelf ID QR ของคุณและกู้คืน Zelf ID ของคุณด้วยวลีเริ่มต้นเดียวกัน",
         "recover_your_zelfname": "กู้คืน Zelf ID ของคุณ",
         "referral_code": "รหัสอ้างอิง (ไม่บังคับ)",
         "referral_successfully_registered": "ลงทะเบียนรหัสอ้างอิงสำเร็จ",
@@ -546,9 +546,9 @@
         "transfer_done": "โอนเสร็จสิ้น",
         "upload_zelf_proof": "หรืออัปโหลดรหัส QR ของ Zelf ID QR ของคุณเพื่อดำเนินการต่อ:",
         "you_can_transfer_this_domain": "คุณสามารถโอนโดเมนนี้ได้",
-        "you_will_register_this_domain": "อัตลักษณ์ใหม่ของคุณบน Zelf Name Service",
+        "you_will_register_this_domain": "Zelf ID ใหม่ของคุณ",
         "safeguard_your_crypto": "ปกป้องคริปโตของคุณ!",
-        "offline_import_subtitle": "ก่อนที่คุณจะสามารถนำเข้ากระเป๋าเงินออฟไลน์ คุณต้องเลือกชื่อแท็กใหม่",
+        "offline_import_subtitle": "ก่อนที่คุณจะสามารถนำเข้ากระเป๋าเงินออฟไลน์ คุณต้องเลือก Zelf ID ใหม่",
         "your_zelf_name": "Zelf ID ของคุณ",
         "create_new_account": "สร้าง Zelf ID",
         "i_already_have_a_wallet": "ฉันมีกระเป๋าเงินอยู่แล้ว",
@@ -653,7 +653,7 @@
         "hide_words": "ซ่อนคำ",
         "medium": "ปานกลาง",
         "new_password_subtitle": "รหัสผ่านต่อไปนี้เป็นชั้นการเข้ารหัสที่จำเป็นสำหรับ Zelf ID QR ของคุณ",
-        "password_decryption": "ZELFNAME ต้องการรหัสผ่าน",
+        "password_decryption": "Zelf ID ต้องการรหัสผ่าน",
         "password_parameters_title": "แนวทางการตั้งรหัสผ่าน",
         "password_parameters": "แนวทางการตั้งรหัสผ่านของเราคือ: <ul><li>ต้องมีความยาวระหว่าง 8 ถึง 128 ตัวอักษร</li> <li>ต้องมีตัวอักษรตัวพิมพ์ใหญ่อย่างน้อย 1 ตัว</li> <li>ต้องมีตัวอักษรตัวพิมพ์เล็ก 1 ตัว</li> <li>ต้องมีตัวเลข 1 ตัว</li> <li>ต้องมีอักขระพิเศษ 1 ตัว</li> <li>หลีกเลี่ยงรหัสผ่านที่ใช้กันทั่วไป</li> <li>หลีกเลี่ยงการใช้อักขระซ้ำ</li></ul>",
         "password_strength_label": "ความแข็งแรงของรหัสผ่าน",
@@ -664,7 +664,7 @@
         "pin_title": "PIN",
         "secure_password_description": "ชั้นความปลอดภัยเพิ่มเติม",
         "secure_password_title": "รหัสผ่านที่ปลอดภัย",
-        "security_layer_subtitle": "กรุณาเลือกชั้นรหัสผ่านที่กำหนดให้กับแท็กใหม่ของคุณ",
+        "security_layer_subtitle": "กรุณาเลือกชั้นรหัสผ่านที่กำหนดให้กับ Zelf ID ใหม่ของคุณ",
         "security_layer_title": "ชั้นความปลอดภัย",
         "strong": "แข็งแรง",
         "subtitle": "เลือกความยาวของวลีเริ่มต้นของคุณและดำเนินการกับกระบวนการเข้ารหัส",
@@ -706,10 +706,11 @@
         }
     },
     "apps_hub": {
-        "label_wallet": "zWallet",
-        "label_keys": "zKeys",
-        "label_auth": "zAuth",
-        "label_id": "zID",
+        "label_wallet": "Wallet",
+        "label_keys": "Password Manager",
+        "label_auth": "2FA",
+        "label_id": "ID",
+        "label_legacy": "Legacy",
         "label_ai": "zAI"
     },
     "common": {
@@ -727,7 +728,7 @@
         "apps": "แอป",
         "are_you_sure": "คุณแน่ใจหรือไม่?",
         "asset": "สินทรัพย์",
-        "auth_short": "Auth",
+        "auth_short": "2FA",
         "authorized": "ได้รับอนุญาต",
         "available": "มีให้บริการ",
         "avax_address": "ที่อยู่ AVAX",
@@ -845,22 +846,25 @@
         "unlock": "ดำเนินการยืนยันตัวตนด้วยชีวภาพ",
         "upload_qr_image": "อัปโหลดรูปภาพ QR",
         "verify": "ตรวจสอบ",
-        "wallet_short": "กระเป๋า",
+        "wallet_short": "Wallet",
+        "keys_short": "Pass",
         "website": "เว็บไซต์",
         "withdraw": "ถอน",
         "withdrawal_network": "เครือข่ายการถอน",
         "yes": "ใช่",
         "your_token": "{{ symbol }} ของคุณ",
         "zelf_ai": "zAI",
-        "zelf_authenticator": "zAuth",
+        "zelf_authenticator": "2FA",
         "zelf_chat": "zChat",
         "zelf_chat_coming_soon": "Zelf Chat จะเปิดใช้งานเร็วๆ นี้",
         "zelf_chats": "zChats",
-        "zelf_keys": "Zelf Keys",
+        "zelf_keys": "Password Manager",
         "zelf_link": "Zelf Link",
         "zelf_signals": "zSignals",
         "zelf_signals_coming_soon": "Zelf Signals จะเปิดใช้งานเร็วๆ นี้",
-        "zelf_wallet": "Zelf",
+        "legacy": "Legacy",
+        "legacy_coming_soon": "Legacy จะเปิดใช้งานเร็วๆ นี้",
+        "zelf_wallet": "Wallet",
         "ton_address": "ที่อยู่ TON",
         "validity_one_year": "อายุการใช้งาน: 1 ปี",
         "validity_years": "อายุการใช้งาน: {{years}} ปี",
@@ -919,7 +923,7 @@
         "domain_warning": "คุณยังมีเวลาในการซื้อ",
         "expired_wallet_logout_message": "คุณสามารถถอดรหัส Zelf ID QR นี้ได้อีกครั้งหากคุณค้นหาด้วย Zelf ID ของคุณ อย่างไรก็ตาม คุณอาจสูญเสียมันไปหากไม่ซื้อในเร็วๆ นี้",
         "logout_of_wallet_message": "คุณสามารถถอดรหัส Zelf ID QR นี้ได้อีกครั้งหากคุณค้นหาด้วย Zelf ID ของคุณ หรือโหลดโค้ด Zelf ID QR ของคุณ",
-        "purchase_new_domain": "เพิ่มชื่อแท็กใหม่",
+        "purchase_new_domain": "เพิ่ม Zelf ID ใหม่",
         "zelfproof_removed_successfully": "ลบ Zelf ID QR สำเร็จแล้ว"
     },
     "liveness": {
@@ -1121,23 +1125,23 @@
         "ru": "ภาษารัสเซีย"
     },
     "cta_sheet": {
-        "i_dont_want_this_wallet": "ฉันไม่ต้องการชื่อแท็กนี้แล้ว",
-        "choose_new_zelfname": "เลือกชื่อแท็กใหม่",
+        "i_dont_want_this_wallet": "ฉันไม่ต้องการ Zelf ID นี้แล้ว",
+        "choose_new_zelfname": "เลือก Zelf ID ใหม่",
         "recover_it_now": "กู้คืนตอนนี้",
-        "delete_wallet_title": "ลบแท็ก",
-        "delete_wallet_message": "ก่อนลบแท็กของคุณ ตรวจสอบให้แน่ใจว่าคุณได้สำรองวลีเมล็ดพันธุ์และโค้ด Zelf ID QR ไว้แล้ว",
+        "delete_wallet_title": "ลบ Zelf ID",
+        "delete_wallet_message": "ก่อนลบ Zelf ID ของคุณ ตรวจสอบให้แน่ใจว่าคุณได้สำรองวลีเมล็ดพันธุ์และโค้ด Zelf ID QR ไว้แล้ว",
         "yes_because": "ใช่ เพราะว่า:",
         "thanks_for_subscribing": "ขอบคุณสำหรับการสมัครสมาชิก",
         "make_zelfname_yours": "ทำให้ {{ zelfName }} เป็นของคุณ",
         "keep_zelfname_yours": "รักษา {{ zelfName }} ไว้เป็นของคุณ",
-        "love_your_zelfname": "ชอบชื่อแท็กของคุณไหม?",
+        "love_your_zelfname": "ชอบ Zelf ID ของคุณไหม?",
         "time_is_running_out": "เวลากำลังจะหมด",
-        "not_much_time_left": "ชื่อแท็กของคุณถูกจองไว้ชั่วคราว แต่อย่ารอช้าเกินไป!",
+        "not_much_time_left": "Zelf ID ของคุณถูกจองไว้ชั่วคราว แต่อย่ารอช้าเกินไป!",
         "oh_no": "โอ้ไม่!",
         "thanks_for_reserving": "ขอบคุณสำหรับการจอง",
         "is_no_longer_available": "ไม่สามารถใช้ได้อีกต่อไป",
         "has_been_taken": "ถูกใช้งานไปแล้ว",
-        "benefit_title": "ด้วยชื่อแท็กของคุณ คุณจะได้รับ:",
+        "benefit_title": "ด้วย Zelf ID ของคุณ คุณจะได้รับ:",
         "benefit_1_title": "การเข้ารหัสแบบออฟไลน์",
         "benefit_1_subtitle": "คีย์ของคุณ การควบคุมของคุณ",
         "benefit_2_title": "การถอดรหัสแบบส่วนตัวขั้นสูง",
@@ -1228,7 +1232,7 @@
             "unknown": "ไม่ทราบ",
             "premium": {
                 "title": "ปลดล็อกฟีเจอร์พรีเมียม",
-                "description": "รับความปลอดภัยขั้นสูงและอื่นๆ อีกมากมายกับ ZelfKeys Premium"
+                "description": "รับความปลอดภัยขั้นสูงและอื่นๆ อีกมากมายกับ Password Manager Premium"
             },
             "add_card": {
                 "title": "เพิ่มบัตรใหม่",
@@ -1376,7 +1380,7 @@
             },
             "premium": {
                 "title": "ปลดล็อกฟีเจอร์พรีเมียม",
-                "description": "รับความปลอดภัยขั้นสูงและอื่นๆ อีกมากมายกับ ZelfKeys Premium"
+                "description": "รับความปลอดภัยขั้นสูงและอื่นๆ อีกมากมายกับ Password Manager Premium"
             },
             "add_note": {
                 "title": "เพิ่มบันทึกใหม่",
@@ -1464,7 +1468,7 @@
             },
             "premium": {
                 "title": "ปลดล็อกฟีเจอร์พรีเมียม",
-                "description": "รับความปลอดภัยขั้นสูงและอื่นๆ อีกมากมายกับ ZelfKeys Premium"
+                "description": "รับความปลอดภัยขั้นสูงและอื่นๆ อีกมากมายกับ Password Manager Premium"
             },
             "add_password": {
                 "title": "เพิ่มรหัสผ่านใหม่",
@@ -1490,7 +1494,7 @@
                 "no_username": "ไม่มีชื่อผู้ใช้",
                 "no_website": "ไม่มีเว็บไซต์",
                 "no_category": "ไม่มีหมวดหมู่",
-                "no_zelf_name": "ไม่มีชื่อ zelf",
+                "no_zelf_name": "ไม่มี Zelf ID",
                 "unknown_date": "ไม่ระบุรอบวัน",
                 "decrypt": {
                     "button": "ถอดรหัสรหัสผ่าน",
@@ -1614,7 +1618,7 @@
         }
     },
     "start": {
-        "title": "ยินดีต้อนรับสู่ ZelfKeys",
+        "title": "ยินดีต้อนรับสู่ Password Manager",
         "subtitle": "ตัวจัดการรหัสผ่านที่ปลอดภัยของคุณ",
         "features": {
             "install_extension": {
@@ -1738,6 +1742,7 @@
     },
     "zotp": {
         "add_zotp": "เพิ่ม ZOTP",
+        "vault_eyebrow": "ZELF",
         "empty_preview_name": "บัญชีงาน",
         "empty_preview_issuer": "เช่น ธนาคารหรือแอปของคุณ",
         "empty_add_hint": "แตะการ์ดเพื่อเพิ่ม ZOTP แรกของคุณ",
@@ -2026,5 +2031,12 @@
         "thinking": "zAI กำลังคิด… อาจใช้เวลาหนึ่งถึงสองนาที",
         "recovering": "กำลังดึงคำตอบของคุณ…",
         "error_timeout": "zAI ตอบไม่ทันเวลา โปรดลองอีกครั้ง"
+    },
+    "home_hub": {
+        "quick_label_keys": "Pass",
+        "quick_label_auth": "2FA",
+        "quick_label_legacy": "Legacy",
+        "quick_label_id": "ID",
+        "more_apps": "เพิ่มเติม"
     }
 }

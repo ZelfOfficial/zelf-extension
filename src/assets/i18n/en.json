@@ -4,7 +4,7 @@
             "wallet": "WALLET"
         },
         "vault": {
-            "eyebrow": "ZELF KEYS",
+            "eyebrow": "PASSWORD MANAGER",
             "title": "Your private vault",
             "subtitle": "Find and open your encrypted essentials.",
             "trust": "Secrets and biometric actions stay inside Zelf.",
@@ -314,7 +314,7 @@
         },
         "subscription_banner": {
             "title": "Unlock Premium Features",
-            "description": "Get unlimited access, advanced security, and more with ZelfKeys Premium"
+            "description": "Get unlimited access, advanced security, and more with Password Manager Premium"
         },
         "data_card": {
             "details": "Details",
@@ -653,7 +653,7 @@
         "transfer_done": "Transfer done",
         "upload_zelf_proof": "or upload your Zelf ID QR code to continue:",
         "you_can_transfer_this_domain": "You can transfer this domain",
-        "you_will_register_this_domain": "Your new identity on Zelf Name Service",
+        "you_will_register_this_domain": "Your new Zelf ID",
         "safeguard_your_crypto": "Safeguard Your Crypto!",
         "offline_import_subtitle": "Before you can import your offline-wallet, you need to choose a new Zelf ID.",
         "your_zelf_name": "Your Zelf ID",
@@ -794,7 +794,7 @@
         "hide_words": "Hide words",
         "medium": "Medium",
         "new_password_subtitle": "The following password is a required encryption layer for your Zelf ID QR.",
-        "password_decryption": "ZELFNAME REQUIRES A PASSWORD",
+        "password_decryption": "ZELF ID REQUIRES A PASSWORD",
         "password_parameters_title": "Password Guidelines",
         "password_parameters": "Our guidelines for your password are: <ul><li>must be between 8 and 128 characters long</li> <li>must contain at least one uppercase letter</li> <li>must contain one lowercase letter</li> <li>must contain one number</li> <li>must contain one special character</li> <li>avoid common passwords</li> <li>avoid repeating characters</li></ul>",
         "password_strength_label": "Password Strength",
@@ -805,7 +805,7 @@
         "pin_title": "PIN",
         "secure_password_description": "An additional security layer",
         "secure_password_title": "Secure Password",
-        "security_layer_subtitle": "Please select the password layer assigned to your new Tag",
+        "security_layer_subtitle": "Please select the password layer assigned to your new Zelf ID",
         "security_layer_title": "SECURITY LAYER",
         "strong": "Strong",
         "subtitle": "Select the length of your seed phrase and proceed with the encryption process.",
@@ -854,10 +854,11 @@
         }
     },
     "apps_hub": {
-        "label_wallet": "zWallet",
-        "label_keys": "zKeys",
-        "label_auth": "zAuth",
-        "label_id": "zID",
+        "label_wallet": "Wallet",
+        "label_keys": "Password Manager",
+        "label_auth": "2FA",
+        "label_id": "ID",
+        "label_legacy": "Legacy",
         "label_ai": "zAI"
     },
     "common": {
@@ -869,6 +870,8 @@
         "zelf_ai": "zAI",
         "zelf_chat_coming_soon": "Zelf Chat will be available soon.",
         "zelf_signals_coming_soon": "Zelf Signals will be available soon.",
+        "legacy": "Legacy",
+        "legacy_coming_soon": "Legacy will be available soon.",
         "add": "Add",
         "back": "Back",
         "optional": "Optional",
@@ -1004,16 +1007,17 @@
         "withdrawal_network": "Withdrawal network",
         "yes": "Yes",
         "your_token": "Your {{ symbol }}",
-        "zelf_authenticator": "zAuth",
-        "zelf_keys": "Zelf Keys",
+        "zelf_authenticator": "2FA",
+        "zelf_keys": "Password Manager",
         "zelf_id": "ZELF ID",
         "zelf_link": "Zelf Link",
-        "zelf_wallet": "Zelf",
+        "zelf_wallet": "Wallet",
         "subscriptions": "Subscriptions",
         "download_short": "Download",
         "mnemonics": "Mnemonics",
         "wallet_short": "Wallet",
-        "auth_short": "Auth",
+        "keys_short": "Pass",
+        "auth_short": "2FA",
         "coming_soon": "Coming Soon",
         "ton_address": "TON Address",
         "validity_one_year": "Validity: 1 year",
@@ -1154,7 +1158,7 @@
         "try_again": "Try again",
         "unknown_error": "An unknown error occurred",
         "user_cancelled_decryption": "Decryption was cancelled",
-        "zelfName_is_taken": "This zelf name is already taken",
+        "zelfName_is_taken": "This Zelf ID is already taken",
         "solana_insufficient_sol_for_fees": "Insufficient SOL. You do not have enough SOL to cover the transaction fees or account creation.",
         "solana_insufficient_sol_for_rent": "Insufficient SOL. You do not have enough SOL to pay for the destination account creation.",
         "stellar_amount_below_reserve": "The amount is below the minimum required to open this Stellar account.",
@@ -1280,11 +1284,12 @@
         "start_here_title": "Start here",
         "start_here_subtitle": "Complete the starting guide and earn $ZNS",
         "start_here_progress": "{{ current }} / {{ total }}",
-        "quick_label_keys": "zKeys",
-        "quick_label_auth": "zAuth",
+        "quick_label_keys": "Pass",
+        "quick_label_auth": "2FA",
+        "quick_label_legacy": "Legacy",
         "quick_label_signals": "zSignals",
-        "quick_label_id": "zID",
-        "promo_placeholder_title": "Zelf Keys, now starting at $5.99 per month.",
+        "quick_label_id": "ID",
+        "promo_placeholder_title": "Password Manager, now starting at $5.99 per month.",
         "promo_placeholder_cta": "Explore now",
         "signals_heading": "Zelf Signals",
         "signals_explore": "Explore",
@@ -1424,7 +1429,7 @@
             "unknown": "Unknown",
             "premium": {
                 "title": "Unlock Premium Features",
-                "description": "Get advanced security, and more with ZelfKeys Premium"
+                "description": "Get advanced security, and more with Password Manager Premium"
             },
             "add_card": {
                 "title": "Add New Card",
@@ -1574,7 +1579,7 @@
             },
             "premium": {
                 "title": "Unlock Premium Features",
-                "description": "Get advanced security, and more with ZelfKeys Premium"
+                "description": "Get advanced security, and more with Password Manager Premium"
             },
             "add_note": {
                 "title": "Add New Note",
@@ -1662,7 +1667,7 @@
             },
             "premium": {
                 "title": "Unlock Premium Features",
-                "description": "Get advanced security, and more with ZelfKeys Premium"
+                "description": "Get advanced security, and more with Password Manager Premium"
             },
             "add_password": {
                 "title": "Add New Password",
@@ -1691,7 +1696,7 @@
                 "no_username": "No username",
                 "no_website": "No website",
                 "no_category": "No category",
-                "no_zelf_name": "No zelf name",
+                "no_zelf_name": "No Zelf ID",
                 "unknown_date": "Unknown date",
                 "decrypt": {
                     "button": "Decrypt password",
@@ -1816,7 +1821,7 @@
         }
     },
     "start": {
-        "title": "Welcome to ZelfKeys",
+        "title": "Welcome to Password Manager",
         "subtitle": "Your secure password manager",
         "features": {
             "install_extension": {
@@ -1940,6 +1945,7 @@
     },
     "zotp": {
         "add_zotp": "Add ZOTP",
+        "vault_eyebrow": "ZELF",
         "empty_preview_name": "Work account",
         "empty_preview_issuer": "e.g. your bank or app",
         "empty_add_hint": "Tap the card to add your first ZOTP.",

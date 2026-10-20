@@ -37,22 +37,51 @@
         </div>
 
         <div class="apps-hub__footer-strip">
-            <a
-                class="apps-hub__row apps-hub__row--link"
-                routerLink="/settings"
-                routerLinkActive="apps-hub__row--active"
-                [routerLinkActiveOptions]="{ exact: false }"
-            >
-                <div class="apps-hub__icon-tile">
-                    <img src="assets/icons/settings_icon.svg" alt="" class="apps-hub__icon-img" />
-                </div>
-                <span class="apps-hub__label">{{ t("common.settings") }}</span>
-                <div class="apps-hub__chevron" aria-hidden="true">
-                    <svg width="8" height="12" viewBox="0 0 8 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M1.70504 0L0.295044 1.41L4.87504 6L0.295044 10.59L1.70504 12L7.70504 6L1.70504 0Z" />
+            <div class="apps-hub__footer-row">
+                <!-- Language picker (Figma full menu: globe + chevron next to Settings) -->
+                <button
+                    type="button"
+                    class="apps-hub__row apps-hub__lang-btn"
+                    [matMenuTriggerFor]="languageMenu"
+                    [attr.aria-label]="t('settings.language_label')"
+                    [title]="getLanguageName(activeLang)"
+                >
+                    <svg class="apps-hub__lang-globe" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9.25" stroke="currentColor" stroke-width="1.5" />
+                        <path d="M2.75 12H21.25" stroke="currentColor" stroke-width="1.5" />
+                        <path d="M12 2.75C14.4 5.3 15.6 8.4 15.6 12C15.6 15.6 14.4 18.7 12 21.25C9.6 18.7 8.4 15.6 8.4 12C8.4 8.4 9.6 5.3 12 2.75Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
                     </svg>
-                </div>
-            </a>
+                    <svg class="apps-hub__lang-chevron" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M1 6.5L6 1.5L11 6.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </button>
+
+                <a
+                    class="apps-hub__row apps-hub__row--link"
+                    routerLink="/settings"
+                    routerLinkActive="apps-hub__row--active"
+                    [routerLinkActiveOptions]="{ exact: false }"
+                >
+                    <div class="apps-hub__icon-tile">
+                        <img src="assets/icons/settings_icon.svg" alt="" class="apps-hub__icon-img" />
+                    </div>
+                    <span class="apps-hub__label">{{ t("common.settings") }}</span>
+                    <div class="apps-hub__chevron" aria-hidden="true">
+                        <svg width="8" height="12" viewBox="0 0 8 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1.70504 0L0.295044 1.41L4.87504 6L0.295044 10.59L1.70504 12L7.70504 6L1.70504 0Z" />
+                        </svg>
+                    </div>
+                </a>
+            </div>
+
+            <mat-menu #languageMenu="matMenu" class="zelf-menu" yPosition="above">
+                <button type="button" mat-menu-item *ngFor="let lang of availableLangs" (click)="setLanguage(lang.id)">
+                    <span class="apps-hub__lang-option" [class.apps-hub__lang-option--active]="lang.id === activeLang">
+                        <img class="apps-hub__lang-flag" [src]="'assets/images/flags/' + flagCodes[lang.id]?.toUpperCase() + '.svg'" alt="" />
+                        <span>{{ getLanguageName(lang.id) }}</span>
+                    </span>
+                </button>
+            </mat-menu>
         </div>
 
         <div class="apps-hub__version">

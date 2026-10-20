@@ -233,7 +233,7 @@
         },
         "subscription_banner": {
             "title": "Разблокировать премиум-функции",
-            "description": "Получите неограниченный доступ, расширенную безопасность и многое другое с ZelfKeys Premium"
+            "description": "Получите неограниченный доступ, расширенную безопасность и многое другое с Password Manager Premium"
         },
         "data_card": {
             "details": "Детали",
@@ -508,7 +508,7 @@
         "share_transaction": "Поделиться транзакцией"
     },
     "welcome": {
-        "code_name": "Имя реферального тега",
+        "code_name": "Реферальный Zelf ID",
         "domain_expired_since": "Домен истек с {{ date }}",
         "decrypt_and_reserve": "Расшифровать и зарезервировать",
         "decrypt_now_pay_later": "Расшифровать сейчас, оплатить позже",
@@ -527,7 +527,7 @@
         "name_expires": "Имя истекает",
         "new_domain": "Новый домен",
         "offline_subtitle": "Этот Zelf ID QR был создан в автономном режиме, поэтому использует другую систему безопасности. В настоящее время он несовместим с расширением. Скоро будет доступен.",
-        "offline_tip": "Но не волнуйтесь! Вы можете импортировать свой Zelf ID QR с другим именем тега, чтобы получить доступ из расширения.",
+        "offline_tip": "Но не волнуйтесь! Вы можете импортировать свой Zelf ID QR с другим Zelf ID, чтобы получить доступ из расширения.",
         "i_understand_go_back": "Я понимаю, вернуться домой",
         "old_domain": "Старый домен",
         "paste_your_recovery_phrase": "Вы можете вставить всю секретную фразу восстановления в любое поле",
@@ -546,7 +546,7 @@
         "transfer_done": "Перевод выполнен",
         "upload_zelf_proof": "или загрузите QR-код вашего Zelf ID QR для продолжения:",
         "you_can_transfer_this_domain": "Вы можете передать этот домен",
-        "you_will_register_this_domain": "Ваша новая идентичность в Zelf Name Service",
+        "you_will_register_this_domain": "Ваш новый Zelf ID",
         "safeguard_your_crypto": "Защитите свой крипто!",
         "offline_import_subtitle": "Прежде чем вы сможете импортировать свой автономный кошелек, вам нужно выбрать новое Zelf ID.",
         "your_zelf_name": "Ваш Zelf ID",
@@ -680,7 +680,7 @@
         "pin_title": "PIN",
         "secure_password_description": "Дополнительный слой безопасности",
         "secure_password_title": "Безопасный Пароль",
-        "security_layer_subtitle": "Пожалуйста, выберите слой пароля, назначенный вашей новой метке",
+        "security_layer_subtitle": "Пожалуйста, выберите слой пароля, назначенный вашему новому Zelf ID",
         "security_layer_title": "СЛОЙ БЕЗОПАСНОСТИ",
         "strong": "Надежный",
         "subtitle": "Выберите длину вашей сид-фразы и продолжите процесс шифрования.",
@@ -722,10 +722,11 @@
         }
     },
     "apps_hub": {
-        "label_wallet": "zWallet",
-        "label_keys": "zKeys",
-        "label_auth": "zAuth",
-        "label_id": "zID",
+        "label_wallet": "Wallet",
+        "label_keys": "Password Manager",
+        "label_auth": "2FA",
+        "label_id": "ID",
+        "label_legacy": "Legacy",
         "label_ai": "zAI"
     },
     "common": {
@@ -743,7 +744,7 @@
         "apps": "Приложения",
         "are_you_sure": "Вы уверены?",
         "asset": "Актив",
-        "auth_short": "Auth",
+        "auth_short": "2FA",
         "authorized": "Авторизован",
         "available": "Доступно",
         "avax_address": "Адрес AVAX",
@@ -861,22 +862,25 @@
         "unlock": "Продолжить к биометрии",
         "upload_qr_image": "Загрузить QR-изображение",
         "verify": "Проверить",
-        "wallet_short": "Кошелек",
+        "wallet_short": "Wallet",
+        "keys_short": "Pass",
         "website": "Веб-сайт",
         "withdraw": "Вывести",
         "withdrawal_network": "Сеть вывода",
         "yes": "Да",
         "your_token": "Ваш {{ symbol }}",
         "zelf_ai": "zAI",
-        "zelf_authenticator": "zAuth",
+        "zelf_authenticator": "2FA",
         "zelf_chat": "zChat",
         "zelf_chat_coming_soon": "Zelf Chat скоро будет доступен.",
         "zelf_chats": "zChats",
-        "zelf_keys": "Zelf Keys",
+        "zelf_keys": "Password Manager",
         "zelf_link": "Zelf Link",
         "zelf_signals": "zSignals",
         "zelf_signals_coming_soon": "Zelf Signals скоро будут доступны.",
-        "zelf_wallet": "Zelf",
+        "legacy": "Legacy",
+        "legacy_coming_soon": "Legacy скоро будет доступен.",
+        "zelf_wallet": "Wallet",
         "ton_address": "TON Адрес",
         "validity_one_year": "Срок действия: 1 год",
         "validity_years": "Срок действия (лет): {{years}}",
@@ -1140,8 +1144,8 @@
         "i_dont_want_this_wallet": "Я больше не хочу это Zelf ID",
         "choose_new_zelfname": "Выберите новое Zelf ID",
         "recover_it_now": "Восстановить сейчас",
-        "delete_wallet_title": "Удалить тег",
-        "delete_wallet_message": "Перед удалением тега убедитесь, что вы сохранили резервную копию QR-кода Zelf ID QR.",
+        "delete_wallet_title": "Удалить Zelf ID",
+        "delete_wallet_message": "Перед удалением Zelf ID убедитесь, что вы сохранили резервную копию QR-кода Zelf ID QR.",
         "yes_because": "Да, потому что:",
         "thanks_for_subscribing": "Спасибо за подписку",
         "make_zelfname_yours": "Сделайте {{ zelfName }} своим",
@@ -1153,7 +1157,7 @@
         "thanks_for_reserving": "Спасибо за резервирование",
         "is_no_longer_available": "больше не доступен",
         "has_been_taken": "был занят",
-        "benefit_title": "С вашим именем тега вы получаете:",
+        "benefit_title": "С вашим Zelf ID вы получаете:",
         "benefit_1_title": "Офлайн-шифрование",
         "benefit_1_subtitle": "Ваши ключи, ваш контроль",
         "benefit_2_title": "Ультра-приватное расшифрование",
@@ -1244,7 +1248,7 @@
             "unknown": "Неизвестно",
             "premium": {
                 "title": "Разблокировать премиум-функции",
-                "description": "Получите расширенную безопасность и многое другое с ZelfKeys Premium"
+                "description": "Получите расширенную безопасность и многое другое с Password Manager Premium"
             },
             "add_card": {
                 "title": "Добавить новую карту",
@@ -1392,7 +1396,7 @@
             },
             "premium": {
                 "title": "Разблокировать премиум-функции",
-                "description": "Получите расширенную безопасность и многое другое с ZelfKeys Premium"
+                "description": "Получите расширенную безопасность и многое другое с Password Manager Premium"
             },
             "add_note": {
                 "title": "Добавить новую заметку",
@@ -1480,7 +1484,7 @@
             },
             "premium": {
                 "title": "Разблокировать премиум-функции",
-                "description": "Получите расширенную безопасность и многое другое с ZelfKeys Premium"
+                "description": "Получите расширенную безопасность и многое другое с Password Manager Premium"
             },
             "add_password": {
                 "title": "Добавить новый пароль",
@@ -1506,7 +1510,7 @@
                 "no_username": "Нет имени пользователя",
                 "no_website": "Нет веб-сайта",
                 "no_category": "Нет категории",
-                "no_zelf_name": "Нет имени zelf",
+                "no_zelf_name": "Нет Zelf ID",
                 "unknown_date": "Неизвестная дата",
                 "decrypt": {
                     "button": "Расшифровать пароль",
@@ -1630,7 +1634,7 @@
         }
     },
     "start": {
-        "title": "Добро пожаловать в ZelfKeys",
+        "title": "Добро пожаловать в Password Manager",
         "subtitle": "Ваш безопасный менеджер паролей",
         "features": {
             "install_extension": {
@@ -1750,10 +1754,11 @@
         }
     },
     "domain_selection": {
-        "title": "Выберите домен для вашего тега"
+        "title": "Выберите домен для вашего Zelf ID"
     },
     "zotp": {
         "add_zotp": "Добавить ZOTP",
+        "vault_eyebrow": "ZELF",
         "empty_preview_name": "Рабочий аккаунт",
         "empty_preview_issuer": "напр. банк или приложение",
         "empty_add_hint": "Нажмите на карточку, чтобы добавить первый ZOTP.",
@@ -2042,5 +2047,12 @@
         "thinking": "zAI думает… это может занять минуту-другую.",
         "recovering": "Получаем ваш ответ…",
         "error_timeout": "zAI не успел ответить. Попробуйте ещё раз."
+    },
+    "home_hub": {
+        "quick_label_keys": "Pass",
+        "quick_label_auth": "2FA",
+        "quick_label_legacy": "Legacy",
+        "quick_label_id": "ID",
+        "more_apps": "Ещё"
     }
 }
