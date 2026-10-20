@@ -306,6 +306,17 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
             return;
         }
 
+        if (
+            this._isSigningReturn() &&
+            (errorKey === "ERR_PASSWORD_REQUIRED" ||
+                errorKey === "ERR_INVALID_PASSWORD" ||
+                errorKey === "incorrect_passphrase" ||
+                errorKey === "ERR_MISSING_PASSWORD")
+        ) {
+            this.goBack();
+            return;
+        }
+
         this.errorTitle = this._translocoService.translate("errors.generic_title");
         this.errorMessage = this._errorService.translateErrorMessage(errorKey, "errors.generic_identity");
     };

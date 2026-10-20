@@ -7,7 +7,8 @@ import { FormBuilder, ReactiveFormsModule, UntypedFormGroup, Validators } from "
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { ActivatedRoute, Router, RouterModule } from "@angular/router";
+import { ActivatedRoute, NavigationEnd, Router, RouterModule } from "@angular/router";
+import { filter } from "rxjs/operators";
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 
 import { AssetService } from "app/asset.service";
@@ -32,6 +33,8 @@ import { TagsService } from "app/tags.service";
 import { StellarFeeBreakdown } from "app/services/stellar-send.types";
 import { StellarSendSummaryComponent } from "app/stellar-send-summary/stellar-send-summary.component";
 import { DisplayAmountPipe, DisplayFiatPipe } from "../pipes/display-number.pipe";
+import { previewProofSecurity, proofRequiresPassword } from "app/onboarding-stack";
+import { ZelfIdsService } from "app/zelf-ids.service";
 
 @Component({
     imports: [DisplayAmountPipe, DisplayFiatPipe, 
@@ -54,6 +57,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
     /** Password/PIN typed before this transaction's face step (vault). Only used with a face approval for this tx. */
     private _carriedSecret: string = "";
     private _interval!: ReturnType<typeof setInterval>;
+    private _requiresBiometricsInterval?: ReturnType<typeof setInterval>;
     private _intervalTime: number = 30000;
     private _skipPriceFetch: boolean = false;
     private unsubcriber$: Subject<void> = new Subject<void>();
@@ -125,7 +129,8 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
         private _translocoService: TranslocoService,
         private _vaultService: VaultService,
         private _walletService: WalletService,
-        private _signingAuthorization: SigningAuthorizationService
+        private _signingAuthorization: SigningAuthorizationService,
+        private _zelfIdsService: ZelfIdsService
     ) {
         this.loading = true;
         this.remainingAttempts = this._vaultService.remainingAttempts;
@@ -179,11 +184,21 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
 
             // #88: never auto-sign. Only decide what to ask for (password/PIN or face).
             await this._refreshSigningGate();
+            this._setRequiresBiometricsInterval();
 
             this.loading = false;
 
             return;
         }
+
+        this._router.events
+            .pipe(
+                filter((event) => event instanceof NavigationEnd),
+                takeUntil(this.unsubcriber$)
+            )
+            .subscribe(() => {
+                void this._refreshSigningGate();
+            });
 
         this._transactionService.transactionData$.pipe(takeUntil(this.unsubcriber$)).subscribe(async (transactionData) => {
             this.transactionData = transactionData;
@@ -215,6 +230,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
 
             // #88: never auto-sign. Only decide what to ask for (password/PIN or face).
             await this._refreshSigningGate();
+            this._setRequiresBiometricsInterval();
 
             this.loading = false;
         });
@@ -222,6 +238,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         clearInterval(this._interval);
+        if (this._requiresBiometricsInterval) clearInterval(this._requiresBiometricsInterval);
 
         this.unsubcriber$.next();
         this.unsubcriber$.complete();
@@ -300,7 +317,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
     get hasCredentials(): boolean {
         // For password-less wallets, credentials are ready if passwordSet is true
         // For password wallets, credentials are ready if password has been entered
-        return this.passwordSet || !!this.form.get("password")?.value;
+        return this.passwordSet || !!this.form.get("password")?.value || !!(this._carriedSecret || "").trim();
     }
 
     private async _calculateTransactionFee(): Promise<void> {
@@ -552,9 +569,30 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
 
         const publicData = this.wallet.publicData as any;
 
+        let requiresPassword: boolean | undefined =
+            publicData.hasPassword === "true" ? true : publicData.hasPassword === "false" ? false : undefined;
+
+        if (requiresPassword === undefined) {
+            try {
+                const zelfProof = (await this._tagsService.getZelfProof()) || this.wallet.zelfProof || "";
+
+                if (zelfProof) {
+                    const preview = await previewProofSecurity(
+                        zelfProof,
+                        (proof) => this._zelfIdsService.previewZelfProof({ zelfProof: proof, os: "DESKTOP" }),
+                        (proof) => this._tagsService.previewZelfProof({ zelfProof: proof, os: "DESKTOP" })
+                    );
+
+                    requiresPassword = proofRequiresPassword(preview?.passwordLayer, publicData?.hasPassword);
+                }
+            } catch {
+                // Unknown metadata: treat as password wallet (never skip the password field).
+            }
+        }
+
         // Always set securityType from this wallet (parity with dapp-sign) so biometrics
         // does not reuse a stale withoutPassword / password flag from another ID.
-        this.isFaceOnly = String(publicData.hasPassword) === "false";
+        this.isFaceOnly = requiresPassword === false;
 
         if (this.isFaceOnly) {
             this._vaultService.securityType = "withoutPassword";
@@ -570,12 +608,43 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
         this._changeDetectorRef.detectChanges();
     }
 
-    async _redirectToBiometrics(): Promise<void> {
-        // Re-assert securityType from the active wallet every send (avoids stale vault flags).
+    /** Password/PIN to send with the face decrypt API (form, then carried from the pre-face step). */
+    private _passwordForFaceStep(): string {
+        if (this.isFaceOnly) return FACE_ONLY_PASSPHRASE;
+
+        const typed = (this.form?.get("password")?.value || "").trim();
+
+        if (typed) return typed;
+
+        return (this._carriedSecret || "").trim();
+    }
+
+    private _setRequiresBiometricsInterval(): void {
+        if (this._requiresBiometricsInterval) clearInterval(this._requiresBiometricsInterval);
+
+        this._requiresBiometricsInterval = setInterval(() => {
+            void this._signingGateInput().then((input) => {
+                this.requiresBiometrics = signingNeedsFace(input);
+                this._changeDetectorRef.detectChanges();
+            });
+        }, 1000);
+    }
+
+    /** Starts the face step; never opens biometrics without a password when the wallet has one. */
+    private async _beginFaceStep(): Promise<boolean> {
         await this._checkPasswordlessWallet();
 
-        // The face step needs the password/PIN typed for this transaction (face-only wallets: placeholder).
-        this._vaultService.password = this.isFaceOnly ? FACE_ONLY_PASSPHRASE : this.form.get("password")?.value || "";
+        const secret = this._passwordForFaceStep();
+
+        if (!this.isFaceOnly && !secret) {
+            this.passwordSet = false;
+            await this._refreshSigningGate();
+            this.openErrorSnackBar("errors.empty_password");
+
+            return false;
+        }
+
+        this._vaultService.password = secret;
 
         await this._tagsService.setTagName(this.transactionData.sender.tagName);
 
@@ -585,6 +654,12 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
         this._signingAuthorization.requestAuthorization(this._signingScope());
 
         this._router.navigate(["security/biometrics"], { queryParams: { return: "/send/confirmation" } });
+
+        return true;
+    }
+
+    async _redirectToBiometrics(): Promise<void> {
+        await this._beginFaceStep();
     }
 
     async confirmTransaction() {
@@ -604,7 +679,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
         if (gate.action === "face") {
             this._mnemonics = "";
             this.requiresBiometrics = true;
-            await this._redirectToBiometrics();
+            await this._beginFaceStep();
 
             return;
         }
@@ -612,8 +687,12 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
         // One-time face approval for this exact transaction (face-only wallets, and right after a face step).
         if (gate.consumeApproval && !this._signingAuthorization.consume(this._signingScope())) {
             this._mnemonics = "";
+            this._signingAuthorization.revoke();
+            this._carriedSecret = "";
+            this.passwordSet = false;
             this.requiresBiometrics = true;
-            await this._redirectToBiometrics();
+            await this._refreshSigningGate();
+            this.openErrorSnackBar("errors.empty_password");
 
             return;
         }
@@ -673,9 +752,18 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
     }
 
     async goToBiometrics(): Promise<void> {
-        if (!this.hasCredentials || !this.wallet) return;
+        if (!this.wallet) return;
 
-        await this._redirectToBiometrics();
+        if (!this.isFaceOnly && !this._passwordForFaceStep()) {
+            await this._refreshSigningGate();
+            this.openErrorSnackBar("errors.empty_password");
+
+            return;
+        }
+
+        if (!this.hasCredentials) return;
+
+        await this._beginFaceStep();
     }
 
     openErrorSnackBar(message: string): void {
