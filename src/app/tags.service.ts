@@ -329,7 +329,6 @@ export class TagsService {
     leaseTag(request: TagLeaseRequest): Promise<any> {
         const promise = this._faceApi.sendWithFace("post", `${this.baseUrl}/api/tags/lease`, request, {
             action: "lease",
-            identifier: this._faceApi.buildIdentifier(request),
         });
 
         promise.then(() => this._vaultService.setLastVerified());
@@ -345,7 +344,6 @@ export class TagsService {
         };
         const promise = this._faceApi.sendWithFace("post", `${this.baseUrl}/api/tags/lease-recovery`, body, {
             action: "lease-recovery",
-            identifier: this._faceApi.buildIdentifier(body),
         });
 
         promise.then(() => this._vaultService.setLastVerified());
@@ -365,14 +363,12 @@ export class TagsService {
     deleteTag(request: TagDeleteRequest): Promise<any> {
         return this._faceApi.sendWithFace("delete", `${this.baseUrl}/api/tags/delete`, request, {
             action: "delete",
-            identifier: this._faceApi.buildIdentifier(request),
         });
     }
 
     decryptTag(request: TagDecryptRequest): Promise<any> {
         const promise = this._faceApi.sendWithFace("post", `${this.baseUrl}/api/tags/decrypt`, request, {
             action: "decrypt",
-            identifier: this._faceApi.buildIdentifier(request),
         });
 
         promise.then((response) => this._zaiService.captureFromDecrypt(response)).catch(() => undefined);
@@ -394,7 +390,6 @@ export class TagsService {
     transferTag(request: TagTransferRequest): Promise<any> {
         return this._faceApi.sendWithFace("post", `${this.baseUrl}/api/my-tags/transfer`, request, {
             action: "my-tags-transfer",
-            identifier: this._faceApi.buildIdentifier(request),
         });
     }
 

@@ -130,17 +130,11 @@ export class ZelfKeysService {
     ) {}
 
     private _postWithFace(action: string, url: string, body: object, options: Record<string, unknown> = {}): Promise<any> {
-        return this._faceApi.sendWithFace("post", url, body, {
-            action,
-            identifier: this._faceApi.buildIdentifier(body),
-        }, options);
+        return this._faceApi.sendWithFace("post", url, body, { action }, options);
     }
 
     private _putWithFace(action: string, url: string, body: object, options: Record<string, unknown> = {}): Promise<any> {
-        return this._faceApi.sendWithFace("put", url, body, {
-            action,
-            identifier: this._faceApi.buildIdentifier(body),
-        }, options);
+        return this._faceApi.sendWithFace("put", url, body, { action }, options);
     }
 
     async listPasswords(): Promise<any> {

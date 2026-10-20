@@ -13,7 +13,13 @@ import { HttpWrapperService } from "app/http-wrapper.service";
 import { ReserveDoneSheetComponent } from "app/reserve-done-sheet/reserve-done-sheet.component";
 import { ErrorService } from "app/services/error.service";
 import { FaceApiService } from "app/services/face-api/face-api.service";
-import { FaceLockedError, isFaceLockedError, parseRetryAfterSeconds } from "app/services/face-api/face-api.errors";
+import {
+    extractFaceClientMessage,
+    FaceLockedError,
+    isFaceLockedError,
+    isFaceReplayDetectedError,
+    parseRetryAfterSeconds,
+} from "app/services/face-api/face-api.errors";
 import { TagFlow, TagModel } from "app/tags.service";
 import { ZelfIdsService } from "app/zelf-ids.service";
 import { VaultService } from "app/vault.service";
@@ -57,6 +63,7 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
     zelfProof: string = "";
     facePowVerifying = false;
     faceLockCountdown = 0;
+    captureNotice = "";
 
     private _faceLockTimer?: ReturnType<typeof setInterval>;
 
@@ -323,6 +330,11 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
             return;
         }
 
+        if (isFaceReplayDetectedError(exception)) {
+            this._returnToFaceCapture(this._errorService.translateFaceReplay(extractFaceClientMessage(exception)));
+            return;
+        }
+
         const errorKey = this._errorService.resolveErrorKey(exception);
 
         if (errorKey === "face_locked") {
@@ -341,6 +353,7 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
     };
 
     onBiometricsScanned = async (encryptedImage: string): Promise<void> => {
+        this.captureNotice = "";
         this.apiLoading = true;
         this.apiSuccess = false;
 
@@ -403,5 +416,15 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
             clearInterval(this._faceLockTimer);
             this._faceLockTimer = undefined;
         }
+    }
+
+    private _returnToFaceCapture(message: string): void {
+        this.apiLoading = false;
+        this.apiSuccess = false;
+        this.errorTitle = "";
+        this.errorMessage = "";
+        this.captureNotice = message;
+        this.showBiometrics = true;
+        this._changeDetectorRef.markForCheck();
     }
 }

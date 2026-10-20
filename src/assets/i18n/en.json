@@ -1116,6 +1116,7 @@
         "face_locked": "Face verification is temporarily locked. Try again in {{ time }}.",
         "face_locked_about_minutes": "about {{ minutes }} minutes",
         "face_locked_about_hours": "about {{ hours }} hours",
+        "face_replay_detected": "This photo was already used. Please take a new photo and try again.",
         "failed_to_get_quote": "Failed to get a quote for this swap.",
         "generic_identity": "Sorry, there seems to have been a problem with your identity verification. Please try it again.",
         "generic_title": "An error has occurred",

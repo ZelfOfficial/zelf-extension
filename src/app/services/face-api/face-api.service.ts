@@ -1,21 +1,22 @@
-import { inject, Injectable, Injector } from "@angular/core";
+import { Injectable } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
 
 import { environment } from "environments/environment";
-import { ChromeService } from "../../chrome.service";
 import { HttpWrapperService } from "../../http-wrapper.service";
-import { WalletService } from "../../wallet.service";
 import { pickFaceWhitelistedBody } from "./face-body-whitelist.util";
 import {
     extractPowChallengeFromError,
+    extractFaceClientMessage,
     FaceLockedError,
+    FaceReplayDetectedError,
     isFaceLockedError,
+    isFaceReplayDetectedError,
     isHttpFaceError,
     parseRetryAfterSeconds,
     shouldRetryWithFreshNonce,
     shouldRetryWithFreshPow,
 } from "./face-api.errors";
-import { buildFaceIdentifier, resolveFaceIdentifier } from "./face-identifier.util";
+import { buildFaceIdentifier } from "./face-identifier.util";
 import { solveFacePowInWorker } from "./face-pow-worker";
 import { buildPowPayload, type FacePowChallenge, type FacePowPayload } from "./face-pow.util";
 
@@ -37,11 +38,12 @@ export type FaceApiAction =
 
 export interface FaceRequestContext {
     action: FaceApiAction | string;
-    identifier?: string;
 }
 
 export interface FaceNonceResponse {
     nonce: string;
+    /** Server-resolved binding from JWT (POST /api/face/nonce, API 7590d7b+). */
+    bindingIdentifier?: string;
     expiresAt?: string;
     pow?: FacePowChallenge;
 }
@@ -52,7 +54,6 @@ export interface FaceNonceResponse {
 export class FaceApiService {
     private readonly _baseUrl = environment.v4ApiUrl;
     private readonly _verifying$ = new BehaviorSubject<boolean>(false);
-    private readonly _injector = inject(Injector);
 
     readonly verifying$ = this._verifying$.asObservable();
 
@@ -62,48 +63,16 @@ export class FaceApiService {
         return this._verifying$.value;
     }
 
-    buildIdentifier(body: object): string {
-        const record = body as Record<string, unknown>;
-        const direct = buildFaceIdentifier(record);
-        if (direct) {
-            return direct;
-        }
-        return resolveFaceIdentifier(record, {});
+    buildIdentifier(body: object): string | null {
+        return buildFaceIdentifier(body as Record<string, unknown>);
     }
 
-    async resolveIdentifier(body: object, explicit?: string): Promise<string> {
-        if (explicit?.trim() && explicit !== "unknown") {
-            return explicit.trim();
-        }
-
-        const record = body as Record<string, unknown>;
-        const fromBody = buildFaceIdentifier(record);
-        if (fromBody) {
-            return fromBody;
-        }
-
-        const walletService = this._injector.get(WalletService);
-        const chromeService = this._injector.get(ChromeService);
-        const wallet = await walletService.getCurrentWallet();
-        const sessionKey = (await chromeService.getItem("sessionIdentifier")) as string | null;
-
-        return resolveFaceIdentifier(record, {
-            zelfProof: wallet?.zelfProof ?? null,
-            tagName: wallet?.name ?? (wallet as { tagName?: string })?.tagName ?? null,
-            domain: wallet?.domain ?? null,
-            sessionKey,
-        });
-    }
-
-    async fetchNonce(action: string, identifier: string): Promise<FaceNonceResponse | null> {
-        const resolvedId =
-            identifier?.trim() && identifier !== "unknown" ? identifier.trim() : await this.resolveIdentifier({});
-
+    async fetchNonce(action: string): Promise<FaceNonceResponse | null> {
         try {
             const response = await this._httpWrapper.sendRequest<{ data?: FaceNonceResponse } & FaceNonceResponse>(
                 "post",
                 `${this._baseUrl}/api/face/nonce`,
-                { action, identifier: resolvedId }
+                { action }
             );
             const data = (response?.data ?? response) as FaceNonceResponse;
             if (!data?.nonce) return null;
@@ -142,9 +111,8 @@ export class FaceApiService {
 
         const action = context.action;
         const sanitized = this.prepareBodyForFaceAction(action, body);
-        const identifier = await this.resolveIdentifier(sanitized, context.identifier);
 
-        return this._sendFaceAttempt<T>(method, url, sanitized, { action, identifier }, options, {
+        return this._sendFaceAttempt<T>(method, url, sanitized, { action, body: sanitized }, options, {
             nonceRetried: false,
             powRetried: false,
         });
@@ -154,13 +122,13 @@ export class FaceApiService {
         method: "post" | "put" | "delete",
         url: string,
         body: Record<string, unknown>,
-        context: { action: string; identifier: string },
+        context: { action: string; body?: Record<string, unknown> },
         options: Record<string, unknown>,
         flags: { nonceRetried: boolean; powRetried: boolean }
     ): Promise<T> {
         let nonceBundle: FaceNonceResponse | null = null;
         try {
-            nonceBundle = await this.fetchNonce(context.action, context.identifier);
+            nonceBundle = await this.fetchNonce(context.action);
         } catch (err) {
             if (err instanceof FaceLockedError) throw err;
             nonceBundle = null;
@@ -182,6 +150,10 @@ export class FaceApiService {
                 throw new FaceLockedError(parseRetryAfterSeconds(error));
             }
 
+            if (isFaceReplayDetectedError(error)) {
+                throw new FaceReplayDetectedError(extractFaceClientMessage(error));
+            }
+
             if (shouldRetryWithFreshPow(error) && !flags.powRetried) {
                 const challenge = extractPowChallengeFromError(error);
                 if (challenge) {
@@ -198,7 +170,8 @@ export class FaceApiService {
             }
 
             if (shouldRetryWithFreshNonce(error) && !flags.nonceRetried) {
-                return this._sendFaceAttempt<T>(method, url, body, context, options, {
+                const retryBody = context.body ?? body;
+                return this._sendFaceAttempt<T>(method, url, retryBody, { action: context.action, body: retryBody }, options, {
                     ...flags,
                     nonceRetried: true,
                     powRetried: false,

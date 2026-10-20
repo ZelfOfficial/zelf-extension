@@ -55,6 +55,7 @@
             </ng-container>
 
             <ng-container *ngIf="showBiometrics">
+                <p class="security-biometrics__capture-notice" *ngIf="captureNotice">{{ captureNotice }}</p>
                 <biometrics-general
                     (canNavigate)="canNavigateAwayHandler($event)"
                     (error)="onBiometricsFailed($event)"

@@ -43,7 +43,7 @@ export class ErrorService {
                 if (code.startsWith("ERR_")) {
                     return code;
                 }
-                if (code === "face_locked" || code === "pow_required") {
+                if (code === "face_locked" || code === "pow_required" || code === "face_replay_detected") {
                     return code;
                 }
             }
@@ -93,6 +93,13 @@ export class ErrorService {
         const minutes = Math.floor(total / 60);
         const seconds = total % 60;
         return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    }
+
+    translateFaceReplay(clientMessage?: string): string {
+        if (clientMessage?.trim()) {
+            return clientMessage.trim();
+        }
+        return this._translocoService.translate("errors.face_replay_detected");
     }
 
     translateFaceLocked(retryAfterSeconds: number): { title: string; message: string } {

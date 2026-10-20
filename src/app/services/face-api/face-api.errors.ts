@@ -11,6 +11,17 @@ export class FaceLockedError extends Error {
     }
 }
 
+export class FaceReplayDetectedError extends Error {
+    readonly code = "face_replay_detected";
+    readonly clientMessage?: string;
+
+    constructor(clientMessage?: string) {
+        super("face_replay_detected");
+        this.name = "FaceReplayDetectedError";
+        this.clientMessage = clientMessage?.trim() || undefined;
+    }
+}
+
 export function isHttpFaceError(error: unknown): error is { status: number; error?: Record<string, unknown>; headers?: { get?: (k: string) => string | null } } {
     return Boolean(error && typeof error === "object" && "status" in error);
 }
@@ -45,6 +56,21 @@ export function isFaceLockedError(error: { status?: number; error?: Record<strin
 
 export function extractErrorCode(error: { error?: Record<string, unknown> }): string {
     return String(error.error?.["code"] ?? "").toLowerCase();
+}
+
+export function extractFaceClientMessage(error: unknown): string | undefined {
+    if (error instanceof FaceReplayDetectedError && error.clientMessage) {
+        return error.clientMessage;
+    }
+    if (!isHttpFaceError(error)) return undefined;
+    const body = error.error ?? {};
+    const msg = body["clientMessage"] ?? body["client_message"];
+    return typeof msg === "string" && msg.trim() ? msg.trim() : undefined;
+}
+
+export function isFaceReplayDetectedError(error: unknown): boolean {
+    if (error instanceof FaceReplayDetectedError) return true;
+    return isHttpFaceError(error) && extractErrorCode(error) === "face_replay_detected";
 }
 
 export function extractPowChallengeFromError(error: { error?: Record<string, unknown> }): FacePowChallenge | null {
@@ -86,7 +112,7 @@ const FACE_NONCE_RETRY_CODES = new Set([
 export function shouldRetryWithFreshNonce(error: { status?: number; error?: Record<string, unknown> }): boolean {
     if (error.status !== 409) return false;
     const code = extractErrorCode(error);
-    return FACE_NONCE_RETRY_CODES.has(code) || code === "face_replay_detected";
+    return FACE_NONCE_RETRY_CODES.has(code);
 }
 
 export function shouldRetryWithFreshPow(error: { status?: number; error?: Record<string, unknown> }): boolean {

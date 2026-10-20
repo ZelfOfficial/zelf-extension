@@ -14,7 +14,7 @@ export function buildFaceIdentifier(body: Record<string, unknown>, extractedDoma
 
     if (body["identifier"] != null && String(body["identifier"]).trim()) {
         const id = String(body["identifier"]).trim();
-        if (id !== "unknown") {
+        if (!isPlaceholderFaceIdentifier(id)) {
             return id;
         }
     }
@@ -38,13 +38,18 @@ export interface FaceIdentifierFallbacks {
     zelfProof?: string | null;
     tagName?: string | null;
     domain?: string | null;
-    sessionKey?: string | null;
+}
+
+export function isPlaceholderFaceIdentifier(identifier: string | null | undefined): boolean {
+    if (!identifier?.trim()) return true;
+    const id = identifier.trim().toLowerCase();
+    return id === "unknown" || id === "session:anonymous";
 }
 
 /**
- * Never returns the literal "unknown"; uses wallet/session fallbacks when body lacks fields.
+ * Uses wallet/tag fallbacks when the body lacks fields. Never returns placeholder identifiers.
  */
-export function resolveFaceIdentifier(body: Record<string, unknown>, fallbacks: FaceIdentifierFallbacks = {}): string {
+export function resolveFaceIdentifier(body: Record<string, unknown>, fallbacks: FaceIdentifierFallbacks = {}): string | null {
     const fromBody = buildFaceIdentifier(body);
     if (fromBody) {
         return fromBody;
@@ -59,9 +64,5 @@ export function resolveFaceIdentifier(body: Record<string, unknown>, fallbacks: 
         return `${fallbacks.tagName.toLowerCase()}@${domain}`;
     }
 
-    if (fallbacks.sessionKey?.trim()) {
-        return `session:${fallbacks.sessionKey}`;
-    }
-
-    return "session:anonymous";
+    return null;
 }

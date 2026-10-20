@@ -701,7 +701,7 @@
         "decrypting_vault": "Расшифровка хранилища...",
         "vault_unlocked": "Хранилище разблокировано!",
         "wallet_created": "Кошелёк готов!",
-        "face_verifying": "Verifying…"
+        "face_verifying": "Проверка…"
     },
     "receive": {
         "information": "Этот адрес можно использовать только для получения совместимых токенов.",
@@ -1034,10 +1034,11 @@
         "swap_same_chain": "В режиме Swaps оба токена должны быть в одной сети. Переключитесь на Cross-chain или измените выбор.",
         "ERR_MISSING_PASSWORD": "This key is protected with your master password. Enter it and try again.",
         "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name.",
-        "face_locked_title": "Too many attempts",
-        "face_locked": "Face verification is temporarily locked. Try again in {{ time }}.",
-        "face_locked_about_minutes": "about {{ minutes }} minutes",
-        "face_locked_about_hours": "about {{ hours }} hours"
+        "face_locked_title": "Слишком много попыток",
+        "face_locked": "Проверка лица временно заблокирована. Повторите через {{ time }}.",
+        "face_locked_about_minutes": "около {{ minutes }} мин.",
+        "face_locked_about_hours": "около {{ hours }} ч.",
+        "face_replay_detected": "Это фото уже использовалось. Сделайте новое фото и попробуйте снова."
     },
     "swap": {
         "automatic": "Автоматический",

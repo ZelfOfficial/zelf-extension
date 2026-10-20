@@ -239,7 +239,6 @@ export class ZelfIdsService {
     leaseTag(request: TagLeaseRequest): Promise<any> {
         const promise = this._faceApi.sendWithFace("post", `${this.apiPath}/lease`, request, {
             action: "lease",
-            identifier: this._faceApi.buildIdentifier(request),
         });
 
         promise.then(() => this._vaultService.setLastVerified());
@@ -256,7 +255,6 @@ export class ZelfIdsService {
 
         const promise = this._faceApi.sendWithFace("post", `${this.apiPath}/lease-recovery`, body, {
             action: "lease-recovery",
-            identifier: this._faceApi.buildIdentifier(body),
         });
 
         promise.then(() => this._vaultService.setLastVerified());
@@ -281,7 +279,6 @@ export class ZelfIdsService {
     decryptTag(request: TagDecryptRequest): Promise<any> {
         const promise = this._faceApi.sendWithFace("post", `${this.apiPath}/decrypt`, request, {
             action: "decrypt",
-            identifier: this._faceApi.buildIdentifier(request),
         });
 
         promise.then((response) => this._zaiService.captureFromDecrypt(response)).catch(() => undefined);

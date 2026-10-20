@@ -428,14 +428,12 @@ export class WalletService {
         };
         return this._faceApi.sendWithFace("post", `${this.baseUrl}/api/my-wallets`, body, {
             action: "wallet-create",
-            identifier: this._faceApi.buildIdentifier(body),
         });
     }
 
     decryptWallet(data: any): Promise<any> {
         return this._faceApi.sendWithFace("post", `${this.baseUrl}/api/my-wallets/decrypt`, data, {
             action: "wallet-decrypt",
-            identifier: this._faceApi.buildIdentifier(data),
         });
     }
 

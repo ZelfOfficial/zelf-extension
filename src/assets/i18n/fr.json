@@ -701,7 +701,7 @@
         "decrypting_vault": "Déchiffrement du coffre...",
         "vault_unlocked": "Coffre déverrouillé !",
         "wallet_created": "Portefeuille prêt !",
-        "face_verifying": "Verifying…"
+        "face_verifying": "Vérification…"
     },
     "receive": {
         "information": "Cette adresse ne peut être utilisée que pour recevoir des jetons compatibles.",
@@ -1034,10 +1034,11 @@
         "swap_same_chain": "En mode Swaps, les deux jetons doivent être sur le même réseau. Passez à Cross-chain ou modifiez votre sélection.",
         "ERR_MISSING_PASSWORD": "This key is protected with your master password. Enter it and try again.",
         "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name.",
-        "face_locked_title": "Too many attempts",
-        "face_locked": "Face verification is temporarily locked. Try again in {{ time }}.",
-        "face_locked_about_minutes": "about {{ minutes }} minutes",
-        "face_locked_about_hours": "about {{ hours }} hours"
+        "face_locked_title": "Trop de tentatives",
+        "face_locked": "La vérification faciale est temporairement verrouillée. Réessayez dans {{ time }}.",
+        "face_locked_about_minutes": "environ {{ minutes }} minutes",
+        "face_locked_about_hours": "environ {{ hours }} heures",
+        "face_replay_detected": "Cette photo a déjà été utilisée. Prenez une nouvelle photo et réessayez."
     },
     "swap": {
         "automatic": "Automatique",

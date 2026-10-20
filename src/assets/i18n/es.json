@@ -1098,6 +1098,7 @@
         "face_locked": "La verificación facial está bloqueada temporalmente. Vuelve a intentarlo en {{ time }}.",
         "face_locked_about_minutes": "unos {{ minutes }} minutos",
         "face_locked_about_hours": "unas {{ hours }} horas",
+        "face_replay_detected": "Esta foto ya se utilizó. Toma una foto nueva e inténtalo de nuevo.",
         "failed_to_get_quote": "No se pudo obtener una cotización para este intercambio.",
         "generic_identity": "Lo sentimos, parece que hubo un problema con tu verificación de identidad. Por favor, inténtalo de nuevo.",
         "generic_title": "Ha ocurrido un error",
