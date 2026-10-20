@@ -2,6 +2,7 @@ import { FormBuilder } from "@angular/forms";
 import { of } from "rxjs";
 
 import { SigningAuthorizationService } from "app/services/signing-authorization.service";
+import { FaceApiService } from "app/services/face-api/face-api.service";
 import { SecurityBiometricsComponent } from "./security-biometrics.component";
 
 /** #88: the face screen approves a pending Send only after the face decrypt API succeeded. */
@@ -30,7 +31,8 @@ describe("SecurityBiometricsComponent signing authorization (#88)", () => {
             { translate: (k: string) => k } as any,
             { securityType: "withoutPassword", password: "" } as any,
             { getUserFingerprint: () => ({ hash: "fp" }), switchWallet: jasmine.createSpy().and.resolveTo() } as any,
-            signingAuth
+            signingAuth,
+            { verifying$: of(false) } as FaceApiService
         );
         spyOn(component as any, "_showSuccessAndContinue").and.callFake(async (cb: () => void) => cb());
 

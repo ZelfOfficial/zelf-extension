@@ -1,7 +1,7 @@
 import * as faceapi from "@vladmandic/face-api";
 import * as openpgp from "openpgp";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
-import { Injectable } from "@angular/core";
+import { inject, Injectable } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
 
 import { environment } from "environments/environment";
@@ -16,6 +16,7 @@ import {
 import { TagModel } from "./tags.service";
 import { ChromeService } from "./chrome.service";
 import { HttpWrapperService } from "./http-wrapper.service";
+import { FaceApiService } from "./services/face-api/face-api.service";
 import { Asset, Wallet } from "@shared/types/wallet.types";
 import { generateDeviceFingerprint, simpleHash, UserFingerPrint } from "./core/utils/fingerprint.util";
 
@@ -36,6 +37,7 @@ export type Network = {
 })
 export class WalletService {
     private static readonly SWAP_RECEIPT_DISPLAY_KEY = "swapReceiptDisplay";
+    private readonly _faceApi = inject(FaceApiService);
 
     private _assetImageMap: Map<string, string> = new Map();
     private _faceapi: BehaviorSubject<any> = new BehaviorSubject(null);
@@ -420,14 +422,21 @@ export class WalletService {
     }
 
     createWallet(data: any): Promise<any> {
-        return this._httpWrapper.sendRequest("post", `${this.baseUrl}/api/my-wallets`, {
+        const body = {
             ...data,
             password: data.password || undefined,
+        };
+        return this._faceApi.sendWithFace("post", `${this.baseUrl}/api/my-wallets`, body, {
+            action: "wallet-create",
+            identifier: this._faceApi.buildIdentifier(body),
         });
     }
 
     decryptWallet(data: any): Promise<any> {
-        return this._httpWrapper.sendRequest("post", `${this.baseUrl}/api/my-wallets/decrypt`, data);
+        return this._faceApi.sendWithFace("post", `${this.baseUrl}/api/my-wallets/decrypt`, data, {
+            action: "wallet-decrypt",
+            identifier: this._faceApi.buildIdentifier(data),
+        });
     }
 
     importWallet(data: any): Promise<any> {

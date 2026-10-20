@@ -16,6 +16,7 @@ import { VaultService } from "./vault.service";
 import { WalletService } from "./wallet.service";
 import { ZelfIdsService } from "./zelf-ids.service";
 import { ZaiService } from "./zai/zai.service";
+import { FaceApiService } from "./services/face-api/face-api.service";
 
 export type TagFlow = "create" | "import" | "unlock" | "recover" | "";
 export type TagType = "create" | "import";
@@ -208,6 +209,7 @@ export class TagsService {
     private _activeDomainKeys?: Set<string>;
     private _activeDomainsPromise: Promise<Set<string>> | null = null;
     private readonly _zelfIdsService = inject(ZelfIdsService);
+    private readonly _faceApi = inject(FaceApiService);
 
     constructor(
         private _httpWrapper: HttpWrapperService,
@@ -325,7 +327,10 @@ export class TagsService {
 
     // Lease Endpoints
     leaseTag(request: TagLeaseRequest): Promise<any> {
-        const promise = this._httpWrapper.sendRequest("post", `${this.baseUrl}/api/tags/lease`, request);
+        const promise = this._faceApi.sendWithFace("post", `${this.baseUrl}/api/tags/lease`, request, {
+            action: "lease",
+            identifier: this._faceApi.buildIdentifier(request),
+        });
 
         promise.then(() => this._vaultService.setLastVerified());
 
@@ -333,7 +338,10 @@ export class TagsService {
     }
 
     leaseRecovery(request: TagLeaseRecoveryRequest): Promise<any> {
-        const promise = this._httpWrapper.sendRequest("post", `${this.baseUrl}/api/tags/lease-recovery`, request);
+        const promise = this._faceApi.sendWithFace("post", `${this.baseUrl}/api/tags/lease-recovery`, request, {
+            action: "lease-recovery",
+            identifier: this._faceApi.buildIdentifier(request),
+        });
 
         promise.then(() => this._vaultService.setLastVerified());
 
@@ -350,11 +358,17 @@ export class TagsService {
 
     // Management Endpoints
     deleteTag(request: TagDeleteRequest): Promise<any> {
-        return this._httpWrapper.sendRequest("delete", `${this.baseUrl}/api/tags/delete`, request);
+        return this._faceApi.sendWithFace("delete", `${this.baseUrl}/api/tags/delete`, request, {
+            action: "delete",
+            identifier: this._faceApi.buildIdentifier(request),
+        });
     }
 
     decryptTag(request: TagDecryptRequest): Promise<any> {
-        const promise = this._httpWrapper.sendRequest("post", `${this.baseUrl}/api/tags/decrypt`, request);
+        const promise = this._faceApi.sendWithFace("post", `${this.baseUrl}/api/tags/decrypt`, request, {
+            action: "decrypt",
+            identifier: this._faceApi.buildIdentifier(request),
+        });
 
         promise.then((response) => this._zaiService.captureFromDecrypt(response)).catch(() => undefined);
 
@@ -373,7 +387,10 @@ export class TagsService {
 
     // User-specific Tag Management (My Tags)
     transferTag(request: TagTransferRequest): Promise<any> {
-        return this._httpWrapper.sendRequest("post", `${this.baseUrl}/api/my-tags/transfer`, request);
+        return this._faceApi.sendWithFace("post", `${this.baseUrl}/api/my-tags/transfer`, request, {
+            action: "transfer",
+            identifier: this._faceApi.buildIdentifier(request),
+        });
     }
 
     getPaymentOptions(tagName: string, domain?: string): Promise<any> {

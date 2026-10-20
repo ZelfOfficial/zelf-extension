@@ -13,9 +13,7 @@ import { Observable, Subject, takeUntil } from "rxjs";
 
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { ZelfKeysService } from "app/services/zelf-keys.service";
-import { AuthService } from "app/services/auth.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
-import { environment } from "environments/environment";
 import { WalletService } from "../../../wallet.service";
 
 @Component({
@@ -89,7 +87,6 @@ export class ZelfKeysPasswordBiometricsComponent implements OnInit, OnDestroy {
 
     constructor(
         private _activatedRoute: ActivatedRoute,
-        private _authService: AuthService,
         private _changeDetectorRef: ChangeDetectorRef,
         private _httpWrapperService: HttpWrapperService,
         private _router: Router,
@@ -451,21 +448,17 @@ export class ZelfKeysPasswordBiometricsComponent implements OnInit, OnDestroy {
                 this.onBiometricsSuccess(base64Data);
             } else {
                 // In create mode, store the new password
+                const encryptedFace = await this._httpWrapperService.encryptMessage(base64Data);
                 const payload = {
                     website: this.passwordData.url,
                     username: this.passwordData.email,
                     password: this.passwordData.password,
                     notes: this.passwordData.notes,
                     name: this.passwordData.title,
-                    faceBase64: base64Data,
+                    faceBase64: encryptedFace,
                 };
 
-                const token = await this._authService.checkAccessToken();
-                const response = await this._httpWrapperService.sendRequest("post", `${environment.apiUrl}/api/zelf-keys/store/password`, payload, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
+                const response = await this._zelfKeysService.storePasswordWithAuth(payload);
 
                 this.imageCaptured.emit(this.response.base64Image);
 
