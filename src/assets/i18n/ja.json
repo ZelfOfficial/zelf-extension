@@ -700,7 +700,8 @@
         "retrieving_vault": "ボールトを取得中...",
         "decrypting_vault": "ボールトを復号中...",
         "vault_unlocked": "ボールトのロック解除！",
-        "wallet_created": "ウォレットの準備完了！"
+        "wallet_created": "ウォレットの準備完了！",
+        "face_verifying": "確認中…"
     },
     "receive": {
         "information": "このアドレスは互換性のあるトークンを受け取るためにのみ使用できます。",
@@ -1032,7 +1033,12 @@
         "stellar_invalid_asset_format": "Invalid Stellar asset. Use CODE:ISSUER (for example USDC:G…).",
         "swap_same_chain": "Swapsモードでは、両方のトークンが同じネットワーク上にある必要があります。Cross-chainに切り替えるか、選択を変更してください。",
         "ERR_MISSING_PASSWORD": "This key is protected with your master password. Enter it and try again.",
-        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name."
+        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name.",
+        "face_locked_title": "試行回数が多すぎます",
+        "face_locked": "顔認証は一時的にロックされています。{{ time }}後に再試行してください。",
+        "face_locked_about_minutes": "約{{ minutes }}分",
+        "face_locked_about_hours": "約{{ hours }}時間",
+        "face_replay_detected": "この写真はすでに使用されています。新しい写真を撮って再度お試しください。"
     },
     "swap": {
         "automatic": "自動",

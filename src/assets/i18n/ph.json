@@ -700,7 +700,8 @@
         "retrieving_vault": "Kinukuha ang vault...",
         "decrypting_vault": "Dine-decrypt ang vault...",
         "vault_unlocked": "Na-unlock ang vault!",
-        "wallet_created": "Handa na ang wallet!"
+        "wallet_created": "Handa na ang wallet!",
+        "face_verifying": "Bine-verify…"
     },
     "receive": {
         "information": "Ang address na ito ay maaari lamang gamitin para tumanggap ng mga compatible na tokens.",
@@ -1032,7 +1033,12 @@
         "stellar_invalid_asset_format": "Invalid Stellar asset. Use CODE:ISSUER (for example USDC:G…).",
         "swap_same_chain": "Sa Swaps mode, dapat nasa parehong network ang parehong token. Lumipat sa Cross-chain o baguhin ang iyong pinili.",
         "ERR_MISSING_PASSWORD": "This key is protected with your master password. Enter it and try again.",
-        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name."
+        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name.",
+        "face_locked_title": "Masyadong maraming pagtatangka",
+        "face_locked": "Pansamantalang naka-lock ang face verification. Subukan muli sa {{ time }}.",
+        "face_locked_about_minutes": "mga {{ minutes }} minuto",
+        "face_locked_about_hours": "mga {{ hours }} oras",
+        "face_replay_detected": "Nagamit na ang larawang ito. Kumuha ng bagong larawan at subukang muli."
     },
     "swap": {
         "automatic": "Awtomatiko",

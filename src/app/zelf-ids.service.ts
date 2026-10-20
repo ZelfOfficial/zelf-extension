@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { inject, Injectable } from "@angular/core";
 
 import { DomainLicense } from "app/core/models/domain.type";
 import { environment } from "../environments/environment";
@@ -22,6 +22,7 @@ import {
 } from "./tags.service";
 import { applyPreviewSecurity, type ProofPreview } from "./onboarding-stack";
 import { VaultService } from "./vault.service";
+import { FaceApiService } from "./services/face-api/face-api.service";
 
 export type ZelfIdPlan = "free" | "premium" | "unlimited" | "";
 
@@ -79,6 +80,8 @@ export class ZelfIdsService {
     private _activeDomainsPromise: Promise<Set<string>> | null = null;
     private _domainKeys: string[] = [];
     private _domainConfigs: { [domainName: string]: DomainLicense } = {};
+
+    private readonly _faceApi = inject(FaceApiService);
 
     constructor(
         private _httpWrapper: HttpWrapperService,
@@ -234,7 +237,9 @@ export class ZelfIdsService {
     }
 
     leaseTag(request: TagLeaseRequest): Promise<any> {
-        const promise = this._httpWrapper.sendRequest("post", `${this.apiPath}/lease`, request);
+        const promise = this._faceApi.sendWithFace("post", `${this.apiPath}/lease`, request, {
+            action: "lease",
+        });
 
         promise.then(() => this._vaultService.setLastVerified());
 
@@ -248,7 +253,9 @@ export class ZelfIdsService {
             tagName: newTagName,
         };
 
-        const promise = this._httpWrapper.sendRequest("post", `${this.apiPath}/lease-recovery`, body);
+        const promise = this._faceApi.sendWithFace("post", `${this.apiPath}/lease-recovery`, body, {
+            action: "lease-recovery",
+        });
 
         promise.then(() => this._vaultService.setLastVerified());
 
@@ -270,7 +277,9 @@ export class ZelfIdsService {
     }
 
     decryptTag(request: TagDecryptRequest): Promise<any> {
-        const promise = this._httpWrapper.sendRequest("post", `${this.apiPath}/decrypt`, request);
+        const promise = this._faceApi.sendWithFace("post", `${this.apiPath}/decrypt`, request, {
+            action: "decrypt",
+        });
 
         promise.then((response) => this._zaiService.captureFromDecrypt(response)).catch(() => undefined);
 

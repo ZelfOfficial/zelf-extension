@@ -700,7 +700,8 @@
         "retrieving_vault": "正在检索保管库...",
         "decrypting_vault": "正在解密保管库...",
         "vault_unlocked": "保管库已解锁！",
-        "wallet_created": "钱包已就绪！"
+        "wallet_created": "钱包已就绪！",
+        "face_verifying": "正在验证…"
     },
     "receive": {
         "information": "此地址只能用于接收兼容的代币。",
@@ -1032,7 +1033,12 @@
         "stellar_invalid_asset_format": "Invalid Stellar asset. Use CODE:ISSUER (for example USDC:G…).",
         "swap_same_chain": "在 Swaps 模式下，两个代币必须位于同一网络。请切换到 Cross-chain 或更改您的选择。",
         "ERR_MISSING_PASSWORD": "This key is protected with your master password. Enter it and try again.",
-        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name."
+        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name.",
+        "face_locked_title": "尝试次数过多",
+        "face_locked": "人脸验证已暂时锁定。请在 {{ time }} 后重试。",
+        "face_locked_about_minutes": "约 {{ minutes }} 分钟",
+        "face_locked_about_hours": "约 {{ hours }} 小时",
+        "face_replay_detected": "此照片已被使用。请重新拍摄后再试。"
     },
     "swap": {
         "automatic": "自动",

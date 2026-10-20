@@ -38,8 +38,14 @@ export class ErrorService {
         if (body && typeof body === "object") {
             const errorBody = body as Record<string, unknown>;
 
-            if (typeof errorBody["code"] === "string" && errorBody["code"].startsWith("ERR_")) {
-                return errorBody["code"];
+            if (typeof errorBody["code"] === "string") {
+                const code = errorBody["code"];
+                if (code.startsWith("ERR_")) {
+                    return code;
+                }
+                if (code === "face_locked" || code === "pow_required" || code === "face_replay_detected") {
+                    return code;
+                }
             }
 
             if (typeof errorBody["message"] === "string" && errorBody["message"].trim()) {
@@ -60,18 +66,49 @@ export class ErrorService {
         return normalized.includes("liveness") || normalized.includes("err_liveness") || normalized.includes("face_not");
     }
 
-    translateErrorMessage(key: string, fallbackErrorKey: string = ""): string {
+    translateErrorMessage(key: string, fallbackErrorKey: string = "", params?: Record<string, unknown>): string {
         const trimmed = key?.trim() || "";
         const mappedKey = this.API_MESSAGE_TO_KEY[trimmed] ?? trimmed;
         const formattedKey = `errors.${mappedKey}`;
 
-        const translation = this._translocoService.translate(formattedKey);
+        const translation = this._translocoService.translate(formattedKey, params ?? {});
 
         return translation !== formattedKey
             ? translation
             : fallbackErrorKey
-              ? this._translocoService.translate(fallbackErrorKey)
+              ? this._translocoService.translate(fallbackErrorKey, params ?? {})
               : this._defaultErrorMessage;
+    }
+
+    formatFaceLockDuration(retryAfterSeconds: number): string {
+        const total = Math.max(0, Math.floor(retryAfterSeconds));
+        if (total >= 3600) {
+            const hours = Math.max(1, Math.ceil(total / 3600));
+            return this._translocoService.translate("errors.face_locked_about_hours", { hours });
+        }
+        if (total >= 120) {
+            const minutes = Math.max(1, Math.ceil(total / 60));
+            return this._translocoService.translate("errors.face_locked_about_minutes", { minutes });
+        }
+        const minutes = Math.floor(total / 60);
+        const seconds = total % 60;
+        return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    }
+
+    translateFaceReplay(clientMessage?: string): string {
+        if (clientMessage?.trim()) {
+            return clientMessage.trim();
+        }
+        return this._translocoService.translate("errors.face_replay_detected");
+    }
+
+    translateFaceLocked(retryAfterSeconds: number): { title: string; message: string } {
+        const time = this.formatFaceLockDuration(retryAfterSeconds);
+        const params = { time, seconds: retryAfterSeconds };
+        return {
+            title: this._translocoService.translate("errors.face_locked_title", params),
+            message: this._translocoService.translate("errors.face_locked", params),
+        };
     }
 
     private _normalizeErrorKey(message: string): string {

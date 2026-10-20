@@ -1,7 +1,8 @@
-import { Injectable } from "@angular/core";
+import { inject, Injectable } from "@angular/core";
 import { environment } from "environments/environment";
 import { HttpWrapperService } from "../http-wrapper.service";
 import { AuthService } from "./auth.service";
+import { FaceApiService } from "./face-api/face-api.service";
 
 /**
  * Interface for storing a password via ZelfKeys API
@@ -34,7 +35,6 @@ export interface StorePasswordBulkItem {
 export interface StorePasswordsBulkRequest {
     faceBase64: string;
     masterPassword?: string;
-    removePGP?: boolean;
     passwords: StorePasswordBulkItem[];
 }
 
@@ -122,11 +122,20 @@ export interface ListRequest {
 export class ZelfKeysService {
     private readonly baseUrl: string = environment.v4ApiUrl;
     private readonly apiPath: string = "/api/zelf-keys";
+    private readonly _faceApi = inject(FaceApiService);
 
     constructor(
         private _httpWrapper: HttpWrapperService,
         private _authService: AuthService
     ) {}
+
+    private _postWithFace(action: string, url: string, body: object, options: Record<string, unknown> = {}): Promise<any> {
+        return this._faceApi.sendWithFace("post", url, body, { action }, options);
+    }
+
+    private _putWithFace(action: string, url: string, body: object, options: Record<string, unknown> = {}): Promise<any> {
+        return this._faceApi.sendWithFace("put", url, body, { action }, options);
+    }
 
     async listPasswords(): Promise<any> {
         const token = await this._authService.checkAccessToken();
@@ -161,7 +170,7 @@ export class ZelfKeysService {
     }): Promise<any> {
         const token = await this._authService.checkAccessToken();
 
-        return this._httpWrapper.sendRequest("post", `${this.baseUrl}${this.apiPath}/store/notes`, request, {
+        return this._postWithFace("store-notes", `${this.baseUrl}${this.apiPath}/store/notes`, request, {
             headers: { Authorization: `Bearer ${token}` },
         });
     }
@@ -174,7 +183,7 @@ export class ZelfKeysService {
     async storePassword(request: StorePasswordRequest): Promise<any> {
         const url = `${this.baseUrl}${this.apiPath}/store/password`;
 
-        return this._httpWrapper.sendRequest("post", url, request);
+        return this._postWithFace("store-password", url, request);
     }
 
     /**
@@ -185,7 +194,7 @@ export class ZelfKeysService {
     async storeZOTP(request: StoreZOTPRequest): Promise<any> {
         const url = `${this.baseUrl}${this.apiPath}/store/zotp`;
 
-        return this._httpWrapper.sendRequest("post", url, request);
+        return this._postWithFace("store-zotp", url, request);
     }
 
     /**
@@ -197,7 +206,7 @@ export class ZelfKeysService {
         const token = await this._authService.checkAccessToken();
         const url = `${this.baseUrl}${this.apiPath}/retrieve`;
 
-        return this._httpWrapper.sendRequest("post", url, request, {
+        return this._postWithFace("retrieve", url, request, {
             headers: { Authorization: `Bearer ${token}` },
         });
     }
@@ -210,7 +219,7 @@ export class ZelfKeysService {
     async preview(request: PreviewRequest): Promise<any> {
         const url = `${this.baseUrl}${this.apiPath}/preview`;
 
-        return this._httpWrapper.sendRequest("post", url, request);
+        return this._postWithFace("preview", url, request);
     }
 
     /**
@@ -273,7 +282,7 @@ export class ZelfKeysService {
         const token = await this._authService.checkAccessToken();
         const url = `${this.baseUrl}${this.apiPath}/store/password`;
 
-        return this._httpWrapper.sendRequest("post", url, request, {
+        return this._postWithFace("store-password", url, request, {
             headers: { Authorization: `Bearer ${token}` },
         });
     }
@@ -286,7 +295,7 @@ export class ZelfKeysService {
         const token = await this._authService.checkAccessToken();
         const url = `${this.baseUrl}${this.apiPath}/store/passwords`;
 
-        return this._httpWrapper.sendRequest("post", url, request, {
+        return this._postWithFace("store-passwords-bulk", url, request, {
             headers: { Authorization: `Bearer ${token}` },
         });
     }
@@ -310,7 +319,7 @@ export class ZelfKeysService {
     }): Promise<any> {
         const token = await this._authService.checkAccessToken();
         const url = `${this.baseUrl}${this.apiPath}/store/credit-card`;
-        return this._httpWrapper.sendRequest("post", url, request, {
+        return this._postWithFace("store-credit-card", url, request, {
             headers: { Authorization: `Bearer ${token}` },
         });
     }
@@ -325,12 +334,18 @@ export class ZelfKeysService {
         const token = await this._authService.checkAccessToken();
         const url = `${this.baseUrl}${this.apiPath}/delete/${id}`;
 
-        return this._httpWrapper.sendRequest("put", url, {
-            faceBase64,
-            masterPassword,
-        }, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+        return this._putWithFace(
+            "delete",
+            url,
+            {
+                id,
+                faceBase64,
+                masterPassword,
+            },
+            {
+                headers: { Authorization: `Bearer ${token}` },
+            }
+        );
     }
 
     /**

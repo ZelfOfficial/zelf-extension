@@ -684,7 +684,8 @@
         "retrieving_vault": "والٹ حاصل کیا جا رہا ہے...",
         "decrypting_vault": "والٹ ڈکرپٹ ہو رہا ہے...",
         "vault_unlocked": "والٹ ان لاک ہو گیا!",
-        "wallet_created": "والیٹ تیار!"
+        "wallet_created": "والیٹ تیار!",
+        "face_verifying": "تصدیق ہو رہی ہے…"
     },
     "receive": {
         "information": "یہ پتہ صرف مطابقت پذیر ٹوکنز وصول کرنے کے لیے استعمال کیا جا سکتا ہے۔",
@@ -1016,7 +1017,12 @@
         "stellar_invalid_asset_format": "Invalid Stellar asset. Use CODE:ISSUER (for example USDC:G…).",
         "swap_same_chain": "Swaps موڈ میں دونوں ٹوکن ایک ہی نیٹ ورک پر ہونے چاہئیں۔ Cross-chain پر جائیں یا اپنا انتخاب تبدیل کریں۔",
         "ERR_MISSING_PASSWORD": "This key is protected with your master password. Enter it and try again.",
-        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name."
+        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name.",
+        "face_locked_title": "بہ زیادہ کوششیں",
+        "face_locked": "چہرے کی تصدیق عارضی طور پر بند ہے۔ {{ time }} میں دوبارہ کوشش کریں۔",
+        "face_locked_about_minutes": "تقریباً {{ minutes }} منٹ",
+        "face_locked_about_hours": "تقریباً {{ hours }} گھنٹے",
+        "face_replay_detected": "یہ تصویر پہلے استعمال ہو چکی ہے۔ نئی تصویر لیں اور دوبارہ کوشش کریں۔"
     },
     "swap": {
         "automatic": "خودکار",

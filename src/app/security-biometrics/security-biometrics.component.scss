@@ -37,6 +37,14 @@
         width: 100%;
     }
 
+    &__capture-notice {
+        color: variables.$themeTextSecondary;
+        font-size: 14px;
+        line-height: 1.4;
+        margin: 0 16px 12px;
+        text-align: center;
+    }
+
     &__overlay {
         position: absolute;
         inset: 0;

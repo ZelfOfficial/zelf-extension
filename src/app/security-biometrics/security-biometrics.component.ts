@@ -2,7 +2,7 @@ import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { Subject, takeUntil } from "rxjs";
 
 import { CommonModule } from "@angular/common";
-import { Component, OnDestroy, OnInit } from "@angular/core";
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from "@angular/forms";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
 import { MatButtonModule } from "@angular/material/button";
@@ -12,6 +12,14 @@ import { ChromeService } from "app/chrome.service";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { ReserveDoneSheetComponent } from "app/reserve-done-sheet/reserve-done-sheet.component";
 import { ErrorService } from "app/services/error.service";
+import { FaceApiService } from "app/services/face-api/face-api.service";
+import {
+    extractFaceClientMessage,
+    FaceLockedError,
+    isFaceLockedError,
+    isFaceReplayDetectedError,
+    parseRetryAfterSeconds,
+} from "app/services/face-api/face-api.errors";
 import { SigningAuthorizationService } from "app/services/signing-authorization.service";
 import { TagFlow, TagModel, TagsService } from "app/tags.service";
 import { VaultService } from "app/vault.service";
@@ -53,6 +61,11 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
     showBiometrics: boolean = true;
     tagObject: TagModel = new TagModel();
     zelfProof: string = "";
+    facePowVerifying = false;
+    faceLockCountdown = 0;
+    captureNotice = "";
+
+    private _faceLockTimer?: ReturnType<typeof setInterval>;
 
     constructor(
         private _activatedRoute: ActivatedRoute,
@@ -66,7 +79,9 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
         private _translocoService: TranslocoService,
         private _vaultService: VaultService,
         private _walletService: WalletService,
-        private _signingAuthorization: SigningAuthorizationService
+        private _signingAuthorization: SigningAuthorizationService,
+        private _faceApi: FaceApiService,
+        private _changeDetectorRef: ChangeDetectorRef
     ) {
         this.form = this._formBuilder.group({
             hideBiometricsCheckbox: [false],
@@ -105,9 +120,15 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
         this.isNew = this.flow === "create" || this.flow === "import" || (this.flow === "recover" && this.tagObject?.available);
 
         this.loading = false;
+
+        this._faceApi.verifying$.pipe(takeUntil(this.unsubscriber$)).subscribe((verifying) => {
+            this.facePowVerifying = verifying;
+            this._changeDetectorRef.markForCheck();
+        });
     }
 
     ngOnDestroy(): void {
+        this._clearFaceLockTimer();
         this.unsubscriber$.next();
         this.unsubscriber$.complete();
     }
@@ -122,6 +143,10 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
     }
 
     get apiLoadingTextKey(): string {
+        if (this.facePowVerifying || this._faceApi.verifying) {
+            return "security.face_verifying";
+        }
+
         switch (this.flow) {
             case "create":
                 return "security.creating_wallet";
@@ -298,7 +323,24 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
         this.apiLoading = false;
         this.apiSuccess = false;
 
+        if (exception instanceof FaceLockedError || isFaceLockedError(exception)) {
+            const retryAfter =
+                exception instanceof FaceLockedError ? exception.retryAfterSeconds : parseRetryAfterSeconds(exception);
+            this._startFaceLockCountdown(retryAfter);
+            return;
+        }
+
+        if (isFaceReplayDetectedError(exception)) {
+            this._returnToFaceCapture(this._errorService.translateFaceReplay(extractFaceClientMessage(exception)));
+            return;
+        }
+
         const errorKey = this._errorService.resolveErrorKey(exception);
+
+        if (errorKey === "face_locked") {
+            this._startFaceLockCountdown(parseRetryAfterSeconds(exception));
+            return;
+        }
 
         if (this._errorService.isLivenessError(errorKey)) {
             this.errorTitle = this._translocoService.translate("errors.liveness_failed");
@@ -322,6 +364,7 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
     };
 
     onBiometricsScanned = async (encryptedImage: string): Promise<void> => {
+        this.captureNotice = "";
         this.apiLoading = true;
         this.apiSuccess = false;
 
@@ -356,5 +399,43 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
         this._chromeService.setItem("hideBiometricsMessage", this.form.controls.hideBiometricsCheckbox.value);
 
         this.showBiometrics = true;
+    }
+
+    private _startFaceLockCountdown(retryAfterSeconds: number): void {
+        this._clearFaceLockTimer();
+        this.faceLockCountdown = Math.max(0, Math.floor(retryAfterSeconds));
+        this._applyFaceLockMessage();
+        if (this.faceLockCountdown <= 0) return;
+
+        this._faceLockTimer = setInterval(() => {
+            this.faceLockCountdown = Math.max(0, this.faceLockCountdown - 1);
+            this._applyFaceLockMessage();
+            if (this.faceLockCountdown <= 0) {
+                this._clearFaceLockTimer();
+            }
+        }, 1000);
+    }
+
+    private _applyFaceLockMessage(): void {
+        const { title, message } = this._errorService.translateFaceLocked(this.faceLockCountdown);
+        this.errorTitle = title;
+        this.errorMessage = message;
+    }
+
+    private _returnToFaceCapture(message: string): void {
+        this.apiLoading = false;
+        this.apiSuccess = false;
+        this.errorTitle = "";
+        this.errorMessage = "";
+        this.captureNotice = message;
+        this.showBiometrics = true;
+        this._changeDetectorRef.markForCheck();
+    }
+
+    private _clearFaceLockTimer(): void {
+        if (this._faceLockTimer) {
+            clearInterval(this._faceLockTimer);
+            this._faceLockTimer = undefined;
+        }
     }
 }

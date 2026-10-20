@@ -700,7 +700,8 @@
         "retrieving_vault": "금고 가져오는 중...",
         "decrypting_vault": "금고 해독 중...",
         "vault_unlocked": "금고 잠금 해제!",
-        "wallet_created": "지갑 준비 완료!"
+        "wallet_created": "지갑 준비 완료!",
+        "face_verifying": "확인 중…"
     },
     "receive": {
         "information": "이 주소는 호환되는 토큰을 받는 데만 사용할 수 있습니다.",
@@ -1032,7 +1033,12 @@
         "stellar_invalid_asset_format": "Invalid Stellar asset. Use CODE:ISSUER (for example USDC:G…).",
         "swap_same_chain": "Swaps 모드에서는 두 토큰이 같은 네트워크에 있어야 합니다. Cross-chain으로 전환하거나 선택을 변경하세요.",
         "ERR_MISSING_PASSWORD": "This key is protected with your master password. Enter it and try again.",
-        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name."
+        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name.",
+        "face_locked_title": "시도 횟수 초과",
+        "face_locked": "얼굴 인증이 일시적으로 잠겼습니다. {{ time }} 후에 다시 시도하세요.",
+        "face_locked_about_minutes": "약 {{ minutes }}분",
+        "face_locked_about_hours": "약 {{ hours }}시간",
+        "face_replay_detected": "이 사진은 이미 사용되었습니다. 새 사진을 찍고 다시 시도하세요."
     },
     "swap": {
         "automatic": "자동",
