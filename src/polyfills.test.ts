@@ -68,7 +68,12 @@ import "zone.js"; // Included with Angular CLI.
 
 // Buffer polyfill for browser environments
 import { Buffer } from "buffer";
+import * as process from "process";
+
+// Same globals as polyfills.ts so specs can import components that pull in node-style crypto deps.
 if (typeof window !== "undefined") {
     (window as any).Buffer = Buffer;
+    (window as any).process = process;
+    (window as any).global = window;
 }
 

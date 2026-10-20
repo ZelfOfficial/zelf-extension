@@ -12,6 +12,7 @@ import { ChromeService } from "app/chrome.service";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { ReserveDoneSheetComponent } from "app/reserve-done-sheet/reserve-done-sheet.component";
 import { ErrorService } from "app/services/error.service";
+import { SigningAuthorizationService } from "app/services/signing-authorization.service";
 import { TagFlow, TagModel, TagsService } from "app/tags.service";
 import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
@@ -64,7 +65,8 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
         private _tagsService: TagsService,
         private _translocoService: TranslocoService,
         private _vaultService: VaultService,
-        private _walletService: WalletService
+        private _walletService: WalletService,
+        private _signingAuthorization: SigningAuthorizationService
     ) {
         this.form = this._formBuilder.group({
             hideBiometricsCheckbox: [false],
@@ -184,6 +186,11 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
 
                 const newWallet = new TagModel(response.data);
                 await this._walletService.switchWallet(newWallet);
+
+                // #88: only a face decrypt that succeeded on this screen, started from Send, authorizes signing.
+                if (this._isSendConfirmationReturn()) this._signingAuthorization.approvePending();
+                else this._signingAuthorization.revoke();
+
                 await this._showSuccessAndContinue(() => this._redirect());
             })
             .catch(this.onBiometricsFailed);
@@ -241,6 +248,10 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
             .catch(this.onBiometricsFailed);
     }
 
+    private _isSendConfirmationReturn(): boolean {
+        return (this.returnState || "").split("?")[0] === "/send/confirmation";
+    }
+
     private _redirect(): void {
         if (this.returnState) {
             let cleanReturn = this.returnState;
@@ -264,6 +275,7 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
     }
 
     goBack(): void {
+        this._signingAuthorization.revoke();
         this.errorTitle = "";
         this.errorMessage = "";
 
@@ -281,6 +293,7 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
     }
 
     onBiometricsFailed = (exception: any): void => {
+        this._signingAuthorization.revoke();
         this.apiLoading = false;
         this.apiSuccess = false;
 
