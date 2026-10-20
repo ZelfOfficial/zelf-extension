@@ -106,7 +106,9 @@ describe("SecurityBiometricsComponent signing authorization (#88)", () => {
             { translate: (k: string) => k } as any,
             { securityType: "password", password: "" } as any,
             { getUserFingerprint: () => ({ hash: "fp" }), switchWallet: jasmine.createSpy().and.resolveTo() } as any,
-            signingAuth
+            signingAuth,
+            { verifying$: of(false), verifying: false } as FaceApiService,
+            { markForCheck: () => undefined } as any
         );
         component.returnState = "/send/confirmation";
         spyOn(component, "goBack").and.callFake(goBack);
