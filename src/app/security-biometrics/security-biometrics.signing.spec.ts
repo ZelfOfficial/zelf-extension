@@ -46,6 +46,17 @@ describe("SecurityBiometricsComponent signing authorization (#88)", () => {
         expect(signingAuth.has(scope)).toBeTrue();
     });
 
+    for (const ret of ["/swap", "/dapp/sign"]) {
+        it(`approves the pending ${ret} signature after a successful face decrypt started from it`, async () => {
+            const { component, signingAuth, scope } = setup(ret, true);
+
+            await (component as any)._decryptTag({});
+            await flush();
+
+            expect(signingAuth.has(scope)).toBeTrue();
+        });
+    }
+
     it("does not approve anything when the face decrypt fails", async () => {
         const { component, signingAuth, scope } = setup("/send/confirmation", false);
 

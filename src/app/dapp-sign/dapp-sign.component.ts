@@ -12,6 +12,8 @@ import { DappGasEstimationService } from "app/services/dapp-gas-estimation.servi
 import { SigningService } from "app/services/signing.service";
 import { TxDecoderService } from "app/services/tx-decoder.service";
 import { VaultService } from "app/vault.service";
+import { SigningAuthorizationService } from "app/services/signing-authorization.service";
+import { FACE_ONLY_PASSPHRASE, SigningGateInput, resolveSigningGate, signingNeedsFace } from "app/core/security/signing-gate.util";
 import { WalletService } from "app/wallet.service";
 import { TagsService } from "app/tags.service";
 import { TagModel } from "app/tags.service";
@@ -62,8 +64,11 @@ export class DappSignComponent implements OnInit {
     messageToSign = "";
     isMessageSign = false;
 
-    private _password = "";
+    /** Password/PIN typed before this request's face step (vault). Only used with a face approval for this request (#88). */
+    private _carriedSecret = "";
     private _pendingParams: any = null;
+    /** Wallet without password/PIN: face on every signature (#88). */
+    isFaceOnly = false;
 
     constructor(
         private _activatedRoute: ActivatedRoute,
@@ -78,16 +83,33 @@ export class DappSignComponent implements OnInit {
         private _translocoService: TranslocoService,
         private _txDecoder: TxDecoderService,
         private _vaultService: VaultService,
-        private _walletService: WalletService
+        private _walletService: WalletService,
+        private _signingAuthorization: SigningAuthorizationService
     ) {
         this.remainingAttempts = this._vaultService.remainingAttempts;
-        this._password = this._vaultService.password;
+        this._carriedSecret = this._vaultService.password;
         this._vaultService.mnemonic = "";
         this._vaultService.password = "";
+    }
 
-        if (this._password?.trim()) {
-            this.passwordSet = true;
-        }
+    /** #88: binds a face approval to this dApp request. */
+    private _signingScope(): string {
+        return this.requestId ? ["dapp", this.requestId, this.method || "", this.wallet?.fullTagName || ""].join("|").toLowerCase() : "";
+    }
+
+    private _typedSecret(): string {
+        return this.isPinUnlock ? this.pinDigits.join("") : this.form?.get("password")?.value || "";
+    }
+
+    private async _signingGateInput(): Promise<SigningGateInput> {
+        return {
+            faceOnly: this.isFaceOnly,
+            hasVaultKeys: !!(this.wallet?.pgp?.encryptedMessage && this.wallet?.pgp?.privateKey),
+            windowOpen: !(await this._vaultService.biometricsRequired()),
+            faceApproved: this._signingAuthorization.has(this._signingScope()),
+            typedSecret: this.isPinUnlock && this._typedSecret().length !== 6 ? "" : this._typedSecret(),
+            carriedSecret: this._carriedSecret,
+        };
     }
 
     async ngOnInit(): Promise<void> {
@@ -176,9 +198,10 @@ export class DappSignComponent implements OnInit {
     async goToBiometrics(): Promise<void> {
         if (!this.hasCredentials || !this.wallet) return;
 
-        if (!this._vaultService.password || this._vaultService.password.trim() === "") {
-            this._vaultService.password = this.isPinUnlock ? this.pinDigits.join("") : this.form.get("password")?.value || this._password;
-        }
+        // #88: the face step needs the password/PIN typed for this request (face-only: placeholder),
+        // and it can only approve this request.
+        this._vaultService.password = this.isFaceOnly ? FACE_ONLY_PASSPHRASE : this._typedSecret();
+        this._signingAuthorization.requestAuthorization(this._signingScope());
 
         const tagName = this.wallet?.publicData?.tagName || this.wallet?.fullTagName || "";
         await this._tagsService.setTagName(tagName);
@@ -191,30 +214,33 @@ export class DappSignComponent implements OnInit {
     async confirmSigning(): Promise<void> {
         if (this.signing) return;
 
-        if (this.requiresBiometrics) {
+        // #88 signing rule (core/security/signing-gate.util.ts).
+        const gate = resolveSigningGate(await this._signingGateInput());
+
+        if (gate.action === "ask-secret") {
+            await this._checkBiometrics();
+            this._openErrorSnackBar(this.isPinUnlock ? "Enter your PIN" : "Enter your password");
+            return;
+        }
+
+        if (gate.action === "face") {
+            this.requiresBiometrics = true;
             await this.goToBiometrics();
             return;
         }
 
-        if (!this.isPinUnlock && !this._password && !this.form.get("password")?.value) {
-            this._openErrorSnackBar("Enter your password");
-            return;
-        }
-
-        if (this.isPinUnlock && !this._password && this.pinDigits.join("").length !== 6) {
-            this._openErrorSnackBar("Enter your PIN");
+        if (gate.consumeApproval && !this._signingAuthorization.consume(this._signingScope())) {
+            this.requiresBiometrics = true;
+            await this.goToBiometrics();
             return;
         }
 
         this.signing = true;
 
         try {
-            const passphrase = this._password || (this.isPinUnlock ? this.pinDigits.join("") : this.form.get("password")?.value);
+            const passphrase = gate.passphrase;
+            this._carriedSecret = "";
 
-            // Use oneTimeDecryptMessage (no biometrics timer check) since:
-            // 1. We already verified biometrics within this popup flow, and
-            // 2. The signing popup is a separate Chrome window whose VaultService
-            //    instance may have a stale _lastVerified causing false "expired" errors.
             let mnemonic = await this._signingService.decryptMnemonicOnce(this.wallet as TagModel, passphrase);
 
             if (!mnemonic) {
@@ -285,6 +311,8 @@ export class DappSignComponent implements OnInit {
     }
 
     async reject(): Promise<void> {
+        this._signingAuthorization.revoke();
+
         try {
             await chrome.runtime.sendMessage({
                 type: "DAPP_SIGNING_RESULT",
@@ -305,7 +333,7 @@ export class DappSignComponent implements OnInit {
         this.wallet = (await this._walletService.getCurrentWallet()) as TagModel;
         this.remainingAttempts = this._vaultService.remainingAttempts;
         this.passwordSet = false;
-        this._password = "";
+        this._carriedSecret = "";
         this._vaultService.password = "";
 
         if (this.isPinUnlock) {
@@ -436,9 +464,9 @@ export class DappSignComponent implements OnInit {
 
         const publicData = this.wallet.publicData as any;
 
-        if (String(publicData.hasPassword) === "false") {
-            this._password = "NO_PASSWORD_PLACEHOLDER";
-            this._vaultService.password = "NO_PASSWORD_PLACEHOLDER";
+        this.isFaceOnly = String(publicData.hasPassword) === "false";
+
+        if (this.isFaceOnly) {
             this._vaultService.securityType = "withoutPassword";
             this.passwordSet = true;
         } else if (publicData.st === "pin") {
@@ -449,15 +477,12 @@ export class DappSignComponent implements OnInit {
         }
     }
 
+    /** #88: which button (Verify = face / Confirm) and whether the password/PIN field is shown. Never decrypts. */
     private async _checkBiometrics(): Promise<void> {
-        const biometricsRequired = await this._vaultService.biometricsRequired();
+        const input = await this._signingGateInput();
 
-        if (!this.wallet?.pgp?.encryptedMessage || !this.wallet?.pgp?.privateKey || biometricsRequired) {
-            this.requiresBiometrics = true;
-            return;
-        }
-
-        this.requiresBiometrics = false;
+        this.requiresBiometrics = signingNeedsFace(input);
+        this.passwordSet = this.isFaceOnly || (input.faceApproved && input.hasVaultKeys && !!(input.carriedSecret || "").trim());
     }
 
     private async _loadPendingData(): Promise<any> {

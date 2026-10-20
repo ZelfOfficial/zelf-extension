@@ -1,4 +1,5 @@
 import { NgClass, NgIf } from "@angular/common";
+import { MAX_BIOMETRIC_WINDOW_MINUTES } from "app/core/security/signing-gate.util";
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup, Validators } from "@angular/forms";
 import { TranslocoModule } from "@jsverse/transloco";
@@ -73,7 +74,7 @@ export class ZelfSettingsSecurityComponent implements OnInit, OnDestroy {
     }
 
     private _updateSessionRemaining(): void {
-        const intervalMinutes = this.settings.security.biometricVerificationInterval;
+        const intervalMinutes = Math.min(Number(this.settings.security.biometricVerificationInterval) || MAX_BIOMETRIC_WINDOW_MINUTES, MAX_BIOMETRIC_WINDOW_MINUTES);
         this.sessionTotalSeconds = intervalMinutes * 60;
         const lastVerified = this._vaultService.lastVerified;
         const elapsedSeconds = (Date.now() - lastVerified) / 1000;
@@ -119,7 +120,7 @@ export class ZelfSettingsSecurityComponent implements OnInit, OnDestroy {
         this.form = this._formBuilder.group({
             biometricVerificationInterval: [
                 this.settings.security.biometricVerificationInterval,
-                [Validators.required, Validators.min(5), Validators.max(60)],
+                [Validators.required, Validators.min(1), Validators.max(MAX_BIOMETRIC_WINDOW_MINUTES)],
             ],
             passwordAttempts: [this.settings.security.passwordAttempts, [Validators.required, Validators.min(1), Validators.max(8)]],
         });

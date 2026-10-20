@@ -1,4 +1,5 @@
 import { Injectable } from "@angular/core";
+import { MAX_BIOMETRIC_WINDOW_MINUTES } from "app/core/security/signing-gate.util";
 import { mergeNetworkSettings, resolveEnabledNetworkIds, shouldPersistNetworkMerge } from "app/core/network-settings.util";
 import { LicenseNetworksService } from "app/services/license-networks.service";
 import { ChromeService } from "app/chrome.service";
@@ -115,7 +116,9 @@ export class SettingsService {
 
         const minutesSinceLastVerified = Math.floor((new Date().getTime() - new Date(lastVerified).getTime()) / (1000 * 60));
 
-        if (minutesSinceLastVerified < (this._settings?.security?.biometricVerificationInterval || 10)) return;
+        const windowMinutes = Math.min(Number(this._settings?.security?.biometricVerificationInterval) || MAX_BIOMETRIC_WINDOW_MINUTES, MAX_BIOMETRIC_WINDOW_MINUTES);
+
+        if (minutesSinceLastVerified < windowMinutes) return;
 
         await this._walletService.clearPGPKeys();
     }

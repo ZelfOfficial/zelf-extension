@@ -6,6 +6,7 @@ import { ChromeService } from "./chrome.service";
 import { WalletService } from "./wallet.service";
 import { ZaiService } from "./zai/zai.service";
 import { SigningAuthorizationService } from "./services/signing-authorization.service";
+import { MAX_BIOMETRIC_WINDOW_MINUTES } from "./core/security/signing-gate.util";
 
 @Injectable({
     providedIn: "root",
@@ -85,7 +86,11 @@ export class VaultService {
         const settings = await this._chromeService.getItem("settings");
         const minutesSinceLastVerified = Math.floor((new Date().getTime() - new Date(this._lastVerified).getTime()) / (1000 * 60));
 
-        if (minutesSinceLastVerified > (settings?.security?.biometricVerificationInterval || 10)) return true;
+        // #88: the setting can shorten the window but never extend it past MAX_BIOMETRIC_WINDOW_MINUTES.
+        const configured = Number(settings?.security?.biometricVerificationInterval) || MAX_BIOMETRIC_WINDOW_MINUTES;
+        const windowMinutes = Math.min(Math.max(configured, 0), MAX_BIOMETRIC_WINDOW_MINUTES);
+
+        if (!this._lastVerified || minutesSinceLastVerified >= windowMinutes) return true;
 
         return false;
     }

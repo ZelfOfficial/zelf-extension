@@ -187,8 +187,8 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
                 const newWallet = new TagModel(response.data);
                 await this._walletService.switchWallet(newWallet);
 
-                // #88: only a face decrypt that succeeded on this screen, started from Send, authorizes signing.
-                if (this._isSendConfirmationReturn()) this._signingAuthorization.approvePending();
+                // #88: only a face decrypt that succeeded on this screen, started from a signing screen, approves it.
+                if (this._isSigningReturn()) this._signingAuthorization.approvePending();
                 else this._signingAuthorization.revoke();
 
                 await this._showSuccessAndContinue(() => this._redirect());
@@ -248,8 +248,9 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
             .catch(this.onBiometricsFailed);
     }
 
-    private _isSendConfirmationReturn(): boolean {
-        return (this.returnState || "").split("?")[0] === "/send/confirmation";
+    /** #88: screens whose pending signature this face step may approve (one-time, per request). */
+    private _isSigningReturn(): boolean {
+        return ["/send/confirmation", "/swap", "/dapp/sign"].includes((this.returnState || "").split("?")[0]);
     }
 
     private _redirect(): void {
