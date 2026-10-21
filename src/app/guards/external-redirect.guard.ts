@@ -1,9 +1,13 @@
+import { inject } from "@angular/core";
 import { type CanActivateFn } from "@angular/router";
 
-export const ExternalRedirectGuard: CanActivateFn = (route) => {
-    let url = route.queryParams["externalUrl"] || route.data["externalUrl"];
+import { ChromeService } from "app/chrome.service";
 
-    window.open(url, "_blank");
+export const ExternalRedirectGuard: CanActivateFn = (route) => {
+    const url = route.queryParams["externalUrl"] || route.data["externalUrl"];
+    const chromeService = inject(ChromeService);
+
+    void chromeService.openExternalUrl(url);
 
     return false;
 };

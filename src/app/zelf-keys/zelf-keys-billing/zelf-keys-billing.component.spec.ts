@@ -43,7 +43,8 @@ describe("ZelfKeysBillingComponent goBack (Refs #69)", () => {
             {} as any,
             {} as any,
             activatedRoute,
-            location
+            location,
+            {} as any
         );
 
         return { component, location, navigateByUrl };

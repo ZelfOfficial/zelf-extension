@@ -1,0 +1,141 @@
+<div class="stripe-checkout" *transloco="let t">
+    <header class="stripe-checkout__topbar">
+        <button
+            type="button"
+            class="zelf-icon-button zelf-icon-button--secondary zelf-icon-button--40 stripe-checkout__back"
+            mat-flat-button
+            (click)="backToPlans()"
+            [attr.aria-label]="t('common.go_back')"
+        >
+            <svg width="22" height="14" viewBox="0 0 22 14" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path
+                    d="M20.0898 5.8277H4.72478L8.08478 2.4677C8.53978 2.0127 8.53978 1.2777 8.08478 0.822695C7.62978 0.367695 6.89478 0.367695 6.43978 0.822695L1.08478 6.1777C0.62978 6.6327 0.62978 7.3677 1.08478 7.8227L6.43978 13.1777C6.89478 13.6327 7.62978 13.6327 8.08478 13.1777C8.53978 12.7227 8.53978 11.9877 8.08478 11.5327L4.72478 8.16103H20.0898C20.7314 8.16103 21.2564 7.63603 21.2564 6.99436C21.2564 6.3527 20.7314 5.8277 20.0898 5.8277Z"
+                />
+            </svg>
+        </button>
+    </header>
+
+    <div class="stripe-checkout__scroll">
+        <zelf-loader [diameter]="72" [absolute]="false" *ngIf="loading && !snapshot"></zelf-loader>
+
+        <div class="stripe-checkout__card" *ngIf="snapshot as checkout">
+            <div class="stripe-checkout__plan">
+                <h1 class="stripe-checkout__title">{{ checkout.planName }}</h1>
+                <p class="stripe-checkout__price">
+                    <span class="stripe-checkout__currency">{{ currencySymbol(checkout) }}</span>
+                    <span class="stripe-checkout__amount">{{ checkout.planPrice }}</span>
+                    <span class="stripe-checkout__period">/{{ planIntervalLabel(checkout) }}</span>
+                </p>
+            </div>
+
+            <ng-container [ngSwitch]="phase">
+                <div *ngSwitchCase="'waiting'" class="stripe-checkout__panel stripe-checkout__panel--waiting">
+                    <div class="stripe-checkout__loader-wrap" [class.stripe-checkout__loader-wrap--checking]="checking">
+                        <zelf-loader [diameter]="56" [absolute]="false"></zelf-loader>
+                    </div>
+                    <h2 class="stripe-checkout__heading">{{ t("zelf_keys.billing_ui.stripe_checkout.waiting.title") }}</h2>
+                    <p class="stripe-checkout__message">{{ t("zelf_keys.billing_ui.stripe_checkout.waiting.message") }}</p>
+                    <div class="stripe-checkout__actions">
+                        <button type="button" class="stripe-checkout__button stripe-checkout__button--primary" (click)="reopenStripe()">
+                            {{ t("zelf_keys.billing_ui.stripe_checkout.actions.reopen_stripe") }}
+                        </button>
+                        <button type="button" class="stripe-checkout__button stripe-checkout__button--secondary" (click)="checkNow()" [disabled]="checking">
+                            {{ t("zelf_keys.billing_ui.stripe_checkout.actions.check_now") }}
+                        </button>
+                        <button type="button" class="stripe-checkout__button stripe-checkout__button--ghost" (click)="cancelCheckout()">
+                            {{ t("zelf_keys.billing_ui.stripe_checkout.actions.cancel") }}
+                        </button>
+                    </div>
+                </div>
+
+                <div *ngSwitchCase="'confirmed'" class="stripe-checkout__panel stripe-checkout__panel--success">
+                    <div class="stripe-checkout__status-icon stripe-checkout__status-icon--success" aria-hidden="true">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                        </svg>
+                    </div>
+                    <h2 class="stripe-checkout__heading">{{ t("zelf_keys.billing_ui.stripe_checkout.confirmed.title") }}</h2>
+                    <p class="stripe-checkout__message">
+                        {{ t("zelf_keys.billing_ui.stripe_checkout.confirmed.message", { planName: checkout.planName }) }}
+                    </p>
+                    <button type="button" class="stripe-checkout__button stripe-checkout__button--primary" (click)="continueAfterSuccess()">
+                        {{ t("zelf_keys.billing_ui.stripe_checkout.actions.continue") }}
+                    </button>
+                </div>
+
+                <div *ngSwitchCase="'cancelled'" class="stripe-checkout__panel stripe-checkout__panel--neutral">
+                    <div class="stripe-checkout__status-icon stripe-checkout__status-icon--neutral" aria-hidden="true">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                    </div>
+                    <h2 class="stripe-checkout__heading">{{ t("zelf_keys.billing_ui.stripe_checkout.cancelled.title") }}</h2>
+                    <p class="stripe-checkout__message">{{ t("zelf_keys.billing_ui.stripe_checkout.cancelled.message") }}</p>
+                    <div class="stripe-checkout__actions">
+                        <button type="button" class="stripe-checkout__button stripe-checkout__button--primary" (click)="tryStripeAgain()" [disabled]="checking">
+                            {{ t("zelf_keys.billing_ui.stripe_checkout.actions.try_stripe_again") }}
+                        </button>
+                        <button type="button" class="stripe-checkout__button stripe-checkout__button--secondary" (click)="backToPlans()">
+                            {{ t("zelf_keys.billing_ui.stripe_checkout.actions.choose_plan") }}
+                        </button>
+                    </div>
+                </div>
+
+                <div *ngSwitchCase="'failed'" class="stripe-checkout__panel stripe-checkout__panel--error">
+                    <div class="stripe-checkout__status-icon stripe-checkout__status-icon--error" aria-hidden="true">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                        </svg>
+                    </div>
+                    <h2 class="stripe-checkout__heading">{{ t("zelf_keys.billing_ui.stripe_checkout.failed.title") }}</h2>
+                    <p class="stripe-checkout__message">{{ t("zelf_keys.billing_ui.stripe_checkout.failed.message") }}</p>
+                    <div class="stripe-checkout__actions">
+                        <button type="button" class="stripe-checkout__button stripe-checkout__button--primary" (click)="checkNow()" [disabled]="checking">
+                            {{ t("zelf_keys.billing_ui.stripe_checkout.actions.check_now") }}
+                        </button>
+                        <button type="button" class="stripe-checkout__button stripe-checkout__button--secondary" (click)="backToPlans()">
+                            {{ t("zelf_keys.billing_ui.stripe_checkout.actions.choose_plan") }}
+                        </button>
+                    </div>
+                </div>
+
+                <div *ngSwitchCase="'expired'" class="stripe-checkout__panel stripe-checkout__panel--warning">
+                    <div class="stripe-checkout__status-icon stripe-checkout__status-icon--warning" aria-hidden="true">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M12 8V12M12 16H12.01M10.29 3.86L1.82 18A2 2 0 003.64 21H20.36A2 2 0 0022.18 18L13.71 3.86A2 2 0 0010.29 3.86Z"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                        </svg>
+                    </div>
+                    <h2 class="stripe-checkout__heading">{{ t("zelf_keys.billing_ui.stripe_checkout.expired.title") }}</h2>
+                    <p class="stripe-checkout__message">{{ t("zelf_keys.billing_ui.stripe_checkout.expired.message") }}</p>
+                    <p class="stripe-checkout__hint">{{ t("zelf_keys.billing_ui.stripe_checkout.expired.hint") }}</p>
+                    <div class="stripe-checkout__actions">
+                        <button type="button" class="stripe-checkout__button stripe-checkout__button--primary" (click)="checkNow()" [disabled]="checking">
+                            {{ t("zelf_keys.billing_ui.stripe_checkout.actions.check_again") }}
+                        </button>
+                        <button type="button" class="stripe-checkout__button stripe-checkout__button--secondary" (click)="backToPlans()">
+                            {{ t("zelf_keys.billing_ui.stripe_checkout.actions.choose_plan") }}
+                        </button>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+</div>

@@ -261,6 +261,13 @@ const routes: Routes = [
                         loadComponent: () =>
                             import("./zelf-keys/zelf-keys-billing/zelf-keys-billing.component").then((m) => m.ZelfKeysBillingComponent),
                     },
+                    {
+                        path: "billing/stripe-checkout",
+                        loadComponent: () =>
+                            import("./zelf-keys/zelf-keys-billing/stripe-checkout-status/stripe-checkout-status.component").then(
+                                (m) => m.StripeCheckoutStatusComponent
+                            ),
+                    },
                 ],
             },
         ],
