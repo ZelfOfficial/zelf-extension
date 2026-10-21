@@ -1,4 +1,5 @@
 import type { ChromeService } from "app/chrome.service";
+import type { TagModel } from "app/tags.service";
 
 import type { PricingPlan } from "../../services/billing.service";
 
@@ -32,6 +33,15 @@ export interface BillingUiSessionState {
     savedAt: number;
     showCryptoPayment: boolean;
     stripeCheckoutPending: boolean;
+    /** Lowercase wallet tag (fullTagName / tagName) so another wallet cannot restore this snapshot. */
+    walletOwnerTag: string;
+}
+
+export function resolveBillingWalletOwnerTag(wallet: Partial<TagModel> | null | undefined): string {
+    const raw = wallet?.fullTagName || wallet?.publicData?.tagName || wallet?.tagName || wallet?.name || "";
+    const tag = String(raw).trim().toLowerCase();
+
+    return tag || "_none";
 }
 
 export function buildBillingUiSessionState(input: {
@@ -42,6 +52,7 @@ export function buildBillingUiSessionState(input: {
     plans: PricingPlan[];
     showCryptoPayment: boolean;
     stripeCheckoutPending: boolean;
+    walletOwnerTag: string;
 }): BillingUiSessionState {
     return {
         ...input,
@@ -60,16 +71,44 @@ export function shouldClearStuckBillingLoading(loading: boolean, loadingPlans: b
     return loading && !loadingPlans && !loadingCurrentPlan;
 }
 
-export async function loadBillingUiSessionState(chromeService: ChromeService): Promise<BillingUiSessionState | null> {
-    const stored = await chromeService.getItemSession<BillingUiSessionState>(BILLING_UI_SESSION_KEY);
+export function shouldRestoreCryptoPaymentMonitoring(state: BillingUiSessionState | null | undefined): boolean {
+    return Boolean(state?.showCryptoPayment && state.cryptoPayment?.lockedPriceToken);
+}
 
-    if (!isBillingUiSessionStateFresh(stored)) {
-        await chromeService.removeItemSession(BILLING_UI_SESSION_KEY);
+/** Call before reloading billing after subscription activation so restore cannot re-arm crypto polling. */
+export async function finalizeBillingUiAfterSubscriptionSuccess(chromeService: ChromeService): Promise<void> {
+    await clearBillingUiSessionState(chromeService);
+}
+
+export async function loadBillingUiSessionState(
+    chromeService: ChromeService,
+    walletOwnerTag: string | null
+): Promise<BillingUiSessionState | null> {
+    try {
+        const stored = await chromeService.getItemSession<BillingUiSessionState>(BILLING_UI_SESSION_KEY);
+
+        if (!isBillingUiSessionStateFresh(stored)) {
+            await clearBillingUiSessionState(chromeService);
+
+            return null;
+        }
+
+        if (!walletOwnerTag || !stored?.walletOwnerTag || stored.walletOwnerTag !== walletOwnerTag) {
+            await clearBillingUiSessionState(chromeService);
+
+            return null;
+        }
+
+        return stored;
+    } catch {
+        try {
+            await clearBillingUiSessionState(chromeService);
+        } catch {
+            /* ignore secondary storage errors */
+        }
 
         return null;
     }
-
-    return stored ?? null;
 }
 
 export async function persistBillingUiSessionState(chromeService: ChromeService, state: BillingUiSessionState): Promise<void> {
