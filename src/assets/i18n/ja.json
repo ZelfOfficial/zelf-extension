@@ -1816,6 +1816,10 @@
         "algorithm": "アルゴリズム",
         "digits": "桁数",
         "period": "期間",
+        "totp_params": {
+            "hidden": "ロック解除後に表示",
+            "period_seconds": "{{seconds}} 秒"
+        },
         "walrus_info": "Walrusストレージ情報",
         "walrus_blob_id": "Blob ID",
         "walrus_public_url": "公開URL",

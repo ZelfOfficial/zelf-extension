@@ -72,6 +72,29 @@ export function parseTotpParamsFromRetrieveSources(
     };
 }
 
+/** True when algorithm, digits, or period are present in IPFS publicData (not encrypted-only placeholders). */
+export function zotpHasTotpParamsInPublicData(publicData?: Record<string, unknown> | null): boolean {
+    if (!publicData) return false;
+
+    if (publicData.algorithm != null && String(publicData.algorithm).trim()) {
+        return true;
+    }
+    if (publicData.digits != null && String(publicData.digits).trim() !== "") {
+        return true;
+    }
+    if (publicData.period != null && String(publicData.period).trim() !== "") {
+        return true;
+    }
+
+    return false;
+}
+
+/** Whether the UI may show concrete TOTP settings (after decrypt or from publicData). */
+export function shouldRevealZotpTotpParams(zotp: ZOTP, hasDecryptedSecret: boolean): boolean {
+    if (hasDecryptedSecret) return true;
+    return zotpHasTotpParamsInPublicData(zotp.ipfs?.publicData);
+}
+
 export function applyTotpParamsToZotp(
     zotp: ZOTP,
     metadata?: Record<string, unknown> | null,

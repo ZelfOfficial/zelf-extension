@@ -1823,6 +1823,10 @@
         "algorithm": "Algoritmo",
         "digits": "Dígitos",
         "period": "Período",
+        "totp_params": {
+            "hidden": "Mostrado após desbloquear",
+            "period_seconds": "{{seconds}} s"
+        },
         "walrus_info": "Informações de Armazenamento Walrus",
         "walrus_blob_id": "ID do Blob",
         "walrus_public_url": "URL Pública",

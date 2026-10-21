@@ -1800,6 +1800,10 @@
         "algorithm": "อัลกอริทึม",
         "digits": "จำนวนหลัก",
         "period": "ระยะเวลา",
+        "totp_params": {
+            "hidden": "แสดงหลังปลดล็อก",
+            "period_seconds": "{{seconds}} วินาที"
+        },
         "walrus_info": "ข้อมูลการจัดเก็บ Walrus",
         "walrus_blob_id": "Blob ID",
         "walrus_public_url": "URL สาธารณะ",

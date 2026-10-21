@@ -1816,6 +1816,10 @@
         "algorithm": "एल्गोरिथम",
         "digits": "अंक",
         "period": "अवधि",
+        "totp_params": {
+            "hidden": "अनलॉक के बाद दिखाया जाता है",
+            "period_seconds": "{{seconds}} सेकंड"
+        },
         "walrus_info": "Walrus स्टोरेज जानकारी",
         "walrus_blob_id": "Blob ID",
         "walrus_public_url": "सार्वजनिक URL",

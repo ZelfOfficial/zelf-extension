@@ -27,6 +27,7 @@ import { ZOTPService } from "app/services/zotp.service";
 import { WalletService } from "app/wallet.service";
 import { getDevFaceBypassRouterExtras, syncDevFaceBypassFromQueryParams } from "app/utils/dev-biometrics-bypass.util";
 import { ExportZotpComponent, ExportZOTPData } from "../export-zotp/export-zotp.component";
+import { shouldRevealZotpTotpParams, ZOTP_DEFAULT_PERIOD } from "../zotp-totp-params.util";
 
 @Component({
     imports: [CommonModule, FormsModule, TranslocoModule, RouterModule, MatDialogModule, BiometricsGeneralComponent],
@@ -129,6 +130,15 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
 
     get protectionLabelKey(): string {
         return this.requiresDecryptPassword ? "zotp.protection.face_password" : "zotp.protection.face";
+    }
+
+    get totpParamsRevealed(): boolean {
+        if (!this.zotp) return false;
+        return shouldRevealZotpTotpParams(this.zotp, !!this.decryptedSecret);
+    }
+
+    get displayPeriodSeconds(): number {
+        return this.zotp?.period ?? ZOTP_DEFAULT_PERIOD;
     }
 
     private _startProofPrefetch(): void {

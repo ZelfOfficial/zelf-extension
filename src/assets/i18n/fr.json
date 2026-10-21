@@ -1816,6 +1816,10 @@
         "algorithm": "Algorithme",
         "digits": "Chiffres",
         "period": "Période",
+        "totp_params": {
+            "hidden": "Affiché après déverrouillage",
+            "period_seconds": "{{seconds}} s"
+        },
         "walrus_info": "Informations de Stockage Walrus",
         "walrus_blob_id": "ID de Blob",
         "walrus_public_url": "URL Publique",

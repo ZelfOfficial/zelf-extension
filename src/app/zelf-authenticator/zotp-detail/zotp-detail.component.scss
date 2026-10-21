@@ -349,6 +349,11 @@
         }
     }
 
+    &__value--muted {
+        color: variables.$themeTextMuted;
+        font-style: italic;
+    }
+
     &__row-content {
         display: flex;
         align-items: center;

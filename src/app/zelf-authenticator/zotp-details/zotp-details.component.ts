@@ -4,6 +4,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
 import { TranslocoModule } from "@jsverse/transloco";
 import { ZOTP } from "app/models/zotp.model";
+import { shouldRevealZotpTotpParams, ZOTP_DEFAULT_PERIOD } from "../zotp-totp-params.util";
 
 export interface ZOTPDetailsData {
     zotp: ZOTP;
@@ -31,6 +32,14 @@ export class ZotpDetailsComponent {
 
     get publicData(): any {
         return this.zotp.ipfs?.publicData || {};
+    }
+
+    get totpParamsRevealed(): boolean {
+        return shouldRevealZotpTotpParams(this.zotp, false);
+    }
+
+    get displayPeriodSeconds(): number {
+        return this.zotp.period ?? ZOTP_DEFAULT_PERIOD;
     }
 
     get ipfsData(): any {

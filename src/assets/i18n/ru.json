@@ -1816,6 +1816,10 @@
         "algorithm": "Алгоритм",
         "digits": "Количество цифр",
         "period": "Период",
+        "totp_params": {
+            "hidden": "Отображается после разблокировки",
+            "period_seconds": "{{seconds}} с"
+        },
         "walrus_info": "Информация о хранилище Walrus",
         "walrus_blob_id": "Blob ID",
         "walrus_public_url": "Публичный URL",

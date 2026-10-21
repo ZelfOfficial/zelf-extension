@@ -134,17 +134,27 @@
                     <p class="zelf-action-row__label">{{ t("zotp.issuer") }}</p>
                     <p class="zelf-action-row__value">{{ zotp.issuer }}</p>
                 </div>
-                <div class="zelf-action-row" *ngIf="zotp.algorithm">
+                <div class="zelf-action-row">
                     <p class="zelf-action-row__label">{{ t("zotp.algorithm") }}</p>
-                    <p class="zelf-action-row__value">{{ zotp.algorithm }}</p>
+                    <p class="zelf-action-row__value" [class.zotp-details__value--muted]="!totpParamsRevealed">
+                        {{ totpParamsRevealed ? zotp.algorithm : t("zotp.totp_params.hidden") }}
+                    </p>
                 </div>
-                <div class="zelf-action-row" *ngIf="zotp.digits">
+                <div class="zelf-action-row">
                     <p class="zelf-action-row__label">{{ t("zotp.digits") }}</p>
-                    <p class="zelf-action-row__value">{{ zotp.digits }}</p>
+                    <p class="zelf-action-row__value" [class.zotp-details__value--muted]="!totpParamsRevealed">
+                        {{ totpParamsRevealed ? zotp.digits : t("zotp.totp_params.hidden") }}
+                    </p>
                 </div>
-                <div class="zelf-action-row" *ngIf="zotp.period">
+                <div class="zelf-action-row">
                     <p class="zelf-action-row__label">{{ t("zotp.period") }}</p>
-                    <p class="zelf-action-row__value">{{ zotp.period }}s</p>
+                    <p class="zelf-action-row__value" [class.zotp-details__value--muted]="!totpParamsRevealed">
+                        {{
+                            totpParamsRevealed
+                                ? t("zotp.totp_params.period_seconds", { seconds: displayPeriodSeconds })
+                                : t("zotp.totp_params.hidden")
+                        }}
+                    </p>
                 </div>
             </div>
         </div>
