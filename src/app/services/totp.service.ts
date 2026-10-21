@@ -21,7 +21,13 @@ export class TOTPService {
         const output = new Uint8Array(Math.floor((base32.length * 5) / 8));
 
         for (let i = 0; i < base32.length; i++) {
-            value = (value << 5) | base32Chars.indexOf(base32[i]);
+            const charIndex = base32Chars.indexOf(base32[i]);
+
+            if (charIndex === -1) {
+                throw new Error(`Invalid base32 character: ${base32[i]}`);
+            }
+
+            value = (value << 5) | charIndex;
             bits += 5;
 
             if (bits >= 8) {

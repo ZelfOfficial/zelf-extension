@@ -6,7 +6,7 @@ import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { Router } from "@angular/router";
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import jsQR from "jsqr";
-import { Subject } from "rxjs";
+import { Subject, takeUntil } from "rxjs";
 
 import { BiometricsGeneralComponent } from "app/biometrics-general/biometrics.component";
 import { DragAndDropDirective } from "app/directives/drag-and-drop.directive";
@@ -20,6 +20,18 @@ import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { extractZotpApiErrorMessage } from "../zotp-error.util";
 import { encryptWalletMasterPassword } from "../zotp-master-password.util";
+import {
+    migrationAlgorithmFromEnum,
+    migrationDigitsFromEnum,
+    parseOtpAuthTotpUri,
+    ParsedTotpSetup,
+} from "../zotp-otpauth.util";
+import {
+    formatInvalidSetupKeyCharactersList,
+    getSetupKeyValidationState,
+    sanitizeSetupKey,
+    setupKeyValidator,
+} from "../zotp-setup-key.util";
 
 @Component({
     imports: [
@@ -56,6 +68,9 @@ export class AddZotpComponent implements OnInit, OnDestroy {
     showBiometrics: boolean = false;
     showMasterPassword: boolean = false; // Toggle to show/hide master password
     submitted: boolean = false; // Track if form has been submitted
+    totpAlgorithm = "SHA1";
+    totpDigits = 6;
+    totpPeriod = 30;
 
     constructor(
         private _formBuilder: FormBuilder,
@@ -74,6 +89,19 @@ export class AddZotpComponent implements OnInit, OnDestroy {
     async ngOnInit(): Promise<void> {
         // Load current wallet
         await this._loadCurrentWallet();
+
+        this.form
+            .get("setupKey")
+            ?.valueChanges.pipe(takeUntil(this.unsubscriber$))
+            .subscribe((value) => {
+                const sanitized = sanitizeSetupKey(value ?? "");
+
+                if (sanitized !== value) {
+                    this.form.get("setupKey")?.setValue(sanitized, { emitEvent: false });
+                }
+
+                this.form.get("setupKey")?.updateValueAndValidity({ emitEvent: false });
+            });
     }
 
     private async _loadCurrentWallet(): Promise<void> {
@@ -113,7 +141,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         this.form = this._formBuilder.group({
             name: ["", [Validators.required, Validators.maxLength(128)]],
             issuer: ["", [Validators.maxLength(128)]],
-            setupKey: ["", [Validators.required]],
+            setupKey: ["", [setupKeyValidator()]],
             masterPassword: [""],
             requireMasterPasswordOnDecrypt: [false],
         });
@@ -125,10 +153,28 @@ export class AddZotpComponent implements OnInit, OnDestroy {
 
     get isFormReadyToSave(): boolean {
         if (this.mode === "qr-upload") {
-            return !!this.form.get("setupKey")?.value?.trim() && !!this.form.get("name")?.valid;
+            return false;
         }
 
         return this.form.valid;
+    }
+
+    get setupKeyFieldState() {
+        return getSetupKeyValidationState(this.form.get("setupKey")?.value ?? "");
+    }
+
+    get setupKeyInvalidCharsMessage(): string | null {
+        const chars = this.setupKeyFieldState.invalidChars;
+
+        if (!chars.length) return null;
+
+        return formatInvalidSetupKeyCharactersList(chars);
+    }
+
+    get showSetupKeyTooShortHint(): boolean {
+        const state = this.setupKeyFieldState;
+
+        return state.tooShort && state.invalidChars.length === 0;
     }
 
     toggleRequireMasterPasswordOnDecrypt(): void {
@@ -143,6 +189,25 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         this.qrError = "";
         this.submitted = false; // Reset submitted state when switching modes
         this.form.get("setupKey")?.setValue("");
+        this._resetTotpParameters();
+    }
+
+    private _resetTotpParameters(): void {
+        this.totpAlgorithm = "SHA1";
+        this.totpDigits = 6;
+        this.totpPeriod = 30;
+    }
+
+    private _applyParsedSetup(setup: ParsedTotpSetup): void {
+        this.form.patchValue({
+            name: setup.name || "",
+            issuer: setup.issuer || "",
+            setupKey: sanitizeSetupKey(setup.secret),
+        });
+        this.totpAlgorithm = setup.algorithm || "SHA1";
+        this.totpDigits = setup.digits ?? 6;
+        this.totpPeriod = setup.period ?? 30;
+        this.form.get("setupKey")?.updateValueAndValidity();
     }
 
     async onDrop(files: FileList): Promise<void> {
@@ -182,11 +247,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
                     // If multiple accounts, use the first one (we can enhance this later to show a selection)
                     const firstAccount = migrationData[0];
 
-                    this.form.patchValue({
-                        name: firstAccount.name || "",
-                        issuer: firstAccount.issuer || "",
-                        setupKey: firstAccount.secret || "",
-                    });
+                    this._applyParsedSetup(firstAccount);
 
                     this.mode = "setup-key";
                     this.loading = false;
@@ -201,7 +262,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             }
 
             // Try standard otpauth:// format
-            const parsed = this._parseOTPAuthURI(qrData);
+            const parsed = parseOtpAuthTotpUri(qrData);
 
             if (!parsed) {
                 this.qrError = "QR code is not a valid TOTP setup";
@@ -210,11 +271,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
                 return;
             }
 
-            this.form.patchValue({
-                name: parsed.name || "",
-                issuer: parsed.issuer || "",
-                setupKey: parsed.secret || "",
-            });
+            this._applyParsedSetup(parsed);
 
             this.mode = "setup-key";
         } catch (error) {
@@ -270,35 +327,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         });
     }
 
-    private _parseOTPAuthURI(uri: string): { name: string; issuer: string; secret: string } | null {
-        // Parse otpauth://totp/Issuer:Name?secret=SECRET&issuer=Issuer
-        if (!uri.startsWith("otpauth://")) return null;
-
-        try {
-            const url = new URL(uri);
-
-            if (url.protocol !== "otpauth:" || url.hostname !== "totp") return null;
-
-            const pathParts = url.pathname.split(":");
-            const issuer = pathParts[0] || "";
-            const name = pathParts[1] || url.searchParams.get("issuer") || "";
-            const secret = url.searchParams.get("secret") || "";
-
-            if (!secret) return null;
-
-            return {
-                name: decodeURIComponent(name),
-                issuer: decodeURIComponent(url.searchParams.get("issuer") || issuer),
-                secret,
-            };
-        } catch (error) {
-            console.error("Error parsing OTP Auth URI:", error);
-
-            return null;
-        }
-    }
-
-    private _parseMigrationURI(uri: string): Array<{ name: string; issuer: string; secret: string }> | null {
+    private _parseMigrationURI(uri: string): ParsedTotpSetup[] | null {
         // Parse otpauth-migration://offline?data=BASE64_ENCODED_PROTOBUF
         if (!uri.startsWith("otpauth-migration://")) return null;
 
@@ -318,7 +347,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             // Google Authenticator migration format structure:
             // Outer message (MigrationPayload) contains:
             //   Field 1 (repeated, wire type 2): OTPParameters messages
-            const accounts: Array<{ name: string; issuer: string; secret: string }> = [];
+            const accounts: ParsedTotpSetup[] = [];
             let offset = 0;
 
             // Parse the outer message to find field 1 (repeated OTPParameters)
@@ -388,7 +417,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         }
     }
 
-    private _parseMigrationPayload(payload: string): { name: string; issuer: string; secret: string } | null {
+    private _parseMigrationPayload(payload: string): ParsedTotpSetup | null {
         // Parse the nested protobuf structure
         // Field 1: secret (bytes)
         // Field 2: name (string)
@@ -401,6 +430,8 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         let secret = "";
         let name = "";
         let issuer = "";
+        let algorithm: string | undefined;
+        let digits: number | undefined;
 
         let offset = 0;
 
@@ -421,8 +452,11 @@ export class AddZotpComponent implements OnInit, OnDestroy {
                     shift += 7;
                 } while (byte & 0x80 && offset < payload.length);
 
-                // Field 4: algorithm, Field 5: digits, Field 6: type, Field 7: counter
-                // We don't need these for basic TOTP
+                if (fieldNumber === 4) {
+                    algorithm = migrationAlgorithmFromEnum(value);
+                } else if (fieldNumber === 5) {
+                    digits = migrationDigitsFromEnum(value);
+                }
             } else if (wireType === 2) {
                 // Length-delimited (string or bytes)
                 let length = 0;
@@ -462,6 +496,8 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             name: name || "Unknown",
             issuer: issuer || "",
             secret,
+            algorithm,
+            digits,
         };
     }
 
@@ -526,7 +562,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
 
         // Validate form and prepare ZOTP data
         const formValue = this.form.value;
-        const secret = formValue.setupKey.trim().replace(/\s/g, "").toUpperCase();
+        const secret = this.setupKeyFieldState.sanitized;
 
         if (!secret) return;
 
@@ -544,9 +580,9 @@ export class AddZotpComponent implements OnInit, OnDestroy {
                 name: formValue.name.trim(),
                 secret: secret, // Plain secret - will be encrypted by ZelfKeys API
                 issuer: formValue.issuer?.trim() || undefined,
-                algorithm: "SHA1",
-                digits: 6,
-                period: 30,
+                algorithm: this.totpAlgorithm,
+                digits: this.totpDigits,
+                period: this.totpPeriod,
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
                 isDecrypted: false,
