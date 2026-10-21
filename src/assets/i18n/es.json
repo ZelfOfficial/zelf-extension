@@ -1276,6 +1276,7 @@
         "subscription_countdown_unknown": "Gestiona tu Zelf ID en Gestionar dominios.",
         "subscription_countdown_unit_days": "Días",
         "subscription_countdown_unit_hours": "Horas",
+        "enabled_networks_label": "Redes activas",
         "start_here_title": "Empieza aquí",
         "start_here_subtitle": "Completa la guía inicial y gana $ZNS",
         "start_here_progress": "{{ current }} / {{ total }}",
