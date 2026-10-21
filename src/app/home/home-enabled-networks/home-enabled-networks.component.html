@@ -1,0 +1,19 @@
+<ng-container *ngIf="networkIds.length">
+    <section class="home-enabled-networks" *transloco="let t">
+        <p class="home-enabled-networks__label">{{ t("home_hub.enabled_networks_label") }}</p>
+        <div class="home-enabled-networks__row" role="list">
+            <div
+                *ngFor="let id of networkIds"
+                class="home-enabled-networks__chip"
+                role="listitem"
+                [ngClass]="{
+                    'home-enabled-networks__chip--loading': statusFor(id) === 'loading' || statusFor(id) === 'pending',
+                    'home-enabled-networks__chip--error': statusFor(id) === 'error',
+                }"
+                [attr.title]="labelFor(id)"
+            >
+                <img class="home-enabled-networks__icon" [src]="iconFor(id)" [alt]="labelFor(id)" />
+            </div>
+        </div>
+    </section>
+</ng-container>

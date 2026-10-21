@@ -40,7 +40,7 @@
                         *ngIf="!hideBalances"
                         type="button"
                         class="home-balance__refresh"
-                        [class.home-balance__refresh--spinning]="balancesLoading"
+                        [class.home-balance__refresh--spinning]="balancesLoading || balancesSyncing"
                         (click)="emitRefresh()"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">

@@ -6,7 +6,7 @@ import { FlexLayoutModule } from "@angular/flex-layout";
 import { MatButtonModule } from "@angular/material/button";
 import { Router, RouterLink } from "@angular/router";
 import { TranslocoModule } from "@jsverse/transloco";
-import { firstValueFrom, Subject, takeUntil } from "rxjs";
+import { Subject, takeUntil } from "rxjs";
 
 import { AssetService } from "app/asset.service";
 import { BlockchainNetworksService } from "app/blockchain-networks.service";
@@ -21,9 +21,15 @@ import { HomeProfilePanelComponent } from "./home-profile-panel/home-profile-pan
 import { WalletBalanceTopCardComponent } from "app/zelf-wallet/wallet-balance-top-card/wallet-balance-top-card.component";
 import { FooterNavDestination, FooterNavigationService } from "app/zelf-footer/footer-navigation.service";
 import { ZelfFooterComponent } from "app/zelf-footer/zelf-footer.component";
-import { BACKGROUND_BALANCE_CONCURRENCY, SUPPORTED_NETWORK_IDS, splitBalanceStages } from "app/core/network-settings.util";
-import { dedupeBalanceTokens, mergeBalanceTokens, sumFiatBalance } from "app/core/utils/balance-tokens.util";
-import { forEachWithConcurrency } from "app/core/utils/concurrency.util";
+import {
+    NetworkBalanceStatus,
+    displayTotalFiatBalance,
+    loadWalletBalances,
+} from "app/core/utils/wallet-balance-loader";
+import { dedupeBalanceTokens } from "app/core/utils/balance-tokens.util";
+import { filterTokensByEnabledNetworkIds } from "app/core/utils/token-network-id.util";
+import { WalletBalanceCacheService } from "app/services/wallet-balance-cache.service";
+import { HomeEnabledNetworksComponent } from "./home-enabled-networks/home-enabled-networks.component";
 
 /** Home quick-access row (#29): Pass, 2FA, Legacy, ID, then "More". */
 const QUICK_HUB_IDS = ["zelf-keys", "zelf-authenticator", "legacy", "manage-domains"] as const;
@@ -42,6 +48,7 @@ const QUICK_HUB_IDS = ["zelf-keys", "zelf-authenticator", "legacy", "manage-doma
         RouterLink,
         TranslocoModule,
         WalletBalanceTopCardComponent,
+        HomeEnabledNetworksComponent,
         ZelfFooterComponent,
     ],
     selector: "home",
@@ -62,7 +69,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     shareables: { wallet: Partial<TagModel>; selectedTab?: string } = { wallet: {} };
 
     balancesLoading: boolean = false;
+    balancesSyncing: boolean = false;
     hideBalances: boolean = false;
+    enabledNetworkIds: string[] = [];
+    networkStatus: Record<string, NetworkBalanceStatus> = {};
     showName: boolean = false;
     showProfilePanel: boolean = false;
     allWallets: TagModel[] = [];
@@ -70,6 +80,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     /** Tokens loaded in this view; the running total is computed from these (session storage is only a cache). */
     private _tokens: any[] = [];
+    private _lastKnownTotalFiat: number | null = null;
     private _wallet!: Partial<TagModel>;
 
     /** Checklist steps (placeholder until wired to rewards/onboarding API). */
@@ -90,7 +101,8 @@ export class HomeComponent implements OnInit, OnDestroy {
         private readonly _blockchainNetworkService: BlockchainNetworksService,
         private readonly _blockchainTransactionsService: BlockchainTransactionsService,
         private readonly _settingsService: SettingsService,
-        private readonly _tagsService: TagsService
+        private readonly _tagsService: TagsService,
+        private readonly _walletBalanceCache: WalletBalanceCacheService
     ) {
         const hub = this.navService.getHubDestinations();
         this.quickDestinations = QUICK_HUB_IDS.map((id) => hub.find((d) => d.id === id)).filter((d): d is FooterNavDestination => !!d);
@@ -125,6 +137,30 @@ export class HomeComponent implements OnInit, OnDestroy {
         await this._blockchainNetworkService._initNetwork();
 
         this._chromeService.onWalletChanged$.pipe(takeUntil(this._destroy$)).subscribe(this._initializeWallet);
+
+        this._settingsService.settings$.pipe(takeUntil(this._destroy$)).subscribe(() => {
+            void this._onNetworkSettingsChanged();
+        });
+    }
+
+    get displayTotalFiatBalance(): number | null {
+        const display = displayTotalFiatBalance(this.totalFiatBalance, this.networkStatus, this._lastKnownTotalFiat);
+
+        return display;
+    }
+
+    private async _onNetworkSettingsChanged(): Promise<void> {
+        if (!this._wallet?.tagName) return;
+
+        const enabledNetworks = await this._settingsService.getEnabledNetworkIdsFromLicense();
+        this.enabledNetworkIds = enabledNetworks ?? [];
+
+        const filtered = filterTokensByEnabledNetworkIds(this._tokens, enabledNetworks);
+        this._updateTokenState(filtered);
+
+        if (!this.balancesLoading && !this.balancesSyncing) {
+            await this._runBalanceLoad(false);
+        }
     }
 
     ngOnDestroy(): void {
@@ -135,121 +171,59 @@ export class HomeComponent implements OnInit, OnDestroy {
         this._unsubscriberForBalances$.complete();
     }
 
-    private _getEnabledNetworkIds(): string[] | undefined {
-        return this._settingsService.getEnabledNetworkIds();
-    }
-
-    private _filterEnabledTokens(tokens: any[]): any[] {
-        const enabledNetworks = this._getEnabledNetworkIds();
-        if (!enabledNetworks) return tokens;
-
-        return tokens.filter((token) => {
-            const network = (token.network || "").toLowerCase();
-            return enabledNetworks.includes(network);
-        });
-    }
-
     private async _getBalances(): Promise<void> {
-        this.balancesLoading = true;
-
         const enabledNetworks = await this._settingsService.getEnabledNetworkIdsFromLicense();
-        const loadedFromSession = await this._loadBalancesFromSession(enabledNetworks);
+        this.enabledNetworkIds = enabledNetworks ?? [];
 
-        if (loadedFromSession) {
-            this.balancesLoading = false;
-            this._changeDetectorRef.detectChanges();
-            return;
+        await this._runBalanceLoad(false);
+    }
+
+    private async _runBalanceLoad(forceNetworkRefresh: boolean): Promise<void> {
+        const enabledNetworks = await this._settingsService.getEnabledNetworkIdsFromLicense();
+        this.enabledNetworkIds = enabledNetworks ?? [];
+
+        const tagName = this._wallet?.tagName || this._wallet?.name || "";
+        const persistedCache = tagName ? await this._walletBalanceCache.load(tagName) : null;
+
+        if (persistedCache?.totalFiatBalance) {
+            this._lastKnownTotalFiat = persistedCache.totalFiatBalance;
         }
 
-        await this._fetchBalancesFromNetwork(enabledNetworks);
-    }
-
-    private async _loadBalancesFromSession(enabledNetworks?: string[]): Promise<boolean> {
-        const sessionTokens = await this._assetService.loadTokensFromSession();
-
-        if (!sessionTokens || sessionTokens.length === 0) return false;
-
-        const deduped = this._dedupeTokens(sessionTokens);
-        const filtered = this._filterEnabledTokens(deduped);
-
-        this._updateTokenState(filtered);
-
-        return true;
-    }
-
-
-    private async _fetchBalancesFromNetwork(enabledNetworks?: string[]): Promise<void> {
-        // Which chains, and their order, come from the domain license (see SettingsService.getEnabledNetworkIds).
-        const { priority: priorityToFetch, background: remainingToFetch } = splitBalanceStages(
-            enabledNetworks ?? SUPPORTED_NETWORK_IDS
-        );
-
-        const currentWalletTag = this._wallet?.tagName;
-
-        this._tokens = [];
-
-        try {
-            // Stage 1: first license networks (one call) to unblock the UI immediately
-            const priorityResponse = await firstValueFrom(
-                this._blockchainTransactionsService
-                    .getAddressData(this._wallet as TagModel, priorityToFetch)
-                    .pipe(takeUntil(this._unsubscriberForBalances$))
-            );
-
-            if (this._wallet?.tagName !== currentWalletTag) return;
-
-            const result = await this._assetService.processTokensFromResponse(priorityResponse);
-            const deduped = this._dedupeTokens(result.tokens);
-            const filtered = this._filterEnabledTokens(deduped);
-
-            this._updateTokenState(filtered);
-            await this._assetService.saveTokensToSession(deduped);
-        } catch (error) {
-            console.error("Error getting priority tokens:", error);
-        } finally {
-            this.balancesLoading = false;
-            this._changeDetectorRef.detectChanges();
-        }
-
-        // Stage 2: Fetch remaining networks in the background one by one without blocking
-
-        this._fetchRemainingBalancesInBackground(remainingToFetch, currentWalletTag);
-    }
-
-    private async _fetchRemainingBalancesInBackground(networks: string[], walletTag?: string): Promise<void> {
-        // v3 #263: background networks run a few at a time instead of strictly one after another,
-        // so one slow chain (e.g. BSC ~15s) no longer delays every chain queued behind it.
-        await forEachWithConcurrency(networks, BACKGROUND_BALANCE_CONCURRENCY, async (network) => {
-            try {
-                const response = await firstValueFrom(
-                    this._blockchainTransactionsService
-                        .getAddressData(this._wallet as TagModel, [network])
-                        .pipe(takeUntil(this._unsubscriberForBalances$))
-                );
-
-                if (this._wallet?.tagName !== walletTag) return;
-
-                if (response) {
-                    const result = await this._assetService.processTokensFromResponse(response);
-                    if (result?.tokens?.length) {
-                        // Merge into what this view already loaded (stage 1 + earlier networks), not session storage.
-                        const merged = mergeBalanceTokens(this._tokens, result.tokens);
-                        const filtered = this._filterEnabledTokens(merged);
-
-                        this._updateTokenState(filtered);
-                        this._changeDetectorRef.detectChanges();
-                        await this._assetService.saveTokensToSession(merged);
-                    }
-                }
-            } catch (err) {
-                console.warn(`[Background Balance] ${network} fetch failed:`, err);
-            }
-        }, () => this._wallet?.tagName === walletTag);
+        await loadWalletBalances({
+            wallet: this._wallet,
+            enabledNetworkIds: enabledNetworks,
+            assetService: this._assetService,
+            blockchainTransactionsService: this._blockchainTransactionsService,
+            getLoadedTokens: () => this._tokens,
+            forceNetworkRefresh,
+            persistedCache,
+            abort$: this._unsubscriberForBalances$,
+            shouldContinue: () => (this._wallet?.tagName || this._wallet?.name) === tagName,
+            onPersistCache: (snapshot) => this._walletBalanceCache.save(snapshot),
+            callbacks: {
+                onTokensUpdated: (tokens, total) => {
+                    this._tokens = tokens;
+                    this.totalFiatBalance = total;
+                    if (total > 0) this._lastKnownTotalFiat = total;
+                    this._changeDetectorRef.detectChanges();
+                },
+                onNetworkStatus: (status) => {
+                    this.networkStatus = status;
+                    this._changeDetectorRef.detectChanges();
+                },
+                onLoadingFlags: (priorityLoading, backgroundSyncing) => {
+                    this.balancesLoading = priorityLoading;
+                    this.balancesSyncing = backgroundSyncing;
+                    this._changeDetectorRef.detectChanges();
+                },
+            },
+        });
     }
 
     private _updateTokenState(tokens: any[]): void {
         this._tokens = tokens;
-        this.totalFiatBalance = sumFiatBalance(tokens);
+        this.totalFiatBalance = tokens.reduce((total, token) => total + (parseFloat(token.fiatBalance) || 0), 0);
+        if (this.totalFiatBalance > 0) this._lastKnownTotalFiat = this.totalFiatBalance;
     }
 
     private _initializeWallet = async (wallet: TagModel): Promise<void> => {
@@ -313,13 +287,9 @@ export class HomeComponent implements OnInit, OnDestroy {
     async refreshTokens(): Promise<void> {
         if (this.balancesLoading) return;
 
-        this.balancesLoading = true;
-        this.totalFiatBalance = 0;
-
         await this._authService.reauthenticateSession();
 
-        const enabledNetworks = await this._settingsService.getEnabledNetworkIdsFromLicense();
-        await this._fetchBalancesFromNetwork(enabledNetworks);
+        await this._runBalanceLoad(true);
 
         await this._refreshWallets(true);
         this._syncSubscriptionDhms();

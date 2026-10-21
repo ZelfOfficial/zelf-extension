@@ -16,6 +16,7 @@ import { DisplayAmountPipe, DisplayFiatPipe } from "../../pipes/display-number.p
 export class WalletBalanceTopCardComponent {
     @Input({ required: true }) totalFiatBalance!: number;
     @Input({ required: true }) balancesLoading!: boolean;
+    @Input() balancesSyncing: boolean = false;
     @Input({ required: true }) hideBalances!: boolean;
 
     @Output() readonly refresh = new EventEmitter<void>();

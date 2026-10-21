@@ -8,12 +8,15 @@
 
     <div class="home-hub__body">
         <wallet-balance-top-card
-            [totalFiatBalance]="totalFiatBalance"
-            [balancesLoading]="balancesLoading"
+            [totalFiatBalance]="displayTotalFiatBalance ?? totalFiatBalance"
+            [balancesLoading]="balancesLoading || (balancesSyncing && (displayTotalFiatBalance ?? totalFiatBalance) === 0)"
+            [balancesSyncing]="balancesSyncing"
             [hideBalances]="hideBalances"
             (refresh)="refreshTokens()"
             (toggleHide)="toggleHideBalances()"
         />
+
+        <home-enabled-networks [networkIds]="enabledNetworkIds" [networkStatus]="networkStatus" />
 
         <section class="home-hub__section home-hub__section--subscription">
             <div class="home-hub__subscription-card" fxLayout="column" fxLayoutGap="10px">

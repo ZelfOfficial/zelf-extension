@@ -9,8 +9,9 @@
     <div class="home__app-content">
         <div class="home__container">
             <wallet-balance-top-card
-                [totalFiatBalance]="totalFiatBalance"
-                [balancesLoading]="balancesLoading"
+                [totalFiatBalance]="displayTotalFiatBalance ?? totalFiatBalance"
+                [balancesLoading]="balancesLoading || (balancesSyncing && tokens.length === 0)"
+                [balancesSyncing]="balancesSyncing"
                 [hideBalances]="hideBalances"
                 (refresh)="refreshTokens()"
                 (toggleHide)="toggleHideBalances()"
@@ -52,7 +53,7 @@
 
             <div class="home__assets-content" *ngIf="shareables.selectedTab === 'assets'" fxLayout="column" fxLayoutAlign="start start">
                 <!-- Skeleton Loader -->
-                <div class="home__skeleton-list" *ngIf="balancesLoading">
+                <div class="home__skeleton-list" *ngIf="balancesLoading || (balancesSyncing && tokens.length === 0)">
                     <div *ngFor="let item of [1, 2, 3, 4]" class="home__token-skeleton">
                         <div class="home__skeleton-left">
                             <div class="home__skeleton-icon"></div>

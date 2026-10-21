@@ -1287,6 +1287,7 @@
         "subscription_countdown_unknown": "Manage your Zelf ID in Manage domains.",
         "subscription_countdown_unit_days": "Days",
         "subscription_countdown_unit_hours": "Hours",
+        "enabled_networks_label": "Active networks",
         "start_here_title": "Start here",
         "start_here_subtitle": "Complete the starting guide and earn $ZNS",
         "start_here_progress": "{{ current }} / {{ total }}",
