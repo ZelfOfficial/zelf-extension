@@ -1518,11 +1518,17 @@
                     }
                 },
                 "expiry_month": {
-                    "label": "Mes de vencimiento *",
+                    "label": "Mes *",
                     "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "Año de vencimiento *"
+                    "label": "Año *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "La tarjeta está vencida",
+                        "invalid": "Introduce una fecha de vencimiento válida"
+                    }
                 },
                 "card_type": {
                     "label": "Tipo de tarjeta *",

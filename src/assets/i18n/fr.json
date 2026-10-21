@@ -1351,11 +1351,17 @@
                     }
                 },
                 "expiry_month": {
-                    "label": "Mois d'expiration *",
+                    "label": "Mois *",
                     "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "Année d'expiration *"
+                    "label": "Année *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "La carte est expirée",
+                        "invalid": "Saisissez une date d'expiration valide"
+                    }
                 },
                 "card_type": {
                     "label": "Type de carte *",

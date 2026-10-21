@@ -1351,11 +1351,17 @@
                     }
                 },
                 "expiry_month": {
-                    "label": "만료 월 *",
+                    "label": "월 *",
                     "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "만료 연도 *"
+                    "label": "년 *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "카드가 만료되었습니다",
+                        "invalid": "유효한 만료일을 입력하세요"
+                    }
                 },
                 "card_type": {
                     "label": "카드 유형 *",

@@ -1351,11 +1351,17 @@
                     }
                 },
                 "expiry_month": {
-                    "label": "समाप्ति माह *",
+                    "label": "माह *",
                     "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "समाप्ति वर्ष *"
+                    "label": "वर्ष *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "कार्ड की समय सीमा समाप्त हो गई है",
+                        "invalid": "कोई मान्य समाप्ति तिथि दर्ज करें"
+                    }
                 },
                 "card_type": {
                     "label": "कार्ड का प्रकार *",

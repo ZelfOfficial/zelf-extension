@@ -1351,18 +1351,24 @@
                     }
                 },
                 "expiry_month": {
-                    "label": "شهر الانتهاء *",
+                    "label": "شهر *",
                     "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "سنة الانتهاء *"
+                    "label": "سنة *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "انتهت صلاحية البطاقة",
+                        "invalid": "أدخل تاريخ انتهاء صالحًا"
+                    }
                 },
                 "card_type": {
                     "label": "نوع البطاقة *",
                     "placeholder": "اختر نوع البطاقة"
                 },
                 "cvv": {
-                    "label": "رقم التحقق *"
+                    "label": "CVV *"
                 },
                 "billing_address": {
                     "label": "عنوان الفواتير",

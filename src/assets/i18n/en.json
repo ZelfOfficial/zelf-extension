@@ -1532,11 +1532,17 @@
                     }
                 },
                 "expiry_month": {
-                    "label": "Expiry Month *",
+                    "label": "Month *",
                     "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "Expiry Year *"
+                    "label": "Year *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "Card is expired",
+                        "invalid": "Enter a valid expiry date"
+                    }
                 },
                 "card_type": {
                     "label": "Card Type *",

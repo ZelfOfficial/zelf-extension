@@ -1351,11 +1351,17 @@
                     }
                 },
                 "expiry_month": {
-                    "label": "有効期限（月） *",
+                    "label": "月 *",
                     "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "有効期限（年） *"
+                    "label": "年 *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "カードの有効期限が切れています",
+                        "invalid": "有効な有効期限を入力してください"
+                    }
                 },
                 "card_type": {
                     "label": "カードタイプ *",

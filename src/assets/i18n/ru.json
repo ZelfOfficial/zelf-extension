@@ -1351,11 +1351,17 @@
                     }
                 },
                 "expiry_month": {
-                    "label": "Месяц окончания *",
+                    "label": "Месяц *",
                     "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "Год окончания *"
+                    "label": "Год *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "Срок действия карты истёк",
+                        "invalid": "Введите корректную дату окончания"
+                    }
                 },
                 "card_type": {
                     "label": "Тип карты *",

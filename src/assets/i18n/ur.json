@@ -1335,11 +1335,17 @@
                     }
                 },
                 "expiry_month": {
-                    "label": "ختم ہونے کا مہینہ *",
+                    "label": "ماہ *",
                     "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "ختم ہونے کا سال *"
+                    "label": "سال *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "کارڈ کی میعاد ختم ہو گئی ہے",
+                        "invalid": "درست میعاد ختم ہونے کی تاریخ درج کریں"
+                    }
                 },
                 "card_type": {
                     "label": "کارڈ کی قسم *",

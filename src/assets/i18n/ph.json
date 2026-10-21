@@ -1351,11 +1351,17 @@
                     }
                 },
                 "expiry_month": {
-                    "label": "Buwan ng Pag-expire *",
+                    "label": "Buwan *",
                     "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "Taon ng Pag-expire *"
+                    "label": "Taon *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "Expired na ang card",
+                        "invalid": "Maglagay ng wastong expiry date"
+                    }
                 },
                 "card_type": {
                     "label": "Uri ng Card *",

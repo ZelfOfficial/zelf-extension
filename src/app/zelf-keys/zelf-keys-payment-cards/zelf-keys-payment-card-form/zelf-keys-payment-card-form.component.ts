@@ -44,6 +44,8 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
 
     /** Inline error under "Card Holder Name" (#574): invalid_chars | needs_letter | null. */
     cardNameError: "invalid_chars" | "needs_letter" | null = null;
+    /** Inline error under expiry fields: expired | invalid | null. */
+    expiryError: "expired" | "invalid" | null = null;
     formValid = false;
     hasMasterPassword = false;
     isNewCard = true;
@@ -124,6 +126,7 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
         // - bankName: required, minLength: 1
         // - masterPassword: optional (only if user enables it)
 
+        this._updateExpiryError();
         this.formValid = hasCardName && hasCardNumber && hasExpiryMonth && hasExpiryYear && hasCvv && hasBankName && masterPasswordValid;
     }
 
@@ -168,16 +171,16 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
     }
 
     // Helper method to format card number as user types
-    onCardNumberChange(): void {
+    onCardNumberChange(value: string): void {
         // Remove all non-digits
-        let value = this.cardData.cardNumber.replace(/\D/g, "");
+        let digits = String(value ?? "").replace(/\D/g, "");
 
         // Limit to 19 digits (max card length)
-        if (value.length > 19) {
-            value = value.substring(0, 19);
+        if (digits.length > 19) {
+            digits = digits.substring(0, 19);
         }
 
-        this.cardData.cardNumber = value;
+        this.cardData.cardNumber = digits;
         this.checkFormValidity();
     }
 
@@ -199,25 +202,23 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
     }
 
     // Helper method to format CVV as user types
-    onExpiryYearChange(): void {
-        let value = String(this.cardData.expiryYear ?? "").replace(/\D/g, "");
-        if (value.length > 4) {
-            value = value.substring(0, 4);
+    onExpiryYearChange(value: string): void {
+        let digits = String(value ?? "").replace(/\D/g, "");
+        if (digits.length > 4) {
+            digits = digits.substring(0, 4);
         }
-        this.cardData.expiryYear = value;
+        this.cardData.expiryYear = digits;
         this.checkFormValidity();
     }
 
-    onCvvChange(): void {
-        // Remove all non-digits
-        let value = this.cardData.cvv.replace(/\D/g, "");
+    onCvvChange(value: string): void {
+        let digits = String(value ?? "").replace(/\D/g, "");
 
-        // Limit to 4 digits (max CVV length)
-        if (value.length > 4) {
-            value = value.substring(0, 4);
+        if (digits.length > 4) {
+            digits = digits.substring(0, 4);
         }
 
-        this.cardData.cvv = value;
+        this.cardData.cvv = digits;
         this.checkFormValidity();
     }
 
@@ -243,6 +244,31 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
 
     toggleMasterPasswordVisibility(): void {
         this.showMasterPassword = !this.showMasterPassword;
+    }
+
+    private _updateExpiryError(): void {
+        const month = this.cardData.expiryMonth;
+        const yearStr = String(this.cardData.expiryYear ?? "");
+
+        if (!month || yearStr.length !== 4) {
+            this.expiryError = null;
+            return;
+        }
+
+        const year = Number.parseInt(yearStr, 10);
+        const monthNum = Number.parseInt(String(month), 10);
+
+        if (!Number.isFinite(year) || !Number.isFinite(monthNum) || monthNum < 1 || monthNum > 12) {
+            this.expiryError = "invalid";
+            return;
+        }
+
+        if (year > this.maxExpiryYear) {
+            this.expiryError = "invalid";
+            return;
+        }
+
+        this.expiryError = this._isExpiryNotInPast() ? null : "expired";
     }
 
     private _isExpiryNotInPast(): boolean {
