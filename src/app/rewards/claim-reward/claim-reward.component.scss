@@ -54,7 +54,8 @@
     // LOADING STATE
     // ============================================
     &__screen--loading {
-        background: linear-gradient(180deg, variables.$themeCard 0%, variables.$themeBackgroundSecondary 100%);
+        background: variables.$themeBackgroundSecondary;
+        color: variables.$themeText;
     }
 
     &__loader-container {
@@ -133,7 +134,8 @@
     // SUCCESS STATE
     // ============================================
     &__screen--success {
-        background: variables.$themeCard;
+        background: variables.$themeBackgroundSecondary;
+        color: variables.$themeText;
     }
 
     &__confetti-container {
@@ -256,13 +258,13 @@
 
     &__success-amount-box {
         background: variables.$themeCard;
-        border: 2px solid #ff6b35;
+        border: 2px solid variables.$secondaryColor;
         border-radius: calc(24px * var(--zns-space-scale, 1));
         padding: calc(24px * var(--zns-space-scale, 1)) calc(56px * var(--zns-space-scale, 1));
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 8px 32px rgba(255, 107, 53, 0.15);
+        box-shadow: 0 8px 32px variables.$themeShadow;
         animation: pop-in 0.4s ease-out 0.3s backwards;
     }
 
@@ -289,7 +291,8 @@
     // ERROR STATE
     // ============================================
     &__screen--error {
-        background: variables.$themeCard;
+        background: variables.$themeBackgroundSecondary;
+        color: variables.$themeText;
     }
 
     &__error-content {

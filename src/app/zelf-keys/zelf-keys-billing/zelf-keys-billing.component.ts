@@ -14,7 +14,7 @@ import { NetworkService } from "app/services/network.service";
 import { TagModel } from "app/tags.service";
 import { TransactionService } from "app/transaction.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
-import { resolveBackNavigation } from "app/core/utils/back-navigation.util";
+import { resolveBillingBackNavigation } from "app/core/utils/back-navigation.util";
 import { BillingService, PricingPlan } from "../../services/billing.service";
 import { WalletService } from "../../wallet.service";
 
@@ -88,11 +88,7 @@ export class ZelfKeysBillingComponent implements OnInit {
      * or to the `redirect` query param / Zelf Keys when the page was opened directly.
      */
     goBack(): void {
-        const target = resolveBackNavigation({
-            hasPreviousInAppNavigation: !!this._router.lastSuccessfulNavigation?.previousNavigation,
-            redirect: this._activatedRoute.snapshot.queryParamMap.get("redirect"),
-            fallback: "/zelf-keys",
-        });
+        const target = resolveBillingBackNavigation(this._router, this._activatedRoute.snapshot.queryParamMap.get("redirect"));
 
         if (target.kind === "history") {
             this._location.back();
@@ -100,7 +96,7 @@ export class ZelfKeysBillingComponent implements OnInit {
             return;
         }
 
-        this._router.navigateByUrl(target.url);
+        void this._router.navigateByUrl(target.url);
     }
 
     async ngOnInit(): Promise<void> {

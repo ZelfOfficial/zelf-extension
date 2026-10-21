@@ -124,8 +124,3 @@
     background: variables.$themeCard;
     border: 1px solid variables.$themeBorder;
 }
-
-// profile_icon.svg uses a fixed dark fill; invert on dark surfaces (v3 #268).
-:host-context(html.zns-theme-dark) .home-hub__avatar-img {
-    filter: brightness(0) invert(1);
-}
