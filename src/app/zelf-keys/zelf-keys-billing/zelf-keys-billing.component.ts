@@ -1,5 +1,5 @@
 import { CommonModule, Location, NgTemplateOutlet } from "@angular/common";
-import { ChangeDetectorRef, Component, HostListener, OnInit } from "@angular/core";
+import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
@@ -17,6 +17,14 @@ import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { resolveBillingBackNavigation } from "app/core/utils/back-navigation.util";
 import { BillingService, PricingPlan } from "../../services/billing.service";
 import { WalletService } from "../../wallet.service";
+import {
+    buildBillingUiSessionState,
+    clearBillingUiSessionState,
+    loadBillingUiSessionState,
+    persistBillingUiSessionState,
+    shouldClearStuckBillingLoading,
+    type BillingCryptoPaymentSnapshot,
+} from "./billing-session-state";
 
 interface CryptoPaymentDisplayData {
     amount: number;
@@ -42,7 +50,7 @@ interface CryptoPaymentDisplayData {
     styleUrls: ["./zelf-keys-billing.component.scss"],
     templateUrl: "./zelf-keys-billing.component.html",
 })
-export class ZelfKeysBillingComponent implements OnInit {
+export class ZelfKeysBillingComponent implements OnInit, OnDestroy {
     activationMessage: string = "";
     activeSubscription: any = null;
     cryptoPaymentData: CryptoPaymentDisplayData | null = null;
@@ -62,6 +70,7 @@ export class ZelfKeysBillingComponent implements OnInit {
     showActivationMessage: boolean = false;
     showCryptoPayment: boolean = false;
     showWalletMenu: boolean = false;
+    stripeCheckoutPending: boolean = false;
     wallets: (TagModel | Partial<TagModel>)[] = [];
 
     constructor(
@@ -100,11 +109,99 @@ export class ZelfKeysBillingComponent implements OnInit {
     }
 
     async ngOnInit(): Promise<void> {
+        await this._restoreBillingUiFromSession();
+
         await this._setWallet();
         await this._loadWallets();
 
         this._loadPlans();
         this._loadCurrentPlan();
+    }
+
+    ngOnDestroy(): void {
+        this.stopPaymentMonitoring();
+    }
+
+    @HostListener("document:visibilitychange")
+    onVisibilityChange(): void {
+        if (document.visibilityState !== "visible") return;
+
+        this._recoverBillingUiAfterExternalReturn();
+    }
+
+    private _recoverBillingUiAfterExternalReturn(): void {
+        if (shouldClearStuckBillingLoading(this.loading, this.loadingPlans, this.loadingCurrentPlan)) {
+            this.loading = false;
+        }
+
+        if (this.stripeCheckoutPending) {
+            void this._checkStripeCheckoutOnce();
+        }
+
+        this._changeDetectorRef.detectChanges();
+    }
+
+    private async _restoreBillingUiFromSession(): Promise<void> {
+        const restored = await loadBillingUiSessionState(this._chromeService);
+
+        if (!restored?.plans?.length) return;
+
+        this.plans = restored.plans;
+        this.currentPlan = restored.currentPlan;
+        this.hasActiveSubscription = restored.hasActiveSubscription;
+        this.activeSubscription = restored.activeSubscription;
+        this.showCryptoPayment = restored.showCryptoPayment;
+        this.stripeCheckoutPending = restored.stripeCheckoutPending;
+        this.loadingPlans = false;
+        this.loadingCurrentPlan = false;
+        this.loading = false;
+
+        if (restored.cryptoPayment) {
+            this.cryptoPaymentData = {
+                ...restored.cryptoPayment,
+                selectedPlan: restored.plans.find((plan) => plan.id === restored.cryptoPayment?.planId),
+            };
+        }
+
+        if (this.stripeCheckoutPending) {
+            this.startSubscriptionPolling();
+        } else if (this.showCryptoPayment && this.cryptoPaymentData?.lockedPriceToken) {
+            this.startPaymentMonitoring();
+        }
+
+        this.updateLoadingState();
+    }
+
+    private async _persistBillingUiToSession(stripeCheckoutPending = this.stripeCheckoutPending): Promise<void> {
+        if (!this.plans.length && !this.showCryptoPayment) return;
+
+        const cryptoSnapshot: BillingCryptoPaymentSnapshot | null = this.cryptoPaymentData
+            ? {
+                  amount: this.cryptoPaymentData.amount,
+                  avaxPrice: this.cryptoPaymentData.avaxPrice,
+                  currency: this.cryptoPaymentData.currency,
+                  expiresAt: this.cryptoPaymentData.expiresAt,
+                  isDemoMode: this.cryptoPaymentData.isDemoMode,
+                  lockedPriceToken: this.cryptoPaymentData.lockedPriceToken,
+                  paymentAddress: this.cryptoPaymentData.paymentAddress,
+                  planId: this.cryptoPaymentData.planId,
+                  usdAmount: this.cryptoPaymentData.usdAmount,
+                  originalAmount: this.cryptoPaymentData.originalAmount,
+              }
+            : null;
+
+        await persistBillingUiSessionState(
+            this._chromeService,
+            buildBillingUiSessionState({
+                plans: this.plans,
+                currentPlan: this.currentPlan,
+                hasActiveSubscription: this.hasActiveSubscription,
+                activeSubscription: this.activeSubscription,
+                showCryptoPayment: this.showCryptoPayment,
+                cryptoPayment: cryptoSnapshot,
+                stripeCheckoutPending,
+            })
+        );
     }
 
     private async _setWallet(): Promise<any> {
@@ -314,6 +411,7 @@ export class ZelfKeysBillingComponent implements OnInit {
 
                     this.showCryptoPayment = true;
                     this.startPaymentMonitoring();
+                    void this._persistBillingUiToSession(false);
                 } else {
                     this.error = this._translocoService.translate("zelf_keys.billing_ui.error.create_crypto_payment");
                 }
@@ -394,6 +492,7 @@ export class ZelfKeysBillingComponent implements OnInit {
         this.stopPaymentMonitoring();
         this.showCryptoPayment = false;
         this.cryptoPaymentData = null;
+        void clearBillingUiSessionState(this._chromeService);
     }
 
     /**
@@ -544,11 +643,13 @@ export class ZelfKeysBillingComponent implements OnInit {
     private _createCheckoutSession(planId: string): void {
         this._billingService
             .createCheckoutSession(planId)
-            .then((response) => {
+            .then(async (response) => {
                 this.loadingPayment = null;
 
                 if (response.success && response.checkoutUrl) {
-                    window.open(response.checkoutUrl, "_blank");
+                    this.stripeCheckoutPending = true;
+                    await this._persistBillingUiToSession(true);
+                    await this._chromeService.openExternalUrl(response.checkoutUrl);
                     this.startSubscriptionPolling();
                 } else {
                     this.error = this._translocoService.translate("zelf_keys.billing_ui.error.create_checkout");
@@ -565,8 +666,6 @@ export class ZelfKeysBillingComponent implements OnInit {
      * Start polling for subscription status
      */
     private startSubscriptionPolling(): void {
-        this.loading = true; // Show loading indicator while polling
-
         // Clear any existing polling
         if (this.paymentPollingInterval) {
             clearInterval(this.paymentPollingInterval);
@@ -575,38 +674,44 @@ export class ZelfKeysBillingComponent implements OnInit {
         let attempts = 0;
         const maxAttempts = 60; // Poll for 2 minutes (every 2 seconds)
 
-        this.paymentPollingInterval = setInterval(() => {
+        const poll = (): void => {
             attempts++;
 
-            this._billingService
-                .getActiveSubscription()
-                .then((response) => {
-                    if (response.success && response.data) {
-                        // Subscription found!
-                        this.stopPaymentMonitoring();
-
-                        // Show activation message
-                        this.showActivationMessage = true;
-                        this.activationMessage = this._translocoService.translate("billing.activation.message");
-                        this.loadingPayment = null;
-
-                        setTimeout(() => {
-                            this.showActivationMessage = false;
-                            this.ngOnInit(); // Reload full state
-                        }, 3000);
-                    }
-                })
-                .catch(() => {
-                    // Ignore errors during polling, simply retry
-                });
+            void this._checkStripeCheckoutOnce();
 
             if (attempts >= maxAttempts) {
                 this.stopPaymentMonitoring();
-                this.loading = false;
+                this.stripeCheckoutPending = false;
+                void clearBillingUiSessionState(this._chromeService);
                 this.loadingPayment = null;
-                // Don't show error, just stop polling. User can refresh manually.
             }
-        }, 2000); // Check every 2 seconds
+        };
+
+        this.paymentPollingInterval = setInterval(poll, 2000);
+        poll();
+    }
+
+    private async _checkStripeCheckoutOnce(): Promise<void> {
+        try {
+            const response = await this._billingService.getActiveSubscription();
+
+            if (!response.success || !response.data) return;
+
+            this.stopPaymentMonitoring();
+            this.stripeCheckoutPending = false;
+            await clearBillingUiSessionState(this._chromeService);
+
+            this.showActivationMessage = true;
+            this.activationMessage = this._translocoService.translate("billing.activation.message");
+            this.loadingPayment = null;
+
+            setTimeout(() => {
+                this.showActivationMessage = false;
+                void this.ngOnInit();
+            }, 3000);
+        } catch {
+            // Ignore errors during polling, simply retry
+        }
     }
 
     getPlanButtonText(plan: PricingPlan): string {
@@ -788,6 +893,8 @@ export class ZelfKeysBillingComponent implements OnInit {
             // Store transaction data
             await this._transactionService.setCurrentTransactionData(transactionData);
 
+            await this._persistBillingUiToSession(false);
+
             // Open send-confirm route in a new tab
             if (typeof browser !== "undefined" && browser.runtime && browser.tabs) {
                 const extensionUrl = browser.runtime.getURL("index.html");
@@ -809,9 +916,10 @@ export class ZelfKeysBillingComponent implements OnInit {
     openCustomerPortal(): void {
         this._billingService
             .createCustomerPortalSession()
-            .then((response) => {
+            .then(async (response) => {
                 if (response.success && response.portalUrl) {
-                    window.open(response.portalUrl, "_blank");
+                    await this._persistBillingUiToSession(false);
+                    await this._chromeService.openExternalUrl(response.portalUrl);
                 } else {
                     console.error("Portal creation failed:", response);
 
