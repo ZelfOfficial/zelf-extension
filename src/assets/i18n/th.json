@@ -480,7 +480,7 @@
         "upto_sats": "สูงสุด {{ feeAmountUSD }} • {{sats}} sats/vB • {{ time }} นาที",
         "recent_addresses": "ล่าสุด",
         "used": "ใช้เมื่อ {{days}} ที่แล้ว",
-        "withdrawal_amount": "จำนวนเงินที่ถอน",
+        "withdrawal_amount": "จำนวนเงินที่ส่ง",
         "zelf_name_not_registered": "Zelf ID ยังไม่ได้ลงทะเบียน",
         "zelf_name_registered": "Zelf ID ลงทะเบียนแล้ว",
         "from_address": "จากที่อยู่",

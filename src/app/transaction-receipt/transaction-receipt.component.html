@@ -37,13 +37,13 @@
                 </div>
 
                 <div class="transaction-receipt__price-amount-container" *ngIf="transaction.type !== 'swap'">
-                    <h2 class="transaction-receipt__price">{{ transaction.amount | number: "1.0-18" }}</h2>
+                    <h2 class="transaction-receipt__price">{{ transaction.amount | displayAmount }}</h2>
 
                     <p class="transaction-receipt__price-currency">{{ transaction.asset }}</p>
                 </div>
 
                 <div class="transaction-receipt__price-amount-container" *ngIf="transaction.type === 'swap'">
-                    <h2 class="transaction-receipt__price">{{ transaction.targetAmount | number: "1.0-18" }}</h2>
+                    <h2 class="transaction-receipt__price">{{ transaction.targetAmount | displayAmount }}</h2>
 
                     <p class="transaction-receipt__price-currency">{{ transaction.targetSymbol }}</p>
                 </div>
@@ -113,7 +113,7 @@
                                     </div>
 
                                     <p class="transaction-receipt__value">
-                                        {{ transaction.amount | number: "1.2-18" }}
+                                        {{ transaction.amount | displayAmount }}
                                         <span class="transaction-receipt__value-light">{{ tokenProperties.sourceSymbol }}</span>
                                     </p>
                                 </div>
@@ -136,7 +136,7 @@
                                     </div>
 
                                     <p class="transaction-receipt__value">
-                                        {{ transaction.targetAmount | number: "1.2-18" }}
+                                        {{ transaction.targetAmount | displayAmount }}
                                         <span class="transaction-receipt__value-light">{{ tokenProperties.targetSymbol }}</span>
                                     </p>
                                 </div>
@@ -147,7 +147,7 @@
                             <p class="transaction-receipt__label">{{ t("common.network_fee") }}</p>
 
                             <p class="transaction-receipt__value">
-                                {{ transaction.gasFee || transaction.gasPrice | number: "1.2-8" }}
+                                {{ transaction.gasFee || transaction.gasPrice | displayAmount }}
                                 <span class="transaction-receipt__value-light">{{
                                     transaction.networkSymbol || networkSymbol
                                 }}</span>
@@ -157,7 +157,7 @@
 
                     <ng-container *ngIf="transactionType !== 'swap'">
                         <div class="zelf-action-row">
-                            <p class="transaction-receipt__label">{{ t("common.withdrawal_network") }}</p>
+                            <p class="transaction-receipt__label">{{ t("common.network") }}</p>
 
                             <p class="transaction-receipt__value">{{ transaction.tokenType }}</p>
                         </div>
@@ -198,7 +198,7 @@
                             <p class="transaction-receipt__label">{{ t("common.fee") }}</p>
 
                             <p class="transaction-receipt__value">
-                                {{ transaction.gasFee || transaction.gasPrice | number: "1.2-18" }} {{ networkSymbol }}
+                                {{ transaction.gasFee || transaction.gasPrice | displayAmount }} {{ networkSymbol }}
                             </p>
                         </div>
 
@@ -208,17 +208,17 @@
                             <div class="transaction-receipt__value-container transaction-receipt__value-container--column">
                                 <div class="transaction-receipt__swap-row">
                                     <p class="transaction-receipt__value" *ngIf="networkSymbol === transaction.asset">
-                                        {{ transaction.total | number: "1.0-18" }} {{ networkSymbol }}
+                                        {{ transaction.total | displayAmount }} {{ networkSymbol }}
                                     </p>
 
                                     <p class="transaction-receipt__value" *ngIf="networkSymbol !== transaction.asset">
-                                        {{ transaction.gasFee | number: "1.2-18" }} {{ networkSymbol }}
+                                        {{ transaction.gasFee | displayAmount }} {{ networkSymbol }}
                                     </p>
                                 </div>
 
                                 <div class="transaction-receipt__swap-row" *ngIf="networkSymbol !== transaction.asset">
                                     <p class="transaction-receipt__value">
-                                        <small>{{ transaction.amount | number: "1.0-18" }} {{ transaction.asset }}</small>
+                                        <small>{{ transaction.amount | displayAmount }} {{ transaction.asset }}</small>
                                     </p>
                                 </div>
                             </div>

@@ -23,14 +23,14 @@
             <div class="stellar-send-summary__breakdown" *ngIf="breakdown.preview.reservePortionXlm != null">
                 <div class="zelf-action-row stellar-send-summary__row">
                     <span class="stellar-send-summary__label">{{ t("send.stellar.line_reserve") }}</span>
-                    <span class="stellar-send-summary__value">{{ breakdown.preview.reservePortionXlm | number: "1.0-7" }} XLM</span>
+                    <span class="stellar-send-summary__value">{{ breakdown.preview.reservePortionXlm | displayAmount }} XLM</span>
                 </div>
                 <div
                     class="zelf-action-row stellar-send-summary__row"
                     *ngIf="breakdown.preview.transferPortionXlm != null && breakdown.preview.transferPortionXlm > 0"
                 >
                     <span class="stellar-send-summary__label">{{ t("send.stellar.line_transfer") }}</span>
-                    <span class="stellar-send-summary__value">{{ breakdown.preview.transferPortionXlm | number: "1.0-7" }} XLM</span>
+                    <span class="stellar-send-summary__value">{{ breakdown.preview.transferPortionXlm | displayAmount }} XLM</span>
                 </div>
             </div>
 

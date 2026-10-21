@@ -480,7 +480,7 @@
         "upto_sats": "最大 {{ feeAmountUSD }} • {{sats}} sats/vB • {{ time }} 分",
         "recent_addresses": "最近",
         "used": "{{days}}日前に使用",
-        "withdrawal_amount": "出金額",
+        "withdrawal_amount": "送金額",
         "zelf_name_not_registered": "Zelf IDが登録されていません",
         "zelf_name_registered": "Zelf IDが登録されています",
         "from_address": "送信元アドレス",

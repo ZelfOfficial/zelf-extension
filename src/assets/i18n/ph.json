@@ -480,7 +480,7 @@
         "upto_sats": "Hanggang {{ feeAmountUSD }} • {{sats}} sats/vB • {{ time }} minuto",
         "recent_addresses": "Mga Nakaraang",
         "used": "Ginamit {{days}} na ang nakalipas",
-        "withdrawal_amount": "Halaga ng pag-withdraw",
+        "withdrawal_amount": "Halaga na ipapadala",
         "zelf_name_not_registered": "Hindi pa nare-rehistro ang Zelf ID",
         "zelf_name_registered": "Nare-rehistro na ang Zelf ID",
         "from_address": "Mula sa address",
