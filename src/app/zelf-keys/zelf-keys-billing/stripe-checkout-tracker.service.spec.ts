@@ -109,6 +109,50 @@ describe("StripeCheckoutTrackerService", () => {
         expect(shouldStopStripeCheckoutPolling(service.snapshot!.phase)).toBeFalse();
     });
 
+    it("checkNow from failed resumes waiting and polls again", async () => {
+        const chrome = createChrome();
+        const billing = {
+            getActiveSubscription: jasmine.createSpy("getActiveSubscription").and.resolveTo({ success: false, data: null }),
+        };
+        const wallet = {
+            getFirstWalletFromStorage: jasmine.createSpy("getFirstWalletFromStorage").and.resolveTo({ fullTagName: "alice.zelf" }),
+        };
+
+        const stripeCheckout = {
+            ...buildStripeCheckoutSnapshot({
+                sessionId: "cs_failed",
+                checkoutUrl: "https://checkout.stripe.test",
+                plan,
+            }),
+            phase: "failed" as const,
+        };
+
+        await persistBillingUiSessionState(
+            chrome as any,
+            buildBillingUiSessionState({
+                plans: [plan],
+                currentPlan: "free",
+                hasActiveSubscription: false,
+                activeSubscription: null,
+                showCryptoPayment: false,
+                cryptoPayment: null,
+                stripeCheckout,
+                walletOwnerTag: "alice.zelf",
+            })
+        );
+
+        const service = createService(billing, wallet, chrome);
+        const restored = await service.bootstrapFromStorage();
+
+        expect(restored?.phase).toBe("failed");
+
+        await service.checkNow();
+
+        expect(service.snapshot?.phase).toBe("waiting");
+        expect(shouldStopStripeCheckoutPolling(service.snapshot!.phase)).toBeFalse();
+        expect(billing.getActiveSubscription).toHaveBeenCalled();
+    });
+
     it("abandonCheckoutForNavigation clears stripe checkout so billing does not redirect back", async () => {
         const chrome = createChrome();
         const billing = {

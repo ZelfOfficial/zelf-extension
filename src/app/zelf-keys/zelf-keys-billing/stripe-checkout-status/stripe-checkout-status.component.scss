@@ -1,8 +1,33 @@
 @use "../../../../styles/variables";
 
+@mixin stripe-status-panel($accent) {
+    background: color-mix(in srgb, $accent 14%, variables.$themeCard);
+    border: 1px solid color-mix(in srgb, $accent 32%, variables.$themeCardBorder);
+    border-radius: 12px;
+    padding: 12px 10px;
+
+    .stripe-checkout__heading {
+        color: variables.$themeText;
+    }
+
+    .stripe-checkout__message,
+    .stripe-checkout__hint {
+        color: color-mix(in srgb, variables.$themeText 90%, transparent);
+        font-size: 14px;
+        line-height: 1.45;
+    }
+
+    .stripe-checkout__button--secondary {
+        background: color-mix(in srgb, variables.$themeCard 88%, variables.$themeBackgroundSecondary);
+        color: variables.$themeText;
+        border: 1px solid variables.$themeCardBorder;
+    }
+}
+
 :host {
     display: block;
     min-height: 100%;
+    min-height: 100dvh;
     background: variables.$themeBackgroundSecondary;
 }
 
@@ -10,6 +35,7 @@
     display: flex;
     flex-direction: column;
     min-height: 100%;
+    min-height: 100dvh;
     box-sizing: border-box;
     background: variables.$themeBackgroundSecondary;
 
@@ -28,6 +54,7 @@
         overflow-y: auto;
         padding: 8px 8px calc(92px + env(safe-area-inset-bottom, 0px));
         box-sizing: border-box;
+        background: variables.$themeBackgroundSecondary;
     }
 
     &__card {
@@ -81,25 +108,19 @@
         }
 
         &--success {
-            background: variables.$correctLight;
-            border-radius: 12px;
-            padding: 12px 10px;
+            @include stripe-status-panel(variables.$correct);
         }
 
         &--error {
-            background: variables.$errorLight;
-            border-radius: 12px;
-            padding: 12px 10px;
+            @include stripe-status-panel(variables.$error);
         }
 
         &--warning {
-            background: variables.$warningLight;
-            border-radius: 12px;
-            padding: 12px 10px;
+            @include stripe-status-panel(variables.$warning);
         }
 
         &--neutral {
-            background: variables.$themeBackgroundSecondary;
+            background: color-mix(in srgb, variables.$themeText 4%, variables.$themeCard);
             border: 1px solid variables.$themeCardBorder;
             border-radius: 12px;
             padding: 12px 10px;
@@ -128,17 +149,17 @@
 
         &--success {
             color: variables.$correct;
-            background: rgba(30, 164, 70, 0.12);
+            background: color-mix(in srgb, variables.$correct 18%, transparent);
         }
 
         &--error {
             color: variables.$error;
-            background: rgba(220, 54, 46, 0.12);
+            background: color-mix(in srgb, variables.$error 18%, transparent);
         }
 
         &--warning {
             color: variables.$warning;
-            background: rgba(222, 104, 0, 0.12);
+            background: color-mix(in srgb, variables.$warning 18%, transparent);
         }
 
         &--neutral {
@@ -159,13 +180,14 @@
     &__message,
     &__hint {
         margin: 0;
-        font-size: 13px;
-        line-height: 1.4;
-        color: variables.$themeTextSecondary;
+        font-size: 14px;
+        line-height: 1.45;
+        color: color-mix(in srgb, variables.$themeText 88%, transparent);
     }
 
     &__hint {
-        font-size: 12px;
+        font-size: 13px;
+        color: color-mix(in srgb, variables.$themeText 78%, transparent);
     }
 
     &__actions {

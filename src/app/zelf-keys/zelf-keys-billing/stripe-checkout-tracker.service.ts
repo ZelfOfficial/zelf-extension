@@ -122,10 +122,8 @@ export class StripeCheckoutTrackerService implements OnDestroy {
 
         if (!snapshot) return;
 
-        if (snapshot.phase === "expired") {
-            await this._updateStripePhase("waiting", 0);
-            this._consecutiveCheckErrors = 0;
-            this.startPolling();
+        if (snapshot.phase === "expired" || snapshot.phase === "failed") {
+            await this._resumeWaitingFromStalePhase();
         }
 
         await this._checkSubscription();
@@ -195,6 +193,12 @@ export class StripeCheckoutTrackerService implements OnDestroy {
         this._snapshot$.next(null);
         this.stopPolling();
         this._consecutiveCheckErrors = 0;
+    }
+
+    private async _resumeWaitingFromStalePhase(): Promise<void> {
+        await this._updateStripePhase("waiting", 0);
+        this._consecutiveCheckErrors = 0;
+        this.startPolling();
     }
 
     private async _pollTick(): Promise<void> {
