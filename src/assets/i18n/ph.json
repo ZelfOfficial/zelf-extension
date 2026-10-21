@@ -1344,40 +1344,46 @@
                     "label": "Pangalan ng Bangko *"
                 },
                 "card_number": {
-                    "label": "Pangalan ng Bangko *"
+                    "label": "Numero ng Card *"
                 },
                 "card_holder": {
-                    "label": "Pangalan ng Bangko *",
+                    "label": "Pangalan ng Card Holder *",
                     "errors": {
                         "invalid_chars": "Only letters and spaces (plus ' - .) are allowed in the card holder name.",
                         "needs_letter": "The card holder name must include at least one letter."
                     }
                 },
                 "expiry_month": {
-                    "label": "Pangalan ng Bangko *",
-                    "placeholder": "Pumili ng uri ng card"
+                    "label": "Buwan *",
+                    "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "Pangalan ng Bangko *"
+                    "label": "Taon *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "Expired na ang card",
+                        "invalid": "Maglagay ng wastong expiry date"
+                    }
                 },
                 "card_type": {
-                    "label": "Pangalan ng Bangko *",
-                    "placeholder": "Pumili ng uri ng card"
+                    "label": "Uri ng Card *",
+                    "placeholder": "Piliin ang uri ng card"
                 },
                 "cvv": {
-                    "label": "Pangalan ng Bangko *"
+                    "label": "CVV *"
                 },
                 "billing_address": {
-                    "label": "Pangalan ng Bangko *",
-                    "placeholder": "Pumili ng uri ng card"
+                    "label": "Billing Address",
+                    "placeholder": "Ilagay ang billing address (opsyonal)"
                 },
                 "notes": {
-                    "label": "Pangalan ng Bangko *",
-                    "placeholder": "Pumili ng uri ng card"
+                    "label": "Mga Tala",
+                    "placeholder": "Maglagay ng tala (opsyonal)"
                 },
                 "folder": {
-                    "label": "Pangalan ng Bangko *",
-                    "placeholder": "Pumili ng uri ng card",
+                    "label": "I-store sa Folder",
+                    "placeholder": "Pangalan ng folder",
                     "aria_label": "I-toggle ang folder storage"
                 },
                 "master_password": {

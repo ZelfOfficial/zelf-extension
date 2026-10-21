@@ -1544,36 +1544,42 @@
                     "label": "Nombre del Banco *"
                 },
                 "card_number": {
-                    "label": "Nombre del Banco *"
+                    "label": "Número de Tarjeta *"
                 },
                 "card_holder": {
-                    "label": "Nombre del Banco *",
+                    "label": "Nombre del titular *",
                     "errors": {
                         "invalid_chars": "El nombre del titular solo admite letras y espacios (y ' - .).",
                         "needs_letter": "El nombre del titular debe tener al menos una letra."
                     }
                 },
                 "expiry_month": {
-                    "label": "Nombre del Banco *",
-                    "placeholder": "Selecciona tipo de tarjeta"
+                    "label": "Mes *",
+                    "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "Nombre del Banco *"
+                    "label": "Año *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "La tarjeta está vencida",
+                        "invalid": "Introduce una fecha de vencimiento válida"
+                    }
                 },
                 "card_type": {
-                    "label": "Nombre del Banco *",
+                    "label": "Tipo de tarjeta *",
                     "placeholder": "Selecciona tipo de tarjeta"
                 },
                 "cvv": {
-                    "label": "Nombre del Banco *"
+                    "label": "CVV *"
                 },
                 "billing_address": {
-                    "label": "Nombre del Banco *",
-                    "placeholder": "Selecciona tipo de tarjeta"
+                    "label": "Dirección de facturación",
+                    "placeholder": "Introduce la dirección de facturación (opcional)"
                 },
                 "notes": {
-                    "label": "Nombre del Banco *",
-                    "placeholder": "Selecciona tipo de tarjeta"
+                    "label": "Notas",
+                    "placeholder": "Añadir notas (opcional)"
                 },
                 "folder": {
                     "label": "Guardar en Carpeta",

@@ -1344,40 +1344,46 @@
                     "label": "銀行名 *"
                 },
                 "card_number": {
-                    "label": "銀行名 *"
+                    "label": "カード番号 *"
                 },
                 "card_holder": {
-                    "label": "銀行名 *",
+                    "label": "カード名義人 *",
                     "errors": {
                         "invalid_chars": "Only letters and spaces (plus ' - .) are allowed in the card holder name.",
                         "needs_letter": "The card holder name must include at least one letter."
                     }
                 },
                 "expiry_month": {
-                    "label": "銀行名 *",
-                    "placeholder": "カードタイプを選択"
+                    "label": "月 *",
+                    "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "銀行名 *"
+                    "label": "年 *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "カードの有効期限が切れています",
+                        "invalid": "有効な有効期限を入力してください"
+                    }
                 },
                 "card_type": {
-                    "label": "銀行名 *",
+                    "label": "カードタイプ *",
                     "placeholder": "カードタイプを選択"
                 },
                 "cvv": {
-                    "label": "銀行名 *"
+                    "label": "CVV *"
                 },
                 "billing_address": {
-                    "label": "銀行名 *",
-                    "placeholder": "カードタイプを選択"
+                    "label": "請求先住所",
+                    "placeholder": "請求先住所を入力（任意）"
                 },
                 "notes": {
-                    "label": "銀行名 *",
-                    "placeholder": "カードタイプを選択"
+                    "label": "メモ",
+                    "placeholder": "メモを入力（任意）"
                 },
                 "folder": {
-                    "label": "銀行名 *",
-                    "placeholder": "カードタイプを選択",
+                    "label": "フォルダに保存",
+                    "placeholder": "フォルダ名",
                     "aria_label": "フォルダ保存を切り替え"
                 },
                 "master_password": {

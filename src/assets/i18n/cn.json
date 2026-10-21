@@ -1354,11 +1354,17 @@
                     }
                 },
                 "expiry_month": {
-                    "label": "到期月份 *",
+                    "label": "月 *",
                     "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "到期年份 *"
+                    "label": "年 *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "卡片已过期",
+                        "invalid": "请输入有效的到期日期"
+                    }
                 },
                 "card_type": {
                     "label": "卡片类型 *",

@@ -1344,40 +1344,46 @@
                     "label": "은행명 *"
                 },
                 "card_number": {
-                    "label": "은행명 *"
+                    "label": "카드 번호 *"
                 },
                 "card_holder": {
-                    "label": "은행명 *",
+                    "label": "카드 소유자 이름 *",
                     "errors": {
                         "invalid_chars": "Only letters and spaces (plus ' - .) are allowed in the card holder name.",
                         "needs_letter": "The card holder name must include at least one letter."
                     }
                 },
                 "expiry_month": {
-                    "label": "은행명 *",
-                    "placeholder": "카드 유형 선택"
+                    "label": "월 *",
+                    "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "은행명 *"
+                    "label": "년 *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "카드가 만료되었습니다",
+                        "invalid": "유효한 만료일을 입력하세요"
+                    }
                 },
                 "card_type": {
-                    "label": "은행명 *",
+                    "label": "카드 유형 *",
                     "placeholder": "카드 유형 선택"
                 },
                 "cvv": {
-                    "label": "은행명 *"
+                    "label": "CVV *"
                 },
                 "billing_address": {
-                    "label": "은행명 *",
-                    "placeholder": "카드 유형 선택"
+                    "label": "청구 주소",
+                    "placeholder": "청구 주소 입력(선택)"
                 },
                 "notes": {
-                    "label": "은행명 *",
-                    "placeholder": "카드 유형 선택"
+                    "label": "메모",
+                    "placeholder": "메모 입력(선택)"
                 },
                 "folder": {
-                    "label": "은행명 *",
-                    "placeholder": "카드 유형 선택",
+                    "label": "폴더에 저장",
+                    "placeholder": "폴더 이름",
                     "aria_label": "폴더 저장 토글"
                 },
                 "master_password": {

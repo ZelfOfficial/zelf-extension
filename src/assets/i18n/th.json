@@ -1338,11 +1338,17 @@
                     }
                 },
                 "expiry_month": {
-                    "label": "เดือนหมดอายุ *",
+                    "label": "เดือน *",
                     "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "ปีหมดอายุ *"
+                    "label": "ปี *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "บัตรหมดอายุแล้ว",
+                        "invalid": "กรุณากรอกวันหมดอายุที่ถูกต้อง"
+                    }
                 },
                 "card_type": {
                     "label": "ประเภทบัตร *",

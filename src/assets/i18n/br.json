@@ -1361,11 +1361,17 @@
                     }
                 },
                 "expiry_month": {
-                    "label": "Expiry Month *",
+                    "label": "Mês *",
                     "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "Expiry Year *"
+                    "label": "Ano *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "O cartão está vencido",
+                        "invalid": "Informe uma data de validade válida"
+                    }
                 },
                 "card_type": {
                     "label": "Tipo do Cartão *",

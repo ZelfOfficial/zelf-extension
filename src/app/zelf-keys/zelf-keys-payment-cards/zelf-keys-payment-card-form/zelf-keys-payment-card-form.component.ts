@@ -25,6 +25,9 @@ import {
     templateUrl: "./zelf-keys-payment-card-form.component.html",
 })
 export class ZelfKeysPaymentCardFormComponent implements OnInit {
+    readonly minExpiryYear = new Date().getFullYear();
+    readonly maxExpiryYear = new Date().getFullYear() + 15;
+
     cardData = {
         alias: "",
         bankName: environment.production ? "" : "Chase Bank",
@@ -41,6 +44,8 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
 
     /** Inline error under "Card Holder Name" (#574): invalid_chars | needs_letter | null. */
     cardNameError: "invalid_chars" | "needs_letter" | null = null;
+    /** Inline error under expiry fields: expired | invalid | null. */
+    expiryError: "expired" | "invalid" | null = null;
     formValid = false;
     hasMasterPassword = false;
     isNewCard = true;
@@ -104,7 +109,7 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
         const hasCardName = isValidCardHolderName(this.cardData.cardName);
         const hasCardNumber = !!this.cardData.cardNumber?.trim() && this.cardData.cardNumber.length >= 13;
         const hasExpiryMonth = !!this.cardData.expiryMonth;
-        const hasExpiryYear = !!this.cardData.expiryYear && String(this.cardData.expiryYear).length === 4;
+        const hasExpiryYear = !!this.cardData.expiryYear && String(this.cardData.expiryYear).length === 4 && this._isExpiryNotInPast();
         const hasCvv = !!this.cardData.cvv?.trim() && this.cardData.cvv.length >= 3;
         const hasBankName = !!this.cardData.bankName?.trim();
 
@@ -121,6 +126,7 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
         // - bankName: required, minLength: 1
         // - masterPassword: optional (only if user enables it)
 
+        this._updateExpiryError();
         this.formValid = hasCardName && hasCardNumber && hasExpiryMonth && hasExpiryYear && hasCvv && hasBankName && masterPasswordValid;
     }
 
@@ -164,18 +170,23 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
         this._openBiometricsBottomSheet();
     }
 
-    // Helper method to format card number as user types
-    onCardNumberChange(): void {
-        // Remove all non-digits
-        let value = this.cardData.cardNumber.replace(/\D/g, "");
-
-        // Limit to 19 digits (max card length)
-        if (value.length > 19) {
-            value = value.substring(0, 19);
+    /** Block single non-digit keystrokes; paste is sanitized in ngModelChange. */
+    onDigitsBeforeInput(event: InputEvent): void {
+        if (event.inputType === "insertFromPaste" || event.inputType === "insertFromDrop") {
+            return;
         }
 
-        this.cardData.cardNumber = value;
-        this.checkFormValidity();
+        const data = event.data;
+        if (data != null && /\D/.test(data)) {
+            event.preventDefault();
+        }
+    }
+
+    // Helper method to format card number as user types
+    onCardNumberChange(value: string, input?: HTMLInputElement): void {
+        this._applyDigitsOnly(value, 19, (digits) => {
+            this.cardData.cardNumber = digits;
+        }, input);
     }
 
     // Card holder name (#574): drop digits/symbols/emojis while typing or pasting, no leading or
@@ -196,17 +207,16 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
     }
 
     // Helper method to format CVV as user types
-    onCvvChange(): void {
-        // Remove all non-digits
-        let value = this.cardData.cvv.replace(/\D/g, "");
+    onExpiryYearChange(value: string, input?: HTMLInputElement): void {
+        this._applyDigitsOnly(value, 4, (digits) => {
+            this.cardData.expiryYear = digits;
+        }, input);
+    }
 
-        // Limit to 4 digits (max CVV length)
-        if (value.length > 4) {
-            value = value.substring(0, 4);
-        }
-
-        this.cardData.cvv = value;
-        this.checkFormValidity();
+    onCvvChange(value: string, input?: HTMLInputElement): void {
+        this._applyDigitsOnly(value, 4, (digits) => {
+            this.cardData.cvv = digits;
+        }, input);
     }
 
     // Helper method to get card type from number
@@ -231,6 +241,68 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
 
     toggleMasterPasswordVisibility(): void {
         this.showMasterPassword = !this.showMasterPassword;
+    }
+
+    private _applyDigitsOnly(value: string, maxLength: number, assign: (digits: string) => void, input?: HTMLInputElement): void {
+        let digits = String(value ?? "").replace(/\D/g, "");
+        if (digits.length > maxLength) {
+            digits = digits.substring(0, maxLength);
+        }
+
+        assign(digits);
+        // Model may not change (e.g. "202" + "x"), so put the clean text back in the field.
+        if (input && input.value !== digits) {
+            input.value = digits;
+        }
+
+        this._changeDetectorRef.detectChanges();
+        this.checkFormValidity();
+    }
+
+    private _updateExpiryError(): void {
+        const month = this.cardData.expiryMonth;
+        const yearStr = String(this.cardData.expiryYear ?? "");
+
+        if (!month || yearStr.length !== 4) {
+            this.expiryError = null;
+            return;
+        }
+
+        const year = Number.parseInt(yearStr, 10);
+        const monthNum = Number.parseInt(String(month), 10);
+
+        if (!Number.isFinite(year) || !Number.isFinite(monthNum) || monthNum < 1 || monthNum > 12) {
+            this.expiryError = "invalid";
+            return;
+        }
+
+        if (year > this.maxExpiryYear) {
+            this.expiryError = "invalid";
+            return;
+        }
+
+        this.expiryError = this._isExpiryNotInPast() ? null : "expired";
+    }
+
+    private _isExpiryNotInPast(): boolean {
+        const year = Number.parseInt(String(this.cardData.expiryYear), 10);
+        const month = Number.parseInt(String(this.cardData.expiryMonth), 10);
+        if (!Number.isFinite(year) || !Number.isFinite(month) || String(this.cardData.expiryYear).length !== 4) {
+            return false;
+        }
+        if (year < this.minExpiryYear || year > this.maxExpiryYear) {
+            return false;
+        }
+
+        const now = new Date();
+        if (year > now.getFullYear()) {
+            return true;
+        }
+        if (year < now.getFullYear()) {
+            return false;
+        }
+
+        return month >= now.getMonth() + 1;
     }
 
     private _openBiometricsBottomSheet(): void {

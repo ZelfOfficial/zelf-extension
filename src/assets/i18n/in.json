@@ -1344,40 +1344,46 @@
                     "label": "बैंक का नाम *"
                 },
                 "card_number": {
-                    "label": "बैंक का नाम *"
+                    "label": "कार्ड नंबर *"
                 },
                 "card_holder": {
-                    "label": "बैंक का नाम *",
+                    "label": "कार्डधारक का नाम *",
                     "errors": {
                         "invalid_chars": "Only letters and spaces (plus ' - .) are allowed in the card holder name.",
                         "needs_letter": "The card holder name must include at least one letter."
                     }
                 },
                 "expiry_month": {
-                    "label": "बैंक का नाम *",
-                    "placeholder": "कार्ड प्रकार चुनें"
+                    "label": "माह *",
+                    "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "बैंक का नाम *"
+                    "label": "वर्ष *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "कार्ड की समय सीमा समाप्त हो गई है",
+                        "invalid": "कोई मान्य समाप्ति तिथि दर्ज करें"
+                    }
                 },
                 "card_type": {
-                    "label": "बैंक का नाम *",
+                    "label": "कार्ड का प्रकार *",
                     "placeholder": "कार्ड प्रकार चुनें"
                 },
                 "cvv": {
-                    "label": "बैंक का नाम *"
+                    "label": "CVV *"
                 },
                 "billing_address": {
-                    "label": "बैंक का नाम *",
-                    "placeholder": "कार्ड प्रकार चुनें"
+                    "label": "बिलिंग पता",
+                    "placeholder": "बिलिंग पता दर्ज करें (वैकल्पिक)"
                 },
                 "notes": {
-                    "label": "बैंक का नाम *",
-                    "placeholder": "कार्ड प्रकार चुनें"
+                    "label": "नोट्स",
+                    "placeholder": "नोट्स दर्ज करें (वैकल्पिक)"
                 },
                 "folder": {
-                    "label": "बैंक का नाम *",
-                    "placeholder": "कार्ड प्रकार चुनें",
+                    "label": "फ़ोल्डर में सहेजें",
+                    "placeholder": "फ़ोल्डर का नाम",
                     "aria_label": "फ़ोल्डर स्टोरेज स्विच करें"
                 },
                 "master_password": {

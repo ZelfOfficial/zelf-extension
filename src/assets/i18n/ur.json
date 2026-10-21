@@ -1328,41 +1328,47 @@
                     "label": "بینک کا نام *"
                 },
                 "card_number": {
-                    "label": "بینک کا نام *"
+                    "label": "کارڈ نمبر *"
                 },
                 "card_holder": {
-                    "label": "بینک کا نام *",
+                    "label": "کارڈ ہولڈر کا نام *",
                     "errors": {
                         "invalid_chars": "Only letters and spaces (plus ' - .) are allowed in the card holder name.",
                         "needs_letter": "The card holder name must include at least one letter."
                     }
                 },
                 "expiry_month": {
-                    "label": "بینک کا نام *",
-                    "placeholder": "کارڈ کی قسم منتخب کریں"
+                    "label": "ماہ *",
+                    "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "بینک کا نام *"
+                    "label": "سال *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "کارڈ کی میعاد ختم ہو گئی ہے",
+                        "invalid": "درست میعاد ختم ہونے کی تاریخ درج کریں"
+                    }
                 },
                 "card_type": {
-                    "label": "بینک کا نام *",
+                    "label": "کارڈ کی قسم *",
                     "placeholder": "کارڈ کی قسم منتخب کریں"
                 },
                 "cvv": {
-                    "label": "بینک کا نام *"
+                    "label": "CVV *"
                 },
                 "billing_address": {
-                    "label": "بینک کا نام *",
-                    "placeholder": "کارڈ کی قسم منتخب کریں"
+                    "label": "بلنگ پتہ",
+                    "placeholder": "بلنگ پتہ درج کریں (اختیاری)"
                 },
                 "notes": {
-                    "label": "بینک کا نام *",
-                    "placeholder": "کارڈ کی قسم منتخب کریں"
+                    "label": "نوٹس",
+                    "placeholder": "نوٹس درج کریں (اختیاری)"
                 },
                 "folder": {
-                    "label": "بینک کا نام *",
-                    "placeholder": "کارڈ کی قسم منتخب کریں",
-                    "aria_label": "فولڈر اسٹوریج کو ٹوگل کریں"
+                    "label": "فولڈر میں محفوظ کریں",
+                    "placeholder": "فولڈر کا نام",
+                    "aria_label": "فولڈر اسٹوریج ٹوگل کریں"
                 },
                 "master_password": {
                     "hint": "ہمیں آپ کے کریڈنشلز کو انکرپٹ اور اسٹور کرنے کے لیے {{ walletName }} پاس ورڈ درکار ہے۔ بائیو میٹرک توثیق ہمیشہ درکار ہوتی ہے۔"

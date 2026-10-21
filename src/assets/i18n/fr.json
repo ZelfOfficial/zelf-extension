@@ -1344,40 +1344,46 @@
                     "label": "Nom de la Banque *"
                 },
                 "card_number": {
-                    "label": "Nom de la Banque *"
+                    "label": "Numéro de Carte *"
                 },
                 "card_holder": {
-                    "label": "Nom de la Banque *",
+                    "label": "Nom du titulaire *",
                     "errors": {
                         "invalid_chars": "Only letters and spaces (plus ' - .) are allowed in the card holder name.",
                         "needs_letter": "The card holder name must include at least one letter."
                     }
                 },
                 "expiry_month": {
-                    "label": "Nom de la Banque *",
-                    "placeholder": "Sélectionner le type"
+                    "label": "Mois *",
+                    "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "Nom de la Banque *"
+                    "label": "Année *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "La carte est expirée",
+                        "invalid": "Saisissez une date d'expiration valide"
+                    }
                 },
                 "card_type": {
-                    "label": "Nom de la Banque *",
-                    "placeholder": "Sélectionner le type"
+                    "label": "Type de carte *",
+                    "placeholder": "Sélectionner le type de carte"
                 },
                 "cvv": {
-                    "label": "Nom de la Banque *"
+                    "label": "CVV *"
                 },
                 "billing_address": {
-                    "label": "Nom de la Banque *",
-                    "placeholder": "Sélectionner le type"
+                    "label": "Adresse de facturation",
+                    "placeholder": "Saisir l'adresse de facturation (facultatif)"
                 },
                 "notes": {
-                    "label": "Nom de la Banque *",
-                    "placeholder": "Sélectionner le type"
+                    "label": "Notes",
+                    "placeholder": "Saisir des notes (facultatif)"
                 },
                 "folder": {
-                    "label": "Nom de la Banque *",
-                    "placeholder": "Sélectionner le type",
+                    "label": "Enregistrer dans un dossier",
+                    "placeholder": "Nom du dossier",
                     "aria_label": "Basculer l'enregistrement en dossier"
                 },
                 "master_password": {

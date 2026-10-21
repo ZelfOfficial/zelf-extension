@@ -123,13 +123,44 @@
         }
 
         .form-actions {
-            position: sticky;
-            bottom: 0;
-            z-index: 3;
             margin-top: 14px;
-            padding: 10px 0 4px;
-            border-top: 0;
+            padding: 16px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+            border-top: 1px solid variables.$themeBorder;
             background: variables.$themeBackground;
+        }
+
+        .field-row--expiry {
+            display: grid;
+            grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.15fr) minmax(0, 0.95fr);
+            gap: 10px;
+            margin-bottom: 16px;
+
+            .field-group {
+                flex: unset;
+                max-width: none;
+                min-width: 0;
+            }
+
+            .zelf-input__control {
+                min-width: 0;
+            }
+
+            .zelf-input__floating-label {
+                max-width: calc(100% - 20px);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .zelf-input--filled .zelf-input__floating-label {
+                font-size: 12px;
+                top: 6px;
+            }
+
+            input[type="text"]#expiryYear {
+                -moz-appearance: textfield;
+                appearance: textfield;
+            }
         }
     }
 }
@@ -333,9 +364,13 @@
     .payment-card-form {
         padding: 0 16px;
 
-        .field-row {
+        .field-row:not(.field-row--expiry) {
             flex-direction: column;
             gap: 12px;
+        }
+
+        .form-content .field-row--expiry {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
         }
 
         .form-actions {

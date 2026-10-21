@@ -1344,41 +1344,47 @@
                     "label": "Название банка *"
                 },
                 "card_number": {
-                    "label": "Название банка *"
+                    "label": "Номер карты *"
                 },
                 "card_holder": {
-                    "label": "Название банка *",
+                    "label": "Имя держателя карты *",
                     "errors": {
                         "invalid_chars": "Only letters and spaces (plus ' - .) are allowed in the card holder name.",
                         "needs_letter": "The card holder name must include at least one letter."
                     }
                 },
                 "expiry_month": {
-                    "label": "Название банка *",
-                    "placeholder": "ММ"
+                    "label": "Месяц *",
+                    "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "Название банка *"
+                    "label": "Год *"
+                },
+                "expiry": {
+                    "errors": {
+                        "expired": "Срок действия карты истёк",
+                        "invalid": "Введите корректную дату окончания"
+                    }
                 },
                 "card_type": {
-                    "label": "Название банка *",
-                    "placeholder": "ММ"
+                    "label": "Тип карты *",
+                    "placeholder": "Выберите тип карты"
                 },
                 "cvv": {
-                    "label": "Название банка *"
+                    "label": "CVV *"
                 },
                 "billing_address": {
-                    "label": "Название банка *",
-                    "placeholder": "ММ"
+                    "label": "Платёжный адрес",
+                    "placeholder": "Введите платёжный адрес (необязательно)"
                 },
                 "notes": {
-                    "label": "Название банка *",
-                    "placeholder": "ММ"
+                    "label": "Заметки",
+                    "placeholder": "Введите заметки (необязательно)"
                 },
                 "folder": {
-                    "label": "Название банка *",
-                    "placeholder": "ММ",
-                    "aria_label": "Переключить хранение в папке"
+                    "label": "Сохранить в папку",
+                    "placeholder": "Имя папки",
+                    "aria_label": "Переключить сохранение в папку"
                 },
                 "master_password": {
                     "hint": "Нам нужен пароль {{ walletName }} для шифрования и хранения ваших учетных данных. Биометрическая проверка всегда требуется."

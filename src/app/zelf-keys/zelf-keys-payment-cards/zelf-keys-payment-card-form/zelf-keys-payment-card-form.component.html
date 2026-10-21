@@ -17,8 +17,8 @@
                     <div class="field-group">
                         <div class="zelf-input zelf-input--wide">
                             <input
-                                (ngModelChange)="checkFormValidity()"
                                 [(ngModel)]="cardData.bankName"
+                                (ngModelChange)="checkFormValidity()"
                                 class="zelf-input__control zelf-input__control--floating-label"
                                 maxlength="64"
                                 id="bankName"
@@ -45,8 +45,8 @@
                 <div class="field-row">
                     <div class="zelf-input zelf-input--wide">
                         <input
-                            (ngModelChange)="checkFormValidity()"
                             [(ngModel)]="cardData.alias"
+                            (ngModelChange)="checkFormValidity()"
                             class="zelf-input__control zelf-input__control--floating-label"
                             id="cardAlias"
                             maxlength="50"
@@ -87,8 +87,10 @@
                 <div class="field-row">
                     <div class="zelf-input zelf-input--wide">
                         <input
-                            (ngModelChange)="onCardNumberChange()"
+                            #cardNumberInput
                             [(ngModel)]="cardData.cardNumber"
+                            (beforeinput)="onDigitsBeforeInput($event)"
+                            (ngModelChange)="onCardNumberChange($event, cardNumberInput)"
                             class="zelf-input__control zelf-input__control--floating-label"
                             id="cardNumber"
                             maxlength="19"
@@ -139,9 +141,9 @@
                     </div>
                 </div>
 
-                <div class="field-row field-row--three-columns">
-                    <div class="field-group field-group--small">
-                        <div class="zelf-input zelf-input--wide">
+                <div class="field-row field-row--expiry">
+                    <div class="field-group field-group--expiry-month">
+                        <div class="zelf-input zelf-input--wide" [class.zelf-input--filled]="!!cardData.expiryMonth">
                             <select
                                 class="zelf-input__control zelf-input__control--floating-label"
                                 [(ngModel)]="cardData.expiryMonth"
@@ -168,29 +170,34 @@
                         </div>
                     </div>
 
-                    <div class="field-group field-group--small">
-                        <div class="zelf-input zelf-input--wide">
+                    <div class="field-group field-group--expiry-year">
+                        <div class="zelf-input zelf-input--wide" [class.zelf-input--filled]="!!cardData.expiryYear">
                             <input
-                                (ngModelChange)="checkFormValidity()"
+                                #expiryYearInput
                                 [(ngModel)]="cardData.expiryYear"
+                                (beforeinput)="onDigitsBeforeInput($event)"
+                                (ngModelChange)="onExpiryYearChange($event, expiryYearInput)"
                                 class="zelf-input__control zelf-input__control--floating-label"
                                 id="expiryYear"
-                                max="2030"
-                                min="2024"
+                                inputmode="numeric"
+                                maxlength="4"
                                 name="expiryYear"
+                                pattern="[0-9]{4}"
                                 required
-                                type="number"
+                                type="text"
                             />
 
                             <label class="zelf-input__floating-label">{{ t("billing.payment_cards.form.expiry_year.label") }}</label>
                         </div>
                     </div>
 
-                    <div class="field-group field-group--small">
+                    <div class="field-group field-group--expiry-cvv">
                         <div class="zelf-input zelf-input--wide">
                             <input
-                                (ngModelChange)="onCvvChange()"
+                                #cvvInput
                                 [(ngModel)]="cardData.cvv"
+                                (beforeinput)="onDigitsBeforeInput($event)"
+                                (ngModelChange)="onCvvChange($event, cvvInput)"
                                 class="zelf-input__control zelf-input__control--floating-label"
                                 id="cvv"
                                 maxlength="4"
@@ -211,6 +218,9 @@
                         </div>
                     </div>
                 </div>
+                @if (expiryError) {
+                    <div class="card-holder-error expiry-error" role="alert">{{ t("billing.payment_cards.form.expiry.errors." + expiryError) }}</div>
+                }
             </div>
 
             <!-- Folder Section -->
