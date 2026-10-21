@@ -1173,6 +1173,8 @@
         "stellar_soroban_not_supported": "Soroban (contract) assets are not supported in this wallet yet.",
         "stellar_invalid_asset_format": "Invalid Stellar asset. Use CODE:ISSUER (for example USDC:G…).",
         "ERR_PASSWORD_REQUIRED": "This Zelf ID requires a password. Enter your password and try again.",
+        "encryption_key_didnt_match": "Your session encryption key is out of date. Reload the extension and try again.",
+        "failed_to_decrypt": "We could not decrypt your Zelf ID. Check your password and face verification, then try again.",
         "ERR_MISSING_PASSWORD": "This key is protected with your master password. Enter it and try again.",
         "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name."
     },

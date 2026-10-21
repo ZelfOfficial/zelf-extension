@@ -199,6 +199,7 @@ describe("SendConfirmComponent signing rule (#88)", () => {
 
             expect(t.navigate).toHaveBeenCalledWith(...BIOMETRICS);
             expect(t.vault.password).toBe(PASSWORD);
+            expect((t.component as any)._carriedSecret).toBe(PASSWORD);
         });
     });
 

@@ -77,14 +77,22 @@ describe("back-navigation.util", () => {
 
     it("resolveBillingBackNavigation uses redirect when opened directly without router history", () => {
         const router = { lastSuccessfulNavigation: null, serializeUrl: () => "" };
+        const original = window.history.length;
+        Object.defineProperty(window.history, "length", { configurable: true, get: () => 1 });
 
         expect(resolveBillingBackNavigation(router as any, "/settings")).toEqual({ kind: "route", url: "/settings" });
+
+        Object.defineProperty(window.history, "length", { configurable: true, get: () => original });
     });
 
     it("resolveBillingBackNavigation falls back to /settings", () => {
         const router = { lastSuccessfulNavigation: null, serializeUrl: () => "" };
+        const original = window.history.length;
+        Object.defineProperty(window.history, "length", { configurable: true, get: () => 1 });
 
         expect(resolveBillingBackNavigation(router as any, null)).toEqual({ kind: "route", url: "/settings" });
+
+        Object.defineProperty(window.history, "length", { configurable: true, get: () => original });
     });
 
     it("canUseBrowserHistoryBack is false with a single history entry", () => {
