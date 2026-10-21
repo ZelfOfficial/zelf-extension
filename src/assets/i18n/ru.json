@@ -480,7 +480,7 @@
         "upto_sats": "До {{ feeAmountUSD }} • {{sats}} sats/vB • {{ time }} минут",
         "recent_addresses": "Недавние",
         "used": "Использовано {{days}} назад",
-        "withdrawal_amount": "Сумма вывода",
+        "withdrawal_amount": "Сумма отправки",
         "zelf_name_not_registered": "Zelf ID не зарегистрирован",
         "zelf_name_registered": "Zelf ID зарегистрирован",
         "from_address": "С адреса",

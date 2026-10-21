@@ -480,7 +480,7 @@
         "upto_sats": "تصل إلى {{ feeAmountUSD }} • {{sats}} sats/vB • {{ time }} دقيقة",
         "recent_addresses": "الأخيرة",
         "used": "تم الاستخدام منذ {{days}} يوم",
-        "withdrawal_amount": "مبلغ السحب",
+        "withdrawal_amount": "مبلغ الإرسال",
         "zelf_name_not_registered": "Zelf ID غير مسجل",
         "zelf_name_registered": "Zelf ID مسجل",
         "from_address": "من العنوان",

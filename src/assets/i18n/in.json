@@ -480,7 +480,7 @@
         "upto_sats": "{{ feeAmountUSD }} तक • {{sats}} sats/vB • {{ time }} मिनट",
         "recent_addresses": "हाल के",
         "used": "{{days}} पहले उपयोग किया गया",
-        "withdrawal_amount": "निकासी राशि",
+        "withdrawal_amount": "भेजने की राशि",
         "zelf_name_not_registered": "Zelf ID पंजीकृत नहीं है",
         "zelf_name_registered": "Zelf ID पंजीकृत है",
         "from_address": "प्रेषक पता",

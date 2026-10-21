@@ -128,7 +128,7 @@
                     </div>
 
                     <div class="send-transaction__fiat-row">
-                        <span class="send-transaction__fiat-price">~{{ fiatPrice | currency: "USD" : "symbol" : "1.2" }}</span>
+                        <span class="send-transaction__fiat-price">~{{ fiatPrice | displayFiat }}</span>
                         <div class="send-transaction__amount-inline-errors" *ngIf="showAmountFieldErrorState">
                             <span *ngIf="form.get('amount')?.errors?.invalidNumber" class="send-transaction__amount-inline-error">
                                 {{ t("send.amount_inline_invalid") }}
@@ -287,7 +287,7 @@
                     mat-flat-button
                     type="button"
                 >
-                    {{ t("common.withdraw") }}
+                    {{ t("common.send") }}
                 </button>
 
 

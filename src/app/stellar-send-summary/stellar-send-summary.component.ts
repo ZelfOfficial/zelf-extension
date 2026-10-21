@@ -3,11 +3,12 @@ import { Component, Input } from "@angular/core";
 import { TranslocoModule } from "@jsverse/transloco";
 
 import { StellarFeeBreakdown } from "app/services/stellar-send.types";
+import { DisplayAmountPipe } from "app/pipes/display-number.pipe";
 
 @Component({
     selector: "stellar-send-summary",
     standalone: true,
-    imports: [CommonModule, TranslocoModule],
+    imports: [CommonModule, TranslocoModule, DisplayAmountPipe],
     styleUrls: ["./stellar-send-summary.component.scss"],
     templateUrl: "./stellar-send-summary.component.html",
 })

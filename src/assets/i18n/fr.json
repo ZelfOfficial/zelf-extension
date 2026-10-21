@@ -480,7 +480,7 @@
         "upto_sats": "Jusqu'à {{ feeAmountUSD }} • {{sats}} sats/vB • {{ time }} minutes",
         "recent_addresses": "Récents",
         "used": "Utilisé il y a {{days}}",
-        "withdrawal_amount": "Montant du retrait",
+        "withdrawal_amount": "Montant à envoyer",
         "zelf_name_not_registered": "Zelf ID non enregistré",
         "zelf_name_registered": "Zelf ID enregistré",
         "from_address": "De l'adresse",

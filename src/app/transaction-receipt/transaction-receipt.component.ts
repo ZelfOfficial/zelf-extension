@@ -1,7 +1,7 @@
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { firstValueFrom, forkJoin, take } from "rxjs";
 
-import { DatePipe, DecimalPipe, NgClass, NgIf, NgTemplateOutlet } from "@angular/common";
+import { DatePipe, NgClass, NgIf, NgTemplateOutlet } from "@angular/common";
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -17,10 +17,22 @@ import { NetworkName, NetworkService } from "app/services/network.service";
 import { TokenData } from "@shared/types/wallet.types";
 import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
+import { DisplayAmountPipe, DisplayFiatPipe } from "app/pipes/display-number.pipe";
 import { TagModel } from "app/tags.service";
 
 @Component({
-    imports: [NgIf, NgTemplateOutlet, DecimalPipe, NgClass, AddressMaskPipe, DatePipe, MatButtonModule, TranslocoModule, ZelfLoaderComponent],
+    imports: [
+        NgIf,
+        NgTemplateOutlet,
+        NgClass,
+        AddressMaskPipe,
+        DatePipe,
+        MatButtonModule,
+        TranslocoModule,
+        ZelfLoaderComponent,
+        DisplayAmountPipe,
+        DisplayFiatPipe,
+    ],
     selector: "transaction-receipt",
     styleUrls: ["./transaction-receipt.component.scss"],
     templateUrl: "./transaction-receipt.component.html",

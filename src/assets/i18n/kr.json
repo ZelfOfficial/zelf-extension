@@ -480,7 +480,7 @@
         "upto_sats": "최대 {{ feeAmountUSD }} • {{sats}} sats/vB • {{ time }} 분",
         "recent_addresses": "최근",
         "used": "{{days}}일 전에 사용됨",
-        "withdrawal_amount": "출금 금액",
+        "withdrawal_amount": "보낼 금액",
         "zelf_name_not_registered": "Zelf ID가 등록되지 않음",
         "zelf_name_registered": "Zelf ID가 등록됨",
         "from_address": "보내는 주소",

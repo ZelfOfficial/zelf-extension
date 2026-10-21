@@ -31,6 +31,7 @@ import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { TagModel, TagsService } from "app/tags.service";
 import { formatDisplayAmount } from "../core/utils/display-number.util";
+import { DisplayFiatPipe } from "../pipes/display-number.pipe";
 
 @Component({
     imports: [
@@ -45,6 +46,7 @@ import { formatDisplayAmount } from "../core/utils/display-number.util";
         RouterModule,
         TranslocoModule,
         ZelfLoaderComponent,
+        DisplayFiatPipe,
     ],
     selector: "send-transaction",
     styleUrls: ["./send-transaction.component.scss"],
@@ -172,17 +174,14 @@ export class SendTransactionComponent implements OnDestroy {
         return !!(e?.dustTooSmall || e?.lessThan || e?.invalidNumber);
     }
 
-    /** Up to 8 decimal places for inline validation copy. */
+    /** Display-only copy for inline validation (max 4 decimals). */
     formatAmountForInlineError(value: unknown): string {
-        const n = parseFloat(String(value ?? ""));
-        if (!Number.isFinite(n)) return String(value ?? "");
-
-        const s = n.toFixed(8).replace(/\.?0+$/, "");
-        return s || "0";
+        const formatted = formatDisplayAmount(value, { rounding: "floor" });
+        return formatted || String(value ?? "");
     }
 
     dustMinAmountDisplay(): string {
-        return this.formatAmountForInlineError(this._getMinSendableAmount());
+        return formatDisplayAmount(this._getMinSendableAmount(), { rounding: "floor" }) || "0";
     }
 
     private _getMinSendableAmount(): number {

@@ -480,7 +480,7 @@
         "upto_sats": "高达 {{ feeAmountUSD }} • {{sats}} sats/vB • {{ time }} 分钟",
         "recent_addresses": "最近",
         "used": "{{days}} 天前使用",
-        "withdrawal_amount": "提现金额",
+        "withdrawal_amount": "发送金额",
         "zelf_name_not_registered": "Zelf ID未注册",
         "zelf_name_registered": "Zelf ID已注册",
         "from_address": "发件人地址",

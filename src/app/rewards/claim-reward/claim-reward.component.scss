@@ -13,12 +13,22 @@
     box-sizing: border-box;
 }
 
-// Card sizing
+// Card sizing + theme surface (do not import main.scss — it pins light card chrome in this flow).
 .claim-reward.zelf-card {
     width: min(580px, var(--zns-card-width, 580px));
     max-width: 95vw;
     min-height: var(--zns-card-min-height, 700px);
     max-height: 95vh;
+    box-sizing: border-box;
+    display: inline-flex;
+    flex-direction: column;
+    padding: calc(24px * var(--zns-space-scale, 1));
+    border-radius: calc(64px * var(--zns-space-scale, 1));
+    background:
+        radial-gradient(ellipse 120% 45% at 50% -5%, rgba(253, 99, 55, 0.14) 0%, rgba(253, 99, 55, 0.05) 50%, transparent 100%),
+        variables.$themeBackgroundSecondary;
+    border: 1px solid variables.$themeCardBorder;
+    color: variables.$themeText;
 }
 
 .claim-reward {
@@ -401,6 +411,7 @@
         width: 100%;
         min-height: 100%;
         border-radius: 0;
+        padding: 12px;
     }
 
     .claim-reward {

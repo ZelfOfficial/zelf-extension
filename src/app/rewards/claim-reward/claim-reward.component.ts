@@ -11,7 +11,7 @@ type ClaimState = "loading" | "success" | "error";
 @Component({
     imports: [CommonModule, MatButtonModule, RouterModule, TranslocoModule],
     selector: "app-claim-reward",
-    styleUrls: ["./claim-reward.component.scss", "../../main.scss"],
+    styleUrls: ["./claim-reward.component.scss"],
     templateUrl: "./claim-reward.component.html",
 })
 export class ClaimRewardComponent implements OnInit, OnDestroy {
