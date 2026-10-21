@@ -135,9 +135,15 @@ export class ZOTPService {
                     }
 
                     // Parse additional metadata from publicData if available
-                    if (publicData.algorithm) zotp.algorithm = publicData.algorithm;
-                    if (publicData.digits) zotp.digits = publicData.digits;
-                    if (publicData.period) zotp.period = publicData.period;
+                    if (publicData.algorithm) zotp.algorithm = String(publicData.algorithm).toUpperCase();
+                    if (publicData.digits != null && publicData.digits !== "") {
+                        const digits = Number(publicData.digits);
+                        if (Number.isFinite(digits)) zotp.digits = digits;
+                    }
+                    if (publicData.period != null && publicData.period !== "") {
+                        const period = Number(publicData.period);
+                        if (Number.isFinite(period) && period > 0) zotp.period = period;
+                    }
                     zotp.protection = parseZelfKeysProtection(publicData.protection);
 
                     zotps.push(zotp);
@@ -263,6 +269,10 @@ export class ZOTPService {
         }
 
         // Map ZOTP to ZelfKeys ZOTP format (using the new /store/zotp endpoint)
+        const algorithm = (zotp.algorithm || "SHA1").toUpperCase();
+        const digits = zotp.digits ?? 6;
+        const period = zotp.period ?? 30;
+
         const storeRequest = {
             username: zotp.name,
             setupKey: zotp.secret, // Plain secret (will be encrypted by API)
@@ -272,6 +282,12 @@ export class ZOTPService {
             faceBase64: faceBase64,
             ...(masterPassword ? { masterPassword } : {}),
             ...(protection ? { protection } : {}),
+            publicData: {
+                algorithm,
+                digits,
+                period,
+                ...(protection ? { protection } : {}),
+            },
         };
 
         try {

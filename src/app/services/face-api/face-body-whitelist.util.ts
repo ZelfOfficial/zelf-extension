@@ -62,7 +62,7 @@ export const FACE_ALLOWED_BY_ACTION: Record<string, readonly string[]> = {
         "defaultProtection"
     ),
     "store-passwords-bulk": withCommon("passwords", "protection"),
-    "store-zotp": withCommon("username", "setupKey", "issuer", "folder", "insideFolder", "protection"),
+    "store-zotp": withCommon("username", "setupKey", "issuer", "folder", "insideFolder", "protection", "publicData"),
     "store-notes": withCommon("title", "keyValuePairs", "folder", "insideFolder", "protection"),
     "store-credit-card": withCommon(
         "alias",

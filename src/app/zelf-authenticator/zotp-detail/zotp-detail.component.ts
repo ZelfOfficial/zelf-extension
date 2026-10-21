@@ -13,10 +13,11 @@ import { ChromeService } from "app/chrome.service";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import {
     resolveZotpProtection,
+    ZELF_KEYS_PROTECTION_FACE_PASSWORD,
     ZelfKeysProtection,
     zelfKeysRequiresDecryptPassword,
 } from "app/models/zelf-keys-protection";
-import { extractZotpApiErrorMessage } from "../zotp-error.util";
+import { extractZotpApiErrorMessage, isZotpPasswordRequiredError } from "../zotp-error.util";
 import { encryptWalletMasterPassword } from "../zotp-master-password.util";
 import { ZOTP } from "app/models/zotp.model";
 import { TOTPService } from "app/services/totp.service";
@@ -366,15 +367,24 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
             this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
 
             this.showBiometrics = false;
-            this.unlockMode = false;
 
-            if (this.requiresDecryptPassword) {
+            if (isZotpPasswordRequiredError(error)) {
+                this._promoteZotpToFacePasswordProtection();
+                this.unlockMode = true;
                 this.awaitingUnlockPassword = true;
                 this.unlockMasterPassword = "";
                 this.encryptedUnlockMasterPassword = "";
             } else {
-                this.unlockMasterPassword = "";
-                this.encryptedUnlockMasterPassword = "";
+                this.unlockMode = false;
+
+                if (this.requiresDecryptPassword) {
+                    this.awaitingUnlockPassword = true;
+                    this.unlockMasterPassword = "";
+                    this.encryptedUnlockMasterPassword = "";
+                } else {
+                    this.unlockMasterPassword = "";
+                    this.encryptedUnlockMasterPassword = "";
+                }
             }
         } finally {
             this.loading = false;
@@ -433,6 +443,26 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
         setTimeout(() => {
             document.getElementById("zotp-decrypted-content")?.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 200);
+    }
+
+    private _promoteZotpToFacePasswordProtection(): void {
+        if (!this.zotp) return;
+
+        this.zotp = {
+            ...this.zotp,
+            protection: ZELF_KEYS_PROTECTION_FACE_PASSWORD,
+            ipfs: this.zotp.ipfs
+                ? {
+                      ...this.zotp.ipfs,
+                      publicData: {
+                          ...this.zotp.ipfs.publicData,
+                          protection: ZELF_KEYS_PROTECTION_FACE_PASSWORD,
+                      },
+                  }
+                : this.zotp.ipfs,
+        };
+
+        this._zotpDataService.setCurrentZotp(this.zotp);
     }
 
     formatDate(timestamp?: number): string {

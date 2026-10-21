@@ -75,6 +75,12 @@ export interface StoreZOTPRequest {
     faceBase64: string; // Encrypted face image from biometrics
     masterPassword?: string; // Wallet master password (encrypted) — required when wallet has password
     protection?: "face" | "face_password"; // Decrypt protection stored in publicData
+    publicData?: {
+        algorithm?: string;
+        digits?: number;
+        period?: number;
+        protection?: "face" | "face_password";
+    };
 }
 
 /**

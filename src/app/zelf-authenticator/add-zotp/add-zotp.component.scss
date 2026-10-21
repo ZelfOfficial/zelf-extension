@@ -76,4 +76,25 @@
     &__biometrics {
         padding: calc(24px * var(--zns-space-scale, 1)) 0;
     }
+
+    &__setup-key-hint {
+        margin: 0 0 10px;
+        text-align: left;
+    }
+
+    &__setup-key-error {
+        margin: 8px 0 0;
+        color: variables.$error;
+        font-size: calc(12px * var(--zns-font-scale, 1));
+        line-height: 1.45;
+        text-align: left;
+    }
+
+    &__setup-key-muted {
+        margin: 8px 0 0;
+        color: variables.$themeTextMuted;
+        font-size: calc(12px * var(--zns-font-scale, 1));
+        line-height: 1.45;
+        text-align: left;
+    }
 }
