@@ -1358,11 +1358,11 @@
                     }
                 },
                 "expiry_month": {
-                    "label": "Expiry Month *",
+                    "label": "Mês de validade *",
                     "placeholder": "MM"
                 },
                 "expiry_year": {
-                    "label": "Expiry Year *"
+                    "label": "Ano de validade *"
                 },
                 "card_type": {
                     "label": "Tipo do Cartão *",
