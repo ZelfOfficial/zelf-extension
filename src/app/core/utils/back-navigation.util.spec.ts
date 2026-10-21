@@ -62,37 +62,45 @@ describe("back-navigation.util", () => {
         expect(serializeRouterPreviousUrl(router as any)).toBe("/settings");
     });
 
-    it("resolveBillingBackNavigation prefers router previous URL over redirect", () => {
-        const router = {
-            lastSuccessfulNavigation: {
-                previousNavigation: {
-                    finalUrl: {},
+    describe("resolveBillingBackNavigation", () => {
+        let restoreHistoryLength: () => void;
+
+        beforeEach(() => {
+            const originalLength = window.history.length;
+            Object.defineProperty(window.history, "length", { configurable: true, get: () => 1 });
+            restoreHistoryLength = () => {
+                Object.defineProperty(window.history, "length", { configurable: true, get: () => originalLength });
+            };
+        });
+
+        afterEach(() => {
+            restoreHistoryLength();
+        });
+
+        it("prefers router previous URL over redirect", () => {
+            const router = {
+                lastSuccessfulNavigation: {
+                    previousNavigation: {
+                        finalUrl: {},
+                    },
                 },
-            },
-            serializeUrl: () => "/settings",
-        };
+                serializeUrl: () => "/settings",
+            };
 
-        expect(resolveBillingBackNavigation(router as any, "/home")).toEqual({ kind: "route", url: "/settings" });
-    });
+            expect(resolveBillingBackNavigation(router as any, "/home")).toEqual({ kind: "route", url: "/settings" });
+        });
 
-    it("resolveBillingBackNavigation uses redirect when opened directly without router history", () => {
-        const router = { lastSuccessfulNavigation: null, serializeUrl: () => "" };
-        const original = window.history.length;
-        Object.defineProperty(window.history, "length", { configurable: true, get: () => 1 });
+        it("uses redirect when opened directly without router history", () => {
+            const router = { lastSuccessfulNavigation: null, serializeUrl: () => "" };
 
-        expect(resolveBillingBackNavigation(router as any, "/settings")).toEqual({ kind: "route", url: "/settings" });
+            expect(resolveBillingBackNavigation(router as any, "/settings")).toEqual({ kind: "route", url: "/settings" });
+        });
 
-        Object.defineProperty(window.history, "length", { configurable: true, get: () => original });
-    });
+        it("falls back to /settings", () => {
+            const router = { lastSuccessfulNavigation: null, serializeUrl: () => "" };
 
-    it("resolveBillingBackNavigation falls back to /settings", () => {
-        const router = { lastSuccessfulNavigation: null, serializeUrl: () => "" };
-        const original = window.history.length;
-        Object.defineProperty(window.history, "length", { configurable: true, get: () => 1 });
-
-        expect(resolveBillingBackNavigation(router as any, null)).toEqual({ kind: "route", url: "/settings" });
-
-        Object.defineProperty(window.history, "length", { configurable: true, get: () => original });
+            expect(resolveBillingBackNavigation(router as any, null)).toEqual({ kind: "route", url: "/settings" });
+        });
     });
 
     it("canUseBrowserHistoryBack is false with a single history entry", () => {
