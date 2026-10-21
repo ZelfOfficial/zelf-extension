@@ -2,6 +2,8 @@ import type { ChromeService } from "app/chrome.service";
 import type { TagModel } from "app/tags.service";
 
 import type { PricingPlan } from "../../services/billing.service";
+import type { StripeCheckoutSnapshot } from "./stripe-checkout-state";
+import { shouldRestoreStripeCheckoutRoute } from "./stripe-checkout-state";
 
 /** Survives popup close while the user is on Stripe or another external checkout tab. */
 export const BILLING_UI_SESSION_KEY = "zelf-keys-billing-ui-state";
@@ -32,7 +34,7 @@ export interface BillingUiSessionState {
     plans: PricingPlan[];
     savedAt: number;
     showCryptoPayment: boolean;
-    stripeCheckoutPending: boolean;
+    stripeCheckout: StripeCheckoutSnapshot | null;
     /** Lowercase wallet tag (fullTagName / tagName) so another wallet cannot restore this snapshot. */
     walletOwnerTag: string;
 }
@@ -51,7 +53,7 @@ export function buildBillingUiSessionState(input: {
     hasActiveSubscription: boolean;
     plans: PricingPlan[];
     showCryptoPayment: boolean;
-    stripeCheckoutPending: boolean;
+    stripeCheckout: StripeCheckoutSnapshot | null;
     walletOwnerTag: string;
 }): BillingUiSessionState {
     return {
@@ -73,6 +75,10 @@ export function shouldClearStuckBillingLoading(loading: boolean, loadingPlans: b
 
 export function shouldRestoreCryptoPaymentMonitoring(state: BillingUiSessionState | null | undefined): boolean {
     return Boolean(state?.showCryptoPayment && state.cryptoPayment?.lockedPriceToken);
+}
+
+export function shouldRedirectBillingToStripeCheckout(state: BillingUiSessionState | null | undefined): boolean {
+    return shouldRestoreStripeCheckoutRoute(state?.stripeCheckout?.phase);
 }
 
 /** Call before reloading billing after subscription activation so restore cannot re-arm crypto polling. */

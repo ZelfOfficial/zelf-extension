@@ -277,6 +277,38 @@
                 "premium_plan": "Premium Plan",
                 "not_available": "N/A",
                 "month": "month"
+            },
+            "stripe_checkout": {
+                "session_label": "Checkout session: {{ sessionId }}",
+                "waiting": {
+                    "title": "Complete payment in Stripe",
+                    "message": "We opened Stripe in a new tab. Finish payment there and keep this screen open—we will update automatically."
+                },
+                "confirmed": {
+                    "title": "Payment confirmed",
+                    "message": "{{ planName }} is now active on your account."
+                },
+                "cancelled": {
+                    "title": "Checkout cancelled",
+                    "message": "You can choose another plan or try Stripe again whenever you are ready."
+                },
+                "failed": {
+                    "title": "We could not verify payment",
+                    "message": "Something went wrong while checking your subscription. You can try again or pick another plan."
+                },
+                "expired": {
+                    "title": "Still waiting for confirmation",
+                    "message": "We have not received confirmation from Stripe yet.",
+                    "hint": "If you already paid, it may take up to a minute. Tap check again or reopen Stripe."
+                },
+                "actions": {
+                    "reopen_stripe": "Reopen Stripe checkout",
+                    "check_now": "I already paid / check now",
+                    "check_again": "Check again",
+                    "cancel": "Cancel and choose another plan",
+                    "continue": "Continue",
+                    "choose_plan": "Back to plans"
+                }
             }
         },
         "biometrics": {

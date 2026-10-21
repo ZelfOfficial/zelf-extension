@@ -9,8 +9,10 @@ import {
     persistBillingUiSessionState,
     resolveBillingWalletOwnerTag,
     shouldClearStuckBillingLoading,
+    shouldRedirectBillingToStripeCheckout,
     shouldRestoreCryptoPaymentMonitoring,
 } from "./billing-session-state";
+import { buildStripeCheckoutSnapshot } from "./stripe-checkout-state";
 
 describe("billing-session-state (Refs #111)", () => {
     const createMemoryChrome = (): ChromeService => {
@@ -43,7 +45,7 @@ describe("billing-session-state (Refs #111)", () => {
                 planId: "basic",
                 usdAmount: 4.99,
             },
-            stripeCheckoutPending: false,
+            stripeCheckout: null,
             walletOwnerTag: "alice.zelf",
         });
 
@@ -55,7 +57,7 @@ describe("billing-session-state (Refs #111)", () => {
             activeSubscription: null,
             showCryptoPayment: false,
             cryptoPayment: null,
-            stripeCheckoutPending: true,
+            stripeCheckout: null,
             walletOwnerTag: "alice.zelf",
         });
 
@@ -71,7 +73,7 @@ describe("billing-session-state (Refs #111)", () => {
             activeSubscription: null,
             showCryptoPayment: false,
             cryptoPayment: null,
-            stripeCheckoutPending: false,
+            stripeCheckout: null,
             walletOwnerTag: "alice.zelf",
         });
 
@@ -88,6 +90,22 @@ describe("billing-session-state (Refs #111)", () => {
     it("resolveBillingWalletOwnerTag normalizes wallet identity", () => {
         expect(resolveBillingWalletOwnerTag({ fullTagName: "Alice.Zelf" })).toBe("alice.zelf");
         expect(resolveBillingWalletOwnerTag(null)).toBe("_none");
+    });
+
+    it("shouldRedirectBillingToStripeCheckout for waiting and expired stripe phases", () => {
+        const waiting = buildBillingUiSessionState({
+            ...sampleCryptoState(),
+            showCryptoPayment: false,
+            cryptoPayment: null,
+            stripeCheckout: buildStripeCheckoutSnapshot({
+                sessionId: "cs_1",
+                checkoutUrl: "https://stripe.test",
+                plan: { id: "basic", name: "Basic", price: 4.99, currency: "USD", interval: "month" },
+            }),
+        });
+
+        expect(shouldRedirectBillingToStripeCheckout(waiting)).toBeTrue();
+        expect(shouldRedirectBillingToStripeCheckout({ ...waiting, stripeCheckout: { ...waiting.stripeCheckout!, phase: "confirmed" } })).toBeFalse();
     });
 
     it("does not restore billing UI for a different wallet", async () => {
