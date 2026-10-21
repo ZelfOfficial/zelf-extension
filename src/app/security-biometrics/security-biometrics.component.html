@@ -4,7 +4,9 @@
 
         <ng-container *ngIf="!loading">
             <ng-container *ngIf="!showBiometrics">
-                <div class="zelf-card">
+                <div class="welcome-device-shell">
+                    <div class="welcome-device-shell__item">
+                <div class="zelf-card security-biometrics">
                     <div class="zelf-card__header security-biometrics__header">
                         <div class="security-biometrics__header-button">
                             <button
@@ -51,6 +53,8 @@
                             {{ t("common.start") }}
                         </button>
                     </form>
+                </div>
+                    </div>
                 </div>
             </ng-container>
 
