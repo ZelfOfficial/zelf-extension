@@ -11,6 +11,7 @@ import { ZOTP } from "../models/zotp.model";
 import { TagModel } from "../tags.service";
 import { WalletService } from "../wallet.service";
 import { ZelfKeysProofService } from "./zelf-keys-proof.service";
+import { applyTotpParamsToZotp, buildZotpStoreRequestBody } from "../zelf-authenticator/zotp-totp-params.util";
 import { RetrieveRequest, ZelfKeysService } from "./zelf-keys.service";
 
 @Injectable({
@@ -268,27 +269,7 @@ export class ZOTPService {
             throw new Error("Secret is required to store ZOTP");
         }
 
-        // Map ZOTP to ZelfKeys ZOTP format (using the new /store/zotp endpoint)
-        const algorithm = (zotp.algorithm || "SHA1").toUpperCase();
-        const digits = zotp.digits ?? 6;
-        const period = zotp.period ?? 30;
-
-        const storeRequest = {
-            username: zotp.name,
-            setupKey: zotp.secret, // Plain secret (will be encrypted by API)
-            issuer: zotp.issuer || "Unknown",
-            folder: "ZOTP",
-            insideFolder: false,
-            faceBase64: faceBase64,
-            ...(masterPassword ? { masterPassword } : {}),
-            ...(protection ? { protection } : {}),
-            publicData: {
-                algorithm,
-                digits,
-                period,
-                ...(protection ? { protection } : {}),
-            },
-        };
+        const storeRequest = buildZotpStoreRequestBody(zotp, faceBase64, masterPassword, protection);
 
         try {
             const response = await this._zelfKeysService.storeZOTP(storeRequest);
@@ -363,6 +344,19 @@ export class ZOTPService {
      * @returns The decrypted setupKey (secret)
      */
     async retrieveZOTPSecret(zotp: ZOTP, faceBase64: string, encryptedMasterPassword?: string): Promise<string> {
+        const { secret } = await this.retrieveZOTPSecretWithParams(zotp, faceBase64, encryptedMasterPassword);
+
+        return secret;
+    }
+
+    /**
+     * Retrieve decrypted secret and merge TOTP params from retrieve metadata/publicData onto the ZOTP model.
+     */
+    async retrieveZOTPSecretWithParams(
+        zotp: ZOTP,
+        faceBase64: string,
+        encryptedMasterPassword?: string
+    ): Promise<{ secret: string; zotp: ZOTP }> {
         if (!zotp.zelfProof) {
             throw new Error("zelfProof is required to retrieve ZOTP");
         }
@@ -374,32 +368,17 @@ export class ZOTPService {
                 this._buildZotpRetrieveRequest(zotp, faceBase64, clientPublicKey, encryptedMasterPassword)
             );
 
-            // Response structure: { data: { success, data: { metadata, publicData, ipfs } } }
-            // For ZOTP, the setupKey is stored in metadata.setupKey
-            if (response?.data) {
-                const data = response.data;
+            const envelope = this._extractRetrieveEnvelope(response?.data);
+            const secret = this._extractSetupKeyFromRetrieveEnvelope(envelope);
 
-                // Check if response has the expected structure
-                if (data?.data?.metadata?.setupKey) {
-                    return data.data.metadata.setupKey;
-                }
-
-                // Fallback: check if metadata exists directly
-                if (data?.metadata?.setupKey) {
-                    return data.metadata.setupKey;
-                }
-
-                // Another fallback: check for password field (legacy)
-                if (data?.data?.metadata?.password) {
-                    return data.data.metadata.password;
-                }
-
-                if (data?.metadata?.password) {
-                    return data.metadata.password;
-                }
+            if (!secret) {
+                throw new Error("No setupKey found in ZelfKeys response");
             }
 
-            throw new Error("No setupKey found in ZelfKeys response");
+            const updatedZotp = applyTotpParamsToZotp(zotp, envelope.metadata, envelope.publicData);
+            await this._addToCache(updatedZotp);
+
+            return { secret, zotp: updatedZotp };
         } catch (error) {
             console.error("Error retrieving ZOTP secret:", error);
             throw error;
@@ -424,19 +403,13 @@ export class ZOTPService {
                 this._buildZotpRetrieveRequest(zotp, faceBase64, clientPublicKey, encryptedMasterPassword)
             );
 
-            // Response structure: { data: { success, data: { metadata, publicData, ipfs } } }
-            if (response?.data) {
-                const data = response.data;
+            const envelope = this._extractRetrieveEnvelope(response?.data);
 
-                // Check if response has the expected structure
-                if (data?.data?.metadata) {
-                    return data.data.metadata;
-                }
+            if (envelope.metadata) {
+                const updatedZotp = applyTotpParamsToZotp(zotp, envelope.metadata, envelope.publicData);
+                await this._addToCache(updatedZotp);
 
-                // Fallback: check if metadata exists directly
-                if (data?.metadata) {
-                    return data.metadata;
-                }
+                return envelope.metadata;
             }
 
             throw new Error("No metadata found in ZelfKeys response");
@@ -677,6 +650,40 @@ export class ZOTPService {
      * @param zotp - Updated ZOTP object
      * @param responseData - Full response data from backend
      */
+    private _extractRetrieveEnvelope(data: any): { metadata?: Record<string, unknown>; publicData?: Record<string, unknown> } {
+        if (data?.data?.metadata || data?.data?.publicData) {
+            return {
+                metadata: data.data.metadata,
+                publicData: data.data.publicData,
+            };
+        }
+
+        return {
+            metadata: data?.metadata,
+            publicData: data?.publicData,
+        };
+    }
+
+    private _extractSetupKeyFromRetrieveEnvelope(envelope: {
+        metadata?: Record<string, unknown>;
+    }): string | null {
+        const metadata = envelope.metadata;
+
+        if (!metadata) return null;
+
+        const setupKey = metadata.setupKey;
+        if (typeof setupKey === "string" && setupKey.trim()) {
+            return setupKey;
+        }
+
+        const password = metadata.password;
+        if (typeof password === "string" && password.trim()) {
+            return password;
+        }
+
+        return null;
+    }
+
     private async _saveFullResponseToStorage(zotp: ZOTP, responseData: any): Promise<void> {
         try {
             // Save the full response data to a separate storage key for reference

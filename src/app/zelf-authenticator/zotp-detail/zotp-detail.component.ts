@@ -349,9 +349,15 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
                 ? this.encryptedUnlockMasterPassword || undefined
                 : undefined;
 
-            const secret = await this._zotpService.retrieveZOTPSecret(this.zotp, encryptedImage, encryptedMasterPassword);
+            const { secret, zotp: unlockedZotp } = await this._zotpService.retrieveZOTPSecretWithParams(
+                this.zotp,
+                encryptedImage,
+                encryptedMasterPassword
+            );
             if (!secret) throw new Error("Failed to retrieve ZOTP secret");
 
+            this.zotp = unlockedZotp;
+            this._zotpDataService.setCurrentZotp(unlockedZotp);
             this.decryptedSecret = secret;
             this.showBiometrics = false;
             this.unlockMode = false;
