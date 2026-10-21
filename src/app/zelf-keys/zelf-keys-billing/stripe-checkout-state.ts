@@ -4,6 +4,13 @@ export type StripeCheckoutPhase = "waiting" | "confirmed" | "cancelled" | "faile
 
 export const STRIPE_CHECKOUT_POLL_INTERVAL_MS = 2000;
 export const STRIPE_CHECKOUT_MAX_POLL_ATTEMPTS = 60;
+export const STRIPE_SUBSCRIPTION_CHECK_MAX_CONSECUTIVE_ERRORS = 3;
+
+export type SubscriptionCheckOutcomeKind = "active" | "not_active" | "retryable_error";
+
+export interface SubscriptionCheckOutcome {
+    kind: SubscriptionCheckOutcomeKind;
+}
 
 export interface StripeCheckoutSnapshot {
     checkoutUrl: string;
@@ -64,8 +71,57 @@ export function nextPhaseAfterPollAttempt(attempts: number, current: StripeCheck
     return "waiting";
 }
 
-export function formatPlanPriceLine(snapshot: StripeCheckoutSnapshot): string {
-    const currency = snapshot.planCurrency?.toUpperCase() === "USD" ? "$" : `${snapshot.planCurrency} `;
+export function planCurrencySymbol(currency: string): string {
+    const normalized = currency?.toUpperCase() ?? "";
 
-    return `${currency}${snapshot.planPrice}/${snapshot.planInterval}`;
+    if (normalized === "USD") return "$";
+
+    return `${normalized} `;
+}
+
+export function classifySubscriptionCheckResponse(response: { success?: boolean; data?: unknown } | null | undefined): SubscriptionCheckOutcome {
+    if (response?.success && response.data) {
+        return { kind: "active" };
+    }
+
+    return { kind: "not_active" };
+}
+
+export function classifySubscriptionCheckError(error: unknown): SubscriptionCheckOutcome {
+    const status = extractHttpStatus(error);
+
+    if (status === 404 || status === 204) {
+        return { kind: "not_active" };
+    }
+
+    if (status !== undefined && status >= 400 && status < 500) {
+        return { kind: "not_active" };
+    }
+
+    return { kind: "retryable_error" };
+}
+
+export function nextConsecutiveSubscriptionErrors(outcome: SubscriptionCheckOutcome, current: number): number {
+    if (outcome.kind === "active" || outcome.kind === "not_active") {
+        return 0;
+    }
+
+    return current + 1;
+}
+
+export function shouldMarkStripeCheckoutFailed(consecutiveErrors: number, maxErrors = STRIPE_SUBSCRIPTION_CHECK_MAX_CONSECUTIVE_ERRORS): boolean {
+    return consecutiveErrors >= maxErrors;
+}
+
+function extractHttpStatus(error: unknown): number | undefined {
+    if (!error || typeof error !== "object") return undefined;
+
+    const candidate = error as { status?: number; statusCode?: number; error?: { status?: number; statusCode?: number } };
+
+    if (typeof candidate.status === "number") return candidate.status;
+    if (typeof candidate.statusCode === "number") return candidate.statusCode;
+    if (typeof candidate.error?.status === "number") return candidate.error.status;
+    if (typeof candidate.error?.statusCode === "number") return candidate.error.statusCode;
+
+    return undefined;
 }

@@ -1,10 +1,15 @@
 import {
     buildStripeCheckoutSnapshot,
+    classifySubscriptionCheckError,
+    classifySubscriptionCheckResponse,
+    nextConsecutiveSubscriptionErrors,
     nextPhaseAfterPollAttempt,
     nextPhaseAfterSubscriptionCheck,
+    shouldMarkStripeCheckoutFailed,
     shouldRestoreStripeCheckoutRoute,
     shouldStopStripeCheckoutPolling,
     STRIPE_CHECKOUT_MAX_POLL_ATTEMPTS,
+    STRIPE_SUBSCRIPTION_CHECK_MAX_CONSECUTIVE_ERRORS,
 } from "./stripe-checkout-state";
 
 describe("stripe-checkout-state", () => {
@@ -32,6 +37,22 @@ describe("stripe-checkout-state", () => {
         expect(shouldRestoreStripeCheckoutRoute("waiting")).toBeTrue();
         expect(shouldRestoreStripeCheckoutRoute("expired")).toBeTrue();
         expect(shouldRestoreStripeCheckoutRoute("confirmed")).toBeFalse();
+    });
+
+    it("treats missing subscription (404 or success:false) as not_active", () => {
+        expect(classifySubscriptionCheckError({ status: 404 }).kind).toBe("not_active");
+        expect(classifySubscriptionCheckResponse({ success: false, data: null }).kind).toBe("not_active");
+        expect(classifySubscriptionCheckResponse({ success: true, data: null }).kind).toBe("not_active");
+    });
+
+    it("marks failed only after consecutive retryable errors", () => {
+        let errors = 0;
+        errors = nextConsecutiveSubscriptionErrors({ kind: "retryable_error" }, errors);
+        errors = nextConsecutiveSubscriptionErrors({ kind: "retryable_error" }, errors);
+        expect(shouldMarkStripeCheckoutFailed(errors)).toBeFalse();
+        errors = nextConsecutiveSubscriptionErrors({ kind: "retryable_error" }, errors);
+        expect(shouldMarkStripeCheckoutFailed(errors, STRIPE_SUBSCRIPTION_CHECK_MAX_CONSECUTIVE_ERRORS)).toBeTrue();
+        expect(nextConsecutiveSubscriptionErrors({ kind: "not_active" }, errors)).toBe(0);
     });
 
     it("buildStripeCheckoutSnapshot stores session and plan metadata", () => {

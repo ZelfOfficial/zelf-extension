@@ -16,10 +16,12 @@ import {
 } from "./billing-session-state";
 import {
     buildStripeCheckoutSnapshot,
+    classifySubscriptionCheckError,
+    classifySubscriptionCheckResponse,
+    nextConsecutiveSubscriptionErrors,
     nextPhaseAfterPollAttempt,
-    nextPhaseAfterSubscriptionCheck,
+    shouldMarkStripeCheckoutFailed,
     shouldStopStripeCheckoutPolling,
-    STRIPE_CHECKOUT_MAX_POLL_ATTEMPTS,
     STRIPE_CHECKOUT_POLL_INTERVAL_MS,
     type StripeCheckoutPhase,
     type StripeCheckoutSnapshot,
@@ -29,6 +31,7 @@ import {
     providedIn: "root",
 })
 export class StripeCheckoutTrackerService implements OnDestroy {
+    private _consecutiveCheckErrors = 0;
     private _pollTimer: ReturnType<typeof setInterval> | null = null;
     private _session: BillingUiSessionState | null = null;
     private _snapshot$ = new BehaviorSubject<StripeCheckoutSnapshot | null>(null);
@@ -58,6 +61,7 @@ export class StripeCheckoutTrackerService implements OnDestroy {
         const stripe = this._session?.stripeCheckout ?? null;
 
         this._snapshot$.next(stripe);
+        this._consecutiveCheckErrors = 0;
 
         if (stripe && !shouldStopStripeCheckoutPolling(stripe.phase)) {
             this.startPolling();
@@ -73,6 +77,7 @@ export class StripeCheckoutTrackerService implements OnDestroy {
         sessionBase: Omit<BillingUiSessionState, "stripeCheckout" | "savedAt">;
     }): Promise<void> {
         await this._refreshWalletTag();
+        this._consecutiveCheckErrors = 0;
 
         const stripeCheckout = buildStripeCheckoutSnapshot({
             sessionId: input.sessionId,
@@ -119,6 +124,7 @@ export class StripeCheckoutTrackerService implements OnDestroy {
 
         if (snapshot.phase === "expired") {
             await this._updateStripePhase("waiting", 0);
+            this._consecutiveCheckErrors = 0;
             this.startPolling();
         }
 
@@ -139,10 +145,48 @@ export class StripeCheckoutTrackerService implements OnDestroy {
         await this._persistCurrentSession();
     }
 
-    async markFailed(): Promise<void> {
-        await this._updateStripePhase("failed");
+    async abandonCheckoutForNavigation(): Promise<void> {
         this.stopPolling();
-        await this._persistCurrentSession();
+        this._consecutiveCheckErrors = 0;
+
+        if (!this._session) return;
+
+        this._session = { ...this._session, stripeCheckout: null };
+        await persistBillingUiSessionState(this._chromeService, this._session);
+        this._snapshot$.next(null);
+    }
+
+    async retryStripeCheckoutForSamePlan(): Promise<void> {
+        const planId = this._snapshot$.value?.planId;
+        const plan = this._session?.plans.find((entry) => entry.id === planId);
+
+        if (!plan || !this._session || !planId) return;
+
+        const response = await this._billingService.createCheckoutSession(planId);
+
+        if (!response.success || !response.checkoutUrl || !response.sessionId) {
+            await this._updateStripePhase("failed");
+            this.stopPolling();
+
+            return;
+        }
+
+        await this.beginCheckout({
+            checkoutUrl: response.checkoutUrl,
+            sessionId: response.sessionId,
+            plan,
+            sessionBase: {
+                plans: this._session.plans,
+                currentPlan: this._session.currentPlan,
+                hasActiveSubscription: this._session.hasActiveSubscription,
+                activeSubscription: this._session.activeSubscription,
+                showCryptoPayment: this._session.showCryptoPayment,
+                cryptoPayment: this._session.cryptoPayment,
+                walletOwnerTag: this._session.walletOwnerTag,
+            },
+        });
+
+        await this._chromeService.openExternalUrl(response.checkoutUrl);
     }
 
     async continueAfterSuccess(): Promise<void> {
@@ -150,6 +194,7 @@ export class StripeCheckoutTrackerService implements OnDestroy {
         this._session = null;
         this._snapshot$.next(null);
         this.stopPolling();
+        this._consecutiveCheckErrors = 0;
     }
 
     private async _pollTick(): Promise<void> {
@@ -171,17 +216,33 @@ export class StripeCheckoutTrackerService implements OnDestroy {
     }
 
     private async _checkSubscription(): Promise<void> {
+        const currentPhase = this._snapshot$.value?.phase ?? "waiting";
+
+        if (currentPhase !== "waiting" && currentPhase !== "expired") return;
+
         try {
             const response = await this._billingService.getActiveSubscription();
-            const hasSubscription = Boolean(response.success && response.data);
-            const current = this._snapshot$.value?.phase ?? "waiting";
-            const next = nextPhaseAfterSubscriptionCheck(hasSubscription, current);
+            await this._applySubscriptionOutcome(classifySubscriptionCheckResponse(response), currentPhase);
+        } catch (error) {
+            await this._applySubscriptionOutcome(classifySubscriptionCheckError(error), currentPhase);
+        }
+    }
 
-            if (next === "confirmed") {
-                await this._updateStripePhase("confirmed");
-                this.stopPolling();
-            }
-        } catch {
+    private async _applySubscriptionOutcome(
+        outcome: ReturnType<typeof classifySubscriptionCheckResponse>,
+        currentPhase: StripeCheckoutPhase
+    ): Promise<void> {
+        this._consecutiveCheckErrors = nextConsecutiveSubscriptionErrors(outcome, this._consecutiveCheckErrors);
+
+        if (outcome.kind === "active") {
+            await this._updateStripePhase("confirmed");
+            this.stopPolling();
+            this._consecutiveCheckErrors = 0;
+
+            return;
+        }
+
+        if (shouldMarkStripeCheckoutFailed(this._consecutiveCheckErrors)) {
             await this._updateStripePhase("failed");
             this.stopPolling();
         }

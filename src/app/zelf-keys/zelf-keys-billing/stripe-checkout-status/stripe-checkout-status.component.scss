@@ -1,57 +1,72 @@
 @use "../../../../styles/variables";
 
+:host {
+    display: block;
+    min-height: 100%;
+    background: variables.$themeBackgroundSecondary;
+}
+
 .stripe-checkout {
-    &__content {
-        max-width: 560px;
-        margin: 0 auto;
-        padding: 0 8px 24px;
-    }
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    box-sizing: border-box;
+    background: variables.$themeBackgroundSecondary;
 
     &__topbar {
+        flex-shrink: 0;
         display: flex;
         align-items: center;
-        margin-bottom: 12px;
-        position: sticky;
-        top: 0;
-        z-index: 20;
-        padding: 4px 0;
+        padding: 8px 8px 6px;
         background: variables.$themeBackgroundSecondary;
+        border-bottom: 1px solid variables.$themeCardBorder;
+        z-index: 2;
+    }
+
+    &__scroll {
+        flex: 1;
+        overflow-y: auto;
+        padding: 8px 8px calc(92px + env(safe-area-inset-bottom, 0px));
+        box-sizing: border-box;
     }
 
     &__card {
         background: variables.$themeCard;
         border: 1px solid variables.$themeCardBorder;
-        border-radius: 20px;
-        padding: 28px 24px;
-        box-shadow: 0 8px 24px variables.$themeShadow;
+        border-radius: 16px;
+        padding: 16px 14px 14px;
+        box-shadow: 0 6px 18px variables.$themeShadow;
     }
 
     &__plan {
         text-align: center;
-        margin-bottom: 24px;
-        padding-bottom: 20px;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
         border-bottom: 1px solid variables.$themeCardBorder;
     }
 
     &__title {
-        margin: 0 0 8px;
-        font-size: 24px;
+        margin: 0 0 4px;
+        font-size: 20px;
         font-weight: 700;
         color: variables.$themeText;
     }
 
     &__price {
         margin: 0;
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 600;
         color: variables.$themeText;
     }
 
-    &__session {
-        margin: 12px 0 0;
-        font-size: 12px;
+    &__currency,
+    &__amount {
+        font-weight: 700;
+    }
+
+    &__period {
+        font-weight: 500;
         color: variables.$themeTextSecondary;
-        font-family: monospace;
     }
 
     &__panel {
@@ -59,57 +74,122 @@
         flex-direction: column;
         align-items: center;
         text-align: center;
-        gap: 12px;
+        gap: 8px;
 
-        &--success .stripe-checkout__heading {
-            color: variables.$themeText;
+        &--waiting {
+            gap: 6px;
         }
 
-        &--error .stripe-checkout__heading {
-            color: variables.$themeText;
+        &--success {
+            background: variables.$correctLight;
+            border-radius: 12px;
+            padding: 12px 10px;
+        }
+
+        &--error {
+            background: variables.$errorLight;
+            border-radius: 12px;
+            padding: 12px 10px;
+        }
+
+        &--warning {
+            background: variables.$warningLight;
+            border-radius: 12px;
+            padding: 12px 10px;
+        }
+
+        &--neutral {
+            background: variables.$themeBackgroundSecondary;
+            border: 1px solid variables.$themeCardBorder;
+            border-radius: 12px;
+            padding: 12px 10px;
         }
     }
 
-    &__spinner {
-        margin: 8px 0 4px;
+    &__loader-wrap {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 56px;
+        width: 100%;
+
+        &--checking {
+            opacity: 0.85;
+        }
+    }
+
+    &__status-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+
+        &--success {
+            color: variables.$correct;
+            background: rgba(30, 164, 70, 0.12);
+        }
+
+        &--error {
+            color: variables.$error;
+            background: rgba(220, 54, 46, 0.12);
+        }
+
+        &--warning {
+            color: variables.$warning;
+            background: rgba(222, 104, 0, 0.12);
+        }
+
+        &--neutral {
+            color: variables.$themeTextSecondary;
+            background: variables.$themeCard;
+            border: 1px solid variables.$themeCardBorder;
+        }
     }
 
     &__heading {
         margin: 0;
-        font-size: 20px;
+        font-size: 17px;
         font-weight: 700;
         color: variables.$themeText;
+        line-height: 1.3;
     }
 
     &__message,
     &__hint {
         margin: 0;
-        font-size: 15px;
-        line-height: 1.45;
+        font-size: 13px;
+        line-height: 1.4;
         color: variables.$themeTextSecondary;
     }
 
     &__hint {
-        font-size: 13px;
+        font-size: 12px;
     }
 
     &__actions {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
         width: 100%;
-        margin-top: 8px;
+        margin-top: 4px;
     }
 
     &__button {
         width: 100%;
         border-radius: 12px;
-        padding: 14px 16px;
-        font-size: 15px;
+        padding: 11px 14px;
+        font-size: 14px;
         font-weight: 600;
         border: none;
         cursor: pointer;
         font-family: variables.$themeBodyFamily;
+
+        &:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
 
         &--primary {
             background: linear-gradient(135deg, #ff6b35 0%, #f72585 100%);

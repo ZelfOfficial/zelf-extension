@@ -274,7 +274,7 @@
                 "month": "mes"
             },
             "stripe_checkout": {
-                "session_label": "Sesión de pago: {{ sessionId }}",
+                "interval_year": "año",
                 "waiting": {
                     "title": "Complete el pago en Stripe",
                     "message": "Abrimos Stripe en una nueva pestaña. Finalice el pago allí y mantenga esta pantalla abierta; se actualizará automáticamente."
@@ -302,7 +302,8 @@
                     "check_again": "Comprobar de nuevo",
                     "cancel": "Cancelar y elegir otro plan",
                     "continue": "Continuar",
-                    "choose_plan": "Volver a los planes"
+                    "choose_plan": "Volver a los planes",
+                    "try_stripe_again": "Intentar de nuevo con Stripe"
                 }
             }
         },

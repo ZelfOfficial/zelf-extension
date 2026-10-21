@@ -1,24 +1,24 @@
 import { CommonModule } from "@angular/common";
 import { Component, HostListener, OnDestroy, OnInit } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
-import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { ActivatedRoute, Router } from "@angular/router";
-import { TranslocoModule } from "@jsverse/transloco";
+import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { Subject, takeUntil } from "rxjs";
 
 import { resolveBillingBackNavigation } from "app/core/utils/back-navigation.util";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 
-import { formatPlanPriceLine, type StripeCheckoutPhase, type StripeCheckoutSnapshot } from "../stripe-checkout-state";
+import { planCurrencySymbol, type StripeCheckoutPhase, type StripeCheckoutSnapshot } from "../stripe-checkout-state";
 import { StripeCheckoutTrackerService } from "../stripe-checkout-tracker.service";
 
 @Component({
-    imports: [CommonModule, TranslocoModule, MatButtonModule, MatProgressSpinnerModule, ZelfLoaderComponent],
+    imports: [CommonModule, TranslocoModule, MatButtonModule, ZelfLoaderComponent],
     selector: "stripe-checkout-status",
     styleUrls: ["./stripe-checkout-status.component.scss"],
     templateUrl: "./stripe-checkout-status.component.html",
 })
 export class StripeCheckoutStatusComponent implements OnInit, OnDestroy {
+    checking = false;
     loading = true;
     snapshot: StripeCheckoutSnapshot | null = null;
 
@@ -27,7 +27,8 @@ export class StripeCheckoutStatusComponent implements OnInit, OnDestroy {
     constructor(
         private _activatedRoute: ActivatedRoute,
         private _router: Router,
-        private _tracker: StripeCheckoutTrackerService
+        private _tracker: StripeCheckoutTrackerService,
+        private _translocoService: TranslocoService
     ) {}
 
     async ngOnInit(): Promise<void> {
@@ -39,7 +40,7 @@ export class StripeCheckoutStatusComponent implements OnInit, OnDestroy {
         const restored = await this._tracker.bootstrapFromStorage();
 
         if (!restored?.checkoutUrl) {
-            await this._navigateToPlans();
+            await this._navigateToPlans(false);
 
             return;
         }
@@ -55,25 +56,27 @@ export class StripeCheckoutStatusComponent implements OnInit, OnDestroy {
     onVisibilityChange(): void {
         if (document.visibilityState !== "visible") return;
 
-        void this._tracker.checkNow();
+        void this.checkNow();
     }
 
     get phase(): StripeCheckoutPhase | null {
         return this.snapshot?.phase ?? null;
     }
 
-    get planPriceLine(): string {
-        return this.snapshot ? formatPlanPriceLine(this.snapshot) : "";
+    currencySymbol(checkout: StripeCheckoutSnapshot): string {
+        return planCurrencySymbol(checkout.planCurrency);
     }
 
-    get sessionLabel(): string {
-        if (!this.snapshot?.sessionId) return "";
+    planIntervalLabel(checkout: StripeCheckoutSnapshot): string {
+        if (checkout.planInterval === "month") {
+            return this._translocoService.translate("zelf_keys.billing_ui.plan.month");
+        }
 
-        const short = this.snapshot.sessionId.length > 14
-            ? `${this.snapshot.sessionId.slice(0, 10)}…${this.snapshot.sessionId.slice(-4)}`
-            : this.snapshot.sessionId;
+        if (checkout.planInterval === "year") {
+            return this._translocoService.translate("zelf_keys.billing_ui.stripe_checkout.interval_year");
+        }
 
-        return short;
+        return checkout.planInterval;
     }
 
     async reopenStripe(): Promise<void> {
@@ -81,9 +84,9 @@ export class StripeCheckoutStatusComponent implements OnInit, OnDestroy {
     }
 
     async checkNow(): Promise<void> {
-        this.loading = true;
+        this.checking = true;
         await this._tracker.checkNow();
-        this.loading = false;
+        this.checking = false;
     }
 
     async cancelCheckout(): Promise<void> {
@@ -98,14 +101,20 @@ export class StripeCheckoutStatusComponent implements OnInit, OnDestroy {
     }
 
     async backToPlans(): Promise<void> {
-        await this._navigateToPlans();
+        await this._navigateToPlans(true);
     }
 
-    async tryAgain(): Promise<void> {
-        await this._navigateToPlans();
+    async tryStripeAgain(): Promise<void> {
+        this.checking = true;
+        await this._tracker.retryStripeCheckoutForSamePlan();
+        this.checking = false;
     }
 
-    private async _navigateToPlans(): Promise<void> {
+    private async _navigateToPlans(abandonCheckout: boolean): Promise<void> {
+        if (abandonCheckout) {
+            await this._tracker.abandonCheckoutForNavigation();
+        }
+
         const target = resolveBillingBackNavigation(this._router, this._activatedRoute.snapshot.queryParamMap.get("redirect"));
 
         if (target.kind === "route" && target.url !== "/zelf-keys/billing") {

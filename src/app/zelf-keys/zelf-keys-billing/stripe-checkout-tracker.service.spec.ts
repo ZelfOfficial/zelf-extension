@@ -1,7 +1,12 @@
 import { BillingService } from "app/services/billing.service";
 import { WalletService } from "app/wallet.service";
 
-import { buildBillingUiSessionState, persistBillingUiSessionState } from "./billing-session-state";
+import {
+    buildBillingUiSessionState,
+    loadBillingUiSessionState,
+    persistBillingUiSessionState,
+    shouldRedirectBillingToStripeCheckout,
+} from "./billing-session-state";
 import { buildStripeCheckoutSnapshot, shouldStopStripeCheckoutPolling } from "./stripe-checkout-state";
 import { StripeCheckoutTrackerService } from "./stripe-checkout-tracker.service";
 
@@ -70,6 +75,71 @@ describe("StripeCheckoutTrackerService", () => {
         expect(service.snapshot?.phase).toBe("confirmed");
         expect(shouldStopStripeCheckoutPolling(service.snapshot!.phase)).toBeTrue();
         expect(billing.getActiveSubscription).toHaveBeenCalled();
+    });
+
+    it("keeps waiting when active subscription API returns 404", async () => {
+        const chrome = createChrome();
+        const billing = {
+            getActiveSubscription: jasmine.createSpy("getActiveSubscription").and.rejectWith({ status: 404 }),
+        };
+        const wallet = {
+            getFirstWalletFromStorage: jasmine.createSpy("getFirstWalletFromStorage").and.resolveTo({ fullTagName: "alice.zelf" }),
+        };
+
+        const service = createService(billing, wallet, chrome);
+
+        await service.beginCheckout({
+            checkoutUrl: "https://checkout.stripe.test",
+            sessionId: "cs_404",
+            plan,
+            sessionBase: {
+                plans: [plan],
+                currentPlan: "free",
+                hasActiveSubscription: false,
+                activeSubscription: null,
+                showCryptoPayment: false,
+                cryptoPayment: null,
+                walletOwnerTag: "alice.zelf",
+            },
+        });
+
+        await service.checkNow();
+
+        expect(service.snapshot?.phase).toBe("waiting");
+        expect(shouldStopStripeCheckoutPolling(service.snapshot!.phase)).toBeFalse();
+    });
+
+    it("abandonCheckoutForNavigation clears stripe checkout so billing does not redirect back", async () => {
+        const chrome = createChrome();
+        const billing = {
+            getActiveSubscription: jasmine.createSpy("getActiveSubscription").and.resolveTo({ success: false, data: null }),
+        };
+        const wallet = {
+            getFirstWalletFromStorage: jasmine.createSpy("getFirstWalletFromStorage").and.resolveTo({ fullTagName: "alice.zelf" }),
+        };
+
+        const service = createService(billing, wallet, chrome);
+
+        await service.beginCheckout({
+            checkoutUrl: "https://checkout.stripe.test",
+            sessionId: "cs_nav",
+            plan,
+            sessionBase: {
+                plans: [plan],
+                currentPlan: "free",
+                hasActiveSubscription: false,
+                activeSubscription: null,
+                showCryptoPayment: false,
+                cryptoPayment: null,
+                walletOwnerTag: "alice.zelf",
+            },
+        });
+
+        await service.abandonCheckoutForNavigation();
+
+        const restored = await loadBillingUiSessionState(chrome as any, "alice.zelf");
+        expect(shouldRedirectBillingToStripeCheckout(restored)).toBeFalse();
+        expect(service.snapshot).toBeNull();
     });
 
     it("stops polling after cancelled and persists phase", async () => {
