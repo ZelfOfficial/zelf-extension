@@ -74,9 +74,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        // Neutral backdrop for logos with transparent areas (e.g. POL); full-circle logos cover it.
-        background-color: variables.$themeBackground;
-        border: 1px solid variables.$themeCardBorder;
+        // Always use a white disc so chain logos keep their brand colors in dark mode (#47, #23).
+        background-color: #ffffff;
         flex-shrink: 0;
     }
 
