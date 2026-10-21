@@ -16,7 +16,6 @@ export class ErrorService {
         "VERIFICATION FAILED": "ERR_VERIFICATION_FAILED",
         "VERIFICATION FAILED.": "ERR_VERIFICATION_FAILED",
         "500:ERR_VERIFICATION_FAILED": "ERR_VERIFICATION_FAILED",
-        "409:ERR_VERIFICATION_FAILED": "ERR_VERIFICATION_FAILED",
         "422:ERR_VERIFICATION_FAILED": "ERR_VERIFICATION_FAILED",
         "INVALID PASSWORD": "ERR_INVALID_PASSWORD",
         "INVALID PASSWORD.": "ERR_INVALID_PASSWORD",
@@ -25,6 +24,8 @@ export class ErrorService {
         "PASSWORD REQUIRED": "ERR_PASSWORD_REQUIRED",
         "PASSWORD REQUIRED.": "ERR_PASSWORD_REQUIRED",
         "409:ERR_PASSWORD_REQUIRED": "ERR_PASSWORD_REQUIRED",
+        failed_to_decrypt: "failed_to_decrypt",
+        encryption_key_didnt_match: "encryption_key_didnt_match",
     };
 
     resolveErrorKey(error: unknown): string {
@@ -33,31 +34,38 @@ export class ErrorService {
         }
 
         const err = error as Record<string, unknown>;
+        const status = typeof err["status"] === "number" ? err["status"] : undefined;
         const body = err["error"];
 
-        if (body && typeof body === "object") {
+        let key = "unknown_error";
+
+        if (typeof body === "string" && body.trim()) {
+            key = this._normalizeErrorKey(body);
+        } else if (body && typeof body === "object") {
             const errorBody = body as Record<string, unknown>;
 
             if (typeof errorBody["code"] === "string") {
                 const code = errorBody["code"];
                 if (code.startsWith("ERR_")) {
-                    return code;
-                }
-                if (code === "face_locked" || code === "pow_required" || code === "face_replay_detected") {
-                    return code;
+                    key = code;
+                } else if (code === "face_locked" || code === "pow_required" || code === "face_replay_detected") {
+                    key = code;
                 }
             }
 
-            if (typeof errorBody["message"] === "string" && errorBody["message"].trim()) {
-                return this._normalizeErrorKey(errorBody["message"]);
+            if (key === "unknown_error" && typeof errorBody["message"] === "string" && errorBody["message"].trim()) {
+                key = this._normalizeErrorKey(errorBody["message"]);
             }
         }
 
-        if (typeof err["message"] === "string" && err["message"].trim()) {
-            return this._normalizeErrorKey(err["message"]);
+        if (key === "unknown_error" && typeof err["message"] === "string" && err["message"].trim()) {
+            const topLevel = err["message"];
+            if (!topLevel.startsWith("Http failure response")) {
+                key = this._normalizeErrorKey(topLevel);
+            }
         }
 
-        return "unknown_error";
+        return this._applyHttpStatusFallback(status, key);
     }
 
     isLivenessError(key: string): boolean {
@@ -109,6 +117,43 @@ export class ErrorService {
             title: this._translocoService.translate("errors.face_locked_title", params),
             message: this._translocoService.translate("errors.face_locked", params),
         };
+    }
+
+    private _applyHttpStatusFallback(status: number | undefined, key: string): string {
+        if (!status) {
+            return key;
+        }
+
+        if (key.startsWith("ERR_LIVENESS") || key === "face_locked" || key === "pow_required" || key === "face_replay_detected") {
+            return key;
+        }
+
+        if (key.startsWith("ERR_")) {
+            // Legacy decrypt API: 409 used to return face/password combined errors.
+            if (status === 409 && key === "ERR_VERIFICATION_FAILED") {
+                return "ERR_PASSWORD_REQUIRED";
+            }
+
+            return key;
+        }
+
+        if (key === "failed_to_decrypt" || key === "encryption_key_didnt_match") {
+            return key;
+        }
+
+        if (status === 401) {
+            return "ERR_INVALID_PASSWORD";
+        }
+
+        if (status === 409) {
+            return "ERR_PASSWORD_REQUIRED";
+        }
+
+        if (status === 422) {
+            return "ERR_VERIFICATION_FAILED";
+        }
+
+        return key;
     }
 
     private _normalizeErrorKey(message: string): string {

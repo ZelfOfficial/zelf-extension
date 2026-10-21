@@ -646,6 +646,10 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
 
         this._vaultService.password = secret;
 
+        if (!this.isFaceOnly) {
+            this._carriedSecret = secret;
+        }
+
         await this._tagsService.setTagName(this.transactionData.sender.tagName);
 
         await this._tagsService.setFlow("unlock");
