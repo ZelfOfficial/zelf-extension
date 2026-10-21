@@ -87,8 +87,10 @@
                 <div class="field-row">
                     <div class="zelf-input zelf-input--wide">
                         <input
+                            #cardNumberInput
                             [(ngModel)]="cardData.cardNumber"
-                            (ngModelChange)="onCardNumberChange($event)"
+                            (beforeinput)="onDigitsBeforeInput($event)"
+                            (ngModelChange)="onCardNumberChange($event, cardNumberInput)"
                             class="zelf-input__control zelf-input__control--floating-label"
                             id="cardNumber"
                             maxlength="19"
@@ -171,8 +173,10 @@
                     <div class="field-group field-group--expiry-year">
                         <div class="zelf-input zelf-input--wide" [class.zelf-input--filled]="!!cardData.expiryYear">
                             <input
+                                #expiryYearInput
                                 [(ngModel)]="cardData.expiryYear"
-                                (ngModelChange)="onExpiryYearChange($event)"
+                                (beforeinput)="onDigitsBeforeInput($event)"
+                                (ngModelChange)="onExpiryYearChange($event, expiryYearInput)"
                                 class="zelf-input__control zelf-input__control--floating-label"
                                 id="expiryYear"
                                 inputmode="numeric"
@@ -190,8 +194,10 @@
                     <div class="field-group field-group--expiry-cvv">
                         <div class="zelf-input zelf-input--wide">
                             <input
+                                #cvvInput
                                 [(ngModel)]="cardData.cvv"
-                                (ngModelChange)="onCvvChange($event)"
+                                (beforeinput)="onDigitsBeforeInput($event)"
+                                (ngModelChange)="onCvvChange($event, cvvInput)"
                                 class="zelf-input__control zelf-input__control--floating-label"
                                 id="cvv"
                                 maxlength="4"

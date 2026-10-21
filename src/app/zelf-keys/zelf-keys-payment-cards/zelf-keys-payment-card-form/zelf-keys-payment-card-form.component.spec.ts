@@ -64,6 +64,34 @@ describe("ZelfKeysPaymentCardFormComponent (Refs #113)", () => {
             component.onCvvChange("12x3y");
             expect(component.cardData.cvv).toBe("123");
         });
+
+        it("writes sanitized digits back to the expiry year input when the model does not change", () => {
+            const component = build();
+            const input = document.createElement("input");
+
+            for (const value of ["2", "20", "20a", "20a2", "20a2x", "20a2x6"]) {
+                input.value = value;
+                component.onExpiryYearChange(value, input);
+            }
+
+            expect(component.cardData.expiryYear).toBe("2026");
+            expect(input.value).toBe("2026");
+        });
+
+        it("writes sanitized digits back to the CVV and card number inputs", () => {
+            const component = build();
+            const cvvInput = document.createElement("input");
+            cvvInput.value = "12a";
+            component.onCvvChange("12a", cvvInput);
+            expect(component.cardData.cvv).toBe("12");
+            expect(cvvInput.value).toBe("12");
+
+            const cardInput = document.createElement("input");
+            cardInput.value = "4111a";
+            component.onCardNumberChange("4111a", cardInput);
+            expect(component.cardData.cardNumber).toBe("4111");
+            expect(cardInput.value).toBe("4111");
+        });
     });
 
     describe("expiry inline errors", () => {

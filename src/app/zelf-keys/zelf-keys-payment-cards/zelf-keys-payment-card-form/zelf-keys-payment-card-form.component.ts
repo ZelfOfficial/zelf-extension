@@ -170,18 +170,23 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
         this._openBiometricsBottomSheet();
     }
 
-    // Helper method to format card number as user types
-    onCardNumberChange(value: string): void {
-        // Remove all non-digits
-        let digits = String(value ?? "").replace(/\D/g, "");
-
-        // Limit to 19 digits (max card length)
-        if (digits.length > 19) {
-            digits = digits.substring(0, 19);
+    /** Block single non-digit keystrokes; paste is sanitized in ngModelChange. */
+    onDigitsBeforeInput(event: InputEvent): void {
+        if (event.inputType === "insertFromPaste" || event.inputType === "insertFromDrop") {
+            return;
         }
 
-        this.cardData.cardNumber = digits;
-        this.checkFormValidity();
+        const data = event.data;
+        if (data != null && /\D/.test(data)) {
+            event.preventDefault();
+        }
+    }
+
+    // Helper method to format card number as user types
+    onCardNumberChange(value: string, input?: HTMLInputElement): void {
+        this._applyDigitsOnly(value, 19, (digits) => {
+            this.cardData.cardNumber = digits;
+        }, input);
     }
 
     // Card holder name (#574): drop digits/symbols/emojis while typing or pasting, no leading or
@@ -202,24 +207,16 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
     }
 
     // Helper method to format CVV as user types
-    onExpiryYearChange(value: string): void {
-        let digits = String(value ?? "").replace(/\D/g, "");
-        if (digits.length > 4) {
-            digits = digits.substring(0, 4);
-        }
-        this.cardData.expiryYear = digits;
-        this.checkFormValidity();
+    onExpiryYearChange(value: string, input?: HTMLInputElement): void {
+        this._applyDigitsOnly(value, 4, (digits) => {
+            this.cardData.expiryYear = digits;
+        }, input);
     }
 
-    onCvvChange(value: string): void {
-        let digits = String(value ?? "").replace(/\D/g, "");
-
-        if (digits.length > 4) {
-            digits = digits.substring(0, 4);
-        }
-
-        this.cardData.cvv = digits;
-        this.checkFormValidity();
+    onCvvChange(value: string, input?: HTMLInputElement): void {
+        this._applyDigitsOnly(value, 4, (digits) => {
+            this.cardData.cvv = digits;
+        }, input);
     }
 
     // Helper method to get card type from number
@@ -244,6 +241,22 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
 
     toggleMasterPasswordVisibility(): void {
         this.showMasterPassword = !this.showMasterPassword;
+    }
+
+    private _applyDigitsOnly(value: string, maxLength: number, assign: (digits: string) => void, input?: HTMLInputElement): void {
+        let digits = String(value ?? "").replace(/\D/g, "");
+        if (digits.length > maxLength) {
+            digits = digits.substring(0, maxLength);
+        }
+
+        assign(digits);
+        // Model may not change (e.g. "202" + "x"), so put the clean text back in the field.
+        if (input && input.value !== digits) {
+            input.value = digits;
+        }
+
+        this._changeDetectorRef.detectChanges();
+        this.checkFormValidity();
     }
 
     private _updateExpiryError(): void {
