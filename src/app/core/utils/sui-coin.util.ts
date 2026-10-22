@@ -124,6 +124,32 @@ export function shouldSendEntireSuiBalance(amountMist: bigint, deliveredMist: bi
     return amountMist >= deliveredMist;
 }
 
+/** Headroom covering an exact `coinWithBalance` gas budget (about 1.188M MIST on mainnet). */
+export const SUI_EXACT_GAS_BUDGET_CEILING_MIST = 2_000_000n;
+
+/** Floor MIST to the 4-decimal amount shown on the confirm screen (drops 100_000 MIST units). */
+export function floorDisplayMist(mist: bigint, coinDecimals = 9, displayDecimals = 4): bigint {
+    if (mist <= 0n) return 0n;
+
+    const drop = BigInt(Math.max(0, coinDecimals - displayDecimals));
+    const factor = 10n ** drop;
+
+    return (mist / factor) * factor;
+}
+
+/** True when the typed amount is the floored Max value, or higher, once 4-decimal display is applied. */
+export function typedAmountMatchesDisplayedMax(amountMist: bigint, deliveredMist: bigint): boolean {
+    if (amountMist <= 0n || deliveredMist <= 0n) return false;
+
+    return floorDisplayMist(amountMist) >= floorDisplayMist(deliveredMist);
+}
+
+export function isInsufficientCoinBalanceError(error: unknown): boolean {
+    const message = error instanceof Error ? error.message : typeof error === "string" ? error : "";
+
+    return /insufficient coin balance/i.test(message);
+}
+
 /** Exact sends must leave the gas budget, not only the net fee, in the balance. */
 export function suiAmountFitsGasBudget(amountMist: bigint, balanceMist: bigint, gasBudgetMist: bigint): boolean {
     return amountMist + gasBudgetMist <= balanceMist;

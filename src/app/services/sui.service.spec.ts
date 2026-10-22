@@ -18,8 +18,10 @@ class MockSuiClient implements SuiSendClient {
     coins: Array<{ objectId: string; version: string; digest: string; balance: string }> = [];
     /** Pages after the first. The SDK stops once the requested balance is covered. */
     extraPages = 0;
-    /** Gas budget reserved on the built transaction. Larger than the net fee. */
-    gasBudget = "1200000";
+    /** Gas budget reserved on an exact coinWithBalance transfer (~1.188M MIST). */
+    exactGasBudget = "1188000";
+    /** Gas budget reserved on a whole-balance gas-coin transfer. */
+    wholeGasBudget = "200000";
     /** Net fee = computation + storage - rebate = 148447 MIST (0.000148447 SUI). */
     computationCost = "148447";
     dryRunError: string | null = null;
@@ -47,10 +49,20 @@ class MockSuiClient implements SuiSendClient {
                     };
                 },
                 resolveTransactionPlugin: () => async (transactionData: any, _options: unknown, next: () => Promise<void>) => {
-                    self.calls.push({ method: "resolve" });
+                    const gasOnly = isGasCoinTransfer(transactionData);
+
+                    self.calls.push({ method: "resolve", gasOnly });
                     if (self.dryRunError) throw new Error(self.dryRunError);
 
-                    transactionData.gasData.budget ??= this.gasBudget;
+                    if (!gasOnly) {
+                        const requested = requestedWithdrawalMist(transactionData);
+
+                        if (requested > 0n && requested + BigInt(self.exactGasBudget) > BigInt(self.balance || "0")) {
+                            throw new Error("Transaction resolution failed: Insufficient coin balance");
+                        }
+                    }
+
+                    transactionData.gasData.budget ??= gasOnly ? self.wholeGasBudget : self.exactGasBudget;
                     transactionData.gasData.price ??= "1000";
                     transactionData.gasData.owner ??= transactionData.sender;
                     transactionData.gasData.payment ??= [{ objectId: `0x${"aa".repeat(32)}`, version: "1", digest: DIGEST }];
@@ -110,6 +122,28 @@ function commandsOf(client: MockSuiClient): string[] {
         .commands.map((command) => (command.$kind === "MoveCall" ? `MoveCall:${command.MoveCall.function}` : command.$kind));
 }
 
+function isGasCoinTransfer(transactionData: { commands?: Array<Record<string, any>> }): boolean {
+    const commands = transactionData.commands || [];
+
+    if (commands.length !== 1 || commands[0].$kind !== "TransferObjects") return false;
+
+    const objects = commands[0].TransferObjects?.objects || [];
+
+    return objects.some((object: { $kind?: string }) => object.$kind === "GasCoin");
+}
+
+function requestedWithdrawalMist(transactionData: { inputs?: Array<Record<string, any>> }): bigint {
+    let total = 0n;
+
+    for (const input of transactionData.inputs || []) {
+        const raw = input.FundsWithdrawal?.reservation?.MaxAmountU64;
+
+        if (raw != null) total += BigInt(raw);
+    }
+
+    return total;
+}
+
 describe("SuiService GraphQL sends", () => {
     it("spends an address balance for native SUI instead of only coin objects", async () => {
         const client = new MockSuiClient();
@@ -125,6 +159,8 @@ describe("SuiService GraphQL sends", () => {
         expect(client.calls.find((entry) => entry.method === "getBalance")?.["owner"]).toBe(owner);
         expect(commandsOf(client)).toContain("MoveCall:redeem_funds");
         expect(commandsOf(client)).not.toContain("MergeCoins");
+        expect(client.calls.filter((entry) => entry.method === "resolve").length).toBe(1);
+        expect(client.calls.some((entry) => entry["gasOnly"] === true)).toBeFalse();
         expect(JSON.stringify(client.calls)).not.toContain(MNEMONIC);
     });
 
@@ -194,12 +230,15 @@ describe("SuiService GraphQL sends", () => {
         expect(result.hash).toBe("mocked-digest");
         expect(commandsOf(client)).toContain("MoveCall:redeem_funds");
         expect(commandsOf(client)).not.toEqual(["TransferObjects"]);
+        expect(client.calls.filter((entry) => entry.method === "resolve").length).toBe(1);
+        expect(client.calls.some((entry) => entry["gasOnly"] === true)).toBeFalse();
 
         const below = new MockSuiClient();
         below.balance = balance.toString();
         below.addressBalance = balance.toString();
         await serviceWith(below).sendTransaction(send({ value: "797.2716" }));
         expect(commandsOf(below)).not.toEqual(["TransferObjects"]);
+        expect(below.calls.filter((entry) => entry.method === "resolve").length).toBe(1);
     });
 
     it("sends Max/ALL as a gas-coin transfer and keeps that amount at send time", async () => {
@@ -233,7 +272,47 @@ describe("SuiService GraphQL sends", () => {
         const quote = await serviceWith(client).estimateSuiTransactionFee(RECIPIENT, "797.281451553", `0x${"22".repeat(32)}`, false);
 
         expect(quote.adjustedAmount).toBe("797.281451553");
-        expect(client.calls.filter((entry) => entry.method === "resolve").length).toBe(1);
+        expect(client.calls.filter((entry) => entry.method === "resolve").length).toBe(2);
+        expect(client.calls.some((entry) => entry["gasOnly"] === true)).toBeTrue();
+    });
+
+    it("maps an exact build that leaves 200000 to 1188000 MIST to the fee message", async () => {
+        const client = new MockSuiClient();
+        const balance = 797_281_600_000n;
+        client.balance = balance.toString();
+        client.addressBalance = balance.toString();
+        const service = serviceWith(client);
+
+        await expectAsync(service.estimateSuiTransactionFee(RECIPIENT, "797.2805", `0x${"22".repeat(32)}`)).toBeRejectedWithError(
+            /Not enough SUI left for the network fee/
+        );
+        await expectAsync(service.sendTransaction(send({ value: "797.2805" }))).toBeRejectedWithError(/Not enough SUI left for the network fee/);
+        expect(client.calls.some((entry) => entry.method === "execute")).toBeFalse();
+        expect(client.calls.some((entry) => entry["gasOnly"] === true)).toBeTrue();
+        expect(JSON.stringify(client.calls)).not.toContain("Transaction resolution failed");
+    });
+
+    it("treats a typed floored Max as ALL and shows the delivered amount", async () => {
+        const balance = 797_281_600_000n;
+        const sender = `0x${"22".repeat(32)}`;
+        const quoteClient = new MockSuiClient();
+        quoteClient.balance = balance.toString();
+        quoteClient.addressBalance = balance.toString();
+
+        const quote = await serviceWith(quoteClient).estimateSuiTransactionFee(RECIPIENT, "797.2814", sender, false);
+
+        expect(quote.adjustedAmount).toBe("797.281451553");
+        expect(quoteClient.calls.filter((entry) => entry.method === "resolve").length).toBe(2);
+
+        const sendClient = new MockSuiClient();
+        sendClient.balance = balance.toString();
+        sendClient.addressBalance = balance.toString();
+        const result = await serviceWith(sendClient).sendTransaction(send({ value: quote.adjustedAmount, sendAll: true }));
+
+        expect(result.hash).toBe("mocked-digest");
+        expect(commandsOf(sendClient)).toEqual(["TransferObjects"]);
+        expect(sendClient.calls.filter((entry) => entry.method === "resolve").length).toBe(1);
+        expect(sendClient.calls.some((entry) => entry["gasOnly"] === false)).toBeFalse();
     });
 
     it("uses the gas budget, not the net fee, when a typed amount leaves too little for gas", async () => {
@@ -258,8 +337,14 @@ describe("SuiService GraphQL sends", () => {
         client.dryRunError = "Insufficient coin balance";
         const service = serviceWith(client);
 
-        await expectAsync(service.estimateSuiTransactionFee(RECIPIENT, 5, `0x${"22".repeat(32)}`)).toBeRejectedWithError(/Insufficient coin balance/);
-        await expectAsync(service.sendTransaction(send({ value: "5" }))).toBeRejectedWithError(/Insufficient coin balance/);
+        await expectAsync(service.estimateSuiTransactionFee(RECIPIENT, 5, `0x${"22".repeat(32)}`)).toBeRejectedWithError(
+            /Not enough SUI left for the network fee/
+        );
+        expect(client.calls.filter((entry) => entry.method === "resolve").length).toBe(1);
+        expect(client.calls.some((entry) => entry["gasOnly"] === true)).toBeFalse();
+
+        client.dryRunError = "dry run rejected";
+        await expectAsync(service.sendTransaction(send({ value: "5" }))).toBeRejectedWithError(/dry run rejected/);
         expect(client.calls.some((entry) => entry.method === "execute")).toBeFalse();
         expect(client.calls.some((entry) => entry.method === "simulate")).toBeFalse();
     });

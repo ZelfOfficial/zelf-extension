@@ -2,6 +2,7 @@ import { TransactionData } from "@shared/types/wallet.types";
 
 import {
     decimalToMist,
+    floorDisplayMist,
     insufficientSuiMessage,
     isNativeSuiCoinType,
     isNativeSuiHolding,
@@ -15,6 +16,7 @@ import {
     suiAmountFitsGasBudget,
     suiGasReserveMessage,
     suiGraphqlUrlFromLicenseNetwork,
+    typedAmountMatchesDisplayedMax,
 } from "./sui-coin.util";
 
 describe("sui coin type", () => {
@@ -87,6 +89,11 @@ describe("sui coin type", () => {
         expect(shouldSendEntireSuiBalance(797_250_000_000n, delivered, false)).toBeFalse();
         expect(suiAmountFitsGasBudget(9_999_000_000n, 10_000_000_000n, 1_200_000n)).toBeFalse();
         expect(suiAmountFitsGasBudget(9_999_000_000n, 10_000_000_000n, 148_447n)).toBeTrue();
+        expect(suiAmountFitsGasBudget(balance - 500_000n, balance, 200_000n)).toBeTrue();
+        expect(suiAmountFitsGasBudget(balance - 500_000n, balance, 1_188_000n)).toBeFalse();
+        expect(floorDisplayMist(797_281_451_553n)).toBe(797_281_400_000n);
+        expect(typedAmountMatchesDisplayedMax(decimalToMist("797.2814"), 797_281_451_553n)).toBeTrue();
+        expect(typedAmountMatchesDisplayedMax(decimalToMist("797.2805"), 797_281_451_553n)).toBeFalse();
         expect(decimalToMist("797.281451553")).toBe(797_281_451_553n);
         expect(insufficientSuiMessage(1_000_000_000n, 5_000_000_000n)).toContain("Available 1 SUI");
         expect(suiGasReserveMessage(balance)).toContain("Not enough SUI left for the network fee");

@@ -6,15 +6,17 @@ import {
     decimalToMist,
     formatMistAsSui,
     insufficientSuiMessage,
+    isInsufficientCoinBalanceError,
     isNativeSuiCoinType,
     NATIVE_SUI_COIN_TYPE,
     netSuiFeeMist,
     resolveSuiTransferTarget,
-    shouldSendEntireSuiBalance,
+    SUI_EXACT_GAS_BUDGET_CEILING_MIST,
     SuiGasSummary,
     suiAmountFitsGasBudget,
     suiGasReserveMessage,
     suiGraphqlUrlFromLicenseNetwork,
+    typedAmountMatchesDisplayedMax,
 } from "app/core/utils/sui-coin.util";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
 import { HttpWrapperService } from "app/http-wrapper.service";
@@ -124,9 +126,9 @@ export class SuiService {
     }
 
     /**
-     * Native SUI. Max/ALL, or an amount already at least balance minus the net fee,
-     * goes straight to a gas-coin transfer. Every other amount is exact. An exact
-     * send must leave the gas budget in the balance; otherwise the fee message is shown.
+     * Native SUI. Normal amounts build only `coinWithBalance`. The whole-balance
+     * gas-coin transfer is built for Max/ALL, or after an exact build shows the
+     * amount sits inside that transfer's gas budget (including a floored Max value).
      */
     private async _planNativeTransfer(
         sender: string,
@@ -143,25 +145,7 @@ export class SuiService {
         if (amountMist <= 0n) throw new Error("Amount must be greater than 0");
         if (amountMist > balance) throw new Error(insufficientSuiMessage(balance, amountMist));
 
-        const entire = new Transaction();
-        entire.setSender(sender);
-        entire.transferObjects([entire.gas], recipient);
-
-        const entireBuilt = await this._measure(entire, client);
-        const netFee = netSuiFeeMist(entireBuilt.gas);
-        const delivered = balance > netFee ? balance - netFee : 0n;
-        const sendEntire = shouldSendEntireSuiBalance(amountMist, delivered, sendAll);
-
-        if (sendEntire) {
-            if (delivered <= 0n) throw new Error(suiGasReserveMessage(balance));
-            if (!reportActualAmount && delivered > amountMist) throw new Error(suiGasReserveMessage(balance));
-
-            return { bytes: entireBuilt.bytes, gas: entireBuilt.gas, sentMist: delivered, sendEntireBalance: true };
-        }
-
-        if (!suiAmountFitsGasBudget(amountMist, balance, entireBuilt.gasBudget)) {
-            throw new Error(suiGasReserveMessage(balance));
-        }
+        if (sendAll) return this._entireBalance(sender, recipient, balance, amountMist, client, reportActualAmount);
 
         const exact = new Transaction();
         exact.setSender(sender);
@@ -170,12 +154,16 @@ export class SuiService {
         try {
             const built = await this._measure(exact, client);
 
-            if (!suiAmountFitsGasBudget(amountMist, balance, built.gasBudget)) throw new Error(suiGasReserveMessage(balance));
+            if (!suiAmountFitsGasBudget(amountMist, balance, built.gasBudget)) {
+                return this._afterExactBudgetMiss(sender, recipient, balance, amountMist, client, built.gasBudget);
+            }
 
             return { bytes: built.bytes, gas: built.gas, sentMist: amountMist, sendEntireBalance: false };
         } catch (error) {
             if (error instanceof Error && error.message === suiGasReserveMessage(balance)) throw error;
-            if (!suiAmountFitsGasBudget(amountMist, balance, entireBuilt.gasBudget)) throw new Error(suiGasReserveMessage(balance));
+            if (isInsufficientCoinBalanceError(error) && amountMist <= balance) {
+                return this._afterExactBudgetMiss(sender, recipient, balance, amountMist, client, SUI_EXACT_GAS_BUDGET_CEILING_MIST);
+            }
 
             throw error;
         }
@@ -188,6 +176,52 @@ export class SuiService {
         const bytes = await this._build(tx, client);
 
         return { bytes, gas: await client.simulate(bytes), gasBudget: this._gasBudgetMist(bytes) };
+    }
+
+    /**
+     * Exact `coinWithBalance` could not reserve its gas budget. Use the whole balance
+     * only when the typed amount is the floored Max; otherwise show the fee message.
+     */
+    private async _afterExactBudgetMiss(
+        sender: string,
+        recipient: string,
+        balance: bigint,
+        amountMist: bigint,
+        client: SuiSendClient,
+        gasBudget: bigint
+    ): Promise<{ bytes: Uint8Array; gas: SuiGasSummary; sentMist: bigint; sendEntireBalance: boolean }> {
+        if (balance - amountMist <= gasBudget) {
+            try {
+                const entire = await this._entireBalance(sender, recipient, balance, amountMist, client, true);
+                if (typedAmountMatchesDisplayedMax(amountMist, entire.sentMist)) return entire;
+            } catch (error) {
+                if (error instanceof Error && error.message === suiGasReserveMessage(balance)) throw error;
+            }
+        }
+
+        throw new Error(suiGasReserveMessage(balance));
+    }
+
+    private async _entireBalance(
+        sender: string,
+        recipient: string,
+        balance: bigint,
+        amountMist: bigint,
+        client: SuiSendClient,
+        reportActualAmount: boolean
+    ): Promise<{ bytes: Uint8Array; gas: SuiGasSummary; sentMist: bigint; sendEntireBalance: boolean }> {
+        const tx = new Transaction();
+        tx.setSender(sender);
+        tx.transferObjects([tx.gas], recipient);
+
+        const built = await this._measure(tx, client);
+        const netFee = netSuiFeeMist(built.gas);
+        const delivered = balance > netFee ? balance - netFee : 0n;
+
+        if (delivered <= 0n) throw new Error(suiGasReserveMessage(balance));
+        if (!reportActualAmount && delivered > amountMist) throw new Error(suiGasReserveMessage(balance));
+
+        return { bytes: built.bytes, gas: built.gas, sentMist: delivered, sendEntireBalance: true };
     }
 
     private _coinTransaction(sender: string, recipient: string, coinType: string, amount: string | number, decimals: number): Transaction {
