@@ -11,6 +11,7 @@ import { ZOTP } from "../models/zotp.model";
 import { TagModel } from "../tags.service";
 import { WalletService } from "../wallet.service";
 import { ZelfKeysProofService } from "./zelf-keys-proof.service";
+import { resolveOtpAuthTotpParams } from "../zelf-authenticator/zotp-otpauth.util";
 import { applyTotpParamsToZotp, buildZotpStoreRequestBody } from "../zelf-authenticator/zotp-totp-params.util";
 import { RetrieveRequest, ZelfKeysService } from "./zelf-keys.service";
 
@@ -400,10 +401,24 @@ export class ZOTPService {
             const envelope = this._extractRetrieveEnvelope(response?.data);
 
             if (envelope.metadata) {
-                const updatedZotp = applyTotpParamsToZotp(zotp, envelope.metadata, envelope.publicData);
+                // Params often exist only inside decrypted metadata (or retrieve publicData).
+                // Keep a known entry value when the decrypt payload omits that field.
+                const params = resolveOtpAuthTotpParams([
+                    envelope.metadata,
+                    envelope.publicData,
+                    zotp,
+                    zotp.ipfs?.publicData,
+                ]);
+                const metadataForExport = {
+                    ...envelope.metadata,
+                    algorithm: params.algorithm,
+                    digits: params.digits,
+                    period: params.period,
+                };
+                const updatedZotp = applyTotpParamsToZotp(zotp, metadataForExport, envelope.publicData);
                 await this._addToCache(updatedZotp);
 
-                return envelope.metadata;
+                return metadataForExport;
             }
 
             throw new Error("No metadata found in ZelfKeys response");

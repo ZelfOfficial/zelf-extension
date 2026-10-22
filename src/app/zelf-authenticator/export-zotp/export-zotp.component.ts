@@ -14,6 +14,7 @@ import { ZOTP } from "app/models/zotp.model";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { ZOTPService } from "app/services/zotp.service";
+import { buildOtpAuthTotpUri, resolveOtpAuthTotpParams } from "../zotp-otpauth.util";
 import QRCodeStyling, { Options as QRCodeStylingOptions } from "qr-code-styling";
 import { ShareZotpComponent, ShareZOTPData } from "../share-zotp/share-zotp.component";
 
@@ -149,13 +150,23 @@ export class ExportZotpComponent extends CopyToClipboardBase implements OnInit {
     }
 
     private _generateQRCode(): void {
-        // Generate otpauth:// URL for Google Authenticator
-        const label = this.zotp.issuer
-            ? `${encodeURIComponent(this.zotp.issuer)}:${encodeURIComponent(this.zotp.name)}`
-            : encodeURIComponent(this.zotp.name);
+        // Decrypted metadata wins over the locked entry. Defaults apply only when no source has the field.
+        const totpParams = resolveOtpAuthTotpParams([this.metadata, this.zotp, this.zotp?.ipfs?.publicData]);
 
-        const issuer = this.zotp.issuer ? encodeURIComponent(this.zotp.issuer) : "";
-        const otpauthUrl = `otpauth://totp/${label}?secret=${this.setupKey}${issuer ? `&issuer=${issuer}` : ""}`;
+        this.zotp = {
+            ...this.zotp,
+            algorithm: totpParams.algorithm,
+            digits: totpParams.digits,
+            period: totpParams.period,
+        };
+
+        // Issuer/label encoding stays the same as before; algorithm, digits, and period are always present.
+        const otpauthUrl = buildOtpAuthTotpUri({
+            name: this.zotp.name,
+            issuer: this.zotp.issuer,
+            secret: this.setupKey,
+            sources: [totpParams],
+        });
 
         const qrCodeOptions: QRCodeStylingOptions = {
             data: otpauthUrl,
