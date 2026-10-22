@@ -54,6 +54,9 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
     transformedCardData: any = null;
     wallet!: Wallet;
 
+    /** Paste already wrote sanitized digits; the following beforeinput must not insert them again. */
+    private _digitsInsertHandled = false;
+
     constructor(
         private router: Router,
         private chromeService: ChromeService,
@@ -170,9 +173,25 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
         this._openBiometricsBottomSheet();
     }
 
-    /** Block single non-digit keystrokes; paste is sanitized in ngModelChange. */
+    /**
+     * Block single non-digit keystrokes.
+     * Paste and drop are sanitized here, before the input `maxlength` can clip the raw text
+     * and drop digits that sit past spaces, dashes, or slashes.
+     */
     onDigitsBeforeInput(event: InputEvent): void {
         if (event.inputType === "insertFromPaste" || event.inputType === "insertFromDrop") {
+            if (this._digitsInsertHandled) {
+                this._digitsInsertHandled = false;
+                event.preventDefault();
+                return;
+            }
+
+            const input = event.target instanceof HTMLInputElement ? event.target : null;
+            const text = event.data ?? this._clipboardText(event.dataTransfer);
+            if (!input || text == null || !this._digitsChangeFor(input)) return;
+
+            event.preventDefault();
+            this._insertSanitizedDigits(input, text);
             return;
         }
 
@@ -180,6 +199,24 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
         if (data != null && /\D/.test(data)) {
             event.preventDefault();
         }
+    }
+
+    /**
+     * Read the full clipboard text and cancel the browser paste.
+     * Cancelling here stops `maxlength` from truncating "4242 4242 4242 4242" or "12/28"
+     * before non-digits are removed.
+     */
+    onDigitsPaste(event: ClipboardEvent): void {
+        const input = event.target instanceof HTMLInputElement ? event.target : null;
+        const text = this._clipboardText(event.clipboardData);
+        if (!input || text == null || !this._digitsChangeFor(input)) return;
+
+        event.preventDefault();
+        this._digitsInsertHandled = true;
+        queueMicrotask(() => {
+            this._digitsInsertHandled = false;
+        });
+        this._insertSanitizedDigits(input, text);
     }
 
     // Helper method to format card number as user types
@@ -244,10 +281,7 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
     }
 
     private _applyDigitsOnly(value: string, maxLength: number, assign: (digits: string) => void, input?: HTMLInputElement): void {
-        let digits = String(value ?? "").replace(/\D/g, "");
-        if (digits.length > maxLength) {
-            digits = digits.substring(0, maxLength);
-        }
+        const digits = this._digitsOnlyLimited(value, maxLength);
 
         assign(digits);
         // Model may not change (e.g. "202" + "x"), so put the clean text back in the field.
@@ -257,6 +291,57 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
 
         this._changeDetectorRef.detectChanges();
         this.checkFormValidity();
+    }
+
+    /** Strip every non-digit first, then keep at most `maxLength` digits. */
+    private _digitsOnlyLimited(value: string, maxLength: number): string {
+        const digits = String(value ?? "").replace(/\D/g, "");
+        return digits.length > maxLength ? digits.substring(0, maxLength) : digits;
+    }
+
+    private _clipboardText(data: DataTransfer | null | undefined): string | null {
+        if (!data) return null;
+
+        const plain = data.getData("text/plain");
+        if (plain) return plain;
+
+        const text = data.getData("text");
+        return text ? text : null;
+    }
+
+    /**
+     * Merge a paste/drop into the current selection, then run it through the field's
+     * existing digits-only formatter (strip, then max length).
+     */
+    private _insertSanitizedDigits(input: HTMLInputElement, inserted: string): boolean {
+        const apply = this._digitsChangeFor(input);
+        if (!apply) return false;
+
+        const value = input.value ?? "";
+        const start = input.selectionStart ?? value.length;
+        const end = input.selectionEnd ?? start;
+        const before = value.slice(0, start);
+        const after = value.slice(end);
+        const digitsBeforeCaret = `${before}${inserted}`.replace(/\D/g, "").length;
+
+        apply(`${before}${inserted}${after}`, input);
+
+        const caret = Math.min(digitsBeforeCaret, input.value.length);
+        input.setSelectionRange(caret, caret);
+        return true;
+    }
+
+    private _digitsChangeFor(input: HTMLInputElement): ((value: string, el: HTMLInputElement) => void) | null {
+        switch (input.id) {
+            case "cardNumber":
+                return (value, el) => this.onCardNumberChange(value, el);
+            case "expiryYear":
+                return (value, el) => this.onExpiryYearChange(value, el);
+            case "cvv":
+                return (value, el) => this.onCvvChange(value, el);
+            default:
+                return null;
+        }
     }
 
     private _updateExpiryError(): void {
