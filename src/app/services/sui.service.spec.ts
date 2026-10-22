@@ -18,7 +18,10 @@ class MockSuiClient implements SuiSendClient {
     coins: Array<{ objectId: string; version: string; digest: string; balance: string }> = [];
     /** Pages after the first. The SDK stops once the requested balance is covered. */
     extraPages = 0;
-    computationCost = "1000000";
+    /** Gas budget reserved on the built transaction. Larger than the net fee. */
+    gasBudget = "1200000";
+    /** Net fee = computation + storage - rebate = 148447 MIST (0.000148447 SUI). */
+    computationCost = "148447";
     dryRunError: string | null = null;
     readonly buildClient: { core: object };
 
@@ -47,7 +50,7 @@ class MockSuiClient implements SuiSendClient {
                     self.calls.push({ method: "resolve" });
                     if (self.dryRunError) throw new Error(self.dryRunError);
 
-                    transactionData.gasData.budget ??= "2000000";
+                    transactionData.gasData.budget ??= this.gasBudget;
                     transactionData.gasData.price ??= "1000";
                     transactionData.gasData.owner ??= transactionData.sender;
                     transactionData.gasData.payment ??= [{ objectId: `0x${"aa".repeat(32)}`, version: "1", digest: DIGEST }];
@@ -70,7 +73,7 @@ class MockSuiClient implements SuiSendClient {
     simulate(transaction: Uint8Array) {
         this.calls.push({ method: "simulate", transaction });
 
-        return Promise.resolve({ computationCost: this.computationCost, storageCost: "2000000", storageRebate: "500000" });
+        return Promise.resolve({ computationCost: this.computationCost, storageCost: "0", storageRebate: "0" });
     }
 
     execute(transaction: Uint8Array, signatures: string[]) {
@@ -199,44 +202,53 @@ describe("SuiService GraphQL sends", () => {
         expect(commandsOf(below)).not.toEqual(["TransferObjects"]);
     });
 
-    it("sends the whole balance for Max/ALL and reports the amount after the fee", async () => {
+    it("sends Max/ALL as a gas-coin transfer and keeps that amount at send time", async () => {
+        const balance = 797_281_600_000n;
+        const sender = `0x${"22".repeat(32)}`;
+        const quoteClient = new MockSuiClient();
+        quoteClient.balance = balance.toString();
+        quoteClient.addressBalance = balance.toString();
+
+        const quote = await serviceWith(quoteClient).estimateSuiTransactionFee(RECIPIENT, "797.2816", sender, true);
+
+        expect(quote.adjustedAmount).toBe("797.281451553");
+        expect(quoteClient.calls.filter((entry) => entry.method === "resolve").length).toBe(1);
+
+        const sendClient = new MockSuiClient();
+        sendClient.balance = balance.toString();
+        sendClient.addressBalance = balance.toString();
+        const result = await serviceWith(sendClient).sendTransaction(send({ value: quote.adjustedAmount, sendAll: true }));
+
+        expect(result.hash).toBe("mocked-digest");
+        expect(commandsOf(sendClient)).toEqual(["TransferObjects"]);
+        expect(sendClient.calls.filter((entry) => entry.method === "resolve").length).toBe(1);
+    });
+
+    it("sends the whole balance when the typed amount is the balance minus the net fee", async () => {
         const client = new MockSuiClient();
         const balance = 797_281_600_000n;
         client.balance = balance.toString();
         client.addressBalance = balance.toString();
-        const sender = `0x${"22".repeat(32)}`;
 
-        const quote = await serviceWith(client).estimateSuiTransactionFee(RECIPIENT, 797.2816, sender, true);
+        const quote = await serviceWith(client).estimateSuiTransactionFee(RECIPIENT, "797.281451553", `0x${"22".repeat(32)}`, false);
 
-        expect(quote.adjustedAmount).toBe("797.2791");
-        expect(Number(quote.adjustedAmount)).toBeLessThan(797.2816);
+        expect(quote.adjustedAmount).toBe("797.281451553");
+        expect(client.calls.filter((entry) => entry.method === "resolve").length).toBe(1);
     });
 
-    it("sends the whole balance when the typed amount is the balance minus the fee, and not more than that amount", async () => {
+    it("uses the gas budget, not the net fee, when a typed amount leaves too little for gas", async () => {
         const client = new MockSuiClient();
         const balance = 10_000_000_000n;
         client.balance = balance.toString();
         client.addressBalance = balance.toString();
-        const sender = `0x${"22".repeat(32)}`;
-
-        const quote = await serviceWith(client).estimateSuiTransactionFee(RECIPIENT, 9.999, sender, false);
-
-        expect(quote.adjustedAmount).toBe("9.9975");
-        expect(Number(quote.adjustedAmount)).toBeLessThan(9.999);
-    });
-
-    it("rejects a typed amount the fee does not fit, without sending more than requested", async () => {
-        const client = new MockSuiClient();
-        client.balance = "1000000000";
-        client.addressBalance = client.balance;
-        client.computationCost = "2000000000";
         const service = serviceWith(client);
 
-        await expectAsync(service.estimateSuiTransactionFee(RECIPIENT, 0.5, `0x${"22".repeat(32)}`)).toBeRejectedWithError(
+        await expectAsync(service.estimateSuiTransactionFee(RECIPIENT, "9.999", `0x${"22".repeat(32)}`)).toBeRejectedWithError(
             /Not enough SUI left for the network fee/
         );
-        await expectAsync(service.sendTransaction(send({ value: "0.5" }))).toBeRejectedWithError(/Not enough SUI left for the network fee/);
+        await expectAsync(service.sendTransaction(send({ value: "9.999" }))).toBeRejectedWithError(/Not enough SUI left for the network fee/);
         expect(client.calls.some((entry) => entry.method === "execute")).toBeFalse();
+        expect(JSON.stringify(client.calls)).not.toContain("Transaction resolution failed");
     });
 
     it("surfaces a dry-run failure instead of a fallback fee", async () => {

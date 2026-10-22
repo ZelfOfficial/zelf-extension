@@ -162,7 +162,8 @@ export class BlockchainTransactionsService {
                         tokenDecimals,
                         tokenPrice || 0,
                         params.senderAddress,
-                        params.sendAll
+                        params.sendAll,
+                        params.amountText
                     );
                 case "polygon":
                     return await this._polygonService.calculateTransactionFees(

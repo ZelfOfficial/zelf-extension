@@ -334,7 +334,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
         this.feeError = null;
 
         try {
-            const normalizedAmount = Number(String(this.transactionData.amount || "0").replace(",", "."));
+            const amountText = String(this.transactionData.amount ?? "0").replace(/,/g, "").trim();
             const tokenSymbol = this.transactionData.token?.symbol;
 
             let tokenAddress = this.transactionData.token?.address_token;
@@ -359,7 +359,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
             const feeParams: FeeCalculationParams = {
                 network: this.transactionData.network,
                 receiverAddress: this.transactionData.receiver.address,
-                amount: normalizedAmount,
+                amount: Number(amountText),
                 tokenType: this.transactionData.tokenType,
                 tokenAddress: tokenAddress,
                 tokenDecimals: this.transactionData.token.decimals,
@@ -367,6 +367,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
                 selectedFeeRate: this.selectedFeeRate,
                 senderAddress: this.transactionData.sender.address,
                 sendAll: this.transactionData.sendAll === true,
+                amountText,
             };
 
             const feeEstimate: TransactionFeeEstimate = await this._blockchainTransactionsService.calculateTransactionFees(feeParams);
@@ -737,20 +738,10 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
 
         try {
             const cleanMnemonic = this._mnemonics.trim().toLowerCase();
-            const normalizedAmount = Number(String(this.transactionData.amount || "0").replace(",", "."));
+            const amountText = String(this.transactionData.amount ?? "0").replace(/,/g, "").trim();
+            const normalizedAmount = Number(amountText);
 
-            const transactionParams: TransactionParams = {
-                from: "",
-                to: this.transactionData.receiver.address,
-                value: String(normalizedAmount),
-                network: this.transactionData.network,
-                mnemonic: cleanMnemonic,
-                tokenAddress: this.transactionData.token?.address_token || this.transactionData.token?.tokenAddress,
-                tokenDecimals: this.transactionData.token?.decimals,
-            };
-
-            // Standard transaction flow (Solana, EVM, Bitcoin, SUI)
-            await this._handleStandardTransaction(cleanMnemonic, normalizedAmount);
+            await this._handleStandardTransaction(cleanMnemonic, normalizedAmount, amountText);
         } catch (error: unknown) {
             console.error("Send transaction failed", error);
             this.openErrorSnackBar(mapTransactionErrorToTranslationKey(error));
@@ -825,11 +816,12 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
      * Handle standard (non-stealth) transaction for all networks
      * @private
      */
-    private async _handleStandardTransaction(cleanMnemonic: string, normalizedAmount: number): Promise<void> {
+    private async _handleStandardTransaction(cleanMnemonic: string, normalizedAmount: number, amountText?: string): Promise<void> {
+        const exactAmount = (amountText || String(normalizedAmount)).replace(/,/g, "").trim();
         const transactionParams: TransactionParams = {
             from: "",
             to: this.transactionData.receiver.address,
-            value: String(normalizedAmount),
+            value: this.transactionData.network === "sui" ? exactAmount : String(normalizedAmount),
             network: this.transactionData.network,
             mnemonic: cleanMnemonic,
             tokenAddress: this.transactionData.token?.address_token || this.transactionData.token?.tokenAddress,

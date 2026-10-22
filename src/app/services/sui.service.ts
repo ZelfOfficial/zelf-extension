@@ -3,6 +3,7 @@ import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 
 import {
+    decimalToMist,
     formatMistAsSui,
     insufficientSuiMessage,
     isNativeSuiCoinType,
@@ -11,6 +12,7 @@ import {
     resolveSuiTransferTarget,
     shouldSendEntireSuiBalance,
     SuiGasSummary,
+    suiAmountFitsGasBudget,
     suiGasReserveMessage,
     suiGraphqlUrlFromLicenseNetwork,
 } from "app/core/utils/sui-coin.util";
@@ -98,11 +100,14 @@ export class SuiService {
         return Ed25519Keypair.deriveKeypair(mnemonic.trim().toLowerCase());
     }
 
-    private _toSmallest(amount: number, decimals: number): bigint {
-        const factor = 10 ** decimals;
-        const whole = Math.floor(Math.max(0, amount) * factor);
+    private _amountMist(amount: string | number, decimals: number): bigint {
+        return decimalToMist(amount, decimals);
+    }
 
-        return BigInt(Number.isFinite(whole) ? whole : 0);
+    private _gasBudgetMist(bytes: Uint8Array): bigint {
+        const budget = Transaction.from(bytes).getData().gasData.budget;
+
+        return BigInt(budget ?? 0);
     }
 
     private _feeFromGas(gas: SuiGasSummary): TransactionCostEstimate {
@@ -119,91 +124,77 @@ export class SuiService {
     }
 
     /**
-     * Native SUI. An exact `coinWithBalance` is used unless the user chose Max/ALL,
-     * or the typed amount is at least the balance minus the estimated fee.
-     * The amount paid out is never higher than the amount this plan was given.
+     * Native SUI. Max/ALL, or an amount already at least balance minus the net fee,
+     * goes straight to a gas-coin transfer. Every other amount is exact. An exact
+     * send must leave the gas budget in the balance; otherwise the fee message is shown.
      */
     private async _planNativeTransfer(
         sender: string,
         recipient: string,
-        amount: number,
+        amount: string,
         client: SuiSendClient,
         sendAll: boolean,
         reportActualAmount: boolean
     ): Promise<{ bytes: Uint8Array; gas: SuiGasSummary; sentMist: bigint; sendEntireBalance: boolean }> {
         const totals = await client.getBalance(sender, NATIVE_SUI_COIN_TYPE);
         const balance = BigInt(totals.balance || "0");
-        const amountMist = this._toSmallest(amount, SUI_DECIMALS);
+        const amountMist = this._amountMist(amount, SUI_DECIMALS);
 
         if (amountMist <= 0n) throw new Error("Amount must be greater than 0");
         if (amountMist > balance) throw new Error(insufficientSuiMessage(balance, amountMist));
-
-        const exact = new Transaction();
-        exact.setSender(sender);
-        exact.transferObjects([coinWithBalance({ balance: amountMist })], recipient);
-
-        let exactError: unknown;
-
-        try {
-            const bytes = await this._build(exact, client);
-            const gas = await client.simulate(bytes);
-            const fee = netSuiFeeMist(gas);
-
-            if (amountMist + fee <= balance) return { bytes, gas, sentMist: amountMist, sendEntireBalance: false };
-        } catch (error) {
-            exactError = error;
-            const feeWouldFit = await this._feeFits(sender, recipient, balance, amountMist, client);
-
-            if (feeWouldFit) throw error;
-        }
 
         const entire = new Transaction();
         entire.setSender(sender);
         entire.transferObjects([entire.gas], recipient);
 
-        let entireBytes: Uint8Array;
-        let entireGas: SuiGasSummary;
+        const entireBuilt = await this._measure(entire, client);
+        const netFee = netSuiFeeMist(entireBuilt.gas);
+        const delivered = balance > netFee ? balance - netFee : 0n;
+        const sendEntire = shouldSendEntireSuiBalance(amountMist, delivered, sendAll);
 
-        try {
-            entireBytes = await this._build(entire, client);
-            entireGas = await client.simulate(entireBytes);
-        } catch {
-            if (exactError) throw exactError;
+        if (sendEntire) {
+            if (delivered <= 0n) throw new Error(suiGasReserveMessage(balance));
+            if (!reportActualAmount && delivered > amountMist) throw new Error(suiGasReserveMessage(balance));
 
+            return { bytes: entireBuilt.bytes, gas: entireBuilt.gas, sentMist: delivered, sendEntireBalance: true };
+        }
+
+        if (!suiAmountFitsGasBudget(amountMist, balance, entireBuilt.gasBudget)) {
             throw new Error(suiGasReserveMessage(balance));
         }
 
-        const fee = netSuiFeeMist(entireGas);
-        const delivered = balance > fee ? balance - fee : 0n;
-        const sendEntire = shouldSendEntireSuiBalance(amountMist, delivered, sendAll);
-        const withinShownAmount = delivered <= amountMist || (sendAll && reportActualAmount);
+        const exact = new Transaction();
+        exact.setSender(sender);
+        exact.transferObjects([coinWithBalance({ balance: amountMist })], recipient);
 
-        if (sendEntire && delivered > 0n && withinShownAmount) {
-            return { bytes: entireBytes, gas: entireGas, sentMist: delivered, sendEntireBalance: true };
-        }
-
-        throw new Error(suiGasReserveMessage(balance));
-    }
-
-    /** Dry-run the max transfer only to learn whether `amount + fee` still fits in the balance. */
-    private async _feeFits(sender: string, recipient: string, balance: bigint, amountMist: bigint, client: SuiSendClient): Promise<boolean> {
         try {
-            const probe = new Transaction();
-            probe.setSender(sender);
-            probe.transferObjects([probe.gas], recipient);
-            const gas = await client.simulate(await this._build(probe, client));
+            const built = await this._measure(exact, client);
 
-            return amountMist + netSuiFeeMist(gas) <= balance;
-        } catch {
-            return false;
+            if (!suiAmountFitsGasBudget(amountMist, balance, built.gasBudget)) throw new Error(suiGasReserveMessage(balance));
+
+            return { bytes: built.bytes, gas: built.gas, sentMist: amountMist, sendEntireBalance: false };
+        } catch (error) {
+            if (error instanceof Error && error.message === suiGasReserveMessage(balance)) throw error;
+            if (!suiAmountFitsGasBudget(amountMist, balance, entireBuilt.gasBudget)) throw new Error(suiGasReserveMessage(balance));
+
+            throw error;
         }
     }
 
-    private _coinTransaction(sender: string, recipient: string, coinType: string, amount: number, decimals: number): Transaction {
+    private async _measure(
+        tx: Transaction,
+        client: SuiSendClient
+    ): Promise<{ bytes: Uint8Array; gas: SuiGasSummary; gasBudget: bigint }> {
+        const bytes = await this._build(tx, client);
+
+        return { bytes, gas: await client.simulate(bytes), gasBudget: this._gasBudgetMist(bytes) };
+    }
+
+    private _coinTransaction(sender: string, recipient: string, coinType: string, amount: string | number, decimals: number): Transaction {
         const tx = new Transaction();
 
         tx.setSender(sender);
-        tx.transferObjects([coinWithBalance({ type: coinType, balance: this._toSmallest(amount, decimals), useGasCoin: false })], recipient);
+        tx.transferObjects([coinWithBalance({ type: coinType, balance: this._amountMist(amount, decimals), useGasCoin: false })], recipient);
 
         return tx;
     }
@@ -223,12 +214,12 @@ export class SuiService {
         return this._signBuilt(await this._build(tx, client), keypair, client);
     }
 
-    private async _transferSui(mnemonic: string, recipientAddress: string, amount?: number, sendAll = false): Promise<string> {
+    private async _transferSui(mnemonic: string, recipientAddress: string, amount: string, sendAll = false): Promise<string> {
         try {
             const keypair = this._keypair(mnemonic);
             const sender = keypair.getPublicKey().toSuiAddress();
             const client = await this._chain();
-            const plan = await this._planNativeTransfer(sender, recipientAddress, amount || 0, client, sendAll, false);
+            const plan = await this._planNativeTransfer(sender, recipientAddress, amount, client, sendAll, false);
 
             return await this._signBuilt(plan.bytes, keypair, client);
         } catch (error: any) {
@@ -247,7 +238,7 @@ export class SuiService {
         recipientAddress: string,
         addressToken: string,
         coinType: string,
-        amount: number,
+        amount: string,
         decimalsHint?: number
     ): Promise<string> {
         try {
@@ -257,7 +248,7 @@ export class SuiService {
             const tokenInfo = walletDetails?.data?.tokenHoldings?.tokens?.find((token: any) => token.address_token === addressToken);
             const decimals = Number(tokenInfo?.decimals ?? decimalsHint ?? 6);
 
-            if (tokenInfo && Number(tokenInfo.amount || 0) < amount) {
+            if (tokenInfo && this._amountMist(tokenInfo.amount || 0, decimals) < this._amountMist(amount, decimals)) {
                 throw new Error(`Insufficient token balance. Available: ${tokenInfo.amount || 0}, Required: ${amount}`);
             }
 
@@ -288,12 +279,14 @@ export class SuiService {
         tokenDecimals: number | undefined,
         tokenPrice: number,
         senderAddress?: string,
-        sendAll = false
+        sendAll = false,
+        amountText?: string
     ): Promise<TransactionFeeEstimate> {
         const native = tokenType === "SUI" || (tokenType !== "SUI_TOKEN" && (isNativeSuiCoinType(tokenType) || isNativeSuiCoinType(tokenAddress)));
+        const amountExact = amountText && amountText.trim() ? amountText.trim() : String(amount);
         const feeEstimate = native
-            ? await this.estimateSuiTransactionFee(receiverAddress, amount, senderAddress, sendAll)
-            : await this.estimateTokenTransactionFee(receiverAddress, tokenAddress || "", amount, tokenDecimals || 9, senderAddress);
+            ? await this.estimateSuiTransactionFee(receiverAddress, amountExact, senderAddress, sendAll)
+            : await this.estimateTokenTransactionFee(receiverAddress, tokenAddress || "", amountExact, tokenDecimals || 9, senderAddress);
         const amountInUsd = amount * tokenPrice;
 
         return {
@@ -306,14 +299,14 @@ export class SuiService {
 
     async estimateSuiTransactionFee(
         receiverAddress: string,
-        amount: number,
+        amount: string | number,
         senderAddress?: string,
         sendAll = false
     ): Promise<TransactionCostEstimate> {
         if (!senderAddress) throw new Error("Sender address is required to estimate a Sui fee");
 
         const client = await this._chain();
-        const plan = await this._planNativeTransfer(senderAddress, receiverAddress, amount, client, sendAll, true);
+        const plan = await this._planNativeTransfer(senderAddress, receiverAddress, String(amount), client, sendAll, true);
 
         return this._quote(plan);
     }
@@ -321,7 +314,7 @@ export class SuiService {
     async estimateTokenTransactionFee(
         receiverAddress: string,
         contractAddress: string,
-        amount: number,
+        amount: string | number,
         decimals: number = 9,
         senderAddress?: string
     ): Promise<TransactionCostEstimate> {
@@ -396,15 +389,16 @@ export class SuiService {
         if (!params.mnemonic) throw new Error("Mnemonic is required for SUI transactions");
 
         const target = resolveSuiTransferTarget(params.tokenAddress);
+        const amountText = String(params.value ?? "").replace(/,/g, "").trim();
         const hash =
             target.kind === "native"
-                ? await this._transferSui(params.mnemonic, params.to, parseFloat(params.value), !!params.sendAll)
+                ? await this._transferSui(params.mnemonic, params.to, amountText, !!params.sendAll)
                 : await this._transferCoin(
                       params.mnemonic,
                       params.to,
                       `${params.tokenAddress || ""}`.trim(),
                       target.coinType,
-                      parseFloat(params.value),
+                      amountText,
                       params.tokenDecimals
                   );
 

@@ -1,6 +1,7 @@
 import { TransactionData } from "@shared/types/wallet.types";
 
 import {
+    decimalToMist,
     insufficientSuiMessage,
     isNativeSuiCoinType,
     isNativeSuiHolding,
@@ -11,6 +12,7 @@ import {
     sendConfirmNetworkLabel,
     sendScreenSuiTokenType,
     shouldSendEntireSuiBalance,
+    suiAmountFitsGasBudget,
     suiGasReserveMessage,
     suiGraphqlUrlFromLicenseNetwork,
 } from "./sui-coin.util";
@@ -83,7 +85,9 @@ describe("sui coin type", () => {
         expect(shouldSendEntireSuiBalance(balance, delivered, true)).toBeTrue();
         expect(shouldSendEntireSuiBalance(delivered, delivered, false)).toBeTrue();
         expect(shouldSendEntireSuiBalance(797_250_000_000n, delivered, false)).toBeFalse();
-        expect(shouldSendEntireSuiBalance(balance - 10_000_000n, delivered, false)).toBeFalse();
+        expect(suiAmountFitsGasBudget(9_999_000_000n, 10_000_000_000n, 1_200_000n)).toBeFalse();
+        expect(suiAmountFitsGasBudget(9_999_000_000n, 10_000_000_000n, 148_447n)).toBeTrue();
+        expect(decimalToMist("797.281451553")).toBe(797_281_451_553n);
         expect(insufficientSuiMessage(1_000_000_000n, 5_000_000_000n)).toContain("Available 1 SUI");
         expect(suiGasReserveMessage(balance)).toContain("Not enough SUI left for the network fee");
     });

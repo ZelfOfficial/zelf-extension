@@ -92,6 +92,17 @@ export function formatMistAsSui(mist: bigint): string {
     return negative ? `-${text}` : text;
 }
 
+/** Floor a decimal amount into MIST. Extra fraction digits are dropped, never rounded. */
+export function decimalToMist(amount: string | number, decimals = 9): bigint {
+    const text = String(amount).replace(/,/g, "").trim();
+    if (!/^\d+(\.\d+)?$/.test(text)) return 0n;
+
+    const [whole, frac = ""] = text.split(".");
+    const digits = (frac + "0".repeat(decimals)).slice(0, decimals);
+
+    return BigInt(whole || "0") * 10n ** BigInt(decimals) + BigInt(digits || "0");
+}
+
 /** Net SUI burned by a dry-run (computation + storage - rebate). */
 export function netSuiFeeMist(gas: SuiGasSummary): bigint {
     const computation = BigInt(gas.computationCost || "0");
@@ -103,15 +114,19 @@ export function netSuiFeeMist(gas: SuiGasSummary): bigint {
 }
 
 /**
- * Send the whole balance only for an explicit Max/ALL, or when the typed amount
- * is at least the balance minus the estimated fee. Otherwise the typed amount is exact.
- * `deliveredMist` is balance - fee (what a gas-coin transfer pays the recipient).
+ * Whole-balance send when the user chose Max/ALL, or the typed amount is already
+ * at least what a gas-coin transfer would deliver (balance minus the net fee).
  */
 export function shouldSendEntireSuiBalance(amountMist: bigint, deliveredMist: bigint, sendAll: boolean): boolean {
+    if (sendAll) return deliveredMist > 0n;
     if (deliveredMist <= 0n) return false;
-    if (sendAll) return true;
 
     return amountMist >= deliveredMist;
+}
+
+/** Exact sends must leave the gas budget, not only the net fee, in the balance. */
+export function suiAmountFitsGasBudget(amountMist: bigint, balanceMist: bigint, gasBudgetMist: bigint): boolean {
+    return amountMist + gasBudgetMist <= balanceMist;
 }
 
 export function insufficientSuiMessage(availableMist: bigint, requestedMist: bigint): string {

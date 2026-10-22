@@ -23,6 +23,8 @@ export interface FeeCalculationParams {
     senderAddress?: string;
     /** Native SUI Max/ALL. The confirm amount becomes balance minus the fee. */
     sendAll?: boolean;
+    /** Exact decimal text. Sui must not convert this through a float. */
+    amountText?: string;
 }
 
 export interface TransactionParams {
