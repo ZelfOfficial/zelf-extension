@@ -1,5 +1,5 @@
 import { isEmptyTransactionApiPayload } from "app/core/utils/empty-transaction-api-payload.util";
-import { HistoryPaginationInput, historyQueryForNetwork } from "app/core/utils/transaction-history-pagination.util";
+import { extractHistoryTransactions, HistoryPaginationInput, historyQueryForNetwork } from "app/core/utils/transaction-history-pagination.util";
 import { forkJoin, from, Observable, of } from "rxjs";
 import { catchError, map } from "rxjs/operators";
 
@@ -92,32 +92,38 @@ export class BlockchainTransactionsService {
     private _processTransactions(responses: any): Transaction[] {
         const transactions: Transaction[] = [];
 
-        if (responses.ethereum?.data) {
-            const ethImage = responses.ethereum.data.tokenHoldings?.tokens?.find((t: any) => t.symbol === "ETH")?.image;
+        const ethRows = extractHistoryTransactions(responses.ethereum);
+        if (ethRows.length) {
+            const ethImage = responses.ethereum?.data?.tokenHoldings?.tokens?.find((t: any) => t.symbol === "ETH")?.image;
 
-            if (responses.ethereum.data.transactions) {
-                transactions.push(
-                    ...responses.ethereum.data.transactions.map((tx: any) => ({
-                        ...tx,
-                        image: ethImage,
-                    }))
-                );
-            }
+            transactions.push(
+                ...ethRows.map((tx: any) => ({
+                    ...tx,
+                    image: ethImage,
+                }))
+            );
         }
 
-        if (responses.avalanche?.data?.transactions) transactions.push(...responses.avalanche.data.transactions);
-        if (responses.binance?.data?.transactions) transactions.push(...responses.binance.data.transactions);
-        if (responses.bitcoin?.data?.transactions) transactions.push(...responses.bitcoin.data.transactions);
-        if (responses.blockdag?.data?.transactions) transactions.push(...responses.blockdag.data.transactions);
-        if (responses.polygon?.data?.transactions) transactions.push(...responses.polygon.data.transactions);
-        if (responses.optimism?.data?.transactions) transactions.push(...responses.optimism.data.transactions);
-        if (responses.arbitrum?.data?.transactions) transactions.push(...responses.arbitrum.data.transactions);
-        if (responses.base?.data?.transactions) transactions.push(...responses.base.data.transactions);
-        if (responses.solana?.data?.transactions) transactions.push(...responses.solana.data.transactions);
-        if (responses.stellar?.data?.transactions) {
-            const stellarPrice = parseFloat(responses.stellar.data.account?.price || "0") || 0;
+        const pushRows = (response: any): void => {
+            const rows = extractHistoryTransactions(response);
+            if (rows.length) transactions.push(...rows);
+        };
+
+        pushRows(responses.avalanche);
+        pushRows(responses.binance);
+        pushRows(responses.bitcoin);
+        pushRows(responses.blockdag);
+        pushRows(responses.polygon);
+        pushRows(responses.optimism);
+        pushRows(responses.arbitrum);
+        pushRows(responses.base);
+        pushRows(responses.solana);
+
+        const stellarRows = extractHistoryTransactions(responses.stellar);
+        if (stellarRows.length) {
+            const stellarPrice = parseFloat(responses.stellar?.data?.account?.price || "0") || 0;
             transactions.push(
-                ...responses.stellar.data.transactions.map((tx: any) => ({
+                ...stellarRows.map((tx: any) => ({
                     ...tx,
                     network: "stellar",
                     gasFee: parseFloat(tx.fee || 0) || 0,
@@ -125,18 +131,23 @@ export class BlockchainTransactionsService {
                 }))
             );
         }
-        if (responses.sui?.data?.transactions) transactions.push(...responses.sui.data.transactions);
-        if (responses.ton?.data?.transactions) {
+
+        pushRows(responses.sui);
+
+        const tonRows = extractHistoryTransactions(responses.ton);
+        if (tonRows.length) {
             transactions.push(
-                ...responses.ton.data.transactions.map((tx: any) => ({
+                ...tonRows.map((tx: any) => ({
                     ...tx,
                     network: tx.network || "ton",
                 }))
             );
         }
-        if (responses.aptos?.data?.transactions) {
+
+        const aptosRows = extractHistoryTransactions(responses.aptos);
+        if (aptosRows.length) {
             transactions.push(
-                ...responses.aptos.data.transactions.map((tx: any) => ({
+                ...aptosRows.map((tx: any) => ({
                     ...tx,
                     fiatAmount: Number(tx.fiatBalance || 0),
                     gasFee: Number(tx.gas || tx.txnFee || 0),

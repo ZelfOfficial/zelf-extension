@@ -1,39 +1,65 @@
 /**
- * Activity history paging (issue #120).
+ * Activity history paging against the v4 Zelf API (issue #120, QA on PR #121).
  *
- * The address endpoints preview about 10 rows. "Load more" used to request `page=1&show=25`.
- * On 0-based APIs that window is rows 25–49, so rows 10–24 never appeared. Every request now
- * uses {@link TRANSACTION_HISTORY_PAGE_SIZE}, and the next page starts where the previous one ended.
+ * The API does not share one page contract. Each chain below follows the v4 controller:
  *
- * Conventions (what the Zelf API expects, not the upstream explorer):
- * - zero-based: first page is `page=0` (Sui, Solana, Aptos, OKLink-style chains, BlockDAG).
- *   Row window is `[page * show, page * show + show)`.
- * - one-based: first page is `page=1` (Ethereum / Etherscan-style).
- *   Row window is `[(page - 1) * show, page * show)`.
- * - cursor: Stellar (Horizon). Send `nextCursor` when the response includes one, and stop when
- *   `hasNextPage` / `next` is false or no cursor was returned.
+ * - Ethereum is 1-based. RouteScan reads the query param `nextCursor` (not `cursor`) and,
+ *   when that param is present, returns that page directly. Without it, `page=2` is the
+ *   next window. Sending `cursor` while staying on page 1 repeats rows 0–9.
+ * - Optimism and Arbitrum are 1-based. `page=0` is coerced to page 1, so a 0-based client
+ *   fetches the same rows twice.
+ * - Aptos, Sui and BlockDAG are 0-based (`offset = page * show`). Sui also accepts `cursor`
+ *   and returns `pagination.nextCursor` / `hasNextPage`.
+ * - Solana's RPC source ignores `page` and returns the newest `show` rows (v4 capped at 25).
+ * - Stellar sets `next: true` when the page is full but does not return a cursor, and the
+ *   cursor it accepts is not usable from this client. v4 capped at 25.
+ * - Bitcoin ignores `page` and slices the first `show` txids (v4 used 25).
+ * - TON computes `page * show` and then does not send it; only `limit` / `before_lt` apply,
+ *   and the response has no `before_lt`.
+ * - Avalanche's list endpoint returns `data` as an array. Prod fallbacks ignore `page`.
+ *   The address screen asks for show=100, which is the most this client can get in one call.
+ * - Polygon ignores `show` (page 0 returned ~1000 rows) and the next numbered page repeats.
+ *
+ * Chains that cannot page request the same window v4 already showed, then hide Load more.
+ * Chains that can page keep one show value so the next page starts where the previous ended.
  */
 
 export const TRANSACTION_HISTORY_PAGE_SIZE = 10;
 
-export type HistoryPageConvention = "zero-based" | "one-based" | "cursor";
+/** Largest window v4's Load more asked for on endpoints that ignore `page`. */
+export const UNPAGED_HISTORY_SHOW = 25;
+
+export type HistoryPageConvention = "zero-based" | "one-based" | "window";
+
+export type HistoryCursorParam = "cursor" | "nextCursor";
 
 export interface HistoryPageRequest {
     page: number;
     show: number;
     cursor?: string;
+    /** Query-string name the v4 controller actually reads. Omitted when the API has no cursor. */
+    cursorParam?: HistoryCursorParam;
 }
 
 export type HistoryPaginationInput = HistoryPageRequest | Record<string, HistoryPageRequest>;
 
+export interface ChainHistoryProfile {
+    convention: HistoryPageConvention;
+    show: number;
+    /** False when another request cannot return rows this one did not already include. */
+    canPage: boolean;
+    cursorParam?: HistoryCursorParam;
+}
+
 export interface ChainHistoryState {
     network: string;
     convention: HistoryPageConvention;
-    /** Next numbered page to request. Cursor chains keep the page they started with. */
+    /** Next numbered page to send. Cursor follow-ups keep the page the API pairs with the cursor. */
     page: number;
-    /** Page size shared by the first request and every "Load more" for this chain. */
     show: number;
+    canPage: boolean;
     cursor?: string;
+    cursorParam?: HistoryCursorParam;
     hasNextPage: boolean;
     loaded: boolean;
 }
@@ -44,26 +70,28 @@ export interface HistoryPageSignals {
     hasNextPage?: boolean;
 }
 
-/** First page index is 0. `page * show` is the first row of that page. */
-export const ZERO_BASED_HISTORY_NETWORKS = [
-    "sui",
-    "solana",
-    "aptos",
-    "avalanche",
-    "binance",
-    "bitcoin",
-    "blockdag",
-    "polygon",
-    "optimism",
-    "arbitrum",
-    "base",
-    "ton",
-] as const;
+/**
+ * Profiles taken from zelf-online-version v4 modules plus the prod traces in the PR #121 QA notes.
+ * `canPage: false` is an API limitation, not a client choice — noted as a follow-up, not patched here.
+ */
+export const CHAIN_HISTORY_PROFILES: Record<string, ChainHistoryProfile> = {
+    ethereum: { convention: "one-based", show: TRANSACTION_HISTORY_PAGE_SIZE, canPage: true, cursorParam: "nextCursor" },
+    optimism: { convention: "one-based", show: TRANSACTION_HISTORY_PAGE_SIZE, canPage: true },
+    arbitrum: { convention: "one-based", show: TRANSACTION_HISTORY_PAGE_SIZE, canPage: true },
+    aptos: { convention: "zero-based", show: TRANSACTION_HISTORY_PAGE_SIZE, canPage: true },
+    sui: { convention: "zero-based", show: TRANSACTION_HISTORY_PAGE_SIZE, canPage: true, cursorParam: "cursor" },
+    base: { convention: "zero-based", show: TRANSACTION_HISTORY_PAGE_SIZE, canPage: true },
+    binance: { convention: "zero-based", show: UNPAGED_HISTORY_SHOW, canPage: true },
+    blockdag: { convention: "zero-based", show: 20, canPage: true },
+    solana: { convention: "window", show: UNPAGED_HISTORY_SHOW, canPage: false },
+    stellar: { convention: "window", show: UNPAGED_HISTORY_SHOW, canPage: false },
+    bitcoin: { convention: "window", show: UNPAGED_HISTORY_SHOW, canPage: false },
+    ton: { convention: "window", show: UNPAGED_HISTORY_SHOW, canPage: false },
+    avalanche: { convention: "window", show: 100, canPage: false },
+    polygon: { convention: "window", show: TRANSACTION_HISTORY_PAGE_SIZE, canPage: false },
+};
 
-const ONE_BASED_NETWORKS = new Set(["ethereum"]);
-const CURSOR_NETWORKS = new Set(["stellar"]);
-
-const HISTORY_NETWORKS = new Set<string>([...ZERO_BASED_HISTORY_NETWORKS, ...ONE_BASED_NETWORKS, ...CURSOR_NETWORKS]);
+const HISTORY_NETWORKS = new Set(Object.keys(CHAIN_HISTORY_PROFILES));
 
 const TOKEN_NETWORK: Record<string, string> = {
     APT: "aptos",
@@ -84,13 +112,16 @@ const TOKEN_NETWORK: Record<string, string> = {
     XLM: "stellar",
 };
 
+export function chainHistoryProfile(network: string): ChainHistoryProfile {
+    return CHAIN_HISTORY_PROFILES[(network || "").toLowerCase()] || {
+        convention: "zero-based",
+        show: TRANSACTION_HISTORY_PAGE_SIZE,
+        canPage: true,
+    };
+}
+
 export function historyPageConvention(network: string): HistoryPageConvention {
-    const id = (network || "").toLowerCase();
-
-    if (CURSOR_NETWORKS.has(id)) return "cursor";
-    if (ONE_BASED_NETWORKS.has(id)) return "one-based";
-
-    return "zero-based";
+    return chainHistoryProfile(network).convention;
 }
 
 export function supportsTransactionHistory(network: string): boolean {
@@ -103,15 +134,17 @@ export function historyNetworkForToken(token?: string | null): string | undefine
     return TOKEN_NETWORK[token.trim().toUpperCase()];
 }
 
-export function createChainHistoryState(network: string, pageSize: number = TRANSACTION_HISTORY_PAGE_SIZE): ChainHistoryState {
-    const convention = historyPageConvention(network);
+export function createChainHistoryState(network: string): ChainHistoryState {
+    const profile = chainHistoryProfile(network);
 
     return {
         network,
-        convention,
-        page: convention === "one-based" ? 1 : 0,
-        show: pageSize,
-        hasNextPage: true,
+        convention: profile.convention,
+        page: profile.convention === "one-based" ? 1 : 0,
+        show: profile.show,
+        canPage: profile.canPage,
+        cursorParam: profile.cursorParam,
+        hasNextPage: profile.canPage,
         loaded: false,
     };
 }
@@ -122,12 +155,13 @@ export function historyRequestFor(state: ChainHistoryState): HistoryPageRequest 
         show: state.show,
     };
 
+    if (state.cursorParam) request.cursorParam = state.cursorParam;
     if (state.cursor) request.cursor = state.cursor;
 
     return request;
 }
 
-/** Inclusive-exclusive row window a numbered page covers. Cursor chains do not use this. */
+/** Inclusive-exclusive row window a numbered page covers. Window chains do not use this. */
 export function numberedPageRange(convention: HistoryPageConvention, page: number, show: number): { start: number; end: number } {
     const index = convention === "one-based" ? Math.max(0, page - 1) : page;
     const start = index * show;
@@ -144,38 +178,44 @@ export function historyQueryForNetwork(network: string, pagination: HistoryPagin
     const source = isSharedHistoryQuery(pagination)
         ? pagination
         : pagination[network] || pagination[fallbackNetwork] || historyRequestFor(createChainHistoryState(fallbackNetwork));
-
+    const profile = chainHistoryProfile(fallbackNetwork);
     const request: HistoryPageRequest = {
         page: source.page,
-        show: source.show && source.show > 0 ? source.show : TRANSACTION_HISTORY_PAGE_SIZE,
+        show: source.show && source.show > 0 ? source.show : profile.show,
     };
 
+    if (source.cursorParam) request.cursorParam = source.cursorParam;
+    else if (profile.cursorParam) request.cursorParam = profile.cursorParam;
     if (source.cursor) request.cursor = source.cursor;
 
     return request;
 }
 
-/** Query string shared by the numbered history endpoints. `page` 0 is preserved. */
-export function historyQueryParams(pagination?: { page?: number; show?: number; cursor?: string } | null): Record<string, string | number> {
+/** Numbered history query. The cursor is sent under the name that chain's controller reads. */
+export function historyQueryParams(
+    pagination?: { page?: number; show?: number; cursor?: string; cursorParam?: HistoryCursorParam } | null
+): Record<string, string | number> {
     const params: Record<string, string | number> = {
         page: typeof pagination?.page === "number" ? pagination.page : 0,
         show: pagination?.show && pagination.show > 0 ? pagination.show : TRANSACTION_HISTORY_PAGE_SIZE,
     };
 
-    if (pagination?.cursor) params.cursor = pagination.cursor;
+    if (pagination?.cursor && pagination.cursorParam) params[pagination.cursorParam] = pagination.cursor;
 
     return params;
 }
 
-/** Stellar history speaks Horizon `limit` + `cursor` and also accepts `show`. */
-export function stellarHistoryQueryParams(pagination?: { page?: number; show?: number; cursor?: string } | null): Record<string, string | number> {
-    const show = pagination?.show && pagination.show > 0 ? pagination.show : TRANSACTION_HISTORY_PAGE_SIZE;
+/** Stellar history speaks Horizon `limit` and also accepts `show`. It does not return a cursor. */
+export function stellarHistoryQueryParams(
+    pagination?: { page?: number; show?: number; cursor?: string; cursorParam?: HistoryCursorParam } | null
+): Record<string, string | number> {
+    const show = pagination?.show && pagination.show > 0 ? pagination.show : UNPAGED_HISTORY_SHOW;
     const params: Record<string, string | number> = {
         limit: show,
         show,
     };
 
-    if (pagination?.cursor) params.cursor = pagination.cursor;
+    if (pagination?.cursor && pagination.cursorParam === "cursor") params.cursor = pagination.cursor;
 
     return params;
 }
@@ -194,19 +234,32 @@ function firstNonEmptyString(...values: unknown[]): string | undefined {
     return undefined;
 }
 
+/**
+ * Rows from a history response. Avalanche's list endpoint sets `data` to the array itself;
+ * the other chains use `data.transactions`.
+ */
+export function extractHistoryTransactions(response: unknown): any[] {
+    if (!response) return [];
+
+    if (Array.isArray(response)) return response;
+
+    const root = asRecord(response);
+    if (!root) return [];
+
+    if (Array.isArray(root.data)) return root.data;
+    if (Array.isArray(root.data?.transactions)) return root.data.transactions;
+    if (Array.isArray(root.transactions)) return root.transactions;
+
+    return [];
+}
+
 export function readHistoryPageSignals(payload: unknown): HistoryPageSignals {
     const root = asRecord(payload);
     const nested = root && asRecord(root.data) ? (root.data as Record<string, any>) : null;
     const body = nested || root || {};
-    const transactions = Array.isArray(body.transactions)
-        ? body.transactions
-        : Array.isArray(root?.data)
-          ? (root.data as unknown[])
-          : Array.isArray(payload)
-            ? payload
-            : [];
+    const transactions = extractHistoryTransactions(payload);
     const pagination = asRecord(body.pagination) || {};
-    const nextCursor = firstNonEmptyString(body.nextCursor, body.cursor, pagination.nextCursor, pagination.cursor) ?? null;
+    const nextCursor = firstNonEmptyString(body.nextCursor, pagination.nextCursor, body.cursor, pagination.cursor) ?? null;
     const flag = [body.hasNextPage, pagination.hasNextPage, body.next, body.transactionsNext, pagination.next].find((value) => typeof value === "boolean") as
         | boolean
         | undefined;
@@ -231,29 +284,32 @@ export function mergeHistoryPageSignals(parts: HistoryPageSignals[]): HistoryPag
 }
 
 /**
- * Moves the chain to the following page. A returned cursor replaces the page index so the next
- * request does not also skip ahead by `show` rows.
+ * Moves a chain to its next request. A cursor is followed under that chain's query name and the
+ * page index stays put, because RouteScan and Sui ignore `page` once the cursor is set. A chain
+ * that cannot page, or that returned more rows than `show` (Polygon), is finished.
  */
 export function advanceChainHistoryState(state: ChainHistoryState, payload: unknown): ChainHistoryState {
     const signals = readHistoryPageSignals(payload);
-    const cursor = firstNonEmptyString(signals.nextCursor);
     const count = signals.transactions.length;
+    const cursor = firstNonEmptyString(signals.nextCursor);
+
+    if (!state.canPage || count > state.show) {
+        return { ...state, cursor: undefined, hasNextPage: false, loaded: true };
+    }
+
     let hasNext: boolean;
 
     if (typeof signals.hasNextPage === "boolean") hasNext = signals.hasNextPage;
     else if (cursor) hasNext = true;
-    else if (state.convention === "cursor") hasNext = false;
     else hasNext = count >= state.show;
 
-    if (state.convention === "cursor" && hasNext && !cursor) hasNext = false;
-
-    const followCursor = !!cursor && hasNext;
-    const nextPage = hasNext && !followCursor && state.convention !== "cursor" ? state.page + 1 : state.page;
+    const followCursor = !!cursor && !!state.cursorParam && hasNext;
+    const nextPage = hasNext && !followCursor ? state.page + 1 : state.page;
 
     return {
         ...state,
         page: nextPage,
-        cursor: hasNext ? cursor || state.cursor : undefined,
+        cursor: followCursor ? cursor : undefined,
         hasNextPage: hasNext,
         loaded: true,
     };
@@ -275,10 +331,9 @@ export function dedupeTransactionsByHash<T extends { hash?: string }>(seen: Set<
 }
 
 /**
- * Numbered pages overlap when new transactions arrive and shift older rows down. Rows we already
- * showed are dropped. A page that adds nothing, and whose cursor did not move, has no next page
- * even if the payload still says the page was full — otherwise "Load more" would repeat forever
- * when an endpoint ignores `page`. An explicit `hasNextPage: true` with a new cursor still continues.
+ * A page of only hashes we already showed does not continue, unless the API moved the cursor
+ * and explicitly said another page exists. That stops Solana/Stellar repeats without hiding a
+ * real next page when new rows arrived and shifted the window.
  */
 export function hasNextPageAfterDedupe(
     state: ChainHistoryState,
@@ -286,6 +341,7 @@ export function hasNextPageAfterDedupe(
     explicitHasNextPage: boolean | undefined,
     previousCursor?: string
 ): boolean {
+    if (!state.canPage) return false;
     if (explicitHasNextPage === false) return false;
     if (freshCount === 0 && (!state.cursor || state.cursor === previousCursor)) return false;
     if (explicitHasNextPage === true) return true;
