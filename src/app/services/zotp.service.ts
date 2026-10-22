@@ -105,9 +105,6 @@ export class ZOTPService {
                         name: publicData.username || "",
                         // DO NOT store secret - it's encrypted in ZelfKeys and must be retrieved via retrieve endpoint
                         issuer: publicData.issuer || undefined,
-                        algorithm: "SHA1", // Default, could be stored in publicData
-                        digits: 6, // Default
-                        period: 30, // Default
                         createdAt: item.createdAt ? new Date(item.createdAt).getTime() : Date.now(),
                         updatedAt: item.updatedAt ? new Date(item.updatedAt).getTime() : Date.now(),
                         isDecrypted: false,
@@ -211,9 +208,6 @@ export class ZOTPService {
                         name: item.username || "",
                         // DO NOT store secret - it's encrypted in ZelfKeys and must be retrieved via retrieve endpoint
                         issuer: item.website || undefined,
-                        algorithm: "SHA1", // Default, could be stored in notes
-                        digits: 6, // Default
-                        period: 30, // Default
                         createdAt: item.createdAt || Date.now(),
                         updatedAt: item.updatedAt || Date.now(),
                         isDecrypted: false,

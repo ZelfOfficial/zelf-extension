@@ -1800,6 +1800,10 @@
         "algorithm": "ایلگوریدم",
         "digits": "ہندسے",
         "period": "مدت",
+        "totp_params": {
+            "hidden": "انلاک کے بعد دکھایا جائے گا",
+            "period_seconds": "{{seconds}} سیکنڈ"
+        },
         "walrus_info": "Walrus اسٹوریج کی معلومات",
         "walrus_blob_id": "Blob ID",
         "walrus_public_url": "عوامی URL",

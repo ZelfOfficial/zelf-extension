@@ -1816,6 +1816,10 @@
         "algorithm": "الخوارزمية",
         "digits": "الأرقام",
         "period": "الفترة",
+        "totp_params": {
+            "hidden": "يُعرض بعد الفتح",
+            "period_seconds": "{{seconds}} ث"
+        },
         "walrus_info": "معلومات تخزين Walrus",
         "walrus_blob_id": "معرف Blob ID",
         "walrus_public_url": "الرابط العام",

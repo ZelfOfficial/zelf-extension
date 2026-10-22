@@ -119,17 +119,27 @@
                         <dt>{{ t("zotp.protection.label") }}</dt>
                         <dd>{{ t(protectionLabelKey) }}</dd>
                     </div>
-                    <div *ngIf="zotp.algorithm">
+                    <div>
                         <dt>{{ t("zotp.algorithm") }}</dt>
-                        <dd>{{ zotp.algorithm }}</dd>
+                        <dd [class.password-detail__value--muted]="!totpParamsRevealed">
+                            {{ totpParamsRevealed ? zotp.algorithm : t("zotp.totp_params.hidden") }}
+                        </dd>
                     </div>
-                    <div *ngIf="zotp.digits">
+                    <div>
                         <dt>{{ t("zotp.digits") }}</dt>
-                        <dd>{{ zotp.digits }}</dd>
+                        <dd [class.password-detail__value--muted]="!totpParamsRevealed">
+                            {{ totpParamsRevealed ? zotp.digits : t("zotp.totp_params.hidden") }}
+                        </dd>
                     </div>
-                    <div *ngIf="zotp.period">
+                    <div>
                         <dt>{{ t("zotp.period") }}</dt>
-                        <dd>{{ zotp.period }}s</dd>
+                        <dd [class.password-detail__value--muted]="!totpParamsRevealed">
+                            {{
+                                totpParamsRevealed
+                                    ? t("zotp.totp_params.period_seconds", { seconds: displayPeriodSeconds })
+                                    : t("zotp.totp_params.hidden")
+                            }}
+                        </dd>
                     </div>
                     <div *ngIf="zotp.createdAt">
                         <dt>{{ t("zotp.created_at") }}</dt>

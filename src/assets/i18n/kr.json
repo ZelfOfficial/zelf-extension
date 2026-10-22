@@ -1816,6 +1816,10 @@
         "algorithm": "알고리즘",
         "digits": "자릿수",
         "period": "주기",
+        "totp_params": {
+            "hidden": "잠금 해제 후 표시",
+            "period_seconds": "{{seconds}}초"
+        },
         "walrus_info": "Walrus 스토리지 정보",
         "walrus_blob_id": "Blob ID",
         "walrus_public_url": "공개 URL",

@@ -2,7 +2,10 @@ import {
     applyTotpParamsToZotp,
     buildZotpStoreRequestBody,
     parseTotpParamsFromRetrieveSources,
+    shouldRevealZotpTotpParams,
+    zotpHasTotpParamsInPublicData,
 } from "./zotp-totp-params.util";
+import { ZOTP } from "app/models/zotp.model";
 
 describe("zotp-totp-params.util", () => {
     it("buildZotpStoreRequestBody sends TOTP fields at the top level as strings for digits/period", () => {
@@ -57,6 +60,35 @@ describe("zotp-totp-params.util", () => {
                 { algorithm: "SHA1", digits: 6, period: 30 }
             )
         ).toEqual({ algorithm: "SHA512", digits: 7, period: 45 });
+    });
+
+    it("zotpHasTotpParamsInPublicData is false when TOTP fields are only on the model (e.g. list defaults)", () => {
+        const zotp: ZOTP = {
+            id: "z1",
+            name: "Work",
+            algorithm: "SHA1",
+            digits: 6,
+            period: 30,
+            createdAt: 1,
+            updatedAt: 1,
+            ipfs: { publicData: { type: "zotp", username: "Work" } },
+        };
+
+        expect(zotpHasTotpParamsInPublicData(zotp.ipfs?.publicData)).toBeFalse();
+        expect(shouldRevealZotpTotpParams(zotp, false)).toBeFalse();
+        expect(shouldRevealZotpTotpParams(zotp, true)).toBeTrue();
+    });
+
+    it("shouldRevealZotpTotpParams is true before decrypt when publicData includes TOTP params", () => {
+        const zotp: ZOTP = {
+            id: "z2",
+            name: "Legacy",
+            createdAt: 1,
+            updatedAt: 1,
+            ipfs: { publicData: { type: "zotp", algorithm: "SHA256", digits: 8, period: 60 } },
+        };
+
+        expect(shouldRevealZotpTotpParams(zotp, false)).toBeTrue();
     });
 
     it("applyTotpParamsToZotp merges retrieve params onto the model", () => {

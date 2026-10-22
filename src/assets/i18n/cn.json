@@ -1816,6 +1816,10 @@
         "algorithm": "算法",
         "digits": "位数",
         "period": "周期",
+        "totp_params": {
+            "hidden": "解锁后显示",
+            "period_seconds": "{{seconds}} 秒"
+        },
         "walrus_info": "Walrus 存储信息",
         "walrus_blob_id": "Blob ID",
         "walrus_public_url": "公开 URL",

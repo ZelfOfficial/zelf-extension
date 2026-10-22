@@ -1816,6 +1816,10 @@
         "algorithm": "Algorithm",
         "digits": "Mga Digit",
         "period": "Period",
+        "totp_params": {
+            "hidden": "Ipapakita pagkatapos i-unlock",
+            "period_seconds": "{{seconds}}s"
+        },
         "walrus_info": "Impormasyon sa Walrus Storage",
         "walrus_blob_id": "Blob ID",
         "walrus_public_url": "Public URL",
