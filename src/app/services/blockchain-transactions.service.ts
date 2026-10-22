@@ -1,4 +1,5 @@
 import { isEmptyTransactionApiPayload } from "app/core/utils/empty-transaction-api-payload.util";
+import { HistoryPaginationInput, historyQueryForNetwork } from "app/core/utils/transaction-history-pagination.util";
 import { forkJoin, from, Observable, of } from "rxjs";
 import { catchError, map } from "rxjs/operators";
 
@@ -33,6 +34,18 @@ import { AptosService } from "./aptos.service";
 import { readPublicDataDotAddress, readPublicDataAptosAddress, readPublicDataKsmAddress, readPublicDataTonAddress, readPublicDataXlmAddress } from "@shared/types/tag.types";
 import { TagModel } from "app/tags.service";
 import { SubstrateRelayService } from "./substrate-relay.service";
+
+export interface TransactionHistoryResult {
+    transactions: Transaction[];
+    byNetwork: Record<string, Transaction[]>;
+    responses: Record<string, any>;
+}
+
+const EMPTY_TRANSACTION_HISTORY: TransactionHistoryResult = {
+    transactions: [],
+    byNetwork: {},
+    responses: {},
+};
 
 @Injectable({
     providedIn: "root",
@@ -477,84 +490,104 @@ export class BlockchainTransactionsService {
             : of([]);
     }
 
-    getTransactionHistory(wallet: Partial<TagModel> | null, pagination: { page: number }, enabledNetworks?: string[]): Observable<any> {
-        if (!wallet) return of([]);
+    getTransactionHistory(wallet: Partial<TagModel> | null, pagination: HistoryPaginationInput, enabledNetworks?: string[]): Observable<TransactionHistoryResult> {
+        if (!wallet) return of(EMPTY_TRANSACTION_HISTORY);
 
         const isEnabled = (network: string) => !enabledNetworks || enabledNetworks.includes(network);
         const xlmAddr = this._getXlmAddress(wallet);
+        const queryFor = (network: string) => historyQueryForNetwork(network, pagination);
 
         return forkJoin({
             avalanche:
                 isEnabled("avalanche") && wallet.publicData?.ethAddress
-                    ? from(this._avaxService.requestTransactionHistory(wallet.publicData?.ethAddress, pagination)).pipe(catchError(() => of(null)))
+                    ? from(this._avaxService.requestTransactionHistory(wallet.publicData?.ethAddress, queryFor("avalanche"))).pipe(catchError(() => of(null)))
                     : of(null),
             binance:
                 isEnabled("binance") && wallet.publicData?.ethAddress
-                    ? from(this._bscService.requestTransactionHistory(wallet.publicData?.ethAddress, pagination)).pipe(catchError(() => of(null)))
+                    ? from(this._bscService.requestTransactionHistory(wallet.publicData?.ethAddress, queryFor("binance"))).pipe(catchError(() => of(null)))
                     : of(null),
             bitcoin:
                 isEnabled("bitcoin") && wallet.publicData?.btcAddress
-                    ? from(this._bitcoinService.requestTransactionHistory(wallet.publicData?.btcAddress, pagination, false)).pipe(
+                    ? from(this._bitcoinService.requestTransactionHistory(wallet.publicData?.btcAddress, queryFor("bitcoin"), false)).pipe(
                           catchError(() => of(null))
                       )
                     : of(null),
             bitcoinTestnet:
                 isEnabled("bitcoin") && environment.testnetAddress
-                    ? from(this._bitcoinService.requestTransactionHistory(environment.testnetAddress, pagination, true)).pipe(
+                    ? from(this._bitcoinService.requestTransactionHistory(environment.testnetAddress, queryFor("bitcoinTestnet"), true)).pipe(
                           catchError(() => of(null))
                       )
                     : of(null),
             blockdag:
                 isEnabled("blockdag") && wallet.publicData?.ethAddress
-                    ? from(this._blockdagService.requestTransactionHistory(wallet.publicData?.ethAddress, pagination)).pipe(
+                    ? from(this._blockdagService.requestTransactionHistory(wallet.publicData?.ethAddress, queryFor("blockdag"))).pipe(
                           catchError(() => of(null))
                       )
                     : of(null),
             ethereum:
                 isEnabled("ethereum") && wallet.publicData?.ethAddress
-                    ? from(this._ethereumService.requestTransactionHistory(wallet.publicData?.ethAddress, pagination)).pipe(
+                    ? from(this._ethereumService.requestTransactionHistory(wallet.publicData?.ethAddress, queryFor("ethereum"))).pipe(
                           catchError(() => of(null))
                       )
                     : of(null),
             polygon:
                 isEnabled("polygon") && wallet.publicData?.ethAddress
-                    ? from(this._polygonService.requestTransactionHistory(wallet.publicData?.ethAddress, pagination)).pipe(catchError(() => of(null)))
+                    ? from(this._polygonService.requestTransactionHistory(wallet.publicData?.ethAddress, queryFor("polygon"))).pipe(catchError(() => of(null)))
                     : of(null),
             optimism:
                 isEnabled("optimism") && wallet.publicData?.ethAddress
-                    ? from(this._optimismService.requestTransactionHistory(wallet.publicData?.ethAddress, pagination)).pipe(catchError(() => of(null)))
+                    ? from(this._optimismService.requestTransactionHistory(wallet.publicData?.ethAddress, queryFor("optimism"))).pipe(catchError(() => of(null)))
                     : of(null),
             arbitrum:
                 isEnabled("arbitrum") && wallet.publicData?.ethAddress
-                    ? from(this._arbitrumService.requestTransactionHistory(wallet.publicData?.ethAddress, pagination)).pipe(catchError(() => of(null)))
+                    ? from(this._arbitrumService.requestTransactionHistory(wallet.publicData?.ethAddress, queryFor("arbitrum"))).pipe(catchError(() => of(null)))
                     : of(null),
             base:
                 isEnabled("base") && wallet.publicData?.ethAddress
-                    ? from(this._baseService.requestTransactionHistory(wallet.publicData?.ethAddress, pagination)).pipe(catchError(() => of(null)))
+                    ? from(this._baseService.requestTransactionHistory(wallet.publicData?.ethAddress, queryFor("base"))).pipe(catchError(() => of(null)))
                     : of(null),
             solana:
                 isEnabled("solana") && wallet.publicData?.solanaAddress
-                    ? from(this._solanaService.requestTransactionHistory(wallet.publicData?.solanaAddress, pagination)).pipe(
+                    ? from(this._solanaService.requestTransactionHistory(wallet.publicData?.solanaAddress, queryFor("solana"))).pipe(
                           catchError(() => of(null))
                       )
                     : of(null),
             stellar:
                 isEnabled("stellar") && xlmAddr
-                    ? from(this._stellarService.requestTransactionHistory(xlmAddr, pagination)).pipe(catchError(() => of(null)))
+                    ? from(this._stellarService.requestTransactionHistory(xlmAddr, queryFor("stellar"))).pipe(catchError(() => of(null)))
                     : of(null),
             sui:
                 isEnabled("sui") && wallet.publicData?.suiAddress
-                    ? from(this._suiService.requestTransactionHistory(wallet.publicData?.suiAddress, pagination)).pipe(catchError(() => of(null)))
+                    ? from(this._suiService.requestTransactionHistory(wallet.publicData?.suiAddress, queryFor("sui"))).pipe(catchError(() => of(null)))
                     : of(null),
             ton:
                 isEnabled("ton") && this._getTonAddress(wallet)
-                    ? from(this._tonService.requestTransactionHistory(this._getTonAddress(wallet), pagination)).pipe(catchError(() => of(null)))
+                    ? from(this._tonService.requestTransactionHistory(this._getTonAddress(wallet), queryFor("ton"))).pipe(catchError(() => of(null)))
                     : of(null),
             aptos:
                 isEnabled("aptos") && this._getAptosAddress(wallet)
-                    ? from(this._aptosService.requestTransactionHistory(this._getAptosAddress(wallet), pagination)).pipe(catchError(() => of(null)))
+                    ? from(this._aptosService.requestTransactionHistory(this._getAptosAddress(wallet), queryFor("aptos"))).pipe(catchError(() => of(null)))
                     : of(null),
-        }).pipe(map((responses) => this._processTransactions(responses)));
+        }).pipe(
+            map((responses) => {
+                const byNetwork: Record<string, Transaction[]> = {};
+
+                for (const [key, response] of Object.entries(responses)) {
+                    if (!response) continue;
+
+                    const txs = this._processTransactions({ [key]: response });
+                    const bucket = key === "bitcoinTestnet" ? "bitcoin" : key;
+
+                    byNetwork[bucket] = [...(byNetwork[bucket] || []), ...txs];
+                }
+
+                return {
+                    transactions: this._processTransactions(responses),
+                    byNetwork,
+                    responses,
+                };
+            })
+        );
     }
 
     private _stellarTxToTransaction(data: any): Transaction {

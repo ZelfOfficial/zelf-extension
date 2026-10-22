@@ -13,6 +13,7 @@ import {
     minimumNewAccountBalanceXlm,
     parseClassicAsset,
 } from "./stellar-transaction.util";
+import { stellarHistoryQueryParams } from "../core/utils/transaction-history-pagination.util";
 
 @Injectable({
     providedIn: "root",
@@ -502,20 +503,11 @@ export class StellarService {
         }
     }
 
-    async requestTransactionHistory(
-        address: string,
-        pagination: { page: number; show?: number },
-        cursor?: string
-    ): Promise<any> {
+    async requestTransactionHistory(address: string, pagination: { page: number; show?: number; cursor?: string }): Promise<any> {
         try {
             const url = `${this._baseUrl}/api/stellar/address/${address}/transactions`;
 
-            const params: Record<string, string | number> = {
-                limit: pagination.show || 25,
-            };
-            if (cursor) {
-                params.cursor = cursor;
-            }
+            const params = stellarHistoryQueryParams(pagination);
 
             return await this._httpWrapper
                 .sendRequest("get", url, params)

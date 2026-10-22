@@ -7,6 +7,7 @@ import { HttpWrapperService } from "app/http-wrapper.service";
 import { RpcProviderService } from "app/services/rpc-provider.service";
 import { environment } from "environments/environment";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
+import { historyQueryParams } from "../core/utils/transaction-history-pagination.util";
 
 @Injectable({
     providedIn: "root",
@@ -167,16 +168,17 @@ export class BlockDAGService {
         }
     }
 
-    async requestTransactionHistory(address: string, pagination: { page: number }): Promise<any> {
+    async requestTransactionHistory(address: string, pagination: { page: number; show?: number; cursor?: string }): Promise<any> {
         try {
             if (!isAddress(address)) {
                 return { data: { transactions: [] } };
             }
 
-            const response = await this._httpWrapper.sendRequest("get", `${this._baseUrl}/api/blockdag/address/${address}/transactions`, {
-                page: pagination.page,
-                show: 20,
-            });
+            const response = await this._httpWrapper.sendRequest(
+                "get",
+                `${this._baseUrl}/api/blockdag/address/${address}/transactions`,
+                historyQueryParams(pagination)
+            );
 
             return response;
         } catch (error) {
