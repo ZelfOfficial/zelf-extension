@@ -6,13 +6,26 @@ import { Router } from "@angular/router";
 import { TranslocoModule } from "@jsverse/transloco";
 import { readPublicDataAptosAddress, readPublicDataTonAddress } from "@shared/types/tag.types";
 import { AddressMaskPipe } from "app/pipes/address-mask.pipe";
-import { BlockchainTransactionsService } from "app/services/blockchain-transactions.service";
+import { BlockchainTransactionsService, TransactionHistoryResult } from "app/services/blockchain-transactions.service";
 import { Transaction } from "@shared/types/wallet.types";
 import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { SettingsService } from "app/services/settings.service";
 import { SUPPORTED_NETWORK_IDS } from "app/core/network-settings.util";
 import { isDisplayableTransaction, transactionTime } from "app/core/utils/transaction-history.util";
+import {
+    ChainHistoryState,
+    HistoryPageRequest,
+    advanceChainHistoryState,
+    anyChainHasNextPage,
+    createChainHistoryState,
+    dedupeTransactionsByHash,
+    hasNextPageAfterDedupe,
+    historyNetworkForToken,
+    historyRequestFor,
+    readHistoryPageSignals,
+    supportsTransactionHistory,
+} from "app/core/utils/transaction-history-pagination.util";
 import { Subscription } from "rxjs";
 import { DisplayAmountPipe, DisplayFiatPipe } from "../pipes/display-number.pipe";
 
@@ -57,7 +70,8 @@ type ProcessedTransaction = {
 export class ZelfHistoryComponent implements OnInit, OnDestroy {
     @Input("token") token?: string = "";
 
-    private currentPage = 0;
+    /** Per-chain page or cursor. The page size stays on the state so "Load more" cannot change it. */
+    private _chainState: Record<string, ChainHistoryState> = {};
 
     public history: Record<string, ProcessedTransaction[]> | null = null;
     public loading = false;
@@ -74,7 +88,6 @@ export class ZelfHistoryComponent implements OnInit, OnDestroy {
     ) {}
 
     private _subscriptions = new Subscription();
-    private _firstPageTransactions: Transaction[] = [];
 
     async ngOnInit(): Promise<void> {
         this._loadFirstTransactions();
@@ -95,40 +108,33 @@ export class ZelfHistoryComponent implements OnInit, OnDestroy {
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }
 
-    private _getEnabledNetworkIds(): string[] | undefined {
-        return this._settingsService.getEnabledNetworkIds();
+    private _historyNetworks(enabled: string[]): string[] {
+        const pageable = (ids: string[]) => ids.filter((id) => supportsTransactionHistory(id));
+
+        if (!this.token) return pageable(enabled);
+
+        const network = historyNetworkForToken(this.token);
+
+        if (!network) return pageable(enabled);
+
+        return supportsTransactionHistory(network) ? [network] : [];
     }
 
     private async _loadFirstTransactions(): Promise<void> {
         this.loading = true;
 
         const wallet = await this._walletService.getCurrentWallet();
-
-        if (this.token) {
-            this._subscriptions.add(
-                this._blockchainTransactions.getAddressDataByToken(wallet, this.token).subscribe({
-                    next: async (response) => {
-                        if (response?.transactions?.length) await this._processTransactions(response.transactions);
-                        else this.noMoreTransactions = true;
-
-                        this.loading = false;
-                    },
-                    error: (error) => {
-                        console.error("Error loading transactions:", error);
-                        this.loading = false;
-                    },
-                })
-            );
-
-            return;
-        }
-
         // v3 #270: query each license network on its own and show transactions as they arrive,
         // so one slow network (e.g. BSC ~20s) no longer keeps the whole list on the skeleton.
-        const networks = (await this._settingsService.getEnabledNetworkIdsFromLicense()) ?? [...SUPPORTED_NETWORK_IDS];
+        const enabled = (await this._settingsService.getEnabledNetworkIdsFromLicense()) ?? [...SUPPORTED_NETWORK_IDS];
+        const networks = this._historyNetworks(enabled);
+
+        this._chainState = {};
+
+        for (const network of networks) this._chainState[network] = createChainHistoryState(network);
+
         let pending = networks.length;
 
-        this._firstPageTransactions = [];
         this.syncing = pending > 0;
 
         // Serialise processing so a network's "complete" never runs before its transactions were merged.
@@ -141,35 +147,31 @@ export class ZelfHistoryComponent implements OnInit, OnDestroy {
 
             this.syncing = false;
             this.loading = false;
-
-            if (!this.history) this.noMoreTransactions = true;
+            this.noMoreTransactions = !this.history || !anyChainHasNextPage(Object.values(this._chainState));
         };
 
         if (!pending) {
             this.loading = false;
+            this.syncing = false;
             this.noMoreTransactions = true;
 
             return;
         }
 
         for (const network of networks) {
+            const request = historyRequestFor(this._chainState[network]);
+
             this._subscriptions.add(
-                this._blockchainTransactions.getAddressData(wallet, [network]).subscribe({
-                    next: (response) => {
-                        const incoming: Transaction[] = response?.transactions || [];
-
-                        if (!incoming.length) return;
-
-                        queue = queue.then(async () => {
-                            this._firstPageTransactions = [...this._firstPageTransactions, ...incoming];
-                            this.transactionHashMap = {};
-                            await this._processTransactions(this._firstPageTransactions);
-
-                            if (this.history) this.loading = false;
+                this._blockchainTransactions.getTransactionHistory(wallet, { [network]: request }, [network]).subscribe({
+                    next: (result) => {
+                        queue = queue.then(() => this._absorbHistory(result, [network])).catch((error) => {
+                            console.error(`Error processing ${network} transactions:`, error);
+                            this._chainState[network] = { ...this._chainState[network], hasNextPage: false, loaded: true };
                         });
                     },
                     error: (error) => {
                         console.error(`Error loading ${network} transactions:`, error);
+                        this._chainState[network] = { ...this._chainState[network], hasNextPage: false, loaded: true };
                         queue = queue.then(settle);
                     },
                     complete: () => {
@@ -178,6 +180,39 @@ export class ZelfHistoryComponent implements OnInit, OnDestroy {
                 })
             );
         }
+    }
+
+    private async _absorbHistory(result: TransactionHistoryResult | null | undefined, networks: string[]): Promise<void> {
+        const byNetwork = result?.byNetwork || {};
+        const responses = result?.responses || {};
+
+        for (const network of networks) {
+            const current = this._chainState[network] || createChainHistoryState(network);
+            const signals = readHistoryPageSignals(responses[network]);
+            const txs = byNetwork[network] || [];
+            const seen = new Set(Object.keys(this.transactionHashMap));
+            const fresh = dedupeTransactionsByHash(seen, txs);
+            const previousCursor = current.cursor;
+
+            if (txs.length) await this._processTransactions(txs, !!this.history);
+
+            const advanced = advanceChainHistoryState(current, {
+                data: {
+                    transactions: signals.transactions.length ? signals.transactions : txs,
+                    nextCursor: signals.nextCursor,
+                    hasNextPage: signals.hasNextPage,
+                },
+            });
+
+            this._chainState[network] = {
+                ...advanced,
+                hasNextPage: advanced.hasNextPage && hasNextPageAfterDedupe(advanced, fresh.length, signals.hasNextPage, previousCursor),
+            };
+        }
+
+        this.noMoreTransactions = !anyChainHasNextPage(Object.values(this._chainState));
+
+        if (this.history) this.loading = false;
     }
 
     private _determineTransactionTraffic(tx: Transaction, wallet: any): void {
@@ -272,31 +307,43 @@ export class ZelfHistoryComponent implements OnInit, OnDestroy {
     }
 
     async loadMoreTransactions(): Promise<void> {
+        const pending = Object.values(this._chainState).filter((state) => state.hasNextPage);
+
+        if (!pending.length) {
+            this.noMoreTransactions = true;
+
+            return;
+        }
+
         this.loading = true;
-        this.currentPage += 1;
 
         const wallet = await this._walletService.getCurrentWallet();
-        const enabledNetworks = this._getEnabledNetworkIds();
+        const queries: Record<string, HistoryPageRequest> = {};
 
-        this._blockchainTransactions.getTransactionHistory(wallet, { page: this.currentPage }, enabledNetworks).subscribe({
-            next: async (response) => {
-                if (!response) {
-                    this.noMoreTransactions = true;
-                    this.currentPage = 0;
-                    this.loading = false;
+        for (const state of pending) queries[state.network] = historyRequestFor(state);
 
-                    return;
-                }
-
-                await this._processTransactions(response, true);
-
-                this.loading = false;
-            },
-            error: (error) => {
-                console.error("Error loading transactions:", error);
-                this.loading = false;
-            },
-        });
+        this._subscriptions.add(
+            this._blockchainTransactions
+                .getTransactionHistory(
+                    wallet,
+                    queries,
+                    pending.map((state) => state.network)
+                )
+                .subscribe({
+                    next: (result) => {
+                        void this._absorbHistory(
+                            result,
+                            pending.map((state) => state.network)
+                        ).finally(() => {
+                            this.loading = false;
+                        });
+                    },
+                    error: (error) => {
+                        console.error("Error loading transactions:", error);
+                        this.loading = false;
+                    },
+                })
+        );
     }
 
     async navigateToTransaction(transaction: ProcessedTransaction): Promise<void> {

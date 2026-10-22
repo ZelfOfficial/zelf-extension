@@ -11,6 +11,7 @@ import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "./
 import { HttpWrapperService } from "./http-wrapper.service";
 import { RpcProviderService } from "./services/rpc-provider.service";
 import { EthTransaction } from "@shared/types/wallet.types";
+import { historyQueryParams } from "./core/utils/transaction-history-pagination.util";
 
 export interface ChainConfig {
     blockExplorerUrls: string[];
@@ -482,13 +483,12 @@ export class EthereumService {
         return this._httpWrapper.sendRequest("get", `${this._baseUrl}/api/ethereum/transaction/${transactionHash}`);
     }
 
-    async requestTransactionHistory(address: string, pagination: { page: number; show?: number }): Promise<any> {
+    async requestTransactionHistory(address: string, pagination: { page: number; show?: number; cursor?: string }): Promise<any> {
         try {
             const url = `${this._baseUrl}/api/ethereum/transactions`;
 
             const params = {
-                page: pagination.page,
-                show: pagination.show || 25,
+                ...historyQueryParams(pagination),
                 address: address,
             };
 

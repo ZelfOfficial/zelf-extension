@@ -5,6 +5,7 @@ import { TonClient } from "@ton/ton";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { environment } from "environments/environment";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
+import { historyQueryParams } from "../core/utils/transaction-history-pagination.util";
 import { isValidTonAddress, tonKeyPairFromMnemonic, tonWalletFromPublicKey } from "@shared/utils/ton-derivation.util";
 
 @Injectable({
@@ -70,13 +71,10 @@ export class TonService {
         return this._httpWrapper.sendRequest("get", `${this._baseUrl}/api/ton/transaction/${encodeURIComponent(transactionHash)}`);
     }
 
-    async requestTransactionHistory(address: string, pagination: { page: number; show?: number }): Promise<any> {
+    async requestTransactionHistory(address: string, pagination: { page: number; show?: number; cursor?: string }): Promise<any> {
         const url = `${this._baseUrl}/api/ton/address/${encodeURIComponent(address)}/transactions`;
 
-        const params = {
-            page: pagination.page,
-            show: pagination.show || 25,
-        };
+        const params = historyQueryParams(pagination);
 
         try {
             return this._httpWrapper

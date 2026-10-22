@@ -11,6 +11,7 @@ import { environment } from "../../environments/environment";
 import { AssetService } from "../asset.service";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
 import { HttpWrapperService } from "./../http-wrapper.service";
+import { historyQueryParams } from "../core/utils/transaction-history-pagination.util";
 
 const ECPair = ECPairFactory(secp256k1);
 const bip32 = BIP32Factory(secp256k1);
@@ -248,14 +249,11 @@ export class BitcoinService {
         return this._httpWrapperService.sendRequest("get", `${this._baseUrl}/api/bitcoin/transaction/${transactionHash}`);
     }
 
-    async requestTransactionHistory(address: string, pagination: { page: number; show?: number }, isTestnet?: boolean): Promise<any> {
+    async requestTransactionHistory(address: string, pagination: { page: number; show?: number; cursor?: string }, isTestnet?: boolean): Promise<any> {
         try {
             let url: string;
 
-            const params = {
-                page: pagination.page,
-                show: pagination.show || 25,
-            };
+            const params = historyQueryParams(pagination);
 
             if (isTestnet) {
                 url = `${this._baseUrl}/api/bitcoin/testnet/transactions/${address}`;

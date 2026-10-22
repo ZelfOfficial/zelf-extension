@@ -5,6 +5,7 @@ import { aptosAccountFromMnemonic, aptToOctas, isValidAptosAddress } from "@shar
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { environment } from "environments/environment";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
+import { historyQueryParams } from "../core/utils/transaction-history-pagination.util";
 
 type AptosEstimateResponse = {
     data?: {
@@ -65,14 +66,11 @@ export class AptosService {
         return this._httpWrapper.sendRequest("get", `${this._baseUrl}/api/aptos/transaction/${encodeURIComponent(transactionHash)}`);
     }
 
-    async requestTransactionHistory(address: string, pagination: { page: number; show?: number }): Promise<any> {
+    async requestTransactionHistory(address: string, pagination: { page: number; show?: number; cursor?: string }): Promise<any> {
         const url = `${this._baseUrl}/api/aptos/address/${encodeURIComponent(address)}/transactions`;
 
         try {
-            return await this._httpWrapper.sendRequest("get", url, {
-                page: pagination.page,
-                show: pagination.show || 25,
-            });
+            return await this._httpWrapper.sendRequest("get", url, historyQueryParams(pagination));
         } catch (error) {
             console.error("Exception in Aptos requestTransactionHistory:", error);
             return { data: { transactions: [] } };

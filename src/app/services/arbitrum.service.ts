@@ -9,6 +9,7 @@ import { RpcProviderService } from "app/services/rpc-provider.service";
 import { environment } from "environments/environment";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
 import { ensureDataEnvelope } from "app/core/utils/api-data-envelope.util";
+import { historyQueryParams } from "app/core/utils/transaction-history-pagination.util";
 
 @Injectable({
     providedIn: "root",
@@ -224,13 +225,10 @@ export class ArbitrumService {
         return this._httpWrapper.sendRequest("get", url);
     }
 
-    async requestTransactionHistory(address: string, pagination: { page: number; show?: number }): Promise<any> {
+    async requestTransactionHistory(address: string, pagination: { page: number; show?: number; cursor?: string }): Promise<any> {
         const url = `${this._baseUrl}/api/arbitrum/address/${address}/transactions`;
 
-        const params = {
-            page: pagination.page,
-            show: pagination.show || 25,
-        };
+        const params = historyQueryParams(pagination);
 
         try {
             return this._httpWrapper

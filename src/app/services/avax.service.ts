@@ -7,6 +7,7 @@ import { environment } from "environments/environment";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
 import { RpcProviderService } from "app/services/rpc-provider.service";
 import { HttpWrapperService } from "../http-wrapper.service";
+import { historyQueryParams } from "../core/utils/transaction-history-pagination.util";
 
 @Injectable({
     providedIn: "root",
@@ -337,14 +338,11 @@ export class AvaxService {
         return this._httpWrapper.sendRequest("get", `${this._baseUrl}/api/avalanche/transaction/${transactionHash}`);
     }
 
-    async requestTransactionHistory(address: string, pagination: { page: number; show?: number }): Promise<any> {
+    async requestTransactionHistory(address: string, pagination: { page: number; show?: number; cursor?: string }): Promise<any> {
         try {
             const url = `${this._baseUrl}/api/avalanche/address/${address}/transactions`;
 
-            const params = {
-                page: pagination.page,
-                show: pagination.show || 25,
-            };
+            const params = historyQueryParams(pagination);
 
             return await this._httpWrapper
                 .sendRequest("get", url, params)

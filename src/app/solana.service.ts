@@ -27,6 +27,7 @@ import { environment } from "environments/environment";
 import { RpcProviderService } from "app/services/rpc-provider.service";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "./core/models/transaction-fee.model";
 import { HttpWrapperService } from "./http-wrapper.service";
+import { historyQueryParams } from "./core/utils/transaction-history-pagination.util";
 
 if (typeof window !== "undefined") window.Buffer = window.Buffer || Buffer;
 
@@ -505,13 +506,10 @@ export class SolanaService {
         return this._httpWrapper.sendRequest("get", `${this._baseUrl}/api/solana/transaction/${transactionHash}`);
     }
 
-    async requestTransactionHistory(address: string, pagination: { page: number; show?: number }): Promise<any> {
+    async requestTransactionHistory(address: string, pagination: { page: number; show?: number; cursor?: string }): Promise<any> {
         const url = `${this._baseUrl}/api/solana/transactions/${address}`;
 
-        const params = {
-            page: pagination.page,
-            show: pagination.show || 25,
-        };
+        const params = historyQueryParams(pagination);
 
         try {
             return this._httpWrapper

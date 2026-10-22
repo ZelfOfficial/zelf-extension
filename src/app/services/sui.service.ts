@@ -6,6 +6,7 @@ import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { environment } from "environments/environment";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
+import { historyQueryParams } from "../core/utils/transaction-history-pagination.util";
 
 interface TransactionCostEstimate {
     estimatedFee: number;
@@ -340,13 +341,10 @@ export class SuiService {
         return this._httpWrapper.sendRequest("get", `${this._baseUrl}/api/sui/transaction/${transactionHash}`);
     }
 
-    async requestTransactionHistory(address: string, pagination: { page: number; show?: number }): Promise<any> {
+    async requestTransactionHistory(address: string, pagination: { page: number; show?: number; cursor?: string }): Promise<any> {
         const url = `${this._baseUrl}/api/sui/address/${address}/transactions`;
 
-        const params = {
-            page: pagination.page,
-            show: pagination.show || 25,
-        };
+        const params = historyQueryParams(pagination);
 
         try {
             return this._httpWrapper
