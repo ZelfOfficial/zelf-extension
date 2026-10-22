@@ -60,26 +60,73 @@ describe("transaction history pagination", () => {
         });
     });
 
-    describe("optimism and arbitrum (page 0 is page 1)", () => {
-        it("starts at page 1 so the first two requests are not the same window", () => {
-            for (const network of ["optimism", "arbitrum"]) {
-                const first = historyRequestFor(createChainHistoryState(network));
-                const second = historyRequestFor(
-                    advanceChainHistoryState(createChainHistoryState(network), {
-                        data: {
-                            pagination: { page: "1", records: "10", pages: "4" },
-                            transactions: hashes(10, network),
-                        },
-                    })
-                );
+    describe("arbitrum (page 0 is page 1)", () => {
+        it("starts at page 1 show 10 so the first two requests are not the same window", () => {
+            const first = historyRequestFor(createChainHistoryState("arbitrum"));
+            const second = historyRequestFor(
+                advanceChainHistoryState(createChainHistoryState("arbitrum"), {
+                    data: {
+                        pagination: { page: "1", records: "10", pages: "4" },
+                        transactions: hashes(10, "arb"),
+                    },
+                })
+            );
 
-                expect(first.page).toBe(1);
-                expect(first.show).toBe(second.show);
-                expect(second.page).toBe(2);
-                expect(numberedPageRange("one-based", second.page, second.show).start).toBe(
-                    numberedPageRange("one-based", first.page, first.show).end
-                );
-            }
+            expect(first).toEqual({ page: 1, show: 10 });
+            expect(second).toEqual({ page: 2, show: 10 });
+            expect(numberedPageRange("one-based", second.page, second.show).start).toBe(10);
+        });
+    });
+
+    describe("optimism (fixed blocks of 50)", () => {
+        it("uses show=50 so Load more appends the next full block instead of skipping rows 10–49", () => {
+            // Prod pages in blocks of 50 and returns only the first `show` rows of each block.
+            // show=10 makes page 2 start at row 50. show=50 returns rows 0–49, then 50–99.
+            const state = createChainHistoryState("optimism");
+            const first = historyRequestFor(state);
+            const second = historyRequestFor(
+                advanceChainHistoryState(state, {
+                    data: {
+                        pagination: { page: "1", records: "50", show: "50" },
+                        transactions: hashes(50, "op"),
+                    },
+                })
+            );
+
+            expect(historyQueryParams(first)).toEqual({ page: 1, show: 50 });
+            expect(historyQueryParams(second)).toEqual({ page: 2, show: 50 });
+            expect(numberedPageRange("one-based", first.page, first.show)).toEqual({ start: 0, end: 50 });
+            expect(numberedPageRange("one-based", second.page, second.show)).toEqual({ start: 50, end: 100 });
+        });
+
+        it("hides Load more when the last block is shorter than 50", () => {
+            const done = advanceChainHistoryState(createChainHistoryState("optimism"), {
+                data: {
+                    pagination: { page: "3", records: "12", show: "50" },
+                    transactions: hashes(12, "op"),
+                },
+            });
+
+            expect(done.hasNextPage).toBeFalse();
+        });
+    });
+
+    describe("polygon (1-based; page 0 is the broken request)", () => {
+        it("starts at page 1 show 10 and continues at row 10", () => {
+            const state = createChainHistoryState("polygon");
+            const first = historyRequestFor(state);
+            const second = historyRequestFor(
+                advanceChainHistoryState(state, {
+                    data: {
+                        pagination: { page: "1", records: "10", show: "10" },
+                        transactions: hashes(10, "pol"),
+                    },
+                })
+            );
+
+            expect(historyQueryParams(first)).toEqual({ page: 1, show: 10 });
+            expect(historyQueryParams(second)).toEqual({ page: 2, show: 10 });
+            expect(numberedPageRange("one-based", second.page, second.show).start).toBe(10);
         });
     });
 
@@ -200,17 +247,6 @@ describe("transaction history pagination", () => {
             expect(done.hasNextPage).toBeFalse();
         });
 
-        it("treats Polygon's oversized page as the whole list", () => {
-            const done = advanceChainHistoryState(createChainHistoryState("polygon"), {
-                data: {
-                    pagination: { records: "1000", pages: "1", page: "0" },
-                    transactions: hashes(1000, "pol"),
-                },
-            });
-
-            expect(done.hasNextPage).toBeFalse();
-            expect(historyRequestFor(createChainHistoryState("polygon")).show).toBe(10);
-        });
     });
 
     describe("duplicates", () => {

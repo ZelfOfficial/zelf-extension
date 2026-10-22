@@ -6,8 +6,10 @@
  * - Ethereum is 1-based. RouteScan reads the query param `nextCursor` (not `cursor`) and,
  *   when that param is present, returns that page directly. Without it, `page=2` is the
  *   next window. Sending `cursor` while staying on page 1 repeats rows 0–9.
- * - Optimism and Arbitrum are 1-based. `page=0` is coerced to page 1, so a 0-based client
- *   fetches the same rows twice.
+ * - Arbitrum is 1-based. `page=0` is coerced to page 1, so a 0-based client fetches the same rows twice.
+ * - Optimism is 1-based and pages in fixed blocks of 50, then returns only the first `show` rows
+ *   of each block. `show=10` makes page 2 start at row 50 (rows 10–49 never appear). `show=50`
+ *   returns the whole block.
  * - Aptos, Sui and BlockDAG are 0-based (`offset = page * show`). Sui also accepts `cursor`
  *   and returns `pagination.nextCursor` / `hasNextPage`.
  * - Solana's RPC source ignores `page` and returns the newest `show` rows (v4 capped at 25).
@@ -18,7 +20,8 @@
  *   and the response has no `before_lt`.
  * - Avalanche's list endpoint returns `data` as an array. Prod fallbacks ignore `page`.
  *   The address screen asks for show=100, which is the most this client can get in one call.
- * - Polygon ignores `show` (page 0 returned ~1000 rows) and the next numbered page repeats.
+ * - Polygon is 1-based and pages at `show=10` (page 1 is rows 0–9, page 2 is rows 10–19).
+ *   Only `page=0` is wrong: it returns 1000 rows or 0 rows depending on the upstream.
  *
  * Chains that cannot page request the same window v4 already showed, then hide Load more.
  * Chains that can page keep one show value so the next page starts where the previous ended.
@@ -76,7 +79,7 @@ export interface HistoryPageSignals {
  */
 export const CHAIN_HISTORY_PROFILES: Record<string, ChainHistoryProfile> = {
     ethereum: { convention: "one-based", show: TRANSACTION_HISTORY_PAGE_SIZE, canPage: true, cursorParam: "nextCursor" },
-    optimism: { convention: "one-based", show: TRANSACTION_HISTORY_PAGE_SIZE, canPage: true },
+    optimism: { convention: "one-based", show: 50, canPage: true },
     arbitrum: { convention: "one-based", show: TRANSACTION_HISTORY_PAGE_SIZE, canPage: true },
     aptos: { convention: "zero-based", show: TRANSACTION_HISTORY_PAGE_SIZE, canPage: true },
     sui: { convention: "zero-based", show: TRANSACTION_HISTORY_PAGE_SIZE, canPage: true, cursorParam: "cursor" },
@@ -88,7 +91,7 @@ export const CHAIN_HISTORY_PROFILES: Record<string, ChainHistoryProfile> = {
     bitcoin: { convention: "window", show: UNPAGED_HISTORY_SHOW, canPage: false },
     ton: { convention: "window", show: UNPAGED_HISTORY_SHOW, canPage: false },
     avalanche: { convention: "window", show: 100, canPage: false },
-    polygon: { convention: "window", show: TRANSACTION_HISTORY_PAGE_SIZE, canPage: false },
+    polygon: { convention: "one-based", show: TRANSACTION_HISTORY_PAGE_SIZE, canPage: true },
 };
 
 const HISTORY_NETWORKS = new Set(Object.keys(CHAIN_HISTORY_PROFILES));
