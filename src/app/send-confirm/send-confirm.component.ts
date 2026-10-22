@@ -287,11 +287,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
 
         const canCoverTokenBalance = tokenBalance > 0 && sendAmount <= tokenBalance;
 
-        if (this.transactionData.network === "sui" && this.isNativeAsset) {
-            const balance = tokenAmount || tokenBalance;
-            if (this.feeError) return false;
-            if (balance > 0 && sendAmount <= balance && balance - sendAmount <= 0.05) return feeAmount > 0 && balance > feeAmount;
-        }
+        if (this.transactionData.network === "sui" && this.isNativeAsset && this.feeError) return false;
 
         if (this.isNativeAsset) {
             const canCoverTotal = sendAmount + feeAmount <= tokenAmount;
@@ -370,6 +366,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
                 tokenPrice: +this.transactionData.token.price || 0,
                 selectedFeeRate: this.selectedFeeRate,
                 senderAddress: this.transactionData.sender.address,
+                sendAll: this.transactionData.sendAll === true,
             };
 
             const feeEstimate: TransactionFeeEstimate = await this._blockchainTransactionsService.calculateTransactionFees(feeParams);
@@ -377,6 +374,11 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
             this.transactionData.fee = feeEstimate.fee;
             this.transactionData.fiatFee = feeEstimate.fiatFee;
             this.transactionData.total = feeEstimate.total;
+
+            if (feeEstimate.adjustedAmount) {
+                this.transactionData.amount = feeEstimate.adjustedAmount;
+                this.transactionData.sendAll = true;
+            }
 
             if (feeEstimate.networkPrice !== undefined) {
                 this.networkPrice = feeEstimate.networkPrice;
@@ -833,6 +835,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
             tokenAddress: this.transactionData.token?.address_token || this.transactionData.token?.tokenAddress,
             tokenDecimals: this.transactionData.token?.decimals,
             memo: this.transactionData.memo?.trim() || undefined,
+            sendAll: this.transactionData.sendAll === true,
         };
 
         // EVM networks need private key instead of mnemonic

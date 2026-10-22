@@ -82,9 +82,6 @@ export function sendScreenSuiTokenType(tokenType: string | null | undefined): st
     return type.includes("::") ? "SUI_TOKEN" : type;
 }
 
-/** Amounts within this of the SUI balance are sent as "max" (the gas coin, fee reserved). */
-export const SUI_NEAR_MAX_MIST = 50_000_000n;
-
 export function formatMistAsSui(mist: bigint): string {
     const negative = mist < 0n;
     const abs = negative ? -mist : mist;
@@ -95,8 +92,26 @@ export function formatMistAsSui(mist: bigint): string {
     return negative ? `-${text}` : text;
 }
 
-export function isNearMaxSuiSend(balanceMist: bigint, amountMist: bigint): boolean {
-    return amountMist <= balanceMist && balanceMist - amountMist <= SUI_NEAR_MAX_MIST;
+/** Net SUI burned by a dry-run (computation + storage - rebate). */
+export function netSuiFeeMist(gas: SuiGasSummary): bigint {
+    const computation = BigInt(gas.computationCost || "0");
+    const storage = BigInt(gas.storageCost || "0");
+    const rebate = BigInt(gas.storageRebate || "0");
+    const net = computation + storage - rebate;
+
+    return net > 0n ? net : 0n;
+}
+
+/**
+ * Send the whole balance only for an explicit Max/ALL, or when the typed amount
+ * is at least the balance minus the estimated fee. Otherwise the typed amount is exact.
+ * `deliveredMist` is balance - fee (what a gas-coin transfer pays the recipient).
+ */
+export function shouldSendEntireSuiBalance(amountMist: bigint, deliveredMist: bigint, sendAll: boolean): boolean {
+    if (deliveredMist <= 0n) return false;
+    if (sendAll) return true;
+
+    return amountMist >= deliveredMist;
 }
 
 export function insufficientSuiMessage(availableMist: bigint, requestedMist: bigint): string {

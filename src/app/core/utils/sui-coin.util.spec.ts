@@ -4,13 +4,14 @@ import {
     insufficientSuiMessage,
     isNativeSuiCoinType,
     isNativeSuiHolding,
-    isNearMaxSuiSend,
     isSuiSendTokenType,
     mistGasBudget,
     NATIVE_SUI_COIN_TYPE,
     resolveSuiTransferTarget,
     sendConfirmNetworkLabel,
     sendScreenSuiTokenType,
+    shouldSendEntireSuiBalance,
+    suiGasReserveMessage,
     suiGraphqlUrlFromLicenseNetwork,
 } from "./sui-coin.util";
 
@@ -71,13 +72,20 @@ describe("sui coin type", () => {
         expect(suiGraphqlUrlFromLicenseNetwork(null)).toBeNull();
     });
 
-    it("labels a Sui send as Sui and treats a near-max amount as send-all", () => {
+    it("labels a Sui send as Sui, and sends the whole balance only for Max or for the balance minus the fee", () => {
         expect(sendConfirmNetworkLabel("sui", "SUI_TOKEN")).toBe("Sui");
-        expect(sendConfirmNetworkLabel("sui", "0xabc::usdc::USDC")).toBe("Sui");
         expect(sendConfirmNetworkLabel("ethereum", "ETH")).toBe("ETH");
-        expect(isNearMaxSuiSend(797_281_600_000n, 797_270_000_000n)).toBeTrue();
-        expect(isNearMaxSuiSend(797_281_600_000n, 797_200_000_000n)).toBeFalse();
+
+        const balance = 797_281_600_000n;
+        const fee = 2_500_000n;
+        const delivered = balance - fee;
+
+        expect(shouldSendEntireSuiBalance(balance, delivered, true)).toBeTrue();
+        expect(shouldSendEntireSuiBalance(delivered, delivered, false)).toBeTrue();
+        expect(shouldSendEntireSuiBalance(797_250_000_000n, delivered, false)).toBeFalse();
+        expect(shouldSendEntireSuiBalance(balance - 10_000_000n, delivered, false)).toBeFalse();
         expect(insufficientSuiMessage(1_000_000_000n, 5_000_000_000n)).toContain("Available 1 SUI");
+        expect(suiGasReserveMessage(balance)).toContain("Not enough SUI left for the network fee");
     });
 
     it("sizes the gas budget from a dry-run", () => {

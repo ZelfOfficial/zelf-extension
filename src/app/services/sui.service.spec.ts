@@ -18,6 +18,7 @@ class MockSuiClient implements SuiSendClient {
     coins: Array<{ objectId: string; version: string; digest: string; balance: string }> = [];
     /** Pages after the first. The SDK stops once the requested balance is covered. */
     extraPages = 0;
+    computationCost = "1000000";
     dryRunError: string | null = null;
     readonly buildClient: { core: object };
 
@@ -69,7 +70,7 @@ class MockSuiClient implements SuiSendClient {
     simulate(transaction: Uint8Array) {
         this.calls.push({ method: "simulate", transaction });
 
-        return Promise.resolve({ computationCost: "1000000", storageCost: "2000000", storageRebate: "500000" });
+        return Promise.resolve({ computationCost: this.computationCost, storageCost: "2000000", storageRebate: "500000" });
     }
 
     execute(transaction: Uint8Array, signatures: string[]) {
@@ -179,16 +180,63 @@ describe("SuiService GraphQL sends", () => {
         expect(coinType).not.toBe("0xabc");
     });
 
-    it("sends near-max SUI as the gas coin so the fee stays reserved", async () => {
+    it("sends a typed amount exactly, even within 0.05 SUI of the balance", async () => {
         const client = new MockSuiClient();
         const balance = 797_281_600_000n;
         client.balance = balance.toString();
         client.addressBalance = balance.toString();
 
-        const result = await serviceWith(client).sendTransaction(send({ value: "797.27" }));
+        const result = await serviceWith(client).sendTransaction(send({ value: "797.25" }));
 
         expect(result.hash).toBe("mocked-digest");
-        expect(commandsOf(client)).toEqual(["TransferObjects"]);
+        expect(commandsOf(client)).toContain("MoveCall:redeem_funds");
+        expect(commandsOf(client)).not.toEqual(["TransferObjects"]);
+
+        const below = new MockSuiClient();
+        below.balance = balance.toString();
+        below.addressBalance = balance.toString();
+        await serviceWith(below).sendTransaction(send({ value: "797.2716" }));
+        expect(commandsOf(below)).not.toEqual(["TransferObjects"]);
+    });
+
+    it("sends the whole balance for Max/ALL and reports the amount after the fee", async () => {
+        const client = new MockSuiClient();
+        const balance = 797_281_600_000n;
+        client.balance = balance.toString();
+        client.addressBalance = balance.toString();
+        const sender = `0x${"22".repeat(32)}`;
+
+        const quote = await serviceWith(client).estimateSuiTransactionFee(RECIPIENT, 797.2816, sender, true);
+
+        expect(quote.adjustedAmount).toBe("797.2791");
+        expect(Number(quote.adjustedAmount)).toBeLessThan(797.2816);
+    });
+
+    it("sends the whole balance when the typed amount is the balance minus the fee, and not more than that amount", async () => {
+        const client = new MockSuiClient();
+        const balance = 10_000_000_000n;
+        client.balance = balance.toString();
+        client.addressBalance = balance.toString();
+        const sender = `0x${"22".repeat(32)}`;
+
+        const quote = await serviceWith(client).estimateSuiTransactionFee(RECIPIENT, 9.999, sender, false);
+
+        expect(quote.adjustedAmount).toBe("9.9975");
+        expect(Number(quote.adjustedAmount)).toBeLessThan(9.999);
+    });
+
+    it("rejects a typed amount the fee does not fit, without sending more than requested", async () => {
+        const client = new MockSuiClient();
+        client.balance = "1000000000";
+        client.addressBalance = client.balance;
+        client.computationCost = "2000000000";
+        const service = serviceWith(client);
+
+        await expectAsync(service.estimateSuiTransactionFee(RECIPIENT, 0.5, `0x${"22".repeat(32)}`)).toBeRejectedWithError(
+            /Not enough SUI left for the network fee/
+        );
+        await expectAsync(service.sendTransaction(send({ value: "0.5" }))).toBeRejectedWithError(/Not enough SUI left for the network fee/);
+        expect(client.calls.some((entry) => entry.method === "execute")).toBeFalse();
     });
 
     it("surfaces a dry-run failure instead of a fallback fee", async () => {

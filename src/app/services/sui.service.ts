@@ -3,11 +3,13 @@ import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 
 import {
+    formatMistAsSui,
     insufficientSuiMessage,
     isNativeSuiCoinType,
-    isNearMaxSuiSend,
     NATIVE_SUI_COIN_TYPE,
+    netSuiFeeMist,
     resolveSuiTransferTarget,
+    shouldSendEntireSuiBalance,
     SuiGasSummary,
     suiGasReserveMessage,
     suiGraphqlUrlFromLicenseNetwork,
@@ -22,6 +24,8 @@ import { GraphqlSuiTransport } from "./sui-graphql.transport";
 interface TransactionCostEstimate {
     estimatedFee: number;
     estimatedFeeUsd: number;
+    /** Set when a max SUI send pays balance minus the fee, so the confirm screen can show that amount. */
+    adjustedAmount?: string;
 }
 
 const SUI_DECIMALS = 9;
@@ -115,30 +119,84 @@ export class SuiService {
     }
 
     /**
-     * Native SUI. Near the full balance, send the gas coin so the SDK reserves the fee.
-     * Otherwise `coinWithBalance` spends coin objects and the address balance.
+     * Native SUI. An exact `coinWithBalance` is used unless the user chose Max/ALL,
+     * or the typed amount is at least the balance minus the estimated fee.
+     * The amount paid out is never higher than the amount this plan was given.
      */
-    private async _nativeTransaction(
+    private async _planNativeTransfer(
         sender: string,
         recipient: string,
         amount: number,
-        client: SuiSendClient
-    ): Promise<{ tx: Transaction; nearMaxBalance?: bigint }> {
+        client: SuiSendClient,
+        sendAll: boolean,
+        reportActualAmount: boolean
+    ): Promise<{ bytes: Uint8Array; gas: SuiGasSummary; sentMist: bigint; sendEntireBalance: boolean }> {
         const totals = await client.getBalance(sender, NATIVE_SUI_COIN_TYPE);
         const balance = BigInt(totals.balance || "0");
         const amountMist = this._toSmallest(amount, SUI_DECIMALS);
 
+        if (amountMist <= 0n) throw new Error("Amount must be greater than 0");
         if (amountMist > balance) throw new Error(insufficientSuiMessage(balance, amountMist));
 
-        const tx = new Transaction();
-        const nearMax = isNearMaxSuiSend(balance, amountMist);
+        const exact = new Transaction();
+        exact.setSender(sender);
+        exact.transferObjects([coinWithBalance({ balance: amountMist })], recipient);
 
-        tx.setSender(sender);
+        let exactError: unknown;
 
-        if (nearMax) tx.transferObjects([tx.gas], recipient);
-        else tx.transferObjects([coinWithBalance({ balance: amountMist })], recipient);
+        try {
+            const bytes = await this._build(exact, client);
+            const gas = await client.simulate(bytes);
+            const fee = netSuiFeeMist(gas);
 
-        return { tx, nearMaxBalance: nearMax ? balance : undefined };
+            if (amountMist + fee <= balance) return { bytes, gas, sentMist: amountMist, sendEntireBalance: false };
+        } catch (error) {
+            exactError = error;
+            const feeWouldFit = await this._feeFits(sender, recipient, balance, amountMist, client);
+
+            if (feeWouldFit) throw error;
+        }
+
+        const entire = new Transaction();
+        entire.setSender(sender);
+        entire.transferObjects([entire.gas], recipient);
+
+        let entireBytes: Uint8Array;
+        let entireGas: SuiGasSummary;
+
+        try {
+            entireBytes = await this._build(entire, client);
+            entireGas = await client.simulate(entireBytes);
+        } catch {
+            if (exactError) throw exactError;
+
+            throw new Error(suiGasReserveMessage(balance));
+        }
+
+        const fee = netSuiFeeMist(entireGas);
+        const delivered = balance > fee ? balance - fee : 0n;
+        const sendEntire = shouldSendEntireSuiBalance(amountMist, delivered, sendAll);
+        const withinShownAmount = delivered <= amountMist || (sendAll && reportActualAmount);
+
+        if (sendEntire && delivered > 0n && withinShownAmount) {
+            return { bytes: entireBytes, gas: entireGas, sentMist: delivered, sendEntireBalance: true };
+        }
+
+        throw new Error(suiGasReserveMessage(balance));
+    }
+
+    /** Dry-run the max transfer only to learn whether `amount + fee` still fits in the balance. */
+    private async _feeFits(sender: string, recipient: string, balance: bigint, amountMist: bigint, client: SuiSendClient): Promise<boolean> {
+        try {
+            const probe = new Transaction();
+            probe.setSender(sender);
+            probe.transferObjects([probe.gas], recipient);
+            const gas = await client.simulate(await this._build(probe, client));
+
+            return amountMist + netSuiFeeMist(gas) <= balance;
+        } catch {
+            return false;
+        }
     }
 
     private _coinTransaction(sender: string, recipient: string, coinType: string, amount: number, decimals: number): Transaction {
@@ -154,31 +212,25 @@ export class SuiService {
      * Signs on this device, then submits the signed bytes.
      * The mnemonic and keypair never leave this method.
      */
-    private async _signAndExecute(tx: Transaction, keypair: Ed25519Keypair, client: SuiSendClient, nearMaxBalance?: bigint): Promise<string> {
-        let bytes: Uint8Array;
-
-        try {
-            bytes = await this._build(tx, client);
-        } catch (error) {
-            if (nearMaxBalance !== undefined) throw new Error(suiGasReserveMessage(nearMaxBalance));
-
-            throw error;
-        }
-
+    private async _signBuilt(bytes: Uint8Array, keypair: Ed25519Keypair, client: SuiSendClient): Promise<string> {
         const { signature } = await keypair.signTransaction(bytes);
         const { digest } = await client.execute(bytes, [signature]);
 
         return digest;
     }
 
-    private async _transferSui(mnemonic: string, recipientAddress: string, amount?: number): Promise<string> {
+    private async _signAndExecute(tx: Transaction, keypair: Ed25519Keypair, client: SuiSendClient): Promise<string> {
+        return this._signBuilt(await this._build(tx, client), keypair, client);
+    }
+
+    private async _transferSui(mnemonic: string, recipientAddress: string, amount?: number, sendAll = false): Promise<string> {
         try {
             const keypair = this._keypair(mnemonic);
             const sender = keypair.getPublicKey().toSuiAddress();
             const client = await this._chain();
-            const { tx, nearMaxBalance } = await this._nativeTransaction(sender, recipientAddress, amount || 0, client);
+            const plan = await this._planNativeTransfer(sender, recipientAddress, amount || 0, client, sendAll, false);
 
-            return await this._signAndExecute(tx, keypair, client, nearMaxBalance);
+            return await this._signBuilt(plan.bytes, keypair, client);
         } catch (error: any) {
             console.error("Detailed error in SUI transfer:", {
                 error,
@@ -220,18 +272,12 @@ export class SuiService {
         }
     }
 
-    private async _estimatedFee(tx: Transaction, client: SuiSendClient, nearMaxBalance?: bigint): Promise<TransactionCostEstimate> {
-        let bytes: Uint8Array;
+    private _quote(plan: { gas: SuiGasSummary; sentMist: bigint; sendEntireBalance: boolean }): TransactionCostEstimate {
+        const quote = this._feeFromGas(plan.gas);
 
-        try {
-            bytes = await this._build(tx, client);
-        } catch (error) {
-            if (nearMaxBalance !== undefined) throw new Error(suiGasReserveMessage(nearMaxBalance));
+        if (plan.sendEntireBalance) quote.adjustedAmount = formatMistAsSui(plan.sentMist);
 
-            throw error;
-        }
-
-        return this._feeFromGas(await client.simulate(bytes));
+        return quote;
     }
 
     async calculateTransactionFees(
@@ -241,11 +287,12 @@ export class SuiService {
         tokenAddress: string | undefined,
         tokenDecimals: number | undefined,
         tokenPrice: number,
-        senderAddress?: string
+        senderAddress?: string,
+        sendAll = false
     ): Promise<TransactionFeeEstimate> {
         const native = tokenType === "SUI" || (tokenType !== "SUI_TOKEN" && (isNativeSuiCoinType(tokenType) || isNativeSuiCoinType(tokenAddress)));
         const feeEstimate = native
-            ? await this.estimateSuiTransactionFee(receiverAddress, amount, senderAddress)
+            ? await this.estimateSuiTransactionFee(receiverAddress, amount, senderAddress, sendAll)
             : await this.estimateTokenTransactionFee(receiverAddress, tokenAddress || "", amount, tokenDecimals || 9, senderAddress);
         const amountInUsd = amount * tokenPrice;
 
@@ -253,16 +300,22 @@ export class SuiService {
             fee: feeEstimate.estimatedFee,
             fiatFee: feeEstimate.estimatedFeeUsd,
             total: amountInUsd + feeEstimate.estimatedFeeUsd,
+            adjustedAmount: feeEstimate.adjustedAmount,
         };
     }
 
-    async estimateSuiTransactionFee(receiverAddress: string, amount: number, senderAddress?: string): Promise<TransactionCostEstimate> {
+    async estimateSuiTransactionFee(
+        receiverAddress: string,
+        amount: number,
+        senderAddress?: string,
+        sendAll = false
+    ): Promise<TransactionCostEstimate> {
         if (!senderAddress) throw new Error("Sender address is required to estimate a Sui fee");
 
         const client = await this._chain();
-        const { tx, nearMaxBalance } = await this._nativeTransaction(senderAddress, receiverAddress, amount, client);
+        const plan = await this._planNativeTransfer(senderAddress, receiverAddress, amount, client, sendAll, true);
 
-        return this._estimatedFee(tx, client, nearMaxBalance);
+        return this._quote(plan);
     }
 
     async estimateTokenTransactionFee(
@@ -278,8 +331,9 @@ export class SuiService {
 
         const client = await this._chain();
         const tx = this._coinTransaction(senderAddress, receiverAddress, target.coinType, amount, decimals);
+        const bytes = await this._build(tx, client);
 
-        return this._estimatedFee(tx, client);
+        return this._feeFromGas(await client.simulate(bytes));
     }
 
     async getSuiBalance(address: string): Promise<number> {
@@ -344,7 +398,7 @@ export class SuiService {
         const target = resolveSuiTransferTarget(params.tokenAddress);
         const hash =
             target.kind === "native"
-                ? await this._transferSui(params.mnemonic, params.to, parseFloat(params.value))
+                ? await this._transferSui(params.mnemonic, params.to, parseFloat(params.value), !!params.sendAll)
                 : await this._transferCoin(
                       params.mnemonic,
                       params.to,
