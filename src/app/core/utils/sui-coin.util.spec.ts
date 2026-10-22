@@ -1,12 +1,15 @@
 import { TransactionData } from "@shared/types/wallet.types";
 
 import {
+    insufficientSuiMessage,
     isNativeSuiCoinType,
     isNativeSuiHolding,
+    isNearMaxSuiSend,
     isSuiSendTokenType,
     mistGasBudget,
     NATIVE_SUI_COIN_TYPE,
     resolveSuiTransferTarget,
+    sendConfirmNetworkLabel,
     sendScreenSuiTokenType,
     suiGraphqlUrlFromLicenseNetwork,
 } from "./sui-coin.util";
@@ -66,6 +69,15 @@ describe("sui coin type", () => {
         expect(suiGraphqlUrlFromLicenseNetwork({ enabled: true, rpc: "https://fullnode.mainnet.sui.io:443" })).toBeNull();
         expect(suiGraphqlUrlFromLicenseNetwork({ enabled: true })).toBeNull();
         expect(suiGraphqlUrlFromLicenseNetwork(null)).toBeNull();
+    });
+
+    it("labels a Sui send as Sui and treats a near-max amount as send-all", () => {
+        expect(sendConfirmNetworkLabel("sui", "SUI_TOKEN")).toBe("Sui");
+        expect(sendConfirmNetworkLabel("sui", "0xabc::usdc::USDC")).toBe("Sui");
+        expect(sendConfirmNetworkLabel("ethereum", "ETH")).toBe("ETH");
+        expect(isNearMaxSuiSend(797_281_600_000n, 797_270_000_000n)).toBeTrue();
+        expect(isNearMaxSuiSend(797_281_600_000n, 797_200_000_000n)).toBeFalse();
+        expect(insufficientSuiMessage(1_000_000_000n, 5_000_000_000n)).toContain("Available 1 SUI");
     });
 
     it("sizes the gas budget from a dry-run", () => {

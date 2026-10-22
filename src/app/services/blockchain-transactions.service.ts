@@ -252,6 +252,8 @@ export class BlockchainTransactionsService {
         } catch (error) {
             console.error(`Error calculating fees for ${network}:`, error);
 
+            if (network.toLowerCase() === "sui") throw error;
+
             const amountInUsd = amount * (tokenPrice || 0);
 
             return {

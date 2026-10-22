@@ -1,10 +1,8 @@
 import { SuiGraphQLClient } from "@mysten/sui/graphql";
 
 import { NATIVE_SUI_COIN_TYPE, SuiGasSummary, suiNetworkFromGraphqlUrl } from "app/core/utils/sui-coin.util";
-import { SuiChainTransport, SuiCoinRef } from "./sui-chain.transport";
-
-const COIN_PAGE_LIMIT = 50;
-const MAX_COIN_PAGES = 20;
+import { SuiBalanceBreakdown, SuiSendClient } from "./sui-chain.transport";
+import { createCheckpointRetryFetch } from "./sui-graphql-fetch";
 
 type ExecutionStatus = { success?: boolean; error?: { message?: string } | null };
 type ExecutedTransaction = { digest?: string; status?: ExecutionStatus; effects?: { gasUsed?: SuiGasSummary } };
@@ -28,56 +26,32 @@ function assertExecuted(result: ExecutionResult, fallback: string): ExecutedTran
 }
 
 /**
- * Official Sui GraphQL transport (`SuiGraphQLClient`).
- * Used for coin selection, gas price, dry-run, and executing an already-signed transaction.
+ * Official Sui GraphQL client. Transaction building uses this client so the SDK
+ * selects coins, address balances, and gas. Checkpoint races retry, then fail over.
  */
-export class GraphqlSuiTransport implements SuiChainTransport {
-    private readonly _client: SuiGraphQLClient;
+export class GraphqlSuiTransport implements SuiSendClient {
+    readonly buildClient: SuiGraphQLClient;
 
-    constructor(url: string) {
-        this._client = new SuiGraphQLClient({
+    constructor(url: string, fallbackUrl?: string) {
+        this.buildClient = new SuiGraphQLClient({
             url,
             network: suiNetworkFromGraphqlUrl(url),
+            fetch: createCheckpointRetryFetch({ fallbackUrl }),
         });
     }
 
-    async listCoins(owner: string, coinType: string): Promise<SuiCoinRef[]> {
-        const coins: SuiCoinRef[] = [];
-        let cursor: string | null = null;
+    async getBalance(owner: string, coinType: string = NATIVE_SUI_COIN_TYPE): Promise<SuiBalanceBreakdown> {
+        const { balance } = await this.buildClient.getBalance({ owner, coinType });
 
-        for (let page = 0; page < MAX_COIN_PAGES; page++) {
-            const result = await this._client.listCoins({
-                owner,
-                coinType,
-                cursor,
-                limit: COIN_PAGE_LIMIT,
-            });
-
-            for (const coin of result.objects || []) {
-                coins.push({
-                    objectId: coin.objectId,
-                    version: String(coin.version),
-                    digest: coin.digest,
-                    balance: String(coin.balance ?? "0"),
-                });
-            }
-
-            if (!result.hasNextPage || !result.cursor || result.cursor === cursor) break;
-
-            cursor = result.cursor;
-        }
-
-        return coins;
-    }
-
-    async referenceGasPrice(): Promise<bigint> {
-        const { referenceGasPrice } = await this._client.getReferenceGasPrice();
-
-        return BigInt(referenceGasPrice);
+        return {
+            balance: balance?.balance || "0",
+            coinBalance: balance?.coinBalance || "0",
+            addressBalance: balance?.addressBalance || "0",
+        };
     }
 
     async simulate(transaction: Uint8Array): Promise<SuiGasSummary> {
-        const result = await this._client.simulateTransaction({
+        const result = await this.buildClient.simulateTransaction({
             transaction,
             include: { effects: true },
         });
@@ -94,7 +68,7 @@ export class GraphqlSuiTransport implements SuiChainTransport {
     }
 
     async execute(transaction: Uint8Array, signatures: string[]): Promise<{ digest: string }> {
-        const result = await this._client.executeTransaction({
+        const result = await this.buildClient.executeTransaction({
             transaction,
             signatures,
             include: { effects: true },
@@ -104,11 +78,5 @@ export class GraphqlSuiTransport implements SuiChainTransport {
         if (!tx.digest) throw new Error("Transaction failed");
 
         return { digest: tx.digest };
-    }
-
-    async getBalance(owner: string, coinType: string = NATIVE_SUI_COIN_TYPE): Promise<bigint> {
-        const { balance } = await this._client.getBalance({ owner, coinType });
-
-        return BigInt(balance?.balance || "0");
     }
 }

@@ -82,6 +82,38 @@ export function sendScreenSuiTokenType(tokenType: string | null | undefined): st
     return type.includes("::") ? "SUI_TOKEN" : type;
 }
 
+/** Amounts within this of the SUI balance are sent as "max" (the gas coin, fee reserved). */
+export const SUI_NEAR_MAX_MIST = 50_000_000n;
+
+export function formatMistAsSui(mist: bigint): string {
+    const negative = mist < 0n;
+    const abs = negative ? -mist : mist;
+    const whole = abs / 1_000_000_000n;
+    const frac = (abs % 1_000_000_000n).toString().padStart(9, "0").replace(/0+$/, "");
+    const text = frac ? `${whole}.${frac}` : `${whole.toString()}`;
+
+    return negative ? `-${text}` : text;
+}
+
+export function isNearMaxSuiSend(balanceMist: bigint, amountMist: bigint): boolean {
+    return amountMist <= balanceMist && balanceMist - amountMist <= SUI_NEAR_MAX_MIST;
+}
+
+export function insufficientSuiMessage(availableMist: bigint, requestedMist: bigint): string {
+    return `Not enough SUI. Available ${formatMistAsSui(availableMist)} SUI, requested ${formatMistAsSui(requestedMist)} SUI. The network fee is paid from this balance.`;
+}
+
+export function suiGasReserveMessage(availableMist: bigint): string {
+    return `Not enough SUI left for the network fee. Available ${formatMistAsSui(availableMist)} SUI. Leave enough SUI to pay gas, or send a smaller amount.`;
+}
+
+/** Network row on confirm. Sui coin types and SUI_TOKEN display as Sui. */
+export function sendConfirmNetworkLabel(network: string | null | undefined, tokenType: string | null | undefined): string {
+    if ((network || "").toLowerCase() === "sui") return "Sui";
+
+    return tokenType || "";
+}
+
 /** Gas budget (MIST) from a dry-run, with headroom so execution is not short. */
 export function mistGasBudget(gas: SuiGasSummary): bigint {
     const computation = BigInt(gas.computationCost || "0");

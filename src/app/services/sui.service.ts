@@ -1,20 +1,22 @@
 import { Injectable } from "@angular/core";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
-import { Transaction } from "@mysten/sui/transactions";
+import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 
 import {
+    insufficientSuiMessage,
     isNativeSuiCoinType,
-    mistGasBudget,
+    isNearMaxSuiSend,
     NATIVE_SUI_COIN_TYPE,
     resolveSuiTransferTarget,
     SuiGasSummary,
+    suiGasReserveMessage,
     suiGraphqlUrlFromLicenseNetwork,
 } from "app/core/utils/sui-coin.util";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { environment } from "environments/environment";
 import { LicenseNetworksService } from "./license-networks.service";
-import { SuiChainTransport, SuiCoinRef } from "./sui-chain.transport";
+import { SuiSendClient } from "./sui-chain.transport";
 import { GraphqlSuiTransport } from "./sui-graphql.transport";
 
 interface TransactionCostEstimate {
@@ -22,7 +24,6 @@ interface TransactionCostEstimate {
     estimatedFeeUsd: number;
 }
 
-const PROVISIONAL_GAS_BUDGET = 50_000_000n;
 const SUI_DECIMALS = 9;
 const FALLBACK_SUI_PRICE_USD = 2;
 
@@ -31,18 +32,18 @@ const FALLBACK_SUI_PRICE_USD = 2;
 })
 export class SuiService {
     private _baseUrl: string = environment.apiUrl;
-    /** Set by unit tests. Production builds the GraphQL transport from the license or environment URL. */
-    private _boundTransport: SuiChainTransport | null = null;
-    private _graphql: { url: string; transport: SuiChainTransport } | null = null;
+    /** Set by unit tests. Production uses SuiGraphQLClient. */
+    private _boundClient: SuiSendClient | null = null;
+    private _graphql: { url: string; client: SuiSendClient } | null = null;
 
     constructor(
         private _httpWrapper: HttpWrapperService,
         private _licenseNetworks: LicenseNetworksService
     ) {}
 
-    /** Unit tests inject a fake transport so no mainnet call is made. */
-    bindTransport(transport: SuiChainTransport): void {
-        this._boundTransport = transport;
+    /** Unit tests inject a fake client so no mainnet call is made. */
+    bindClient(client: SuiSendClient): void {
+        this._boundClient = client;
     }
 
     private _defaultResponse(): any {
@@ -62,27 +63,31 @@ export class SuiService {
         };
     }
 
-    private async _resolveGraphqlUrl(): Promise<string> {
+    private async _endpoints(): Promise<{ primary: string; fallback: string }> {
+        const pub = environment.suiRpc.mainnet;
+        let fromLicense = "";
+
         try {
             await this._licenseNetworks.ensureLoaded();
-            const fromLicense = suiGraphqlUrlFromLicenseNetwork(this._licenseNetworks.getNetworkEntry("sui"));
-            if (fromLicense) return fromLicense;
+            fromLicense = suiGraphqlUrlFromLicenseNetwork(this._licenseNetworks.getNetworkEntry("sui")) || "";
         } catch (error) {
             console.warn("Sui GraphQL URL from domain license unavailable:", error);
         }
 
-        return environment.suiRpc.mainnet;
+        if (fromLicense && fromLicense !== pub) return { primary: fromLicense, fallback: pub };
+
+        return { primary: pub, fallback: fromLicense && fromLicense !== pub ? fromLicense : "" };
     }
 
-    private async _chain(): Promise<SuiChainTransport> {
-        if (this._boundTransport) return this._boundTransport;
+    private async _chain(): Promise<SuiSendClient> {
+        if (this._boundClient) return this._boundClient;
 
-        const url = await this._resolveGraphqlUrl();
-        if (!this._graphql || this._graphql.url !== url) {
-            this._graphql = { url, transport: new GraphqlSuiTransport(url) };
+        const { primary, fallback } = await this._endpoints();
+        if (!this._graphql || this._graphql.url !== primary) {
+            this._graphql = { url: primary, client: new GraphqlSuiTransport(primary, fallback) };
         }
 
-        return this._graphql.transport;
+        return this._graphql.client;
     }
 
     private _keypair(mnemonic: string): Ed25519Keypair {
@@ -105,79 +110,63 @@ export class SuiService {
         };
     }
 
-    private async _attachGas(tx: Transaction, sender: string, transport: SuiChainTransport): Promise<void> {
-        tx.setSender(sender);
-        tx.setGasPrice(await transport.referenceGasPrice());
-
-        const gasCoins = await transport.listCoins(sender, NATIVE_SUI_COIN_TYPE);
-        if (!gasCoins.length) throw new Error("No SUI coins available to pay gas");
-
-        tx.setGasPayment(
-            gasCoins.map((coin) => ({
-                objectId: coin.objectId,
-                version: coin.version,
-                digest: coin.digest,
-            }))
-        );
-        tx.setGasBudget(PROVISIONAL_GAS_BUDGET);
-    }
-
-    private _nativeTransaction(recipient: string, amount: number): Transaction {
-        const tx = new Transaction();
-        const [coin] = tx.splitCoins(tx.gas, [this._toSmallest(amount, SUI_DECIMALS)]);
-
-        tx.transferObjects([coin], recipient);
-
-        return tx;
-    }
-
-    private _coinTransaction(recipient: string, amount: number, decimals: number, coins: SuiCoinRef[]): Transaction {
-        const amountSmall = this._toSmallest(amount, decimals);
-        let total = 0n;
-
-        for (const coin of coins) total += BigInt(coin.balance || "0");
-
-        if (total < amountSmall) {
-            const available = Number(total) / 10 ** decimals;
-
-            throw new Error(`Insufficient total balance. Available: ${available}, Required: ${amount}`);
-        }
-
-        const tx = new Transaction();
-        const refs = coins.map((coin) =>
-            tx.objectRef({
-                objectId: coin.objectId,
-                version: coin.version,
-                digest: coin.digest,
-            })
-        );
-        const primary = refs[0];
-
-        if (refs.length > 1) tx.mergeCoins(primary, refs.slice(1));
-
-        const [sendCoin] = tx.splitCoins(primary, [amountSmall]);
-
-        tx.transferObjects([sendCoin], recipient);
-
-        return tx;
-    }
-
-    private async _dryRun(tx: Transaction, transport: SuiChainTransport): Promise<SuiGasSummary> {
-        return transport.simulate(await tx.build());
+    private async _build(tx: Transaction, client: SuiSendClient): Promise<Uint8Array> {
+        return tx.build({ client: client.buildClient as never });
     }
 
     /**
-     * Signs on this device, then asks the transport to execute the signed bytes.
+     * Native SUI. Near the full balance, send the gas coin so the SDK reserves the fee.
+     * Otherwise `coinWithBalance` spends coin objects and the address balance.
+     */
+    private async _nativeTransaction(
+        sender: string,
+        recipient: string,
+        amount: number,
+        client: SuiSendClient
+    ): Promise<{ tx: Transaction; nearMaxBalance?: bigint }> {
+        const totals = await client.getBalance(sender, NATIVE_SUI_COIN_TYPE);
+        const balance = BigInt(totals.balance || "0");
+        const amountMist = this._toSmallest(amount, SUI_DECIMALS);
+
+        if (amountMist > balance) throw new Error(insufficientSuiMessage(balance, amountMist));
+
+        const tx = new Transaction();
+        const nearMax = isNearMaxSuiSend(balance, amountMist);
+
+        tx.setSender(sender);
+
+        if (nearMax) tx.transferObjects([tx.gas], recipient);
+        else tx.transferObjects([coinWithBalance({ balance: amountMist })], recipient);
+
+        return { tx, nearMaxBalance: nearMax ? balance : undefined };
+    }
+
+    private _coinTransaction(sender: string, recipient: string, coinType: string, amount: number, decimals: number): Transaction {
+        const tx = new Transaction();
+
+        tx.setSender(sender);
+        tx.transferObjects([coinWithBalance({ type: coinType, balance: this._toSmallest(amount, decimals), useGasCoin: false })], recipient);
+
+        return tx;
+    }
+
+    /**
+     * Signs on this device, then submits the signed bytes.
      * The mnemonic and keypair never leave this method.
      */
-    private async _signAndExecute(tx: Transaction, keypair: Ed25519Keypair, transport: SuiChainTransport): Promise<string> {
-        const simulated = await this._dryRun(tx, transport);
+    private async _signAndExecute(tx: Transaction, keypair: Ed25519Keypair, client: SuiSendClient, nearMaxBalance?: bigint): Promise<string> {
+        let bytes: Uint8Array;
 
-        tx.setGasBudget(mistGasBudget(simulated));
+        try {
+            bytes = await this._build(tx, client);
+        } catch (error) {
+            if (nearMaxBalance !== undefined) throw new Error(suiGasReserveMessage(nearMaxBalance));
 
-        const bytes = await tx.build();
+            throw error;
+        }
+
         const { signature } = await keypair.signTransaction(bytes);
-        const { digest } = await transport.execute(bytes, [signature]);
+        const { digest } = await client.execute(bytes, [signature]);
 
         return digest;
     }
@@ -186,12 +175,10 @@ export class SuiService {
         try {
             const keypair = this._keypair(mnemonic);
             const sender = keypair.getPublicKey().toSuiAddress();
-            const transport = await this._chain();
-            const tx = this._nativeTransaction(recipientAddress, amount || 0);
+            const client = await this._chain();
+            const { tx, nearMaxBalance } = await this._nativeTransaction(sender, recipientAddress, amount || 0, client);
 
-            await this._attachGas(tx, sender, transport);
-
-            return await this._signAndExecute(tx, keypair, transport);
+            return await this._signAndExecute(tx, keypair, client, nearMaxBalance);
         } catch (error: any) {
             console.error("Detailed error in SUI transfer:", {
                 error,
@@ -222,21 +209,29 @@ export class SuiService {
                 throw new Error(`Insufficient token balance. Available: ${tokenInfo.amount || 0}, Required: ${amount}`);
             }
 
-            const transport = await this._chain();
-            const coins = await transport.listCoins(sender, coinType);
+            const client = await this._chain();
+            const tx = this._coinTransaction(sender, recipientAddress, coinType, amount, decimals);
 
-            if (!coins.length) throw new Error(`No coins found in wallet for type: ${coinType}`);
-
-            const tx = this._coinTransaction(recipientAddress, amount, decimals, coins);
-
-            await this._attachGas(tx, sender, transport);
-
-            return await this._signAndExecute(tx, keypair, transport);
+            return await this._signAndExecute(tx, keypair, client);
         } catch (error: any) {
             console.error("Error in token transfer:", error);
 
             throw error;
         }
+    }
+
+    private async _estimatedFee(tx: Transaction, client: SuiSendClient, nearMaxBalance?: bigint): Promise<TransactionCostEstimate> {
+        let bytes: Uint8Array;
+
+        try {
+            bytes = await this._build(tx, client);
+        } catch (error) {
+            if (nearMaxBalance !== undefined) throw new Error(suiGasReserveMessage(nearMaxBalance));
+
+            throw error;
+        }
+
+        return this._feeFromGas(await client.simulate(bytes));
     }
 
     async calculateTransactionFees(
@@ -262,23 +257,12 @@ export class SuiService {
     }
 
     async estimateSuiTransactionFee(receiverAddress: string, amount: number, senderAddress?: string): Promise<TransactionCostEstimate> {
-        try {
-            if (!senderAddress) throw new Error("Sender address is required to estimate a Sui fee");
+        if (!senderAddress) throw new Error("Sender address is required to estimate a Sui fee");
 
-            const transport = await this._chain();
-            const tx = this._nativeTransaction(receiverAddress, amount);
+        const client = await this._chain();
+        const { tx, nearMaxBalance } = await this._nativeTransaction(senderAddress, receiverAddress, amount, client);
 
-            await this._attachGas(tx, senderAddress, transport);
-
-            return this._feeFromGas(await this._dryRun(tx, transport));
-        } catch (error) {
-            console.error("Error estimating SUI transaction fee:", error);
-
-            return {
-                estimatedFee: 0.001,
-                estimatedFeeUsd: 0.002,
-            };
-        }
+        return this._estimatedFee(tx, client, nearMaxBalance);
     }
 
     async estimateTokenTransactionFee(
@@ -288,36 +272,22 @@ export class SuiService {
         decimals: number = 9,
         senderAddress?: string
     ): Promise<TransactionCostEstimate> {
-        try {
-            const target = resolveSuiTransferTarget(contractAddress);
-            if (target.kind === "native") return this.estimateSuiTransactionFee(receiverAddress, amount, senderAddress);
-            if (!senderAddress) throw new Error("Sender address is required to estimate a Sui token fee");
+        const target = resolveSuiTransferTarget(contractAddress);
+        if (target.kind === "native") return this.estimateSuiTransactionFee(receiverAddress, amount, senderAddress);
+        if (!senderAddress) throw new Error("Sender address is required to estimate a Sui token fee");
 
-            const transport = await this._chain();
-            const coins = await transport.listCoins(senderAddress, target.coinType);
-            if (!coins.length) throw new Error(`No coins found in wallet for type: ${target.coinType}`);
+        const client = await this._chain();
+        const tx = this._coinTransaction(senderAddress, receiverAddress, target.coinType, amount, decimals);
 
-            const tx = this._coinTransaction(receiverAddress, amount, decimals, coins);
-
-            await this._attachGas(tx, senderAddress, transport);
-
-            return this._feeFromGas(await this._dryRun(tx, transport));
-        } catch (error) {
-            console.error("Error estimating token transaction fee:", error);
-
-            return {
-                estimatedFee: 0.002,
-                estimatedFeeUsd: 0.004,
-            };
-        }
+        return this._estimatedFee(tx, client);
     }
 
     async getSuiBalance(address: string): Promise<number> {
         try {
-            const transport = await this._chain();
-            const balance = await transport.getBalance(address, NATIVE_SUI_COIN_TYPE);
+            const client = await this._chain();
+            const balance = await client.getBalance(address, NATIVE_SUI_COIN_TYPE);
 
-            return Number(balance) / 1_000_000_000;
+            return Number(balance.balance) / 1_000_000_000;
         } catch (error) {
             console.error("Error getting SUI balance:", error);
 

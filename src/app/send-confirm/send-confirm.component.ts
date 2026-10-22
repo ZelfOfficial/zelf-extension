@@ -14,7 +14,7 @@ import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { AssetService } from "app/asset.service";
 import { ChromeService } from "app/chrome.service";
 import { areSendAddressesSame } from "app/core/utils/same-wallet-address.util";
-import { isNativeSuiHolding } from "app/core/utils/sui-coin.util";
+import { isNativeSuiHolding, sendConfirmNetworkLabel } from "app/core/utils/sui-coin.util";
 import { mapTransactionErrorToTranslationKey } from "app/core/utils/user-facing-transaction-error.util";
 import { FeeCalculationParams, TransactionFeeEstimate, TransactionParams, TransactionResult } from "app/core/models/transaction-fee.model";
 import { AddressMaskPipe } from "app/pipes/address-mask.pipe";
@@ -110,6 +110,8 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
     isStealthMode: boolean = false;
     /** Stellar fee preview (native + classic) for confirm UI. */
     stellarFeeBreakdown: StellarFeeBreakdown | null = null;
+    /** Dry-run / fee estimate failed. Confirm stays disabled and the chain error is shown. */
+    feeError: string | null = null;
 
 
 
@@ -285,6 +287,12 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
 
         const canCoverTokenBalance = tokenBalance > 0 && sendAmount <= tokenBalance;
 
+        if (this.transactionData.network === "sui" && this.isNativeAsset) {
+            const balance = tokenAmount || tokenBalance;
+            if (this.feeError) return false;
+            if (balance > 0 && sendAmount <= balance && balance - sendAmount <= 0.05) return feeAmount > 0 && balance > feeAmount;
+        }
+
         if (this.isNativeAsset) {
             const canCoverTotal = sendAmount + feeAmount <= tokenAmount;
             return canCoverTokenBalance && canCoverTotal;
@@ -311,6 +319,11 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
         return this._networkService.getNetworkSymbol(this.transactionData.network as NetworkName);
     }
 
+    /** Network row. Sui coin types display as Sui, not SUI_TOKEN. */
+    get networkLabel(): string {
+        return sendConfirmNetworkLabel(this.transactionData.network, this.transactionData.tokenType);
+    }
+
     get total(): number {
         return this.fiatPrice + this.fiatFeePrice || 0;
     }
@@ -322,6 +335,8 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
     }
 
     private async _calculateTransactionFee(): Promise<void> {
+        this.feeError = null;
+
         try {
             const normalizedAmount = Number(String(this.transactionData.amount || "0").replace(",", "."));
             const tokenSymbol = this.transactionData.token?.symbol;
@@ -375,6 +390,11 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
             console.error("Error calculating transaction fee:", error);
             if (this.transactionData?.network === "stellar") {
                 this.stellarFeeBreakdown = null;
+            }
+            if (this.transactionData?.network === "sui") {
+                this.feeError = error instanceof Error && error.message ? error.message : "Sui fee estimate failed";
+                this.transactionData.fee = 0;
+                this.transactionData.fiatFee = 0;
             }
         }
     }
@@ -673,7 +693,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
     }
 
     async confirmTransaction() {
-        if (this.sending) return;
+        if (this.sending || this.feeError) return;
 
         // #88 signing rule: see core/security/signing-gate.util.ts.
         const gate = resolveSigningGate(await this._signingGateInput());

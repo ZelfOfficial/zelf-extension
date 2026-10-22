@@ -3,36 +3,67 @@ import { Transaction } from "@mysten/sui/transactions";
 
 import { NATIVE_SUI_COIN_TYPE } from "app/core/utils/sui-coin.util";
 import { TransactionParams } from "app/core/models/transaction-fee.model";
-import { SuiChainTransport, SuiCoinRef } from "./sui-chain.transport";
+import { SuiBalanceBreakdown, SuiSendClient } from "./sui-chain.transport";
 import { SuiService } from "./sui.service";
 
 const MNEMONIC = "test test test test test test test test test test test junk";
 const RECIPIENT = `0x${"11".repeat(32)}`;
 const DIGEST = "US517G5965aydkZ46HS38QLi7UQiSojurfbQfKCELFx";
 
-function coin(byte: string, balance: string): SuiCoinRef {
-    return {
-        objectId: `0x${byte.repeat(32)}`,
-        version: "1",
-        digest: DIGEST,
-        balance,
-    };
-}
-
-class MockSuiTransport implements SuiChainTransport {
+class MockSuiClient implements SuiSendClient {
     calls: Array<Record<string, unknown>> = [];
-    readonly coins = new Map<string, SuiCoinRef[]>();
+    balance = "0";
+    coinBalance = "0";
+    addressBalance = "0";
+    coins: Array<{ objectId: string; version: string; digest: string; balance: string }> = [];
+    /** Pages after the first. The SDK stops once the requested balance is covered. */
+    extraPages = 0;
+    dryRunError: string | null = null;
+    readonly buildClient: { core: object };
 
-    listCoins(owner: string, coinType: string): Promise<SuiCoinRef[]> {
-        this.calls.push({ method: "listCoins", owner, coinType });
+    constructor() {
+        const self = this;
 
-        return Promise.resolve(this.coins.get(coinType) || []);
+        this.buildClient = {
+            core: {
+                getBalance: async ({ owner, coinType }: { owner: string; coinType: string }) => {
+                    const breakdown = await self.getBalance(owner, coinType);
+
+                    return { balance: breakdown };
+                },
+                listCoins: async ({ owner, coinType, cursor }: { owner: string; coinType: string; cursor?: string | null }) => {
+                    const page = self.calls.filter((entry) => entry.method === "listCoins").length;
+
+                    self.calls.push({ method: "listCoins", owner, coinType, cursor: cursor ?? null });
+
+                    return {
+                        objects: page === 0 ? self.coins : [],
+                        hasNextPage: page < self.extraPages,
+                        cursor: page < self.extraPages ? `cursor-${page + 1}` : null,
+                    };
+                },
+                resolveTransactionPlugin: () => async (transactionData: any, _options: unknown, next: () => Promise<void>) => {
+                    self.calls.push({ method: "resolve" });
+                    if (self.dryRunError) throw new Error(self.dryRunError);
+
+                    transactionData.gasData.budget ??= "2000000";
+                    transactionData.gasData.price ??= "1000";
+                    transactionData.gasData.owner ??= transactionData.sender;
+                    transactionData.gasData.payment ??= [{ objectId: `0x${"aa".repeat(32)}`, version: "1", digest: DIGEST }];
+                    await next();
+                },
+            },
+        };
     }
 
-    referenceGasPrice(): Promise<bigint> {
-        this.calls.push({ method: "referenceGasPrice" });
+    getBalance(owner: string, coinType: string): Promise<SuiBalanceBreakdown> {
+        this.calls.push({ method: "getBalance", owner, coinType });
 
-        return Promise.resolve(1000n);
+        return Promise.resolve({
+            balance: this.balance,
+            coinBalance: this.coinBalance,
+            addressBalance: this.addressBalance,
+        });
     }
 
     simulate(transaction: Uint8Array) {
@@ -46,114 +77,130 @@ class MockSuiTransport implements SuiChainTransport {
 
         return Promise.resolve({ digest: "mocked-digest" });
     }
-
-    getBalance(): Promise<bigint> {
-        return Promise.resolve(0n);
-    }
 }
 
-function serviceWith(transport: MockSuiTransport, holdings?: { address_token: string; decimals: number; amount: number }): SuiService {
+function serviceWith(client: MockSuiClient, holdings?: { address_token: string; decimals: number; amount: number }): SuiService {
     const http = {
         sendRequest: () =>
             Promise.resolve({
-                data: {
-                    tokenHoldings: {
-                        tokens: holdings ? [holdings] : [],
-                    },
-                },
+                data: { tokenHoldings: { tokens: holdings ? [holdings] : [] } },
             }),
     };
-    const license = {
-        ensureLoaded: () => Promise.resolve(null),
-        getNetworkEntry: () => null,
-    };
+    const license = { ensureLoaded: () => Promise.resolve(null), getNetworkEntry: () => null };
     const service = new SuiService(http as any, license as any);
 
-    service.bindTransport(transport);
+    service.bindClient(client);
 
     return service;
 }
 
 function send(partial: Partial<TransactionParams>): TransactionParams {
-    return {
-        from: "",
-        to: RECIPIENT,
-        value: "1",
-        network: "sui",
-        mnemonic: MNEMONIC,
-        ...partial,
-    };
+    return { from: "", to: RECIPIENT, value: "1", network: "sui", mnemonic: MNEMONIC, ...partial };
 }
 
-function executed(transport: MockSuiTransport): { transaction: Uint8Array; signatures: string[] } {
-    const call = transport.calls.find((entry) => entry.method === "execute") as { transaction: Uint8Array; signatures: string[] };
+function commandsOf(client: MockSuiClient): string[] {
+    const call = client.calls.find((entry) => entry.method === "execute") as { transaction: Uint8Array };
 
-    return call;
+    return Transaction.from(call.transaction)
+        .getData()
+        .commands.map((command) => (command.$kind === "MoveCall" ? `MoveCall:${command.MoveCall.function}` : command.$kind));
 }
 
 describe("SuiService GraphQL sends", () => {
-    it("sends native SUI by splitting the gas coin and executing a locally signed transaction", async () => {
-        const transport = new MockSuiTransport();
-        transport.coins.set(NATIVE_SUI_COIN_TYPE, [coin("aa", "5000000000")]);
+    it("spends an address balance for native SUI instead of only coin objects", async () => {
+        const client = new MockSuiClient();
+        client.addressBalance = `${11_287n * 1_000_000_000n}`;
+        client.coinBalance = `${1_000_000_000n}`;
+        client.balance = `${11_288n * 1_000_000_000n}`;
         const owner = Ed25519Keypair.deriveKeypair(MNEMONIC).getPublicKey().toSuiAddress();
 
-        const result = await serviceWith(transport).sendTransaction(send({}));
+        const result = await serviceWith(client).sendTransaction(send({ value: "5" }));
 
         expect(result).toEqual({ hash: "mocked-digest", status: "pending" });
-
-        const coinTypes = transport.calls.filter((entry) => entry.method === "listCoins").map((entry) => entry.coinType);
-        expect(coinTypes).toEqual([NATIVE_SUI_COIN_TYPE]);
-        expect(transport.calls.find((entry) => entry.method === "listCoins")?.["owner"]).toBe(owner);
-
-        const exec = executed(transport);
-        expect(exec.signatures.length).toBe(1);
-        expect(exec.signatures[0].length).toBeGreaterThan(20);
-        expect(Transaction.from(exec.transaction).getData().commands.map((command) => command.$kind)).toEqual(["SplitCoins", "TransferObjects"]);
-        expect(JSON.stringify(transport.calls)).not.toContain(MNEMONIC);
-        expect(transport.calls.some((entry) => entry.method === "simulate")).toBeTrue();
-        expect(transport.calls.some((entry) => entry.method === "referenceGasPrice")).toBeTrue();
+        expect(client.calls.some((entry) => entry.method === "listCoins")).toBeFalse();
+        expect(client.calls.find((entry) => entry.method === "getBalance")?.["owner"]).toBe(owner);
+        expect(commandsOf(client)).toContain("MoveCall:redeem_funds");
+        expect(commandsOf(client)).not.toContain("MergeCoins");
+        expect(JSON.stringify(client.calls)).not.toContain(MNEMONIC);
     });
 
-    it("sends a non-native coin by merging and splitting that coin type", async () => {
-        const transport = new MockSuiTransport();
-        const coinType = "0xabc::usdc::USDC";
-        transport.coins.set(coinType, [coin("bb", "1000000"), coin("cc", "2000000")]);
-        transport.coins.set(NATIVE_SUI_COIN_TYPE, [coin("aa", "5000000000")]);
+    it("spends a non-native coin that exists only as an address balance", async () => {
+        const client = new MockSuiClient();
+        const coinType = "0xabc::spam::SUI";
+        client.addressBalance = "5000000";
+        client.coinBalance = "0";
+        client.balance = "5000000";
+        client.extraPages = 20;
 
-        const result = await serviceWith(transport, { address_token: coinType, decimals: 6, amount: 10 }).sendTransaction(
+        const result = await serviceWith(client, { address_token: coinType, decimals: 6, amount: 10 }).sendTransaction(
             send({ value: "1.5", tokenAddress: coinType, tokenDecimals: 6 })
         );
 
         expect(result.hash).toBe("mocked-digest");
-
-        const coinTypes = transport.calls.filter((entry) => entry.method === "listCoins").map((entry) => entry.coinType);
-        expect(coinTypes).toEqual([coinType, NATIVE_SUI_COIN_TYPE]);
-        expect(coinTypes.some((type) => `${type}`.endsWith("::coin::COIN"))).toBeFalse();
-        expect(Transaction.from(executed(transport).transaction).getData().commands.map((command) => command.$kind)).toEqual([
-            "MergeCoins",
-            "SplitCoins",
-            "TransferObjects",
-        ]);
-        expect(JSON.stringify(transport.calls)).not.toContain(MNEMONIC);
+        expect(client.calls.filter((entry) => entry.method === "listCoins").length).toBe(1);
+        expect(String(client.calls.find((entry) => entry.method === "listCoins")?.["coinType"]).toLowerCase()).toContain("::spam::sui");
+        expect(commandsOf(client)).toContain("MoveCall:redeem_funds");
+        expect(commandsOf(client)).not.toContain("MergeCoins");
+        expect(JSON.stringify(client.calls)).not.toContain(MNEMONIC);
     });
 
-    it("appends ::coin::COIN for a legacy address_token that is not a coin type", async () => {
-        const transport = new MockSuiTransport();
-        const legacy = "0xabc";
-        transport.coins.set("0xabc::coin::COIN", [coin("dd", "5000000")]);
-        transport.coins.set(NATIVE_SUI_COIN_TYPE, [coin("aa", "5000000000")]);
+    it("does not page in every coin object when the first page covers the amount", async () => {
+        const client = new MockSuiClient();
+        const coinType = "0xabc::usdc::USDC";
+        client.addressBalance = "0";
+        client.coinBalance = "10000000000";
+        client.balance = "10000000000";
+        client.extraPages = 20;
+        client.coins = [
+            { objectId: `0x${"bb".repeat(32)}`, version: "1", digest: DIGEST, balance: "4000000" },
+            { objectId: `0x${"cc".repeat(32)}`, version: "1", digest: DIGEST, balance: "4000000" },
+        ];
 
-        const result = await serviceWith(transport, { address_token: legacy, decimals: 6, amount: 10 }).sendTransaction(
-            send({ tokenAddress: legacy, tokenDecimals: 6 })
+        await serviceWith(client, { address_token: coinType, decimals: 6, amount: 10 }).sendTransaction(
+            send({ value: "1", tokenAddress: coinType, tokenDecimals: 6 })
         );
 
-        expect(result.hash).toBe("mocked-digest");
+        expect(client.calls.filter((entry) => entry.method === "listCoins").length).toBe(1);
+        expect(commandsOf(client).filter((kind) => kind === "MergeCoins").length).toBe(1);
+    });
 
-        const coinTypes = transport.calls.filter((entry) => entry.method === "listCoins").map((entry) => entry.coinType);
-        expect(coinTypes[0]).toBe("0xabc::coin::COIN");
-        expect(Transaction.from(executed(transport).transaction).getData().commands.map((command) => command.$kind)).toEqual([
-            "SplitCoins",
-            "TransferObjects",
-        ]);
+    it("keeps the legacy ::coin::COIN suffix", async () => {
+        const client = new MockSuiClient();
+        client.addressBalance = "5000000";
+        client.balance = "5000000";
+
+        await serviceWith(client, { address_token: "0xabc", decimals: 6, amount: 10 }).sendTransaction(
+            send({ tokenAddress: "0xabc", tokenDecimals: 6 })
+        );
+
+        const coinType = String(client.calls.find((entry) => entry.method === "getBalance")?.["coinType"]);
+
+        expect(coinType.endsWith("::coin::COIN")).toBeTrue();
+        expect(coinType).not.toBe("0xabc");
+    });
+
+    it("sends near-max SUI as the gas coin so the fee stays reserved", async () => {
+        const client = new MockSuiClient();
+        const balance = 797_281_600_000n;
+        client.balance = balance.toString();
+        client.addressBalance = balance.toString();
+
+        const result = await serviceWith(client).sendTransaction(send({ value: "797.27" }));
+
+        expect(result.hash).toBe("mocked-digest");
+        expect(commandsOf(client)).toEqual(["TransferObjects"]);
+    });
+
+    it("surfaces a dry-run failure instead of a fallback fee", async () => {
+        const client = new MockSuiClient();
+        client.balance = `${11_288n * 1_000_000_000n}`;
+        client.addressBalance = client.balance;
+        client.dryRunError = "Insufficient coin balance";
+        const service = serviceWith(client);
+
+        await expectAsync(service.estimateSuiTransactionFee(RECIPIENT, 5, `0x${"22".repeat(32)}`)).toBeRejectedWithError(/Insufficient coin balance/);
+        await expectAsync(service.sendTransaction(send({ value: "5" }))).toBeRejectedWithError(/Insufficient coin balance/);
+        expect(client.calls.some((entry) => entry.method === "execute")).toBeFalse();
+        expect(client.calls.some((entry) => entry.method === "simulate")).toBeFalse();
     });
 });
