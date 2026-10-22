@@ -47,10 +47,11 @@ export const environment = {
     stellarRpc: {
         mainnet: "https://compatible-skilled-dew.stellar-mainnet.quiknode.pro/817e4f1a5f57dfe63d5fab4ed729c8afcbd87363",
     },
+    /** Sui GraphQL. The public fullnode JSON-RPC endpoint is retired. A domain license may override this. */
     suiRpc: {
-        mainnet: "https://fullnode.mainnet.sui.io:443",
-        testnet: "https://fullnode.testnet.sui.io:443",
-        devnet: "https://fullnode.devnet.sui.io:443",
+        mainnet: "https://graphql.mainnet.sui.io/graphql",
+        testnet: "https://graphql.testnet.sui.io/graphql",
+        devnet: "https://graphql.devnet.sui.io/graphql",
     },
     tonRpc: {
         mainnet: "https://toncenter.com/api/v2/jsonRPC",

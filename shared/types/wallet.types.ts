@@ -1056,7 +1056,9 @@ export class TransactionData implements TransactionData {
     }
 
     get isSuiToken(): boolean {
-        return this.tokenType === "SUI" || this.tokenType === "SUI_TOKEN";
+        const type = this.tokenType;
+
+        return this.network === "sui" || type === "SUI" || type === "SUI_TOKEN" || type.includes("::");
     }
 
     get isAptToken(): boolean {

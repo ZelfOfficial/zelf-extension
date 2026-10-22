@@ -14,6 +14,7 @@ import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { AssetService } from "app/asset.service";
 import { ChromeService } from "app/chrome.service";
 import { areSendAddressesSame } from "app/core/utils/same-wallet-address.util";
+import { isNativeSuiHolding } from "app/core/utils/sui-coin.util";
 import { mapTransactionErrorToTranslationKey } from "app/core/utils/user-facing-transaction-error.util";
 import { FeeCalculationParams, TransactionFeeEstimate, TransactionParams, TransactionResult } from "app/core/models/transaction-fee.model";
 import { AddressMaskPipe } from "app/pipes/address-mask.pipe";
@@ -458,10 +459,14 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
 
         const sessionTokens = await this._assetService.loadTokensFromSession();
 
-        // Check if we're sending a native token (doesn't need token contract address)
-        const isNativeToken = ["AVAX", "ETH", "BNB", "MATIC", "BDAG", "BTC", "SOL", "SUI", "XLM", "DOT", "KSM", "APT"].includes(
-            this.transactionData.token?.symbol || ""
-        );
+        // Native SUI is isNative / tokenType SUI / coin type 0x2::sui::SUI, never the symbol alone.
+        const suiNative = network === "sui" && isNativeSuiHolding(this.transactionData.token);
+        const isNativeToken =
+            network === "sui"
+                ? suiNative
+                : ["AVAX", "ETH", "BNB", "MATIC", "BDAG", "BTC", "SOL", "XLM", "DOT", "KSM", "APT"].includes(this.transactionData.token?.symbol || "");
+
+        if (network === "sui") this.isNativeAsset = suiNative;
 
         if (!sessionTokens || sessionTokens.length === 0) {
             if (!this.wallet) {
@@ -484,7 +489,8 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
         }
 
         this.networkToken = await this._networkService.getNetworkToken(network as NetworkName);
-        this.isNativeAsset = isNativeToken || network === this.networkToken?.name?.toLowerCase() || network === "bitcoin";
+        this.isNativeAsset =
+            network === "sui" ? suiNative : isNativeToken || network === this.networkToken?.name?.toLowerCase() || network === "bitcoin";
 
         if (network !== "bitcoin" && network !== "blockdag") return;
 

@@ -59,6 +59,7 @@
         "@fontsource/poppins": "^5.2.7",
         "@jsverse/transloco": "^7.6.1",
         "@mysten/seal": "^0.9.3",
+        "@mysten/sui": "^2.37.0",
         "@mysten/sui.js": "^0.54.1",
         "@openpgp/web-stream-tools": "^0.1.1",
         "@polkadot/api": "^16.5.6",

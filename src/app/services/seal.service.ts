@@ -95,7 +95,8 @@ export class SealService {
         try {
             const network = options?.network || "testnet";
 
-            // Get Sui RPC URL based on network
+            // Seal SDK 0.9 still requires a JSON-RPC SuiClient. Wallet sends do not use this client;
+            // they go through SuiService and Sui GraphQL. The public fullnode JSON-RPC endpoint is retired.
             const suiRpcUrls = {
                 mainnet: "https://fullnode.mainnet.sui.io:443",
                 testnet: "https://fullnode.testnet.sui.io:443",

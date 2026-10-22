@@ -3,6 +3,7 @@
     "extends": "./tsconfig.json",
     "compilerOptions": {
         "outDir": "./out-tsc/app",
+        "moduleResolution": "bundler",
         "types": []
     },
     "files": ["src/main.ts", "src/polyfills.ts"],

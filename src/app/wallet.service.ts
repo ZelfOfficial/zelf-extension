@@ -19,6 +19,7 @@ import { HttpWrapperService } from "./http-wrapper.service";
 import { FaceApiService } from "./services/face-api/face-api.service";
 import { Asset, Wallet } from "@shared/types/wallet.types";
 import { generateDeviceFingerprint, simpleHash, UserFingerPrint } from "./core/utils/fingerprint.util";
+import { isSuiSendTokenType } from "./core/utils/sui-coin.util";
 
 /** Display-only fake SS58-shaped string for receive rows before substrate address exists (not an on-chain address). */
 export const SUBSTRATE_ADDRESS_PLACEHOLDER = "1nm2Abc…xxxxxxxxxxxxxxxxxxxxx";
@@ -1183,7 +1184,7 @@ export class WalletService {
             address = wallet?.publicData?.solanaAddress || "";
         } else if (tokenType === "BTC") {
             address = wallet?.publicData?.btcAddress || "";
-        } else if (tokenType === "SUI" || tokenType === "SUI_TOKEN") {
+        } else if (isSuiSendTokenType(tokenType)) {
             address = wallet?.publicData?.suiAddress || "";
         } else if (tokenType === "TON" || tokenType === "ton") {
             address = readPublicDataTonAddress(wallet?.publicData as Record<string, unknown> | undefined);

@@ -7,6 +7,7 @@ import { TranslocoModule } from "@jsverse/transloco";
 import { firstValueFrom, Subject } from "rxjs";
 
 import { AssetService, NetworkPermissions } from "app/asset.service";
+import { isSuiSendTokenType, sendScreenSuiTokenType } from "app/core/utils/sui-coin.util";
 import { BitcoinService } from "app/services/bitcoin.service";
 import { BlockchainTransactionsService } from "app/services/blockchain-transactions.service";
 import { TokenItemComponent } from "app/token-item/token-item.component";
@@ -229,8 +230,9 @@ export class SendCurrencyComponent implements OnInit, OnDestroy {
             tokenType = token.symbol === "SOL" ? "SOL" : "SPL";
         } else if (token.tokenType === "BTC") {
             address = this.wallet?.publicData?.btcAddress || "";
-        } else if (token.tokenType === "SUI" || token.tokenType === "SUI_TOKEN") {
+        } else if (isSuiSendTokenType(token.tokenType)) {
             address = this.wallet?.publicData?.suiAddress || "";
+            tokenType = sendScreenSuiTokenType(token.tokenType);
         } else if (token.tokenType === "APT" && token.network === "Aptos") {
             address = readPublicDataAptosAddress(this.wallet?.publicData as Record<string, unknown> | undefined);
         } else if (token.tokenType === "XLM" || (token.network === "Stellar" && token.symbol === "XLM")) {

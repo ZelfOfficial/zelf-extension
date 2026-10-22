@@ -6,6 +6,7 @@ import { environment } from "environments/environment";
 import { ChromeService } from "./chrome.service";
 import { HttpWrapperService } from "./http-wrapper.service";
 
+import { isNativeSuiCoinType, isNativeSuiHolding } from "app/core/utils/sui-coin.util";
 import { AssetChart, AssetDetails, AssetInterval, AssetIntervalOptions, AssetRange } from "./models/asset.model";
 import { TokenData } from "@shared/types/wallet.types";
 
@@ -141,6 +142,8 @@ export class AssetService {
             return "SPL";
         }
 
+        if (network === "Sui") return this._suiTokenType(token);
+
         // If token already has a tokenType, use it
         if (token.tokenType && token.tokenType !== "ERC-20") return token.tokenType;
 
@@ -206,7 +209,21 @@ export class AssetService {
         }
     }
 
+    private _suiTokenType(token: any): string {
+        if (isNativeSuiHolding(token)) return "SUI";
+
+        const type = `${token?.tokenType || ""}`.trim();
+        if (type && type !== "ERC-20" && type !== "SUI") return type;
+
+        const address = `${token?.address_token || token?.tokenAddress || ""}`.trim();
+        if (address.includes("::") && !isNativeSuiCoinType(address)) return address;
+
+        return "SUI-TOKEN";
+    }
+
     private _isNativeToken(token: any, network: string): boolean {
+        if (network === "Sui") return isNativeSuiHolding(token);
+
         const nativeTokenSymbols: Record<string, string[]> = {
             Avalanche: ["AVAX", "AVALANCHE"],
             Binance: ["BNB", "BINANCE", "BSC"],
@@ -218,7 +235,6 @@ export class AssetService {
             Base: ["ETH", "ETHEREUM"],
             Solana: ["SOL", "SOLANA"],
             Stellar: ["XLM", "STELLAR"],
-            Sui: ["SUI", "SUI-TOKEN"],
             Ton: ["TON", "TONCOIN"],
             Aptos: ["APT", "APTOS", "APTOS COIN"],
             Polkadot: ["DOT", "POLKADOT"],
