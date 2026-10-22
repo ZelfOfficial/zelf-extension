@@ -90,6 +90,7 @@
                             #cardNumberInput
                             [(ngModel)]="cardData.cardNumber"
                             (beforeinput)="onDigitsBeforeInput($event)"
+                            (paste)="onDigitsPaste($event)"
                             (ngModelChange)="onCardNumberChange($event, cardNumberInput)"
                             class="zelf-input__control zelf-input__control--floating-label"
                             id="cardNumber"
@@ -176,6 +177,7 @@
                                 #expiryYearInput
                                 [(ngModel)]="cardData.expiryYear"
                                 (beforeinput)="onDigitsBeforeInput($event)"
+                                (paste)="onDigitsPaste($event)"
                                 (ngModelChange)="onExpiryYearChange($event, expiryYearInput)"
                                 class="zelf-input__control zelf-input__control--floating-label"
                                 id="expiryYear"
@@ -197,6 +199,7 @@
                                 #cvvInput
                                 [(ngModel)]="cardData.cvv"
                                 (beforeinput)="onDigitsBeforeInput($event)"
+                                (paste)="onDigitsPaste($event)"
                                 (ngModelChange)="onCvvChange($event, cvvInput)"
                                 class="zelf-input__control zelf-input__control--floating-label"
                                 id="cvv"
