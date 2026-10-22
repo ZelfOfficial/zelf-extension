@@ -7,6 +7,8 @@ export interface TransactionFeeEstimate {
     networkPrice?: number;
     /** Populated for Stellar fee estimates (native + classic preview). */
     stellar?: StellarFeeBreakdown;
+    /** Native SUI max send: amount the recipient actually receives (balance minus fee). */
+    adjustedAmount?: string;
 }
 
 export interface FeeCalculationParams {
@@ -19,6 +21,10 @@ export interface FeeCalculationParams {
     tokenPrice?: number;
     selectedFeeRate?: number;
     senderAddress?: string;
+    /** Native SUI Max/ALL. The confirm amount becomes balance minus the fee. */
+    sendAll?: boolean;
+    /** Exact decimal text. Sui must not convert this through a float. */
+    amountText?: string;
 }
 
 export interface TransactionParams {
@@ -34,6 +40,8 @@ export interface TransactionParams {
     tokenDecimals?: number;
     /** Stellar `Memo.text` (max 28 bytes); native XLM only. */
     memo?: string;
+    /** Native SUI Max/ALL. Sends the balance minus the fee. */
+    sendAll?: boolean;
 }
 
 export interface TransactionResult {

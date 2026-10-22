@@ -185,7 +185,9 @@ export class BlockchainTransactionsService {
                         tokenAddress,
                         tokenDecimals,
                         tokenPrice || 0,
-                        params.senderAddress
+                        params.senderAddress,
+                        params.sendAll,
+                        params.amountText
                     );
                 case "polygon":
                     return await this._polygonService.calculateTransactionFees(
@@ -275,6 +277,8 @@ export class BlockchainTransactionsService {
             }
         } catch (error) {
             console.error(`Error calculating fees for ${network}:`, error);
+
+            if (network.toLowerCase() === "sui") throw error;
 
             const amountInUsd = amount * (tokenPrice || 0);
 

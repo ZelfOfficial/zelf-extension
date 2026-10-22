@@ -58,6 +58,19 @@ describe("LicenseNetworksService", () => {
         expect(domainService.getDomains).toHaveBeenCalledTimes(1);
     });
 
+    it("exposes a Sui GraphQL URL configured on the license network entry", async () => {
+        const { service } = setup({
+            cacheValid: true,
+            cached: zelfLicense({
+                sui: { enabled: true, graphql: "https://graphql.example/graphql" } as any,
+            }),
+        });
+
+        await service.ensureLoaded();
+
+        expect(service.getNetworkEntry("sui")).toEqual(jasmine.objectContaining({ graphql: "https://graphql.example/graphql", enabled: true }));
+    });
+
     it("returns null when no license config exists for the wallet's domain", async () => {
         const { service } = setup({ walletDomain: "other", fresh: zelfLicense({ ethereum: { enabled: true } }) });
 

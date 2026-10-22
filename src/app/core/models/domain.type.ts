@@ -20,8 +20,18 @@ export interface DomainPayment {
     networks?: Record<string, any>;
 }
 
+export interface DomainWalletNetwork {
+    enabled: boolean;
+    /** GraphQL endpoint for chains that publish one (Sui). JSON-RPC fullnode URLs are not used. */
+    graphql?: string;
+    graphqlUrl?: string;
+    rpc?: string;
+    rpcUrl?: string;
+    url?: string;
+}
+
 export interface DomainWallet {
-    networks: Record<string, { enabled: boolean }>;
+    networks: Record<string, DomainWalletNetwork>;
 }
 
 export interface DomainStorage {

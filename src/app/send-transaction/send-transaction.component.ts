@@ -672,6 +672,7 @@ export class SendTransactionComponent implements OnDestroy {
                 const amount = Number(String(this.form.get("amount")?.value || "0").replace(",", "."));
 
                 this.transactionData.amount = amount;
+                this.transactionData.sendAll = this._sendAll === true;
             }
 
             const memoCtrl = this.form.get("memo");
@@ -1006,6 +1007,7 @@ export class SendTransactionComponent implements OnDestroy {
             input.value = sanitized;
         }
         this.form.get("amount")?.setValue(sanitized, { emitEvent: true });
+        this._sendAll = false;
     }
 
     onAmountPaste(event: ClipboardEvent): void {
@@ -1016,12 +1018,16 @@ export class SendTransactionComponent implements OnDestroy {
 
         this.form.get("amount")?.setValue(sanitized, { emitEvent: true });
         this.form.get("amount")?.markAsTouched();
+        this._sendAll = false;
     }
+
+    private _sendAll = false;
 
     withdrawAll(): void {
         const c = this.form.get("amount");
         c?.patchValue(this._getMaxSendableAmount());
         c?.markAsTouched();
+        this._sendAll = true;
     }
 
     private _sanitizeAmountValue(value: string): string {

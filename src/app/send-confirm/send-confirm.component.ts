@@ -14,6 +14,7 @@ import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { AssetService } from "app/asset.service";
 import { ChromeService } from "app/chrome.service";
 import { areSendAddressesSame } from "app/core/utils/same-wallet-address.util";
+import { isNativeSuiHolding, sendConfirmNetworkLabel } from "app/core/utils/sui-coin.util";
 import { mapTransactionErrorToTranslationKey } from "app/core/utils/user-facing-transaction-error.util";
 import { FeeCalculationParams, TransactionFeeEstimate, TransactionParams, TransactionResult } from "app/core/models/transaction-fee.model";
 import { AddressMaskPipe } from "app/pipes/address-mask.pipe";
@@ -109,6 +110,8 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
     isStealthMode: boolean = false;
     /** Stellar fee preview (native + classic) for confirm UI. */
     stellarFeeBreakdown: StellarFeeBreakdown | null = null;
+    /** Dry-run / fee estimate failed. Confirm stays disabled and the chain error is shown. */
+    feeError: string | null = null;
 
 
 
@@ -284,6 +287,8 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
 
         const canCoverTokenBalance = tokenBalance > 0 && sendAmount <= tokenBalance;
 
+        if (this.transactionData.network === "sui" && this.isNativeAsset && this.feeError) return false;
+
         if (this.isNativeAsset) {
             const canCoverTotal = sendAmount + feeAmount <= tokenAmount;
             return canCoverTokenBalance && canCoverTotal;
@@ -310,6 +315,11 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
         return this._networkService.getNetworkSymbol(this.transactionData.network as NetworkName);
     }
 
+    /** Network row. Sui coin types display as Sui, not SUI_TOKEN. */
+    get networkLabel(): string {
+        return sendConfirmNetworkLabel(this.transactionData.network, this.transactionData.tokenType);
+    }
+
     get total(): number {
         return this.fiatPrice + this.fiatFeePrice || 0;
     }
@@ -321,8 +331,10 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
     }
 
     private async _calculateTransactionFee(): Promise<void> {
+        this.feeError = null;
+
         try {
-            const normalizedAmount = Number(String(this.transactionData.amount || "0").replace(",", "."));
+            const amountText = String(this.transactionData.amount ?? "0").replace(/,/g, "").trim();
             const tokenSymbol = this.transactionData.token?.symbol;
 
             let tokenAddress = this.transactionData.token?.address_token;
@@ -347,13 +359,15 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
             const feeParams: FeeCalculationParams = {
                 network: this.transactionData.network,
                 receiverAddress: this.transactionData.receiver.address,
-                amount: normalizedAmount,
+                amount: Number(amountText),
                 tokenType: this.transactionData.tokenType,
                 tokenAddress: tokenAddress,
                 tokenDecimals: this.transactionData.token.decimals,
                 tokenPrice: +this.transactionData.token.price || 0,
                 selectedFeeRate: this.selectedFeeRate,
                 senderAddress: this.transactionData.sender.address,
+                sendAll: this.transactionData.sendAll === true,
+                amountText,
             };
 
             const feeEstimate: TransactionFeeEstimate = await this._blockchainTransactionsService.calculateTransactionFees(feeParams);
@@ -361,6 +375,11 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
             this.transactionData.fee = feeEstimate.fee;
             this.transactionData.fiatFee = feeEstimate.fiatFee;
             this.transactionData.total = feeEstimate.total;
+
+            if (feeEstimate.adjustedAmount) {
+                this.transactionData.amount = feeEstimate.adjustedAmount;
+                this.transactionData.sendAll = true;
+            }
 
             if (feeEstimate.networkPrice !== undefined) {
                 this.networkPrice = feeEstimate.networkPrice;
@@ -374,6 +393,11 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
             console.error("Error calculating transaction fee:", error);
             if (this.transactionData?.network === "stellar") {
                 this.stellarFeeBreakdown = null;
+            }
+            if (this.transactionData?.network === "sui") {
+                this.feeError = error instanceof Error && error.message ? error.message : "Sui fee estimate failed";
+                this.transactionData.fee = 0;
+                this.transactionData.fiatFee = 0;
             }
         }
     }
@@ -458,10 +482,14 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
 
         const sessionTokens = await this._assetService.loadTokensFromSession();
 
-        // Check if we're sending a native token (doesn't need token contract address)
-        const isNativeToken = ["AVAX", "ETH", "BNB", "MATIC", "BDAG", "BTC", "SOL", "SUI", "XLM", "DOT", "KSM", "APT"].includes(
-            this.transactionData.token?.symbol || ""
-        );
+        // Native SUI is isNative / tokenType SUI / coin type 0x2::sui::SUI, never the symbol alone.
+        const suiNative = network === "sui" && isNativeSuiHolding(this.transactionData.token);
+        const isNativeToken =
+            network === "sui"
+                ? suiNative
+                : ["AVAX", "ETH", "BNB", "MATIC", "BDAG", "BTC", "SOL", "XLM", "DOT", "KSM", "APT"].includes(this.transactionData.token?.symbol || "");
+
+        if (network === "sui") this.isNativeAsset = suiNative;
 
         if (!sessionTokens || sessionTokens.length === 0) {
             if (!this.wallet) {
@@ -484,7 +512,8 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
         }
 
         this.networkToken = await this._networkService.getNetworkToken(network as NetworkName);
-        this.isNativeAsset = isNativeToken || network === this.networkToken?.name?.toLowerCase() || network === "bitcoin";
+        this.isNativeAsset =
+            network === "sui" ? suiNative : isNativeToken || network === this.networkToken?.name?.toLowerCase() || network === "bitcoin";
 
         if (network !== "bitcoin" && network !== "blockdag") return;
 
@@ -667,7 +696,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
     }
 
     async confirmTransaction() {
-        if (this.sending) return;
+        if (this.sending || this.feeError) return;
 
         // #88 signing rule: see core/security/signing-gate.util.ts.
         const gate = resolveSigningGate(await this._signingGateInput());
@@ -709,20 +738,10 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
 
         try {
             const cleanMnemonic = this._mnemonics.trim().toLowerCase();
-            const normalizedAmount = Number(String(this.transactionData.amount || "0").replace(",", "."));
+            const amountText = String(this.transactionData.amount ?? "0").replace(/,/g, "").trim();
+            const normalizedAmount = Number(amountText);
 
-            const transactionParams: TransactionParams = {
-                from: "",
-                to: this.transactionData.receiver.address,
-                value: String(normalizedAmount),
-                network: this.transactionData.network,
-                mnemonic: cleanMnemonic,
-                tokenAddress: this.transactionData.token?.address_token || this.transactionData.token?.tokenAddress,
-                tokenDecimals: this.transactionData.token?.decimals,
-            };
-
-            // Standard transaction flow (Solana, EVM, Bitcoin, SUI)
-            await this._handleStandardTransaction(cleanMnemonic, normalizedAmount);
+            await this._handleStandardTransaction(cleanMnemonic, normalizedAmount, amountText);
         } catch (error: unknown) {
             console.error("Send transaction failed", error);
             this.openErrorSnackBar(mapTransactionErrorToTranslationKey(error));
@@ -797,16 +816,18 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
      * Handle standard (non-stealth) transaction for all networks
      * @private
      */
-    private async _handleStandardTransaction(cleanMnemonic: string, normalizedAmount: number): Promise<void> {
+    private async _handleStandardTransaction(cleanMnemonic: string, normalizedAmount: number, amountText?: string): Promise<void> {
+        const exactAmount = (amountText || String(normalizedAmount)).replace(/,/g, "").trim();
         const transactionParams: TransactionParams = {
             from: "",
             to: this.transactionData.receiver.address,
-            value: String(normalizedAmount),
+            value: this.transactionData.network === "sui" ? exactAmount : String(normalizedAmount),
             network: this.transactionData.network,
             mnemonic: cleanMnemonic,
             tokenAddress: this.transactionData.token?.address_token || this.transactionData.token?.tokenAddress,
             tokenDecimals: this.transactionData.token?.decimals,
             memo: this.transactionData.memo?.trim() || undefined,
+            sendAll: this.transactionData.sendAll === true,
         };
 
         // EVM networks need private key instead of mnemonic

@@ -943,6 +943,8 @@ export interface TransactionData {
     total?: number | string;
     /** Optional Stellar memo (text). */
     memo?: string;
+    /** User tapped Max/ALL for this Sui send. */
+    sendAll?: boolean;
 }
 
 export class TransactionData implements TransactionData {
@@ -955,6 +957,7 @@ export class TransactionData implements TransactionData {
     token: TokenData = {} as TokenData;
     total?: number | string = 0;
     memo?: string;
+    sendAll?: boolean;
 
     constructor(data: any = {}) {
         this.amount = data.amount || 0;
@@ -966,6 +969,7 @@ export class TransactionData implements TransactionData {
         this.token = data.token || ({} as TokenData);
         this.total = data.total || 0;
         this.memo = data.memo;
+        this.sendAll = data.sendAll === true;
     }
 
     get hasCompletePaymentData(): boolean {
@@ -1056,7 +1060,9 @@ export class TransactionData implements TransactionData {
     }
 
     get isSuiToken(): boolean {
-        return this.tokenType === "SUI" || this.tokenType === "SUI_TOKEN";
+        const type = this.tokenType;
+
+        return this.network === "sui" || type === "SUI" || type === "SUI_TOKEN" || type.includes("::");
     }
 
     get isAptToken(): boolean {

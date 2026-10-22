@@ -19,6 +19,8 @@ import { BehaviorSubject, Observable } from "rxjs";
 export class LicenseNetworksService {
     private _domain: string | null = null;
     private _allowedIds: string[] | null = null;
+    private _networkEntries: Record<string, { enabled?: boolean; graphql?: string; graphqlUrl?: string; rpc?: string; rpcUrl?: string; url?: string }> | null =
+        null;
     private _allowedIds$ = new BehaviorSubject<string[] | null>(null);
     private _loading: Promise<string[] | null> | null = null;
 
@@ -34,6 +36,13 @@ export class LicenseNetworksService {
 
     get allowedNetworkIds$(): Observable<string[] | null> {
         return this._allowedIds$.asObservable();
+    }
+
+    /** Raw license entry for one chain (`tags.wallet.networks[id]`), including an optional GraphQL URL. */
+    getNetworkEntry(chainId: string): Record<string, unknown> | null {
+        const entry = this._networkEntries?.[chainId];
+
+        return entry && typeof entry === "object" ? (entry as Record<string, unknown>) : null;
     }
 
     /**
@@ -77,6 +86,7 @@ export class LicenseNetworksService {
             this._domain = domain;
             this._allowedIds = ids;
             this._allowedIds$.next(ids);
+            this._networkEntries = license?.tags?.wallet?.networks ?? null;
         }
 
         return this._allowedIds;
