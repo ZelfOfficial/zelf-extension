@@ -7,6 +7,7 @@ import { HttpWrapperService } from "app/http-wrapper.service";
 import { RpcProviderService } from "app/services/rpc-provider.service";
 import { environment } from "environments/environment";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
+import { failedBalanceFetch } from "app/core/utils/balance-fetch-result.util";
 import { historyQueryParams } from "../core/utils/transaction-history-pagination.util";
 
 @Injectable({
@@ -145,14 +146,14 @@ export class BlockDAGService {
             ]);
 
             if (!response || !response.data) {
-                return this._defaultResponse();
+                return failedBalanceFetch(new Error("BlockDAG address response missing"));
             }
 
             return response;
         } catch (error) {
             console.warn("BlockDAG getWalletDetails failed or timed out:", error);
 
-            return this._defaultResponse();
+            return failedBalanceFetch(error);
         }
     }
 

@@ -19,6 +19,7 @@ import {
     typedAmountMatchesDisplayedMax,
 } from "app/core/utils/sui-coin.util";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
+import { failedBalanceFetch } from "app/core/utils/balance-fetch-result.util";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { environment } from "environments/environment";
 import { historyQueryParams } from "../core/utils/transaction-history-pagination.util";
@@ -384,11 +385,11 @@ export class SuiService {
             return this._httpWrapper
                 .sendRequest("get", url)
                 .then((response) => response)
-                .catch(() => this._defaultResponse());
+                .catch((error) => failedBalanceFetch(error));
         } catch (error) {
             console.error("Exception in SUI getWalletDetails:", error);
 
-            return Promise.resolve(this._defaultResponse());
+            return Promise.resolve(failedBalanceFetch(error));
         }
     }
 

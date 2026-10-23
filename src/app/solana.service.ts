@@ -27,6 +27,7 @@ import { environment } from "environments/environment";
 import { RpcProviderService } from "app/services/rpc-provider.service";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "./core/models/transaction-fee.model";
 import { HttpWrapperService } from "./http-wrapper.service";
+import { failedBalanceFetch } from "./core/utils/balance-fetch-result.util";
 import { historyQueryParams } from "./core/utils/transaction-history-pagination.util";
 
 if (typeof window !== "undefined") window.Buffer = window.Buffer || Buffer;
@@ -461,7 +462,7 @@ export class SolanaService {
             };
         } catch (err) {
             console.warn("Direct Solana RPC getBalance failed:", err);
-            return this._defaultResponse();
+            return failedBalanceFetch(err);
         }
     }
 

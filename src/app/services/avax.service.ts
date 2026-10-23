@@ -7,6 +7,7 @@ import { environment } from "environments/environment";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
 import { RpcProviderService } from "app/services/rpc-provider.service";
 import { HttpWrapperService } from "../http-wrapper.service";
+import { failedBalanceFetch } from "app/core/utils/balance-fetch-result.util";
 import { historyQueryParams } from "../core/utils/transaction-history-pagination.util";
 
 @Injectable({
@@ -326,11 +327,11 @@ export class AvaxService {
             return await this._httpWrapper
                 .sendRequest("get", url, {})
                 .then((response) => response)
-                .catch(() => this._defaultResponse());
+                .catch((error) => failedBalanceFetch(error));
         } catch (error) {
             console.error("Exception in Avalanche getWalletDetails:", error);
 
-            return Promise.resolve(this._defaultResponse());
+            return Promise.resolve(failedBalanceFetch(error));
         }
     }
 

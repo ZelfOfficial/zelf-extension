@@ -5,6 +5,7 @@ import { aptosAccountFromMnemonic, aptToOctas, isValidAptosAddress } from "@shar
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { environment } from "environments/environment";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
+import { failedBalanceFetch } from "app/core/utils/balance-fetch-result.util";
 import { historyQueryParams } from "../core/utils/transaction-history-pagination.util";
 
 type AptosEstimateResponse = {
@@ -58,7 +59,7 @@ export class AptosService {
             return await this._httpWrapper.sendRequest("get", url);
         } catch (error) {
             console.error("Exception in Aptos getWalletDetails:", error);
-            return this._defaultResponse();
+            return failedBalanceFetch(error);
         }
     }
 

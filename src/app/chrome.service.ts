@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
 import { Settings } from "./models/settings.model";
+import { shouldClearSessionForWalletChange } from "app/core/utils/wallet-session.util";
 import { TagModel } from "./tags.service";
 
 @Injectable({
@@ -99,10 +100,12 @@ export class ChromeService {
             }
 
             if (changes.wallet) {
-                this.removeItemSession("zelfKeysData");
-                this.removeItemSession("zelfKeysDataTtl");
-                this.removeItemSession("tokens");
-                this.removeItemSession("tokensTtl");
+                if (shouldClearSessionForWalletChange(changes.wallet.oldValue, changes.wallet.newValue)) {
+                    this.removeItemSession("zelfKeysData");
+                    this.removeItemSession("zelfKeysDataTtl");
+                    this.removeItemSession("tokens");
+                    this.removeItemSession("tokensTtl");
+                }
 
                 changes.wallet
                     ? this._wallet$.next(changes.wallet.newValue ? (new TagModel(changes.wallet.newValue) as TagModel) : ({} as TagModel))
@@ -151,10 +154,22 @@ export class ChromeService {
                 }
 
                 if (event.detail.key === "wallet") {
-                    this.removeItemSession("zelfKeysData");
-                    this.removeItemSession("zelfKeysDataTtl");
-                    this.removeItemSession("tokens");
-                    this.removeItemSession("tokensTtl");
+                    const parseWallet = (raw: string | undefined) => {
+                        if (!raw) return null;
+
+                        try {
+                            return JSON.parse(raw);
+                        } catch {
+                            return null;
+                        }
+                    };
+
+                    if (shouldClearSessionForWalletChange(parseWallet(event.detail.oldValue), parseWallet(event.detail.newValue))) {
+                        this.removeItemSession("zelfKeysData");
+                        this.removeItemSession("zelfKeysDataTtl");
+                        this.removeItemSession("tokens");
+                        this.removeItemSession("tokensTtl");
+                    }
 
                     event
                         ? this._wallet$.next(event.detail.newValue ? (new TagModel(JSON.parse(event.detail.newValue)) as TagModel) : ({} as TagModel))

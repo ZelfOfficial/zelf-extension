@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import StellarHDWallet from "stellar-hd-wallet";
 import { Asset, Horizon, Keypair, Memo, Networks, Operation, StrKey, TransactionBuilder } from "@stellar/stellar-sdk";
 
+import { failedBalanceFetch } from "app/core/utils/balance-fetch-result.util";
 import { environment } from "environments/environment";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
 import { HttpWrapperService } from "../http-wrapper.service";
@@ -495,11 +496,11 @@ export class StellarService {
             return await this._httpWrapper
                 .sendRequest("get", url, {})
                 .then((response) => response)
-                .catch(() => this._defaultResponse());
+                .catch((error) => failedBalanceFetch(error));
         } catch (error) {
             console.error("Exception in Stellar getWalletDetails:", error);
 
-            return Promise.resolve(this._defaultResponse());
+            return Promise.resolve(failedBalanceFetch(error));
         }
     }
 

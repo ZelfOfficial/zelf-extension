@@ -9,6 +9,7 @@ import {
     SUPPORTED_NETWORK_IDS,
     splitBalanceStages,
 } from "app/core/network-settings.util";
+import { balancePayloadFailed } from "app/core/utils/balance-fetch-result.util";
 import { dedupeBalanceTokens, mergeBalanceTokens, sumFiatBalance } from "app/core/utils/balance-tokens.util";
 import { projectHomeNetworkTokens, uniqueChainIds } from "app/core/utils/home-network-list.util";
 import { forEachWithConcurrency } from "app/core/utils/concurrency.util";
@@ -121,7 +122,16 @@ async function fetchNetworks(
 
     try {
         response = await firstValueFrom(request$);
-        setNetworkStatuses(status, networkIds, response ? "loaded" : "error", ctx.callbacks);
+
+        if (!response) {
+            setNetworkStatuses(status, networkIds, "error", ctx.callbacks);
+        } else {
+            const failed = networkIds.filter((id) => balancePayloadFailed(response, id));
+            const loaded = networkIds.filter((id) => !failed.includes(id));
+
+            if (loaded.length) setNetworkStatuses(status, loaded, "loaded", ctx.callbacks);
+            if (failed.length) setNetworkStatuses(status, failed, "error", ctx.callbacks);
+        }
     } catch (err) {
         console.warn("[WalletBalanceLoader] network fetch error:", networkIds, err);
         setNetworkStatuses(status, networkIds, "error", ctx.callbacks);
@@ -130,19 +140,37 @@ async function fetchNetworks(
     return response;
 }
 
-async function fetchNetworkWithRetry(ctx: WalletBalanceLoadContext, networkId: string, status: Record<string, NetworkBalanceStatus>): Promise<any | null> {
-    let response = await fetchNetworks(ctx, [networkId], status);
+async function retryFailedBalanceNetworks(
+    ctx: WalletBalanceLoadContext,
+    networkIds: string[],
+    response: any | null,
+    status: Record<string, NetworkBalanceStatus>
+): Promise<any | null> {
+    const failed = networkIds.filter((id) => balancePayloadFailed(response, id));
 
-    if (response || !ctx.shouldContinue()) return response;
+    if (!failed.length || !ctx.shouldContinue()) return response;
 
-    if (status[networkId] === "error") {
-        await new Promise((r) => setTimeout(r, BALANCE_NETWORK_RETRY_DELAY_MS));
-        if (!ctx.shouldContinue()) return null;
+    await new Promise((r) => setTimeout(r, BALANCE_NETWORK_RETRY_DELAY_MS));
 
-        response = await fetchNetworks(ctx, [networkId], status);
+    let merged = response;
+
+    for (const networkId of failed) {
+        if (!ctx.shouldContinue()) return merged;
+
+        const retry = await fetchNetworks(ctx, [networkId], status);
+
+        if (!balancePayloadFailed(retry, networkId)) {
+            merged = { ...(merged || {}), ...(retry || {}) };
+        }
     }
 
-    return response;
+    return merged;
+}
+
+async function fetchNetworkWithRetry(ctx: WalletBalanceLoadContext, networkId: string, status: Record<string, NetworkBalanceStatus>): Promise<any | null> {
+    const response = await fetchNetworks(ctx, [networkId], status);
+
+    return retryFailedBalanceNetworks(ctx, [networkId], response, status);
 }
 
 function publishTokens(
@@ -196,11 +224,11 @@ export async function loadWalletBalances(ctx: WalletBalanceLoadContext): Promise
     ctx.callbacks.onLoadingFlags?.(true, background.length > 0);
 
     try {
-        const priorityResponse = await fetchNetworks(ctx, priority, status);
+        const priorityResponse = await retryFailedBalanceNetworks(ctx, priority, await fetchNetworks(ctx, priority, status), status);
 
         if (!ctx.shouldContinue() || (ctx.wallet?.tagName || ctx.wallet?.name) !== walletTag) return;
 
-        if (priorityResponse) {
+        if (priorityResponse && priority.some((id) => !balancePayloadFailed(priorityResponse, id))) {
             const result = await ctx.assetService.processTokensFromResponse(priorityResponse);
             tokens = mergeBalanceTokens(tokens, result.tokens);
             publishTokens(ctx, tokens, enabledIds, status, lastKnownTotal);
@@ -228,7 +256,7 @@ export async function loadWalletBalances(ctx: WalletBalanceLoadContext): Promise
 
             if (!ctx.shouldContinue() || (ctx.wallet?.tagName || ctx.wallet?.name) !== walletTag) return;
 
-            if (response) {
+            if (response && !balancePayloadFailed(response, networkId)) {
                 const result = await ctx.assetService.processTokensFromResponse(response);
 
                 if (result?.tokens?.length) {
