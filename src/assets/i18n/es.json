@@ -1278,6 +1278,8 @@
         "settings_button": "Configuración",
         "support_button": "Soporte",
         "swap": "Cambiar",
+        "balance_retrying": "Reintentando…",
+        "balance_unavailable": "No disponible",
         "token_sol_native": "Nativo",
         "token_sol_wrapped": "Envuelto",
         "total_balance": "Saldo Total",

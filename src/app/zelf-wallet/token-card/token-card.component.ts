@@ -51,13 +51,20 @@ import { DisplayAmountPipe, DisplayFiatPipe } from "../../pipes/display-number.p
                             'stats__percentage--negative': false,
                         }"
                     >
-                        <span class="stats__text stats__text--colored" *ngIf="!hideBalances">{{ (data.amount ?? data.balance) | displayAmount }}</span>
+                        <span class="stats__text stats__text--colored" *ngIf="!hideBalances && !balanceHint">{{ (data.amount ?? data.balance) | displayAmount }}</span>
+                        <span class="stats__text token-card__hint" *ngIf="!hideBalances && balanceHint">{{ balanceHint }}</span>
                         <span class="stats__text stats__text--colored" *ngIf="hideBalances">••••</span>
                     </div>
                 </h4>
 
-                <div class="token-card__balance" *ngIf="!hideBalances">
+                <div class="token-card__balance" *ngIf="!hideBalances && !balanceHint">
                     {{ data.fiatBalance | displayFiat }}
+                </div>
+                <div class="token-card__balance token-card__hint" *ngIf="!hideBalances && data.balanceState === 'unavailable'">
+                    {{ "home.balance_unavailable" | transloco }}
+                </div>
+                <div class="token-card__balance token-card__hint" *ngIf="!hideBalances && data.balanceState === 'pending'">
+                    {{ "home.balance_retrying" | transloco }}
                 </div>
                 <div class="token-card__balance" *ngIf="hideBalances">••••</div>
             </div>
@@ -84,6 +91,13 @@ export class TokenCardComponent implements OnChanges {
 
     currentImage!: string;
     isHovered: boolean = false;
+
+    get balanceHint(): string {
+        if (this.data?.balanceState === "unavailable") return "—";
+        if (this.data?.balanceState === "pending") return "…";
+
+        return "";
+    }
 
     constructor(
         private _networkService: NetworkService,

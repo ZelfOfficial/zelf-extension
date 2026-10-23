@@ -9,9 +9,12 @@ import {
     SUPPORTED_NETWORK_IDS,
     splitBalanceStages,
 } from "app/core/network-settings.util";
+import { selectAccountPortfolioSeed } from "app/core/utils/account-portfolio.util";
 import { balancePayloadFailed } from "app/core/utils/balance-fetch-result.util";
 import { dedupeBalanceTokens, mergeBalanceTokens, sumFiatBalance } from "app/core/utils/balance-tokens.util";
 import { projectHomeNetworkTokens, uniqueChainIds } from "app/core/utils/home-network-list.util";
+import { hasReportedBalance } from "app/core/utils/token-balance.util";
+import { tokenNetworkToLicenseId } from "app/core/utils/token-network-id.util";
 import { forEachWithConcurrency } from "app/core/utils/concurrency.util";
 
 export const BALANCE_NETWORK_TIMEOUT_MS = 25_000;
@@ -39,6 +42,9 @@ export interface WalletBalanceLoadContext {
     assetService: AssetService;
     blockchainTransactionsService: BlockchainTransactionsService;
     getLoadedTokens: () => any[];
+    /** When set, in-memory rows, session tokens, and the persisted cache are used only for this account. */
+    accountId?: string;
+    loadedAccountId?: string;
     callbacks: WalletBalanceLoadCallbacks;
     shouldContinue: () => boolean;
     abort$: Subject<void>;
@@ -173,6 +179,19 @@ async function fetchNetworkWithRetry(ctx: WalletBalanceLoadContext, networkId: s
     return retryFailedBalanceNetworks(ctx, [networkId], response, status);
 }
 
+function withBalanceHints(tokens: any[], status: Record<string, NetworkBalanceStatus>): any[] {
+    return tokens.map((token) => {
+        if (hasReportedBalance(token)) return { ...token, balanceState: undefined };
+
+        const state = status?.[tokenNetworkToLicenseId(token?.network)];
+
+        if (state === "error") return { ...token, balanceState: "unavailable" };
+        if (state === "pending" || state === "loading") return { ...token, balanceState: "pending" };
+
+        return { ...token, balanceState: undefined };
+    });
+}
+
 function publishTokens(
     ctx: WalletBalanceLoadContext,
     tokens: any[],
@@ -180,7 +199,7 @@ function publishTokens(
     status: Record<string, NetworkBalanceStatus>,
     lastKnownTotal: number | null | undefined
 ): void {
-    const visible = projectHomeNetworkTokens(tokens, enabledNetworkIds);
+    const visible = withBalanceHints(projectHomeNetworkTokens(tokens, enabledNetworkIds), status);
     const total = sumFiatBalance(visible);
 
     ctx.callbacks.onTokensUpdated(visible, total);
@@ -201,22 +220,30 @@ export async function loadWalletBalances(ctx: WalletBalanceLoadContext): Promise
 
     ctx.callbacks.onNetworkStatus?.({ ...status });
 
-    let tokens = dedupeBalanceTokens(ctx.getLoadedTokens());
+    const sessionTokens = !ctx.forceNetworkRefresh ? await ctx.assetService.loadTokensFromSession(ctx.accountId) : [];
+    let tokens = ctx.accountId
+        ? selectAccountPortfolioSeed({
+              accountId: ctx.accountId,
+              inMemoryAccountId: ctx.loadedAccountId || "",
+              inMemoryTokens: ctx.getLoadedTokens(),
+              sessionAccountId: sessionTokens.length ? ctx.accountId : "",
+              sessionTokens,
+              persistedByAccount:
+                  !ctx.forceNetworkRefresh && ctx.persistedCache?.tokens?.length
+                      ? { [ctx.accountId]: ctx.persistedCache.tokens }
+                      : {},
+          })
+        : dedupeBalanceTokens(ctx.getLoadedTokens());
+
+    if (!ctx.accountId && !ctx.forceNetworkRefresh) {
+        if (sessionTokens?.length) tokens = mergeBalanceTokens(tokens, sessionTokens);
+        else if (ctx.persistedCache?.tokens?.length) tokens = mergeBalanceTokens(tokens, ctx.persistedCache.tokens);
+    }
+
     let lastKnownTotal = tokens.length ? sumFiatBalance(projectHomeNetworkTokens(tokens, enabledIds)) : null;
 
-    if (!ctx.forceNetworkRefresh) {
-        const sessionTokens = await ctx.assetService.loadTokensFromSession();
-
-        if (sessionTokens?.length) {
-            tokens = mergeBalanceTokens(tokens, sessionTokens);
-        } else if (ctx.persistedCache?.tokens?.length) {
-            tokens = mergeBalanceTokens(tokens, ctx.persistedCache.tokens);
-        }
-
-        if (tokens.length && ctx.shouldContinue()) {
-            lastKnownTotal = sumFiatBalance(projectHomeNetworkTokens(tokens, enabledIds));
-            publishTokens(ctx, tokens, enabledIds, status, lastKnownTotal);
-        }
+    if (tokens.length && ctx.shouldContinue()) {
+        publishTokens(ctx, tokens, enabledIds, status, lastKnownTotal);
     }
 
     const walletTag = ctx.wallet?.tagName || ctx.wallet?.name;
@@ -232,10 +259,13 @@ export async function loadWalletBalances(ctx: WalletBalanceLoadContext): Promise
             const result = await ctx.assetService.processTokensFromResponse(priorityResponse);
             tokens = mergeBalanceTokens(tokens, result.tokens);
             publishTokens(ctx, tokens, enabledIds, status, lastKnownTotal);
-            await ctx.assetService.saveTokensToSession(tokens, "merge");
-            await ctx.onPersistCache?.(
-                buildBalanceCacheSnapshot(ctx.wallet, tokens, priority.filter((id) => status[id] === "loaded"))
-            );
+
+            if (ctx.shouldContinue() && (ctx.wallet?.tagName || ctx.wallet?.name) === walletTag) {
+                await ctx.assetService.saveTokensToSession(tokens, "merge");
+                await ctx.onPersistCache?.(
+                    buildBalanceCacheSnapshot(ctx.wallet, tokens, priority.filter((id) => status[id] === "loaded"))
+                );
+            }
         }
     } finally {
         ctx.callbacks.onLoadingFlags?.(false, background.length > 0);
@@ -262,14 +292,17 @@ export async function loadWalletBalances(ctx: WalletBalanceLoadContext): Promise
                 if (result?.tokens?.length) {
                     tokens = mergeBalanceTokens(tokens, result.tokens);
                     publishTokens(ctx, tokens, enabledIds, status, lastKnownTotal);
-                    await ctx.assetService.saveTokensToSession(tokens, "merge");
-                    await ctx.onPersistCache?.(
-                        buildBalanceCacheSnapshot(
-                            ctx.wallet,
-                            tokens,
-                            allIds.filter((id) => status[id] === "loaded")
-                        )
-                    );
+
+                    if (ctx.shouldContinue() && (ctx.wallet?.tagName || ctx.wallet?.name) === walletTag) {
+                        await ctx.assetService.saveTokensToSession(tokens, "merge");
+                        await ctx.onPersistCache?.(
+                            buildBalanceCacheSnapshot(
+                                ctx.wallet,
+                                tokens,
+                                allIds.filter((id) => status[id] === "loaded")
+                            )
+                        );
+                    }
                 }
             }
         },

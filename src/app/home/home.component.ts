@@ -28,6 +28,7 @@ import {
 } from "app/core/utils/wallet-balance-loader";
 import { dedupeBalanceTokens } from "app/core/utils/balance-tokens.util";
 import { projectHomeNetworkTokens, uniqueChainIds } from "app/core/utils/home-network-list.util";
+import { walletAccountIdentity } from "app/core/utils/wallet-session.util";
 import { WalletBalanceCacheService } from "app/services/wallet-balance-cache.service";
 import { HomeEnabledNetworksComponent } from "./home-enabled-networks/home-enabled-networks.component";
 
@@ -84,6 +85,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     private _wallet!: Partial<TagModel>;
     private _enabledKey = "";
     private _balanceLoadGen = 0;
+    private _portfolioAccountId = "";
 
     /** Checklist steps (placeholder until wired to rewards/onboarding API). */
     readonly startHereTotal = 4;
@@ -138,7 +140,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
         await this._blockchainNetworkService._initNetwork();
 
-        this._chromeService.onWalletChanged$.pipe(takeUntil(this._destroy$)).subscribe(this._initializeWallet);
+        this._chromeService.onWalletChanged$.pipe(takeUntil(this._destroy$)).subscribe(this._onWalletChanged);
 
         this._settingsService.settings$.pipe(takeUntil(this._destroy$)).subscribe(() => {
             void this._onNetworkSettingsChanged();
@@ -212,6 +214,8 @@ export class HomeComponent implements OnInit, OnDestroy {
 
         await loadWalletBalances({
             wallet: this._wallet,
+            accountId: this._portfolioAccountId,
+            loadedAccountId: this._portfolioAccountId,
             enabledNetworkIds: enabledNetworks,
             assetService: this._assetService,
             blockchainTransactionsService: this._blockchainTransactionsService,
@@ -247,39 +251,38 @@ export class HomeComponent implements OnInit, OnDestroy {
         if (this.totalFiatBalance > 0) this._lastKnownTotalFiat = this.totalFiatBalance;
     }
 
-    private _initializeWallet = async (wallet: TagModel): Promise<void> => {
-        if (this._wallet && this._wallet.tagName === wallet.tagName) return;
+    private _onWalletChanged = async (wallet: TagModel): Promise<void> => {
+        const nextId = walletAccountIdentity(wallet);
 
-        if (this.balancesLoading) {
-            this._unsubscriberForBalances$.next();
-            this._unsubscriberForBalances$.complete();
-            this._unsubscriberForBalances$ = new Subject<void>();
-        }
+        if (!nextId || nextId === this._portfolioAccountId) return;
 
+        const switchingAccount = !!this._portfolioAccountId;
+        this._portfolioAccountId = nextId;
+        this._abortBalanceLoad();
+        this._balanceLoadGen++;
+        this._tokens = [];
+        this.totalFiatBalance = 0;
+        this._lastKnownTotalFiat = null;
+        this.networkStatus = {};
+        this._enabledKey = "";
+        this._assetService.claimSessionAccount(nextId);
         this.balancesLoading = true;
 
         await this._setWallet();
+
+        if (walletAccountIdentity(this._wallet) !== nextId) return;
+
+        if (switchingAccount) {
+            const cacheTag = (this._wallet?.tagName || this._wallet?.name || "") as string;
+            await this._walletBalanceCache.clear(cacheTag);
+        }
+
         await this._getBalances();
         await this._refreshWallets();
 
         this._syncSubscriptionDhms();
         this._startSubscriptionCountdown();
-
         this._changeDetectorRef.detectChanges();
-
-        this._chromeService.onWalletChanged$.pipe(takeUntil(this._destroy$)).subscribe(this._listenForWalletUpdates);
-    };
-
-    private _listenForWalletUpdates = async (): Promise<void> => {
-        const currentWallet = this._wallet;
-
-        await this._setWallet();
-
-        const nextWallet = this._wallet;
-
-        if (currentWallet.tagName === nextWallet.tagName) return;
-
-        await this.refreshTokens();
     };
 
     private _refreshWallets = async (forceRefresh = false): Promise<void> => {

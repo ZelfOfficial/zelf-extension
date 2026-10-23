@@ -32,6 +32,7 @@ import {
 } from "app/core/utils/wallet-balance-loader";
 import { dedupeBalanceTokens } from "app/core/utils/balance-tokens.util";
 import { projectHomeNetworkTokens, uniqueChainIds } from "app/core/utils/home-network-list.util";
+import { walletAccountIdentity } from "app/core/utils/wallet-session.util";
 import { WalletBalanceCacheService } from "app/services/wallet-balance-cache.service";
 import { TokenCardComponent } from "./token-card/token-card.component";
 import { WalletBalanceTopCardComponent } from "./wallet-balance-top-card/wallet-balance-top-card.component";
@@ -74,6 +75,7 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
     private _lastKnownTotalFiat: number | null = null;
     private _enabledKey = "";
     private _balanceLoadGen = 0;
+    private _portfolioAccountId = "";
 
     // New hub header state (consistent with Home / zAuth / etc.)
     showProfilePanel = false;
@@ -122,7 +124,7 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
         this.selectedNetwork = await this._blockchainNetworkService._initNetwork();
         zelfWalletLoadPerfMark("initNetwork:end");
 
-        this._chromeService.onWalletChanged$.pipe(takeUntil(this.unsubscriber$)).subscribe(this._initializeWallet);
+        this._chromeService.onWalletChanged$.pipe(takeUntil(this.unsubscriber$)).subscribe(this._onWalletChanged);
 
         this._settingsService.settings$.pipe(takeUntil(this.unsubscriber$)).subscribe(() => {
             void this._onNetworkSettingsChanged();
@@ -207,6 +209,8 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
 
         await loadWalletBalances({
             wallet: this.wallet,
+            accountId: this._portfolioAccountId,
+            loadedAccountId: this._portfolioAccountId,
             enabledNetworkIds: enabledNetworks,
             assetService: this._assetService,
             blockchainTransactionsService: this._blockchainTransactionsService,
@@ -256,19 +260,31 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
     /**
      * First call to initialize wallet, balances and refresh wallet if needed
      */
-    private _initializeWallet = async (wallet: TagModel): Promise<void> => {
-        if (this.wallet && this.wallet.tagName === wallet.tagName) return;
+    private _onWalletChanged = async (wallet: TagModel): Promise<void> => {
+        const nextId = walletAccountIdentity(wallet);
 
-        if (this.balancesLoading) {
-            this.unsubscriberForBalances$.next();
-            this.unsubscriberForBalances$.complete();
+        if (!nextId || nextId === this._portfolioAccountId) return;
 
-            this.unsubscriberForBalances$ = new Subject<void>();
-        }
-
+        const switchingAccount = !!this._portfolioAccountId;
+        this._portfolioAccountId = nextId;
+        this._abortBalanceLoad();
+        this._balanceLoadGen++;
+        this.tokens = [];
+        this.totalFiatBalance = 0;
+        this._lastKnownTotalFiat = null;
+        this.networkStatus = {};
+        this._enabledKey = "";
+        this._assetService.claimSessionAccount(nextId);
         this.balancesLoading = true;
 
         await this._setWallet();
+
+        if (walletAccountIdentity(this.wallet) !== nextId) return;
+
+        if (switchingAccount) {
+            await this._walletBalanceCache.clear((this.wallet?.tagName || this.wallet?.name || "") as string);
+        }
+
         await this._getBalances();
         await this._refreshWallets();
 
@@ -277,24 +293,7 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
             balancesLoading: this.balancesLoading,
         });
         zelfWalletLoadPerfMeasure("initNetwork_to_refreshWallets", "initNetwork:end", "refreshWallets:end");
-
-        this._chromeService.onWalletChanged$.pipe(takeUntil(this.unsubscriber$)).subscribe(this._listenForWalletUpdates);
-    };
-
-    /**
-     * Set this listener once initialization is complete.
-     * This helps prevent endless component update cycles should the wallet update in storage during initialization.
-     */
-    private _listenForWalletUpdates = async (): Promise<void> => {
-        const currentWallet = this.wallet;
-
-        await this._setWallet();
-
-        const nextWallet = this.wallet;
-
-        if (currentWallet.tagName === nextWallet.tagName) return;
-
-        await this.refreshTokens();
+        this.collectiblesReloadKey += 1;
     };
 
     /**

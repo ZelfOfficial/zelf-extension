@@ -335,7 +335,13 @@ export class AssetService {
         this._sourceAsset$.next(this._sourceAsset);
     }
 
-    async loadTokensFromSession(): Promise<any[]> {
+    async loadTokensFromSession(accountId?: string): Promise<any[]> {
+        if (accountId) {
+            const owner = await this._chromeService.getItemSession("tokensAccountId");
+
+            if (owner && owner !== accountId) return [];
+        }
+
         const sessionTokenTtl = await this._chromeService.getItemSession("tokensTtl");
 
         if (!sessionTokenTtl || sessionTokenTtl <= Date.now()) return [];
@@ -347,8 +353,20 @@ export class AssetService {
         return sessionTokens;
     }
 
+    /** Account that owns the global session portfolio. A switch changes this before the next load. */
+    private _sessionAccountId: string | null = null;
+
     /** Serializes session writes so parallel network loads cannot replace the portfolio with a shorter list. */
     private _sessionWrite: Promise<unknown> = Promise.resolve();
+
+    get sessionAccountId(): string | null {
+        return this._sessionAccountId;
+    }
+
+    /** Call synchronously when the active account changes, before any balance save can flush. */
+    claimSessionAccount(accountId: string): void {
+        this._sessionAccountId = accountId || null;
+    }
 
     /**
      * @param mode `merge` (default) keeps chains already in the session. A one-network response must not
@@ -356,11 +374,18 @@ export class AssetService {
      * before the stored copy caught up.
      */
     async saveTokensToSession(tokens: Array<any>, mode: "merge" | "replace" = "merge"): Promise<void> {
+        const accountId = this._sessionAccountId;
         const write = this._sessionWrite.then(async () => {
-            const next = mode === "replace" ? tokens : mergeBalanceTokens(await this.loadTokensFromSession(), tokens);
+            if (accountId !== this._sessionAccountId) return;
+
+            const next = mode === "replace" ? tokens : mergeBalanceTokens(await this.loadTokensFromSession(accountId || undefined), tokens);
+
+            if (accountId !== this._sessionAccountId) return;
 
             this._chromeService.setItemSession("tokens", next);
             this._chromeService.setItemSession("tokensTtl", Date.now() + 3600000);
+
+            if (accountId) this._chromeService.setItemSession("tokensAccountId", accountId);
         });
 
         this._sessionWrite = write.catch(() => undefined);

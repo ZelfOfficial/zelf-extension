@@ -34,4 +34,11 @@ export class WalletBalanceCacheService {
 
         await this._chromeService.setItem(cacheKey(snapshot.tagName), snapshot);
     }
+
+    /** Drop one account's snapshot so a switch cannot reload another account's rows from it. */
+    async clear(tagName: string): Promise<void> {
+        if (!tagName) return;
+
+        await this._chromeService.removeItem(cacheKey(tagName));
+    }
 }

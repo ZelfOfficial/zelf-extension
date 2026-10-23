@@ -10,6 +10,11 @@
     }
 }
 
+.token-card__hint {
+    color: variables.$themeTextSecondary;
+    font-weight: 500;
+}
+
 .card-container {
     cursor: pointer;
     display: flex;

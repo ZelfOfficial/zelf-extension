@@ -1,8 +1,13 @@
-import { projectHomeNetworkTokens, uniqueChainIds } from "./home-network-list.util";
+import { nativeNetworkPlaceholder, projectHomeNetworkTokens, uniqueChainIds } from "./home-network-list.util";
 
 const row = (symbol: string, network: string, fiatBalance: number, tokenType = symbol) => ({ symbol, network, tokenType, fiatBalance, amount: 1 });
 
 describe("home network list", () => {
+    it("uses the same Ton label as a loaded card", () => {
+        expect(nativeNetworkPlaceholder("ton").network).toBe("Ton");
+        expect(nativeNetworkPlaceholder("ton").symbol).toBe("TON");
+    });
+
     it("de-duplicates enabled chain ids by identity, not display name", () => {
         expect(uniqueChainIds(["Ethereum", "ethereum", "ETH", "optimism", "Optimism", "OP Mainnet"])).toEqual(["ethereum", "optimism"]);
     });
