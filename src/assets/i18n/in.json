@@ -1784,8 +1784,8 @@
         "setup_key": "सेटअप कुंजी",
         "setup_key_placeholder": "e.g. JBSW Y3DP EHPK 3PXP",
         "setup_key_hint": "This is the code the website gives you when you turn on two-step verification — not your wallet password. Only letters A–Z and digits 2–7 are allowed.",
-        "setup_key_invalid_chars": "Invalid characters: {{chars}} — only letters A–Z and digits 2–7 are allowed.",
-        "setup_key_too_short": "Too short: the setup key must be at least 16 characters (currently {{length}}).",
+        "setup_key_invalid_chars": "अमान्य वर्ण: {{chars}} — केवल A–Z और अंक 2–7 मान्य हैं।",
+        "setup_key_too_short": "बहुत छोटी: कम से कम 16 वर्ण चाहिए (अभी {{length}})।",
         "enter_setup_key": "सेटअप कुंजी दर्ज करें",
         "upload_qr_code": "QR कोड अपलोड करें",
         "upload_qr_code_instructions": "अपने ZOTP को स्वचालित रूप से कॉन्फ़िगर करने के लिए एक QR कोड छवि अपलोड करें",
@@ -1832,8 +1832,8 @@
         "delete_failed": "ZOTP हटाने में विफल",
         "incorrect_password": "गलत मास्टर पासवर्ड",
         "errors": {
-            "invalid_setup_key": "यह सेटअप कुंजी मान्य नहीं है। साइट का कोड इस्तेमाल करें (अक्षर A–Z और अंक 2–7, कम से कम 16 वर्ण), फिर फिर कोशिश करें।",
-            "invalid_totp_params": "ये सत्यापन सेटिंग्स समर्थित नहीं हैं। SHA1, SHA256 या SHA512, 6–8 अंक और 1–300 सेकंड की अवधि इस्तेमाल करें।"
+            "invalid_setup_key": "सेटअप कुंजी अमान्य है। A–Z और 2–7, कम से कम 16 वर्ण।",
+            "invalid_totp_params": "ये सत्यापन सेटिंग्स समर्थित नहीं हैं।"
         },
         "biometrics_failed": "बायोमेट्रिक सत्यापन विफल रहा",
         "export": "निर्यात",

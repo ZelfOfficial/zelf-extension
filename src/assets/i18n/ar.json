@@ -1784,8 +1784,8 @@
         "setup_key": "مفتاح الإعداد",
         "setup_key_placeholder": "e.g. JBSW Y3DP EHPK 3PXP",
         "setup_key_hint": "This is the code the website gives you when you turn on two-step verification — not your wallet password. Only letters A–Z and digits 2–7 are allowed.",
-        "setup_key_invalid_chars": "Invalid characters: {{chars}} — only letters A–Z and digits 2–7 are allowed.",
-        "setup_key_too_short": "Too short: the setup key must be at least 16 characters (currently {{length}}).",
+        "setup_key_invalid_chars": "أحرف غير صالحة: {{chars}} — يُسمح فقط بالأحرف A–Z والأرقام 2–7.",
+        "setup_key_too_short": "قصيرة جداً: يجب أن لا يقل المفتاح عن 16 حرفاً (حالياً {{length}}).",
         "enter_setup_key": "أدخل مفتاح الإعداد",
         "upload_qr_code": "تحميل رمز QR",
         "upload_qr_code_instructions": "قم بتحميل صورة رمز QR لتهيئة ZOTP تلقائياً",
@@ -1832,8 +1832,8 @@
         "delete_failed": "فشل حذف ZOTP",
         "incorrect_password": "كلمة المرور الرئيسية غير صحيحة",
         "errors": {
-            "invalid_setup_key": "مفتاح الإعداد غير صالح. استخدم الرمز من الموقع (أحرف A–Z وأرقام 2–7، 16 حرفًا على الأقل) ثم أعد المحاولة.",
-            "invalid_totp_params": "إعدادات التحقق هذه غير مدعومة. استخدم SHA1 أو SHA256 أو SHA512، ومن 6 إلى 8 أرقام، وفترة من 1 إلى 300 ثانية."
+            "invalid_setup_key": "مفتاح الإعداد غير صالح. استخدم A–Z و2–7، 16 حرفاً على الأقل.",
+            "invalid_totp_params": "إعدادات التحقق هذه غير مدعومة."
         },
         "biometrics_failed": "فشل التحقق الحيوي",
         "export": "تصدير",

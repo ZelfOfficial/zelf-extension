@@ -1791,8 +1791,8 @@
         "setup_key": "Chave de Configuração",
         "setup_key_placeholder": "e.g. JBSW Y3DP EHPK 3PXP",
         "setup_key_hint": "This is the code the website gives you when you turn on two-step verification — not your wallet password. Only letters A–Z and digits 2–7 are allowed.",
-        "setup_key_invalid_chars": "Invalid characters: {{chars}} — only letters A–Z and digits 2–7 are allowed.",
-        "setup_key_too_short": "Too short: the setup key must be at least 16 characters (currently {{length}}).",
+        "setup_key_invalid_chars": "Caracteres inválidos: {{chars}} — só letras A–Z e dígitos 2–7.",
+        "setup_key_too_short": "Muito curta: a chave precisa de pelo menos 16 caracteres (tem {{length}}).",
         "enter_setup_key": "Digite uma chave de configuração",
         "upload_qr_code": "Enviar QR Code",
         "upload_qr_code_instructions": "Faça o upload de uma imagem de código QR para configurar automaticamente seu ZOTP",
@@ -1839,8 +1839,8 @@
         "delete_failed": "Falha ao deletar ZOTP",
         "incorrect_password": "Senha mestra incorreta",
         "errors": {
-            "invalid_setup_key": "Essa chave de configuração não é válida. Use o código do site (letras A–Z e dígitos 2–7, pelo menos 16 caracteres) e tente de novo.",
-            "invalid_totp_params": "Essas configurações de verificação não são suportadas. Use SHA1, SHA256 ou SHA512, de 6 a 8 dígitos e um período de 1 a 300 segundos."
+            "invalid_setup_key": "Chave inválida. Use A–Z e 2–7, pelo menos 16 caracteres.",
+            "invalid_totp_params": "Essas configurações de verificação não são suportadas."
         },
         "biometrics_failed": "Verificação biométrica falhou",
         "export": "Exportar",

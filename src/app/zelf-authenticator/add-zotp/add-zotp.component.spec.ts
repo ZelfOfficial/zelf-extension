@@ -60,7 +60,14 @@ describe("AddZotpComponent face verification", () => {
 
         expect(component.showBiometrics).toBeFalse();
         expect(storeZOTPToZelfKeys).not.toHaveBeenCalled();
-        expect(snack).toHaveBeenCalledWith("Setup key rejected", "Close", jasmine.any(Object));
+        expect(snack).toHaveBeenCalledWith(
+            "Setup key rejected",
+            "Close",
+            jasmine.objectContaining({
+                panelClass: ["zelf-snackbar", "zelf-snackbar--above-footer"],
+                verticalPosition: "bottom",
+            })
+        );
         expect(component.form.get("setupKey")?.value).toBe("123456");
     });
 

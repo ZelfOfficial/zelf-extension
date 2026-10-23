@@ -1784,8 +1784,8 @@
         "setup_key": "Ключ настройки",
         "setup_key_placeholder": "e.g. JBSW Y3DP EHPK 3PXP",
         "setup_key_hint": "This is the code the website gives you when you turn on two-step verification — not your wallet password. Only letters A–Z and digits 2–7 are allowed.",
-        "setup_key_invalid_chars": "Invalid characters: {{chars}} — only letters A–Z and digits 2–7 are allowed.",
-        "setup_key_too_short": "Too short: the setup key must be at least 16 characters (currently {{length}}).",
+        "setup_key_invalid_chars": "Недопустимые символы: {{chars}} — только буквы A–Z и цифры 2–7.",
+        "setup_key_too_short": "Слишком короткий: нужно не меньше 16 символов (сейчас {{length}}).",
         "enter_setup_key": "Введите ключ настройки",
         "upload_qr_code": "Загрузить QR-код",
         "upload_qr_code_instructions": "Загрузите изображение QR-кода для автоматической настройки ZOTP",
@@ -1832,8 +1832,8 @@
         "delete_failed": "Не удалось удалить ZOTP",
         "incorrect_password": "Неверный мастер-пароль",
         "errors": {
-            "invalid_setup_key": "Ключ настройки недействителен. Используйте код с сайта (буквы A–Z и цифры 2–7, не меньше 16 символов) и повторите попытку.",
-            "invalid_totp_params": "Эти параметры проверки не поддерживаются. Используйте SHA1, SHA256 или SHA512, 6–8 цифр и период от 1 до 300 секунд."
+            "invalid_setup_key": "Неверный ключ. Используйте A–Z и 2–7, не меньше 16 символов.",
+            "invalid_totp_params": "Эти параметры проверки не поддерживаются."
         },
         "biometrics_failed": "Ошибка биометрической проверки",
         "export": "Экспорт",

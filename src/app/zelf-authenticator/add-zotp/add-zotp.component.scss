@@ -82,6 +82,12 @@
         text-align: left;
     }
 
+    &__setup-key-feedback {
+        // Clears the sticky Cancel/Confirm bar and the footer pill when scrolled into view.
+        scroll-margin-bottom: calc(168px * var(--zns-space-scale, 1));
+        padding-bottom: calc(8px * var(--zns-space-scale, 1));
+    }
+
     &__setup-key-error {
         margin: 8px 0 0;
         color: variables.$error;
@@ -96,5 +102,36 @@
         font-size: calc(12px * var(--zns-font-scale, 1));
         line-height: 1.45;
         text-align: left;
+    }
+}
+
+// Keep the action bar above the footer, and leave scroll room so the setup-key
+// hint is not trapped underneath it.
+.password-form.add-zotp {
+    padding-bottom: calc(72px * var(--zns-space-scale, 1));
+
+    .form-content .form-actions {
+        bottom: calc(82px * var(--zns-space-scale, 1));
+    }
+}
+
+// Snackbar is rendered in the overlay, outside this component.
+::ng-deep .mat-mdc-snack-bar-container.zelf-snackbar--above-footer {
+    margin: 0 16px calc(82px * var(--zns-space-scale, 1) + 12px) !important;
+    max-width: min(420px, calc(100vw - 32px));
+
+    .mdc-snackbar__surface {
+        background-color: variables.$themeCard !important;
+        border: 1px solid variables.$themeCardBorder;
+        border-radius: 14px !important;
+        box-shadow: 0 8px 24px variables.$themeShadow;
+    }
+
+    .mat-mdc-snack-bar-label,
+    .mdc-snackbar__label {
+        font-family: variables.$themeBodyFamily;
+        font-size: 13px;
+        line-height: 1.35;
+        color: variables.$themeText !important;
     }
 }

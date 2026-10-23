@@ -1768,8 +1768,8 @@
         "setup_key": "คีย์ตั้งค่า",
         "setup_key_placeholder": "e.g. JBSW Y3DP EHPK 3PXP",
         "setup_key_hint": "This is the code the website gives you when you turn on two-step verification — not your wallet password. Only letters A–Z and digits 2–7 are allowed.",
-        "setup_key_invalid_chars": "Invalid characters: {{chars}} — only letters A–Z and digits 2–7 are allowed.",
-        "setup_key_too_short": "Too short: the setup key must be at least 16 characters (currently {{length}}).",
+        "setup_key_invalid_chars": "อักขระไม่ถูกต้อง: {{chars}} — ใช้ได้เฉพาะ A–Z และ 2–7",
+        "setup_key_too_short": "สั้นเกินไป: ต้องมีอย่างน้อย 16 ตัวอักษร (ตอนนี้ {{length}})",
         "enter_setup_key": "ป้อนคีย์ตั้งค่า",
         "upload_qr_code": "อัปโหลดคิวอาร์โค้ด",
         "upload_qr_code_instructions": "อัปโหลดรูปภาพคิวอาร์โค้ดเพื่อกำหนดค่า ZOTP ของคุณโดยอัตโนมัติ",
@@ -1816,8 +1816,8 @@
         "delete_failed": "ไม่สามารถลบ ZOTP ได้",
         "incorrect_password": "รหัสผ่านหลักไม่ถูกต้อง",
         "errors": {
-            "invalid_setup_key": "คีย์การตั้งค่าไม่ถูกต้อง ใช้รหัสจากเว็บไซต์ (ตัวอักษร A–Z และเลข 2–7 อย่างน้อย 16 ตัว) แล้วลองอีกครั้ง",
-            "invalid_totp_params": "ไม่รองรับการตั้งค่านี้ ใช้ SHA1, SHA256 หรือ SHA512, 6–8 หลัก และช่วงเวลา 1–300 วินาที"
+            "invalid_setup_key": "คีย์ไม่ถูกต้อง ใช้ A–Z และ 2–7 อย่างน้อย 16 ตัว",
+            "invalid_totp_params": "ไม่รองรับการตั้งค่าการยืนยันนี้"
         },
         "biometrics_failed": "การยืนยันทางไบโอเมตริกล้มเหลว",
         "export": "ส่งออก",

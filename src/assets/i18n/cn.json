@@ -1784,8 +1784,8 @@
         "setup_key": "设置密钥",
         "setup_key_placeholder": "e.g. JBSW Y3DP EHPK 3PXP",
         "setup_key_hint": "This is the code the website gives you when you turn on two-step verification — not your wallet password. Only letters A–Z and digits 2–7 are allowed.",
-        "setup_key_invalid_chars": "Invalid characters: {{chars}} — only letters A–Z and digits 2–7 are allowed.",
-        "setup_key_too_short": "Too short: the setup key must be at least 16 characters (currently {{length}}).",
+        "setup_key_invalid_chars": "无效字符：{{chars}} — 仅允许字母 A–Z 和数字 2–7。",
+        "setup_key_too_short": "太短：至少需要 16 个字符（当前 {{length}} 个）。",
         "enter_setup_key": "输入设置密钥",
         "upload_qr_code": "上传二维码",
         "upload_qr_code_instructions": "上传二维码图片以自动配置 ZOTP",
@@ -1832,8 +1832,8 @@
         "delete_failed": "删除 ZOTP 失败",
         "incorrect_password": "主密码错误",
         "errors": {
-            "invalid_setup_key": "设置密钥无效。请使用网站提供的代码（字母 A–Z 和数字 2–7，至少 16 个字符），然后重试。",
-            "invalid_totp_params": "不支持这些验证设置。请使用 SHA1、SHA256 或 SHA512，6–8 位数字，以及 1–300 秒的周期。"
+            "invalid_setup_key": "设置密钥无效。请使用 A–Z 和 2–7，至少 16 个字符。",
+            "invalid_totp_params": "不支持这些验证设置。"
         },
         "biometrics_failed": "生物识别验证失败",
         "export": "导出",

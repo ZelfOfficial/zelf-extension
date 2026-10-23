@@ -1,5 +1,5 @@
 import { CommonModule, NgClass, NgIf, NgTemplateOutlet } from "@angular/common";
-import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
@@ -49,13 +49,16 @@ import {
     ],
     selector: "add-zotp",
     styleUrls: [
-        "./add-zotp.component.scss",
         "../../zelf-keys/zelf-keys-passwords/zelf-keys-password-form/zelf-keys-password-form.component.scss",
+        "./add-zotp.component.scss",
     ],
     templateUrl: "./add-zotp.component.html",
 })
 export class AddZotpComponent implements OnInit, OnDestroy {
     private unsubscriber$ = new Subject<void>();
+    private _setupKeyHintScroll?: ReturnType<typeof setTimeout>;
+
+    @ViewChild("setupKeyFeedback") private _setupKeyFeedback?: ElementRef<HTMLElement>;
 
     currentWallet: TagModel | null = null;
     form!: FormGroup;
@@ -101,6 +104,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
                 }
 
                 this.form.get("setupKey")?.updateValueAndValidity({ emitEvent: false });
+                this._scheduleSetupKeyHintScroll();
             });
     }
 
@@ -133,6 +137,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        clearTimeout(this._setupKeyHintScroll);
         this.unsubscriber$.next();
         this.unsubscriber$.complete();
     }
@@ -569,6 +574,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         if (!this.isFormReadyToSave) {
             if (!this.setupKeyFieldState.valid) {
                 this._notify(this._translocoService.translate("zotp.errors.invalid_setup_key"));
+                this._scheduleSetupKeyHintScroll();
             }
 
             return;
@@ -685,7 +691,22 @@ export class AddZotpComponent implements OnInit, OnDestroy {
     }
 
     private _notify(message: string): void {
-        this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
+        this._snackBar.open(message, this._translocoService.translate("common.close"), {
+            duration: 5000,
+            horizontalPosition: "center",
+            verticalPosition: "bottom",
+            panelClass: ["zelf-snackbar", "zelf-snackbar--above-footer"],
+        });
+    }
+
+    /** After the hint renders, scroll it clear of the sticky actions and footer. */
+    private _scheduleSetupKeyHintScroll(): void {
+        if (!this.setupKeyInvalidCharsMessage && !this.showSetupKeyTooShortHint) return;
+
+        clearTimeout(this._setupKeyHintScroll);
+        this._setupKeyHintScroll = setTimeout(() => {
+            this._setupKeyFeedback?.nativeElement.scrollIntoView({ block: "nearest", inline: "nearest" });
+        });
     }
 
     /** Log status and code only. Store errors can echo the setup key in validationError. */

@@ -1784,8 +1784,8 @@
         "setup_key": "설정 키",
         "setup_key_placeholder": "e.g. JBSW Y3DP EHPK 3PXP",
         "setup_key_hint": "This is the code the website gives you when you turn on two-step verification — not your wallet password. Only letters A–Z and digits 2–7 are allowed.",
-        "setup_key_invalid_chars": "Invalid characters: {{chars}} — only letters A–Z and digits 2–7 are allowed.",
-        "setup_key_too_short": "Too short: the setup key must be at least 16 characters (currently {{length}}).",
+        "setup_key_invalid_chars": "잘못된 문자: {{chars}} — A–Z와 숫자 2–7만 사용할 수 있습니다.",
+        "setup_key_too_short": "너무 짧습니다: 16자 이상이어야 합니다(현재 {{length}}자).",
         "enter_setup_key": "설정 키를 입력해 주세요",
         "upload_qr_code": "QR 코드 업로드",
         "upload_qr_code_instructions": "QR 코드 이미지를 업로드하여 ZOTP를 자동으로 설정하세요",
@@ -1832,8 +1832,8 @@
         "delete_failed": "ZOTP 삭제 실패",
         "incorrect_password": "마스터 비밀번호가 올바르지 않습니다",
         "errors": {
-            "invalid_setup_key": "설정 키가 올바르지 않습니다. 사이트의 코드(A–Z와 숫자 2–7, 16자 이상)를 사용한 뒤 다시 시도하세요.",
-            "invalid_totp_params": "이 인증 설정은 지원되지 않습니다. SHA1, SHA256 또는 SHA512, 6–8자리, 1–300초 주기를 사용하세요."
+            "invalid_setup_key": "설정 키가 올바르지 않습니다. A–Z와 2–7, 16자 이상.",
+            "invalid_totp_params": "이 인증 설정은 지원되지 않습니다."
         },
         "biometrics_failed": "생체 인증 실패",
         "export": "내보내기",

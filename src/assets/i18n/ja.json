@@ -1784,8 +1784,8 @@
         "setup_key": "セットアップキー",
         "setup_key_placeholder": "e.g. JBSW Y3DP EHPK 3PXP",
         "setup_key_hint": "This is the code the website gives you when you turn on two-step verification — not your wallet password. Only letters A–Z and digits 2–7 are allowed.",
-        "setup_key_invalid_chars": "Invalid characters: {{chars}} — only letters A–Z and digits 2–7 are allowed.",
-        "setup_key_too_short": "Too short: the setup key must be at least 16 characters (currently {{length}}).",
+        "setup_key_invalid_chars": "無効な文字: {{chars}} — 使用できるのは A–Z と 2–7 のみです。",
+        "setup_key_too_short": "短すぎます: 16 文字以上必要です（現在 {{length}}）。",
         "enter_setup_key": "セットアップキーを入力してください",
         "upload_qr_code": "QRコードをアップロード",
         "upload_qr_code_instructions": "QRコード画像をアップロードしてZOTPを自動構成します",
@@ -1832,8 +1832,8 @@
         "delete_failed": "ZOTPの削除に失敗しました",
         "incorrect_password": "マスターパスワードが正しくありません",
         "errors": {
-            "invalid_setup_key": "セットアップキーが無効です。サイトのコード（A–Z と 2–7、16 文字以上）を入力して、もう一度お試しください。",
-            "invalid_totp_params": "この検証設定は使えません。SHA1、SHA256、SHA512、6〜8 桁、1〜300 秒の周期を使ってください。"
+            "invalid_setup_key": "セットアップキーが無効です。A–Z と 2–7、16 文字以上。",
+            "invalid_totp_params": "この検証設定は使えません。"
         },
         "biometrics_failed": "生体認証に失敗しました",
         "export": "エクスポート",

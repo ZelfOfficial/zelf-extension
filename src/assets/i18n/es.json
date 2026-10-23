@@ -2011,8 +2011,8 @@
         },
         "errors": {
             "proof_load_failed": "No se pudieron cargar los datos cifrados de este código. Inténtalo de nuevo.",
-            "invalid_setup_key": "La clave de configuración no es válida. Usa el código del sitio (letras A–Z y números del 2 al 7, mínimo 16 caracteres) e inténtalo de nuevo.",
-            "invalid_totp_params": "Esos ajustes de verificación no son compatibles. Usa SHA1, SHA256 o SHA512, de 6 a 8 dígitos y un periodo de 1 a 300 segundos."
+            "invalid_setup_key": "Clave no válida. Usa A–Z y 2–7, mínimo 16 caracteres.",
+            "invalid_totp_params": "Esos ajustes de verificación no son compatibles."
         },
         "decrypt": {
             "button": "Mostrar código",
