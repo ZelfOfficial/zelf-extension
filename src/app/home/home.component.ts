@@ -27,7 +27,7 @@ import {
     loadWalletBalances,
 } from "app/core/utils/wallet-balance-loader";
 import { dedupeBalanceTokens } from "app/core/utils/balance-tokens.util";
-import { filterTokensByEnabledNetworkIds } from "app/core/utils/token-network-id.util";
+import { projectHomeNetworkTokens, uniqueChainIds } from "app/core/utils/home-network-list.util";
 import { WalletBalanceCacheService } from "app/services/wallet-balance-cache.service";
 import { HomeEnabledNetworksComponent } from "./home-enabled-networks/home-enabled-networks.component";
 
@@ -82,6 +82,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     private _tokens: any[] = [];
     private _lastKnownTotalFiat: number | null = null;
     private _wallet!: Partial<TagModel>;
+    private _enabledKey = "";
+    private _balanceLoadGen = 0;
 
     /** Checklist steps (placeholder until wired to rewards/onboarding API). */
     readonly startHereTotal = 4;
@@ -153,14 +155,32 @@ export class HomeComponent implements OnInit, OnDestroy {
         if (!this._wallet?.tagName) return;
 
         const enabledNetworks = await this._settingsService.getEnabledNetworkIdsFromLicense();
-        this.enabledNetworkIds = enabledNetworks ?? [];
+        const changed = this._applyEnabledNetworks(enabledNetworks);
 
-        const filtered = filterTokensByEnabledNetworkIds(this._tokens, enabledNetworks);
-        this._updateTokenState(filtered);
+        this._updateTokenState(projectHomeNetworkTokens(this._tokens, enabledNetworks));
 
-        if (!this.balancesLoading && !this.balancesSyncing) {
+        if (changed) {
+            this._abortBalanceLoad();
             await this._runBalanceLoad(false);
         }
+    }
+
+    /** @returns true when the enabled chain set changed and balances must be fetched again. */
+    private _applyEnabledNetworks(enabledNetworks: string[] | undefined): boolean {
+        const ids = uniqueChainIds(enabledNetworks ?? []);
+        const key = ids.join("|");
+        const changed = key !== this._enabledKey;
+
+        this._enabledKey = key;
+        this.enabledNetworkIds = ids;
+
+        return changed;
+    }
+
+    private _abortBalanceLoad(): void {
+        this._unsubscriberForBalances$.next();
+        this._unsubscriberForBalances$.complete();
+        this._unsubscriberForBalances$ = new Subject<void>();
     }
 
     ngOnDestroy(): void {
@@ -173,14 +193,15 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     private async _getBalances(): Promise<void> {
         const enabledNetworks = await this._settingsService.getEnabledNetworkIdsFromLicense();
-        this.enabledNetworkIds = enabledNetworks ?? [];
+        this._applyEnabledNetworks(enabledNetworks);
 
         await this._runBalanceLoad(false);
     }
 
     private async _runBalanceLoad(forceNetworkRefresh: boolean): Promise<void> {
         const enabledNetworks = await this._settingsService.getEnabledNetworkIdsFromLicense();
-        this.enabledNetworkIds = enabledNetworks ?? [];
+        this._applyEnabledNetworks(enabledNetworks);
+        const loadGen = ++this._balanceLoadGen;
 
         const tagName = this._wallet?.tagName || this._wallet?.name || "";
         const persistedCache = tagName ? await this._walletBalanceCache.load(tagName) : null;
@@ -198,7 +219,7 @@ export class HomeComponent implements OnInit, OnDestroy {
             forceNetworkRefresh,
             persistedCache,
             abort$: this._unsubscriberForBalances$,
-            shouldContinue: () => (this._wallet?.tagName || this._wallet?.name) === tagName,
+            shouldContinue: () => this._balanceLoadGen === loadGen && (this._wallet?.tagName || this._wallet?.name) === tagName,
             onPersistCache: (snapshot) => this._walletBalanceCache.save(snapshot),
             callbacks: {
                 onTokensUpdated: (tokens, total) => {

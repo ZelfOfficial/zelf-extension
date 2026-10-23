@@ -10,6 +10,27 @@ describe("balance-tokens util", () => {
         expect(out.find((x) => x.network === "Ethereum")!.fiatBalance).toBe(12);
     });
 
+    it("dedupes by chain identity, not display name, and keeps distinct ETH chains", () => {
+        const out = dedupeBalanceTokens([
+            t("ETH", "Ethereum", 10),
+            t("ETH", "Ether", 4),
+            t("ETH", "ETH", 1),
+            { symbol: "ETH", network: "Optimism", tokenType: "ETH", name: "Ethereum", fiatBalance: 2 },
+            { symbol: "ETH", network: "Arbitrum", tokenType: "ETH", name: "Ethereum", fiatBalance: 3 },
+            { symbol: "SUI", network: "Sui", tokenType: "0xabc::spam::SUI", name: "Sui", fiatBalance: 1 },
+            t("SUI", "Sui", 8),
+        ]);
+
+        const chains = out.map((row) => `${row.network}:${row.symbol}:${row.tokenType}`).sort();
+
+        expect(out.filter((row) => row.symbol === "ETH" && row.network !== "Optimism" && row.network !== "Arbitrum").length).toBe(1);
+        expect(out.find((row) => row.network === "Ethereum" || row.network === "Ether" || row.network === "ETH")!.fiatBalance).toBe(10);
+        expect(out.find((row) => row.network === "Optimism")!.fiatBalance).toBe(2);
+        expect(out.find((row) => row.network === "Arbitrum")!.fiatBalance).toBe(3);
+        expect(out.filter((row) => row.symbol === "SUI").length).toBe(2);
+        expect(chains).toContain("Optimism:ETH:ETH");
+    });
+
     it("sums fiat balances, treating bad values as 0", () => {
         expect(sumFiatBalance([t("A", "X", 1.5), t("B", "X", "2.5"), t("C", "X", "n/a"), { symbol: "D" }])).toBe(4);
         expect(sumFiatBalance(null)).toBe(0);
@@ -38,5 +59,19 @@ describe("balance-tokens util", () => {
 
         expect(once.length).toBe(1);
         expect(sumFiatBalance(once)).toBe(120);
+    });
+
+    it("a newer reported 0 replaces a stale balance, and a placeholder does not", () => {
+        const spent = mergeBalanceTokens([t("ETH", "Ethereum", 120)], [t("ETH", "Ethereum", 0)]);
+
+        expect(spent.length).toBe(1);
+        expect(sumFiatBalance(spent)).toBe(0);
+
+        const kept = mergeBalanceTokens(
+            [t("ETH", "Ethereum", 120)],
+            [{ symbol: "ETH", network: "Ethereum", tokenType: "ETH", amount: null, balance: null, fiatBalance: null } as any]
+        );
+
+        expect(sumFiatBalance(kept)).toBe(120);
     });
 });

@@ -10,7 +10,7 @@ import {
     splitBalanceStages,
 } from "app/core/network-settings.util";
 import { dedupeBalanceTokens, mergeBalanceTokens, sumFiatBalance } from "app/core/utils/balance-tokens.util";
-import { filterTokensByEnabledNetworkIds } from "app/core/utils/token-network-id.util";
+import { projectHomeNetworkTokens, uniqueChainIds } from "app/core/utils/home-network-list.util";
 import { forEachWithConcurrency } from "app/core/utils/concurrency.util";
 
 export const BALANCE_NETWORK_TIMEOUT_MS = 25_000;
@@ -152,9 +152,10 @@ function publishTokens(
     status: Record<string, NetworkBalanceStatus>,
     lastKnownTotal: number | null | undefined
 ): void {
-    const filtered = filterTokensByEnabledNetworkIds(dedupeBalanceTokens(tokens), enabledNetworkIds);
-    const total = sumFiatBalance(filtered);
-    ctx.callbacks.onTokensUpdated(filtered, total);
+    const visible = projectHomeNetworkTokens(tokens, enabledNetworkIds);
+    const total = sumFiatBalance(visible);
+
+    ctx.callbacks.onTokensUpdated(visible, total);
 }
 
 /**
@@ -162,27 +163,30 @@ function publishTokens(
  * always refresh from the API without wiping the list, and fetch background networks in parallel.
  */
 export async function loadWalletBalances(ctx: WalletBalanceLoadContext): Promise<void> {
-    const enabledIds = ctx.enabledNetworkIds ?? [...SUPPORTED_NETWORK_IDS];
-    const { priority, background } = splitBalanceStages(enabledIds);
+    // undefined: legacy "no license yet" still fetches the chains this build can talk to.
+    // A provided list is the license allowlist (minus chains the user switched off), never the catalog.
+    const enabledIds = ctx.enabledNetworkIds == null ? undefined : uniqueChainIds(ctx.enabledNetworkIds);
+    const fetchIds = enabledIds ?? [...SUPPORTED_NETWORK_IDS];
+    const { priority, background } = splitBalanceStages(fetchIds);
     const allIds = [...priority, ...background];
     const status = createNetworkStatusMap(allIds);
 
     ctx.callbacks.onNetworkStatus?.({ ...status });
 
     let tokens = dedupeBalanceTokens(ctx.getLoadedTokens());
-    let lastKnownTotal = tokens.length ? sumFiatBalance(filterTokensByEnabledNetworkIds(tokens, enabledIds)) : null;
+    let lastKnownTotal = tokens.length ? sumFiatBalance(projectHomeNetworkTokens(tokens, enabledIds)) : null;
 
     if (!ctx.forceNetworkRefresh) {
         const sessionTokens = await ctx.assetService.loadTokensFromSession();
 
         if (sessionTokens?.length) {
-            tokens = dedupeBalanceTokens(sessionTokens);
+            tokens = mergeBalanceTokens(tokens, sessionTokens);
         } else if (ctx.persistedCache?.tokens?.length) {
-            tokens = dedupeBalanceTokens(ctx.persistedCache.tokens);
+            tokens = mergeBalanceTokens(tokens, ctx.persistedCache.tokens);
         }
 
-        if (tokens.length) {
-            lastKnownTotal = sumFiatBalance(filterTokensByEnabledNetworkIds(tokens, enabledIds));
+        if (tokens.length && ctx.shouldContinue()) {
+            lastKnownTotal = sumFiatBalance(projectHomeNetworkTokens(tokens, enabledIds));
             publishTokens(ctx, tokens, enabledIds, status, lastKnownTotal);
         }
     }

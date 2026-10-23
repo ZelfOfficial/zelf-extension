@@ -6,7 +6,9 @@ import { environment } from "environments/environment";
 import { ChromeService } from "./chrome.service";
 import { HttpWrapperService } from "./http-wrapper.service";
 
+import { mergeBalanceTokens } from "app/core/utils/balance-tokens.util";
 import { isNativeSuiCoinType, isNativeSuiHolding } from "app/core/utils/sui-coin.util";
+import { applyResponseEnvelopes, readPrice, readReportedAmount, resolveTokenFiat } from "app/core/utils/token-balance.util";
 import { AssetChart, AssetDetails, AssetInterval, AssetIntervalOptions, AssetRange } from "./models/asset.model";
 import { TokenData } from "@shared/types/wallet.types";
 
@@ -345,8 +347,14 @@ export class AssetService {
         return sessionTokens;
     }
 
-    async saveTokensToSession(tokens: Array<any>): Promise<void> {
-        this._chromeService.setItemSession("tokens", tokens);
+    /**
+     * @param mode `merge` keeps other chains already in the session. A one-network response must not
+     * replace the whole portfolio (that left Home showing a single 0-balance card).
+     */
+    async saveTokensToSession(tokens: Array<any>, mode: "merge" | "replace" = "replace"): Promise<void> {
+        const next = mode === "merge" ? mergeBalanceTokens(await this.loadTokensFromSession(), tokens) : tokens;
+
+        this._chromeService.setItemSession("tokens", next);
         this._chromeService.setItemSession("tokensTtl", Date.now() + 3600000);
     }
 
@@ -382,16 +390,18 @@ export class AssetService {
             }
 
             const determinedTokenType = this._determineTokenType(token, network);
+            const amount = readReportedAmount(token);
+            const price = readPrice(token.price ?? token._price) ?? 0;
+            const fiatBalance = resolveTokenFiat(token, amount, price);
 
-            const balance = parseFloat(token.balance || token.amount || "0");
             const formattedToken = {
                 ...token,
-                balance,
-                amount: balance,
-                fiatBalance: token.fiatBalance !== null ? parseFloat(token.fiatBalance || "0") : null,
+                balance: amount,
+                amount,
+                fiatBalance,
                 image: token.image || (determinedTokenType === "AVAX" ? "assets/networks/avax.png" : token.image),
                 network,
-                price: parseFloat(token.price || "0"),
+                price,
                 tokenType: determinedTokenType,
                 isWrappedSol: network === "Solana" && this._isWrappedSolToken(token),
             };
@@ -480,6 +490,8 @@ export class AssetService {
             tokens = this.processTokens("Bitcoin", response.bitcoinTestnet.data.tokenHoldings.tokens, tokens, permissions);
         }
 
+        tokens = applyResponseEnvelopes(tokens, response);
+
         // Get pinned tokens and add isPinned flag
         const pinnedTokens = await this.getPinnedTokens();
         tokens = tokens.map((token) => ({
@@ -491,10 +503,10 @@ export class AssetService {
         tokens.sort((a, b) => {
             if (a.isPinned && !b.isPinned) return -1;
             if (!a.isPinned && b.isPinned) return 1;
-            return b.fiatBalance - a.fiatBalance;
+            return (b.fiatBalance || 0) - (a.fiatBalance || 0);
         });
 
-        if (!permissions) await this.saveTokensToSession(tokens);
+        if (!permissions) await this.saveTokensToSession(tokens, "merge");
 
         return { tokens, totalFiatBalance: tokens.reduce((acc, token) => acc + (token.fiatBalance || 0), 0) };
     }

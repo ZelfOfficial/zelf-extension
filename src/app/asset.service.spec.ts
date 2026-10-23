@@ -44,4 +44,18 @@ describe("AssetService Sui holdings", () => {
         expect(tokens.map((token) => token.tokenType)).toEqual(["SUI", "0xabc::spam::SUI", "SUI-TOKEN"]);
         expect(tokens.filter((token) => token.tokenType === "SUI").length).toBe(1);
     });
+
+    it("fills fiat from amount × price and leaves a real zero at 0", () => {
+        const [funded] = service().processTokens("Ethereum", [
+            { symbol: "ETH", name: "Ethereum", tokenType: "ETH", amount: "1.25", balance: "0", price: "2000", fiatBalance: "0" },
+        ]);
+        const [empty] = service().processTokens("Optimism", [
+            { symbol: "ETH", name: "Ethereum", tokenType: "ETH", amount: "0", price: "2389.89", fiatBalance: "0" },
+        ]);
+
+        expect(funded.amount).toBe(1.25);
+        expect(funded.fiatBalance).toBe(2500);
+        expect(empty.amount).toBe(0);
+        expect(empty.fiatBalance).toBe(0);
+    });
 });

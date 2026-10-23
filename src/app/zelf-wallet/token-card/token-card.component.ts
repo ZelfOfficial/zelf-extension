@@ -1,7 +1,10 @@
-import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
+import { Component, EventEmitter, Input, OnChanges, Output } from "@angular/core";
 import { CurrencyPipe, DecimalPipe, NgClass, NgIf } from "@angular/common";
 import { FlexLayoutModule } from "@angular/flex-layout";
 import { TranslocoModule } from "@jsverse/transloco";
+import { isNativeChainToken } from "app/core/utils/token-balance.util";
+import { tokenNetworkToLicenseId } from "app/core/utils/token-network-id.util";
+import { NetworkService } from "app/services/network.service";
 import { WalletService } from "app/wallet.service";
 import { DisplayAmountPipe, DisplayFiatPipe } from "../../pipes/display-number.pipe";
 
@@ -72,7 +75,7 @@ import { DisplayAmountPipe, DisplayFiatPipe } from "../../pipes/display-number.p
     styleUrls: ["./token-card.component.scss"],
     imports: [DisplayAmountPipe, DisplayFiatPipe, CurrencyPipe, NgClass, NgIf, DecimalPipe, FlexLayoutModule, TranslocoModule],
 })
-export class TokenCardComponent implements OnInit {
+export class TokenCardComponent implements OnChanges {
     @Input() data: any;
     @Input() hideBalances: boolean = false;
     @Input() view: string;
@@ -82,12 +85,25 @@ export class TokenCardComponent implements OnInit {
     currentImage!: string;
     isHovered: boolean = false;
 
-    constructor(private _walletService: WalletService) {
+    constructor(
+        private _networkService: NetworkService,
+        private _walletService: WalletService
+    ) {
         this.view = "default";
     }
 
-    ngOnInit(): void {
-        this.currentImage = this._walletService.getAssetImage(this.data.symbol, this.data?.image);
+    ngOnChanges(): void {
+        this.currentImage = this._resolveImage();
+    }
+
+    /** Native rows use the chain icon. Optimism, Arbitrum and Base all use symbol ETH, so the ETH icon made them look like duplicate Ethereum cards. */
+    private _resolveImage(): string {
+        const chainId = tokenNetworkToLicenseId(this.data?.network);
+        const chainIcon = isNativeChainToken(this.data) ? this._networkService.getNetworkImage(chainId) : "";
+
+        if (chainIcon) return chainIcon;
+
+        return this._walletService.getAssetImage(this.data?.symbol, this.data?.image);
     }
 
     onImageError() {

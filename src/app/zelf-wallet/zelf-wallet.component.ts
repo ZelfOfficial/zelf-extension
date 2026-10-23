@@ -31,7 +31,7 @@ import {
     loadWalletBalances,
 } from "app/core/utils/wallet-balance-loader";
 import { dedupeBalanceTokens } from "app/core/utils/balance-tokens.util";
-import { filterTokensByEnabledNetworkIds } from "app/core/utils/token-network-id.util";
+import { projectHomeNetworkTokens, uniqueChainIds } from "app/core/utils/home-network-list.util";
 import { WalletBalanceCacheService } from "app/services/wallet-balance-cache.service";
 import { TokenCardComponent } from "./token-card/token-card.component";
 import { WalletBalanceTopCardComponent } from "./wallet-balance-top-card/wallet-balance-top-card.component";
@@ -72,6 +72,8 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
     totalFiatBalance: number = 0;
     wallet!: TagModel;
     private _lastKnownTotalFiat: number | null = null;
+    private _enabledKey = "";
+    private _balanceLoadGen = 0;
 
     // New hub header state (consistent with Home / zAuth / etc.)
     showProfilePanel = false;
@@ -167,12 +169,23 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
         if (!this.wallet?.tagName) return;
 
         const enabledNetworks = await this._settingsService.getEnabledNetworkIdsFromLicense();
-        const filtered = filterTokensByEnabledNetworkIds(this.tokens, enabledNetworks);
-        this._updateTokenState(filtered);
+        const ids = uniqueChainIds(enabledNetworks ?? []);
+        const key = ids.join("|");
+        const changed = key !== this._enabledKey;
 
-        if (!this.balancesLoading && !this.balancesSyncing) {
+        this._enabledKey = key;
+        this._updateTokenState(projectHomeNetworkTokens(this.tokens, enabledNetworks));
+
+        if (changed) {
+            this._abortBalanceLoad();
             await this._runBalanceLoad(false);
         }
+    }
+
+    private _abortBalanceLoad(): void {
+        this.unsubscriberForBalances$.next();
+        this.unsubscriberForBalances$.complete();
+        this.unsubscriberForBalances$ = new Subject<void>();
     }
 
     private async _getBalances(): Promise<void> {
@@ -183,6 +196,8 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
 
     private async _runBalanceLoad(forceNetworkRefresh: boolean): Promise<void> {
         const enabledNetworks = await this._settingsService.getEnabledNetworkIdsFromLicense();
+        this._enabledKey = uniqueChainIds(enabledNetworks ?? []).join("|");
+        const loadGen = ++this._balanceLoadGen;
         const walletTag = (this.wallet?.tagName || this.wallet?.name) as string;
         const persistedCache = walletTag ? await this._walletBalanceCache.load(walletTag) : null;
 
@@ -199,7 +214,7 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
             forceNetworkRefresh,
             persistedCache,
             abort$: this.unsubscriberForBalances$,
-            shouldContinue: () => ((this.wallet?.tagName || this.wallet?.name) as string) === walletTag,
+            shouldContinue: () => this._balanceLoadGen === loadGen && ((this.wallet?.tagName || this.wallet?.name) as string) === walletTag,
             onPersistCache: (snapshot) => this._walletBalanceCache.save(snapshot),
             callbacks: {
                 onTokensUpdated: (tokens) => {
