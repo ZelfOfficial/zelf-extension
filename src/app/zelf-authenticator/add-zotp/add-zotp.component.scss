@@ -83,9 +83,7 @@
     }
 
     &__setup-key-feedback {
-        // Clears the sticky Cancel/Confirm bar and the footer pill when scrolled into view.
-        scroll-margin-bottom: calc(168px * var(--zns-space-scale, 1));
-        padding-bottom: calc(8px * var(--zns-space-scale, 1));
+        padding-bottom: calc(4px * var(--zns-space-scale, 1));
     }
 
     &__setup-key-error {
@@ -105,19 +103,11 @@
     }
 }
 
-// Keep the action bar above the footer, and leave scroll room so the setup-key
-// hint is not trapped underneath it.
-.password-form.add-zotp {
-    padding-bottom: calc(72px * var(--zns-space-scale, 1));
-
-    .form-content .form-actions {
-        bottom: calc(82px * var(--zns-space-scale, 1));
-    }
-}
-
 // Snackbar is rendered in the overlay, outside this component.
+// margin-bottom is set from the action bar's bounding rect so it clears the bar and the footer.
 ::ng-deep .mat-mdc-snack-bar-container.zelf-snackbar--above-footer {
-    margin: 0 16px calc(82px * var(--zns-space-scale, 1) + 12px) !important;
+    margin-left: 16px !important;
+    margin-right: 16px !important;
     max-width: min(420px, calc(100vw - 32px));
 
     .mdc-snackbar__surface {

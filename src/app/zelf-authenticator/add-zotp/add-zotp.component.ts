@@ -32,6 +32,7 @@ import {
     sanitizeSetupKey,
     setupKeyValidator,
 } from "../zotp-setup-key.util";
+import { scrollableAncestor, scrollDeltaToRevealAboveBar, snackbarMarginBottom, topmostObstacle } from "./add-zotp-layout.util";
 
 @Component({
     imports: [
@@ -57,8 +58,10 @@ import {
 export class AddZotpComponent implements OnInit, OnDestroy {
     private unsubscriber$ = new Subject<void>();
     private _setupKeyHintScroll?: ReturnType<typeof setTimeout>;
+    private _snackbarPlace?: ReturnType<typeof setTimeout>;
 
     @ViewChild("setupKeyFeedback") private _setupKeyFeedback?: ElementRef<HTMLElement>;
+    @ViewChild("formActions") private _formActions?: ElementRef<HTMLElement>;
 
     currentWallet: TagModel | null = null;
     form!: FormGroup;
@@ -138,6 +141,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         clearTimeout(this._setupKeyHintScroll);
+        clearTimeout(this._snackbarPlace);
         this.unsubscriber$.next();
         this.unsubscriber$.complete();
     }
@@ -697,16 +701,52 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             verticalPosition: "bottom",
             panelClass: ["zelf-snackbar", "zelf-snackbar--above-footer"],
         });
+        clearTimeout(this._snackbarPlace);
+        this._snackbarPlace = setTimeout(() => this._placeSnackbarAboveBar());
     }
 
-    /** After the hint renders, scroll it clear of the sticky actions and footer. */
+    /** Scroll the real container by the overlap with the sticky bar, not scrollIntoView. */
     private _scheduleSetupKeyHintScroll(): void {
         if (!this.setupKeyInvalidCharsMessage && !this.showSetupKeyTooShortHint) return;
 
         clearTimeout(this._setupKeyHintScroll);
-        this._setupKeyHintScroll = setTimeout(() => {
-            this._setupKeyFeedback?.nativeElement.scrollIntoView({ block: "nearest", inline: "nearest" });
-        });
+        this._setupKeyHintScroll = setTimeout(() => this._revealSetupKeyHint());
+    }
+
+    private _revealSetupKeyHint(attempt = 0): void {
+        const hint = this._setupKeyFeedback?.nativeElement;
+        const bar = this._formActions?.nativeElement;
+
+        if (!hint || !bar || attempt > 4) return;
+
+        const delta = scrollDeltaToRevealAboveBar(hint.getBoundingClientRect().bottom, bar.getBoundingClientRect().top);
+
+        if (delta <= 0) return;
+
+        const scroller = scrollableAncestor(hint);
+
+        if (!scroller) return;
+
+        const before = scroller.scrollTop;
+
+        scroller.scrollTop = before + delta;
+
+        if (scroller.scrollTop === before) return;
+
+        this._setupKeyHintScroll = setTimeout(() => this._revealSetupKeyHint(attempt + 1));
+    }
+
+    /** Sit the toast fully above the action bar and the footer pill. */
+    private _placeSnackbarAboveBar(): void {
+        const container = document.querySelector(".mat-mdc-snack-bar-container.zelf-snackbar--above-footer") as HTMLElement | null;
+
+        if (!container) return;
+
+        const barTop = this._formActions?.nativeElement.getBoundingClientRect().top;
+        const footer = document.querySelector(".footer") as HTMLElement | null;
+        const obstacle = topmostObstacle([barTop, footer?.getBoundingClientRect().top], window.innerHeight);
+
+        container.style.setProperty("margin-bottom", `${snackbarMarginBottom(window.innerHeight, obstacle)}px`, "important");
     }
 
     /** Log status and code only. Store errors can echo the setup key in validationError. */
