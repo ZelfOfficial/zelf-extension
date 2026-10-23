@@ -11,6 +11,7 @@ import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "./
 import { HttpWrapperService } from "./http-wrapper.service";
 import { RpcProviderService } from "./services/rpc-provider.service";
 import { EthTransaction } from "@shared/types/wallet.types";
+import { failedBalanceFetch } from "./core/utils/balance-fetch-result.util";
 import { historyQueryParams } from "./core/utils/transaction-history-pagination.util";
 
 export interface ChainConfig {
@@ -459,7 +460,7 @@ export class EthereumService {
             };
         } catch (err) {
             console.warn("Direct Ethereum RPC getBalance failed:", err);
-            return this._defaultEthResponse();
+            return failedBalanceFetch(err);
         }
     }
 

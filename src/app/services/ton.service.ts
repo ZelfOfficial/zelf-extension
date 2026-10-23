@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { Address, beginCell, external, internal, SendMode, storeMessage, toNano } from "@ton/core";
 import { TonClient } from "@ton/ton";
 
+import { failedBalanceFetch } from "app/core/utils/balance-fetch-result.util";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { environment } from "environments/environment";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
@@ -59,11 +60,11 @@ export class TonService {
             return this._httpWrapper
                 .sendRequest("get", url)
                 .then((response) => response)
-                .catch(() => this._defaultResponse());
+                .catch((error) => failedBalanceFetch(error));
         } catch (error) {
             console.error("Exception in TON getWalletDetails:", error);
 
-            return Promise.resolve(this._defaultResponse());
+            return Promise.resolve(failedBalanceFetch(error));
         }
     }
 

@@ -4,6 +4,7 @@ import { isAddress } from "web3-validator";
 
 import { Injectable } from "@angular/core";
 
+import { failedBalanceFetch } from "app/core/utils/balance-fetch-result.util";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { RpcProviderService } from "app/services/rpc-provider.service";
 import { environment } from "environments/environment";
@@ -228,11 +229,11 @@ export class PolygonService {
             return this._httpWrapper
                 .sendRequest("get", url)
                 .then((response) => response)
-                .catch(() => this._defaultResponse());
+                .catch((error) => failedBalanceFetch(error));
         } catch (error) {
             console.error("Exception in Polygon getWalletDetails:", error);
 
-            return Promise.resolve(this._defaultResponse());
+            return Promise.resolve(failedBalanceFetch(error));
         }
     }
 

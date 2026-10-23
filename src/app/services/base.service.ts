@@ -8,6 +8,7 @@ import { HttpWrapperService } from "app/http-wrapper.service";
 import { RpcProviderService } from "app/services/rpc-provider.service";
 import { environment } from "environments/environment";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
+import { failedBalanceFetch } from "app/core/utils/balance-fetch-result.util";
 import { ensureDataEnvelope } from "app/core/utils/api-data-envelope.util";
 import { historyQueryParams } from "app/core/utils/transaction-history-pagination.util";
 
@@ -212,11 +213,11 @@ export class BaseService {
                 .sendRequest("get", url)
                 // This endpoint answers the payload without the usual { data } envelope.
                 .then((response) => ensureDataEnvelope(response))
-                .catch(() => this._defaultResponse());
+                .catch((error) => failedBalanceFetch(error));
         } catch (error) {
             console.error("Exception in Base getWalletDetails:", error);
 
-            return Promise.resolve(this._defaultResponse());
+            return Promise.resolve(failedBalanceFetch(error));
         }
     }
 

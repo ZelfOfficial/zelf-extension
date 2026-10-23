@@ -7,6 +7,7 @@ import { HttpWrapperService } from "app/http-wrapper.service";
 import { RpcProviderService } from "app/services/rpc-provider.service";
 import { environment } from "environments/environment";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
+import { failedBalanceFetch } from "app/core/utils/balance-fetch-result.util";
 import { historyQueryParams } from "../core/utils/transaction-history-pagination.util";
 
 @Injectable({
@@ -135,9 +136,9 @@ export class BlockDAGService {
                 return this._defaultResponse();
             }
 
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("BlockDAG request timeout")), 3000)
-            );
+            // The address API often takes ~5s. A 3s cutoff fell through to a zero envelope
+            // before any token row existed, so Home showed a blank card instead of 0 or the balance.
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("BlockDAG request timeout")), 10_000));
 
             const response: any = await Promise.race([
                 this._httpWrapper.sendRequest("get", `${this._baseUrl}/api/blockdag/address/${address}`),
@@ -145,14 +146,14 @@ export class BlockDAGService {
             ]);
 
             if (!response || !response.data) {
-                return this._defaultResponse();
+                return failedBalanceFetch(new Error("BlockDAG address response missing"));
             }
 
             return response;
         } catch (error) {
             console.warn("BlockDAG getWalletDetails failed or timed out:", error);
 
-            return this._defaultResponse();
+            return failedBalanceFetch(error);
         }
     }
 

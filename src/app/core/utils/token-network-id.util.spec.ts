@@ -3,8 +3,14 @@ import { filterTokensByEnabledNetworkIds, tokenNetworkToLicenseId } from "./toke
 describe("token-network-id.util", () => {
     it("maps display network labels to license ids", () => {
         expect(tokenNetworkToLicenseId("Ethereum")).toBe("ethereum");
+        expect(tokenNetworkToLicenseId("Ether")).toBe("ethereum");
+        expect(tokenNetworkToLicenseId("ETH")).toBe("ethereum");
         expect(tokenNetworkToLicenseId("Binance")).toBe("binance");
+        expect(tokenNetworkToLicenseId("BNB Chain")).toBe("binance");
         expect(tokenNetworkToLicenseId("BlockDAG")).toBe("blockdag");
+        expect(tokenNetworkToLicenseId("OP Mainnet")).toBe("optimism");
+        expect(tokenNetworkToLicenseId("Optimism")).toBe("optimism");
+        expect(tokenNetworkToLicenseId("Arbitrum One")).toBe("arbitrum");
     });
 
     it("filters tokens using license ids, not raw labels", () => {

@@ -11,6 +11,7 @@ import { environment } from "../../environments/environment";
 import { AssetService } from "../asset.service";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
 import { HttpWrapperService } from "./../http-wrapper.service";
+import { failedBalanceFetch } from "app/core/utils/balance-fetch-result.util";
 import { historyQueryParams } from "../core/utils/transaction-history-pagination.util";
 
 const ECPair = ECPairFactory(secp256k1);
@@ -226,10 +227,10 @@ export class BitcoinService {
             return this._httpWrapperService
                 .sendRequest("get", url)
                 .then((response) => response)
-                .catch(() => this._defaultResponse());
+                .catch((error) => failedBalanceFetch(error));
         } catch (error) {
             console.error("Exception in Bitcoin getWalletDetails:", error);
-            return Promise.resolve(this._defaultResponse());
+            return Promise.resolve(failedBalanceFetch(error));
         }
     }
 

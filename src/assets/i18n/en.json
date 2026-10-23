@@ -1256,6 +1256,8 @@
     },
     "home": {
         "manage_networks": "Manage networks",
+        "balance_retrying": "Retrying…",
+        "balance_unavailable": "Unavailable",
         "token_sol_native": "Native",
         "token_sol_wrapped": "Wrapped",
         "assets": "Assets",
