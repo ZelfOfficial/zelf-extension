@@ -1,4 +1,5 @@
-import { applyEnvelopeNativeBalance, applyResponseEnvelopes, resolveTokenFiat } from "./token-balance.util";
+import { dedupeBalanceTokens, sumFiatBalance } from "./balance-tokens.util";
+import { applyEnvelopeNativeBalance, applyResponseEnvelopes, isNativeChainToken, resolveTokenFiat } from "./token-balance.util";
 
 describe("token balance reports", () => {
     it("uses amount × price when fiat is 0 and keeps a true 0", () => {
@@ -26,10 +27,56 @@ describe("token balance reports", () => {
             optimism: { data: { balance: "0", account: { price: "100" }, tokenHoldings: { tokens: [] } } },
         });
 
-        expect(created.length).toBe(1);
-        expect(created[0].network).toBe("Ethereum");
-        expect(created[0].amount).toBe(2);
-        expect(created[0].fiatBalance).toBe(200);
+        expect(created.find((token) => token.network === "Ethereum")!.amount).toBe(2);
+        expect(created.find((token) => token.network === "Ethereum")!.fiatBalance).toBe(200);
+        expect(created.find((token) => token.network === "Optimism")!.amount).toBe(0);
+        expect(created.filter((token) => token.network === "Optimism").length).toBe(1);
+    });
+
+    it("keeps one Polygon card when the API types the native coin as MATIC", () => {
+        const matic = {
+            symbol: "POL",
+            name: "Polygon",
+            network: "Polygon",
+            tokenType: "MATIC",
+            amount: 592.7198,
+            balance: 592.7198,
+            price: 0.0906,
+            fiatBalance: 53.7,
+        };
+
+        expect(isNativeChainToken(matic)).toBeTrue();
+
+        const withEnvelope = applyResponseEnvelopes([matic], {
+            polygon: {
+                data: {
+                    balance: "592.7198",
+                    fiatBalance: 53.7,
+                    account: { price: "0.0906" },
+                    tokenHoldings: { tokens: [matic] },
+                },
+            },
+        });
+        const collapsed = dedupeBalanceTokens([
+            matic,
+            { symbol: "POL", name: "Polygon", network: "Polygon", tokenType: "POL", amount: 592.7198, balance: 592.7198, fiatBalance: 53.7 },
+        ]);
+
+        expect(withEnvelope.length).toBe(1);
+        expect(withEnvelope[0].amount).toBeCloseTo(592.7198, 4);
+        expect(collapsed.length).toBe(1);
+        expect(sumFiatBalance(collapsed)).toBeCloseTo(53.7, 2);
+    });
+
+    it("does not replace a reported native balance with a zero envelope", () => {
+        const kept = applyEnvelopeNativeBalance(
+            [{ symbol: "BDAG", name: "BlockDAG", network: "BlockDAG", tokenType: "BDAG", amount: 4, fiatBalance: 0.2, price: 0.05 }],
+            "BlockDAG",
+            { balance: "0", fiatBalance: "0", account: { price: "0" }, tokenHoldings: { tokens: [] } }
+        );
+
+        expect(kept.length).toBe(1);
+        expect(kept[0].amount).toBe(4);
     });
 
     it("does not move an Optimism balance onto Ethereum", () => {

@@ -6,6 +6,7 @@ import { TranslocoModule } from "@jsverse/transloco";
 import { DEFAULT_NETWORK_CONFIGS } from "app/core/network-settings.util";
 import { NetworkConfig, Settings } from "app/models/settings.model";
 import { LicenseNetworksService } from "app/services/license-networks.service";
+import { NetworkService } from "app/services/network.service";
 import { SettingsService } from "app/services/settings.service";
 import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
@@ -28,6 +29,7 @@ export class ZelfSettingsNetworksComponent implements OnInit, OnDestroy {
 
     constructor(
         private _licenseNetworks: LicenseNetworksService,
+        private _networkService: NetworkService,
         private _settingsService: SettingsService,
         private _walletService: WalletService
     ) {}
@@ -101,7 +103,7 @@ export class ZelfSettingsNetworksComponent implements OnInit, OnDestroy {
         if (img && !img.src.endsWith("placeholder-coin.png")) img.src = fallback;
     }
 
-    getNetworkIcon(networkSymbol: string): string {
-        return this._walletService.getAssetImage(networkSymbol);
+    getNetworkIcon(network: NetworkConfig): string {
+        return this._networkService.getNetworkImage(network.id) || this._walletService.getAssetImage(network.symbol);
     }
 }

@@ -31,6 +31,18 @@ describe("balance-tokens util", () => {
         expect(chains).toContain("Optimism:ETH:ETH");
     });
 
+    it("treats legacy MATIC and POL as one Polygon native card", () => {
+        const out = dedupeBalanceTokens([
+            { symbol: "POL", network: "Polygon", tokenType: "MATIC", name: "Polygon", fiatBalance: 53.7, amount: 592.7198 },
+            { symbol: "MATIC", network: "Polygon", tokenType: "MATIC", name: "Matic", fiatBalance: 53.7, amount: 592.7198 },
+            { symbol: "USDC", network: "Polygon", tokenType: "ERC-20", fiatBalance: 2, amount: 2 },
+        ]);
+
+        expect(out.filter((row) => row.symbol === "POL" || row.symbol === "MATIC").length).toBe(1);
+        expect(out.find((row) => row.symbol === "USDC")).toBeTruthy();
+        expect(sumFiatBalance(out)).toBeCloseTo(55.7, 2);
+    });
+
     it("sums fiat balances, treating bad values as 0", () => {
         expect(sumFiatBalance([t("A", "X", 1.5), t("B", "X", "2.5"), t("C", "X", "n/a"), { symbol: "D" }])).toBe(4);
         expect(sumFiatBalance(null)).toBe(0);

@@ -66,19 +66,58 @@ export function resolveTokenFiat(token: any, amount: number | null, price: numbe
     return reported;
 }
 
+/**
+ * Tickers that mean the chain's native asset, including renames.
+ * Polygon's API still types the native coin as MATIC after the POL rebrand.
+ * OP and ARB are governance tokens, not the ETH native asset on those chains.
+ */
+const NATIVE_SYMBOL_ALIASES: Record<string, readonly string[]> = {
+    ethereum: ["ETH", "ETHEREUM", "ETHER"],
+    optimism: ["ETH", "ETHEREUM", "ETHER"],
+    arbitrum: ["ETH", "ETHEREUM", "ETHER"],
+    base: ["ETH", "ETHEREUM", "ETHER"],
+    polygon: ["POL", "MATIC", "POLYGON"],
+    binance: ["BNB", "BINANCE", "BSC"],
+    avalanche: ["AVAX", "AVALANCHE"],
+    solana: ["SOL", "SOLANA"],
+    bitcoin: ["BTC", "BITCOIN"],
+    sui: ["SUI"],
+    ton: ["TON", "TONCOIN"],
+    aptos: ["APT", "APTOS"],
+    stellar: ["XLM", "STELLAR"],
+    polkadot: ["DOT", "POLKADOT"],
+    kusama: ["KSM", "KUSAMA"],
+    blockdag: ["BDAG", "BLOCKDAG"],
+};
+
+export function nativeSymbolAliases(chainId: string | null | undefined): readonly string[] {
+    const id = tokenNetworkToLicenseId(chainId);
+
+    if (NATIVE_SYMBOL_ALIASES[id]) return NATIVE_SYMBOL_ALIASES[id];
+
+    const config = DEFAULT_NETWORK_CONFIGS.find((network) => network.id === id);
+
+    return config ? [config.symbol.toUpperCase(), config.name.toUpperCase()] : [];
+}
+
+/** Catalog symbol for the chain (`POL` for Polygon), used so MATIC and POL share one card. */
+export function canonicalNativeSymbol(chainId: string | null | undefined): string {
+    const id = tokenNetworkToLicenseId(chainId);
+    const config = DEFAULT_NETWORK_CONFIGS.find((network) => network.id === id);
+
+    return (config?.symbol || nativeSymbolAliases(id)[0] || "").toUpperCase();
+}
+
 export function isNativeChainToken(token: { symbol?: string; name?: string; tokenType?: string; network?: string } | null | undefined): boolean {
-    const chainId = tokenNetworkToLicenseId(token?.network);
-    const config = DEFAULT_NETWORK_CONFIGS.find((network) => network.id === chainId);
+    const aliases = new Set(nativeSymbolAliases(token?.network));
 
-    if (!config) return false;
+    if (!aliases.size) return false;
 
-    const nativeSymbol = config.symbol.toUpperCase();
-    const chainName = config.name.toUpperCase();
     const symbol = (token?.symbol || "").toString().trim().toUpperCase();
     const name = (token?.name || "").toString().trim().toUpperCase();
     const type = (token?.tokenType || "").toString().trim().toUpperCase();
-    const typeIsNative = !type || type === nativeSymbol || type === chainName || type === chainId.toUpperCase();
-    const labelIsNative = symbol === nativeSymbol || symbol === chainName || name === nativeSymbol || name === chainName;
+    const typeIsNative = !type || aliases.has(type);
+    const labelIsNative = aliases.has(symbol) || aliases.has(name);
 
     return typeIsNative && labelIsNative;
 }
@@ -92,29 +131,24 @@ export function applyEnvelopeNativeBalance<T extends Record<string, any>>(tokens
     const list = [...(tokens || [])];
     const envelopeAmount = readReportedAmount({ amount: envelope?.balance ?? envelope?._balance });
 
-    if (envelopeAmount == null || envelopeAmount === 0) return list;
+    if (envelopeAmount == null) return list;
 
     const chainId = tokenNetworkToLicenseId(networkLabel);
     const index = list.findIndex((token) => tokenNetworkToLicenseId(token?.network) === chainId && isNativeChainToken(token));
     const envelopePrice = readPrice(envelope?.account?.price ?? envelope?.price);
     const envelopeFiat = readReportedFiat(envelope);
 
-    if (index === -1) {
-        const config = DEFAULT_NETWORK_CONFIGS.find((network) => network.id === chainId);
-        const symbol = config?.symbol || networkLabel;
-        const name = config?.name || networkLabel;
-        const fiat = envelopeFiat && envelopeFiat !== 0 ? envelopeFiat : envelopePrice ? envelopeAmount * envelopePrice : 0;
+    // A reported 0 with no native row should still render as 0. Never wipe a balance we already have.
+    if (envelopeAmount === 0) {
+        if (index !== -1) return list;
 
-        list.push({
-            symbol,
-            name,
-            network: name,
-            tokenType: symbol,
-            amount: envelopeAmount,
-            balance: envelopeAmount,
-            price: envelopePrice ?? 0,
-            fiatBalance: fiat,
-        } as unknown as T);
+        list.push(nativeRowFromEnvelope(chainId, networkLabel, 0, envelopePrice, envelopeFiat) as unknown as T);
+
+        return list;
+    }
+
+    if (index === -1) {
+        list.push(nativeRowFromEnvelope(chainId, networkLabel, envelopeAmount, envelopePrice, envelopeFiat) as unknown as T);
 
         return list;
     }
@@ -136,6 +170,30 @@ export function applyEnvelopeNativeBalance<T extends Record<string, any>>(tokens
     };
 
     return list;
+}
+
+function nativeRowFromEnvelope(
+    chainId: string,
+    networkLabel: string,
+    amount: number,
+    price: number | null,
+    fiat: number | null
+): Record<string, unknown> {
+    const config = DEFAULT_NETWORK_CONFIGS.find((network) => network.id === chainId);
+    const symbol = config?.symbol || networkLabel;
+    const name = config?.name || networkLabel;
+    const resolvedFiat = fiat && fiat !== 0 ? fiat : price && amount ? amount * price : 0;
+
+    return {
+        symbol,
+        name,
+        network: name,
+        tokenType: symbol,
+        amount,
+        balance: amount,
+        price: price ?? 0,
+        fiatBalance: resolvedFiat,
+    };
 }
 
 const RESPONSE_NETWORKS: ReadonlyArray<{ key: string; label: string }> = [

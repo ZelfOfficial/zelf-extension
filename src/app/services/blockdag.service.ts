@@ -135,9 +135,9 @@ export class BlockDAGService {
                 return this._defaultResponse();
             }
 
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("BlockDAG request timeout")), 3000)
-            );
+            // The address API often takes ~5s. A 3s cutoff fell through to a zero envelope
+            // before any token row existed, so Home showed a blank card instead of 0 or the balance.
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("BlockDAG request timeout")), 10_000));
 
             const response: any = await Promise.race([
                 this._httpWrapper.sendRequest("get", `${this._baseUrl}/api/blockdag/address/${address}`),

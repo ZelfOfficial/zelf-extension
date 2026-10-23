@@ -204,7 +204,7 @@ export async function loadWalletBalances(ctx: WalletBalanceLoadContext): Promise
             const result = await ctx.assetService.processTokensFromResponse(priorityResponse);
             tokens = mergeBalanceTokens(tokens, result.tokens);
             publishTokens(ctx, tokens, enabledIds, status, lastKnownTotal);
-            await ctx.assetService.saveTokensToSession(tokens);
+            await ctx.assetService.saveTokensToSession(tokens, "merge");
             await ctx.onPersistCache?.(
                 buildBalanceCacheSnapshot(ctx.wallet, tokens, priority.filter((id) => status[id] === "loaded"))
             );
@@ -234,7 +234,7 @@ export async function loadWalletBalances(ctx: WalletBalanceLoadContext): Promise
                 if (result?.tokens?.length) {
                     tokens = mergeBalanceTokens(tokens, result.tokens);
                     publishTokens(ctx, tokens, enabledIds, status, lastKnownTotal);
-                    await ctx.assetService.saveTokensToSession(tokens);
+                    await ctx.assetService.saveTokensToSession(tokens, "merge");
                     await ctx.onPersistCache?.(
                         buildBalanceCacheSnapshot(
                             ctx.wallet,

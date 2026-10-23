@@ -2,8 +2,7 @@
  * Shared helpers for the Home / Wallet balance lists.
  */
 
-import { DEFAULT_NETWORK_CONFIGS } from "app/core/network-settings.util";
-import { hasReportedBalance } from "app/core/utils/token-balance.util";
+import { canonicalNativeSymbol, hasReportedBalance, isNativeChainToken } from "app/core/utils/token-balance.util";
 import { tokenNetworkToLicenseId } from "app/core/utils/token-network-id.util";
 
 /**
@@ -17,15 +16,14 @@ export function balanceChainIdentityKey(token: any): string {
     const symbol = (token?.symbol || "").toString().trim().toUpperCase();
     const name = (token?.name || "").toString().trim().toUpperCase();
     const type = (token?.tokenType || "").toString().trim().toUpperCase();
-    const config = DEFAULT_NETWORK_CONFIGS.find((network) => network.id === chainId);
-    const nativeSymbol = (config?.symbol || "").toUpperCase();
-    const chainName = (config?.name || "").toUpperCase();
-    const typeIsNative = !!nativeSymbol && (!type || type === nativeSymbol || type === chainName || type === chainId.toUpperCase());
-    const labelIsNative = !!nativeSymbol && (symbol === nativeSymbol || symbol === chainName || name === nativeSymbol || name === chainName);
-    const tokenType = typeIsNative && labelIsNative ? nativeSymbol : type;
-    const id = symbol || name;
 
-    return `${chainId}|${tokenType}|${id}`;
+    if (isNativeChainToken(token)) {
+        const canonical = canonicalNativeSymbol(chainId) || symbol || name;
+
+        return `${chainId}|${canonical}|${canonical}`;
+    }
+
+    return `${chainId}|${type}|${symbol || name}`;
 }
 
 /** One row per chain identity; on duplicates in a single payload keep the higher fiat row. */

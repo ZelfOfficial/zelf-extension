@@ -347,15 +347,25 @@ export class AssetService {
         return sessionTokens;
     }
 
-    /**
-     * @param mode `merge` keeps other chains already in the session. A one-network response must not
-     * replace the whole portfolio (that left Home showing a single 0-balance card).
-     */
-    async saveTokensToSession(tokens: Array<any>, mode: "merge" | "replace" = "replace"): Promise<void> {
-        const next = mode === "merge" ? mergeBalanceTokens(await this.loadTokensFromSession(), tokens) : tokens;
+    /** Serializes session writes so parallel network loads cannot replace the portfolio with a shorter list. */
+    private _sessionWrite: Promise<unknown> = Promise.resolve();
 
-        this._chromeService.setItemSession("tokens", next);
-        this._chromeService.setItemSession("tokensTtl", Date.now() + 3600000);
+    /**
+     * @param mode `merge` (default) keeps chains already in the session. A one-network response must not
+     * replace the whole portfolio — that dropped the session list to 0 and then a couple of rows
+     * before the stored copy caught up.
+     */
+    async saveTokensToSession(tokens: Array<any>, mode: "merge" | "replace" = "merge"): Promise<void> {
+        const write = this._sessionWrite.then(async () => {
+            const next = mode === "replace" ? tokens : mergeBalanceTokens(await this.loadTokensFromSession(), tokens);
+
+            this._chromeService.setItemSession("tokens", next);
+            this._chromeService.setItemSession("tokensTtl", Date.now() + 3600000);
+        });
+
+        this._sessionWrite = write.catch(() => undefined);
+
+        return write;
     }
 
     isNativeToken(token: any, network: string): boolean {
