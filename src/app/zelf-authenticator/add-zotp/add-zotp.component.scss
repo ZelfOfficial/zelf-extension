@@ -82,6 +82,10 @@
         text-align: left;
     }
 
+    &__setup-key-feedback {
+        padding-bottom: calc(4px * var(--zns-space-scale, 1));
+    }
+
     &__setup-key-error {
         margin: 8px 0 0;
         color: variables.$error;
@@ -96,5 +100,28 @@
         font-size: calc(12px * var(--zns-font-scale, 1));
         line-height: 1.45;
         text-align: left;
+    }
+}
+
+// Snackbar is rendered in the overlay, outside this component.
+// margin-bottom is set from the action bar's bounding rect so it clears the bar and the footer.
+::ng-deep .mat-mdc-snack-bar-container.zelf-snackbar--above-footer {
+    margin-left: 16px !important;
+    margin-right: 16px !important;
+    max-width: min(420px, calc(100vw - 32px));
+
+    .mdc-snackbar__surface {
+        background-color: variables.$themeCard !important;
+        border: 1px solid variables.$themeCardBorder;
+        border-radius: 14px !important;
+        box-shadow: 0 8px 24px variables.$themeShadow;
+    }
+
+    .mat-mdc-snack-bar-label,
+    .mdc-snackbar__label {
+        font-family: variables.$themeBodyFamily;
+        font-size: 13px;
+        line-height: 1.35;
+        color: variables.$themeText !important;
     }
 }

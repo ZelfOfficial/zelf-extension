@@ -95,12 +95,18 @@
                                 <label for="setupKey" class="zelf-input__floating-label">{{ t("zotp.setup_key") }}</label>
                             </div>
                             <p class="zelf-card__help-text" id="setupKeyHelp">{{ t("zotp.setup_key_placeholder") }}</p>
-                            <p class="add-zotp__setup-key-error" *ngIf="setupKeyInvalidCharsMessage">
-                                {{ t("zotp.setup_key_invalid_chars", { chars: setupKeyInvalidCharsMessage }) }}
-                            </p>
-                            <p class="add-zotp__setup-key-muted" *ngIf="showSetupKeyTooShortHint">
-                                {{ t("zotp.setup_key_too_short", { length: setupKeyFieldState.sanitized.length }) }}
-                            </p>
+                            <div
+                                #setupKeyFeedback
+                                class="add-zotp__setup-key-feedback"
+                                *ngIf="setupKeyInvalidCharsMessage || showSetupKeyTooShortHint"
+                            >
+                                <p class="add-zotp__setup-key-error" *ngIf="setupKeyInvalidCharsMessage">
+                                    {{ t("zotp.setup_key_invalid_chars", { chars: setupKeyInvalidCharsMessage }) }}
+                                </p>
+                                <p class="add-zotp__setup-key-muted" *ngIf="showSetupKeyTooShortHint">
+                                    {{ t("zotp.setup_key_too_short", { length: setupKeyFieldState.sanitized.length }) }}
+                                </p>
+                            </div>
                         </div>
                     </ng-container>
 
@@ -199,7 +205,7 @@
                 </div>
             </div>
 
-            <div class="form-actions">
+            <div #formActions class="form-actions">
                 <button class="zelf-button zelf-button--outlined" type="button" (click)="onCancel()" [disabled]="loading">
                     {{ t("common.cancel") }}
                 </button>

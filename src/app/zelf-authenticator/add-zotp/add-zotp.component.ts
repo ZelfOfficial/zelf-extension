@@ -1,5 +1,5 @@
 import { CommonModule, NgClass, NgIf, NgTemplateOutlet } from "@angular/common";
-import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
@@ -18,8 +18,8 @@ import { TagModel, TagsService } from "app/tags.service";
 import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
-import { extractZotpApiErrorMessage } from "../zotp-error.util";
-import { encryptWalletMasterPassword } from "../zotp-master-password.util";
+import { extractZotpApiErrorMessage, resolveZotpServerErrorCode } from "../zotp-error.util";
+import { encryptWalletMasterPassword, normalizeWalletMasterPassword } from "../zotp-master-password.util";
 import {
     migrationAlgorithmFromEnum,
     migrationDigitsFromEnum,
@@ -32,6 +32,7 @@ import {
     sanitizeSetupKey,
     setupKeyValidator,
 } from "../zotp-setup-key.util";
+import { scrollableAncestor, scrollDeltaToRevealAboveBar, snackbarMarginBottom, topmostObstacle } from "./add-zotp-layout.util";
 
 @Component({
     imports: [
@@ -49,13 +50,18 @@ import {
     ],
     selector: "add-zotp",
     styleUrls: [
-        "./add-zotp.component.scss",
         "../../zelf-keys/zelf-keys-passwords/zelf-keys-password-form/zelf-keys-password-form.component.scss",
+        "./add-zotp.component.scss",
     ],
     templateUrl: "./add-zotp.component.html",
 })
 export class AddZotpComponent implements OnInit, OnDestroy {
     private unsubscriber$ = new Subject<void>();
+    private _setupKeyHintScroll?: ReturnType<typeof setTimeout>;
+    private _snackbarPlace?: ReturnType<typeof setTimeout>;
+
+    @ViewChild("setupKeyFeedback") private _setupKeyFeedback?: ElementRef<HTMLElement>;
+    @ViewChild("formActions") private _formActions?: ElementRef<HTMLElement>;
 
     currentWallet: TagModel | null = null;
     form!: FormGroup;
@@ -101,6 +107,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
                 }
 
                 this.form.get("setupKey")?.updateValueAndValidity({ emitEvent: false });
+                this._scheduleSetupKeyHintScroll();
             });
     }
 
@@ -133,6 +140,8 @@ export class AddZotpComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        clearTimeout(this._setupKeyHintScroll);
+        clearTimeout(this._snackbarPlace);
         this.unsubscriber$.next();
         this.unsubscriber$.complete();
     }
@@ -153,6 +162,14 @@ export class AddZotpComponent implements OnInit, OnDestroy {
 
     get isFormReadyToSave(): boolean {
         if (this.mode === "qr-upload") {
+            return false;
+        }
+
+        if (!this.setupKeyFieldState.valid) {
+            return false;
+        }
+
+        if (this.hasMasterPassword && !normalizeWalletMasterPassword(this.form.get("masterPassword")?.value)) {
             return false;
         }
 
@@ -558,13 +575,24 @@ export class AddZotpComponent implements OnInit, OnDestroy {
     async save(): Promise<void> {
         this.submitted = true;
 
-        if (this.form.invalid) return;
+        if (!this.isFormReadyToSave) {
+            if (!this.setupKeyFieldState.valid) {
+                this._notify(this._translocoService.translate("zotp.errors.invalid_setup_key"));
+                this._scheduleSetupKeyHintScroll();
+            }
+
+            return;
+        }
 
         // Validate form and prepare ZOTP data
         const formValue = this.form.value;
         const secret = this.setupKeyFieldState.sanitized;
 
-        if (!secret) return;
+        if (!secret || !getSetupKeyValidationState(secret).valid) {
+            this._notify(this._translocoService.translate("zotp.errors.invalid_setup_key"));
+
+            return;
+        }
 
         try {
             // Get zelfProof from current wallet
@@ -597,9 +625,8 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             this.pendingZOTP = zotp;
             this.showBiometrics = true;
         } catch (error) {
-            console.error("Error preparing ZOTP:", error);
-            const message = extractZotpApiErrorMessage(error, this._translocoService);
-            this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
+            this._logZotpError("Error preparing ZOTP", error);
+            this._notify(extractZotpApiErrorMessage(error, this._translocoService));
         }
     }
 
@@ -616,13 +643,31 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         this.loading = true;
 
         try {
-            const masterPassword =
-                this.hasMasterPassword
-                    ? (await encryptWalletMasterPassword(this._httpWrapperService, this.form.get("masterPassword")?.value)) || ""
-                    : "";
+            const plainPassword = this.hasMasterPassword
+                ? normalizeWalletMasterPassword(this.form.get("masterPassword")?.value)
+                : "";
 
-            // Store ZOTP to ZelfKeys API (this is the creation step)
-            // The biometrics are part of the creation flow, not decryption
+            if (this.hasMasterPassword && !plainPassword) {
+                this._notify(this._translocoService.translate("zotp.protection.errors.password_required"));
+                this._keepFormForRetry();
+
+                return;
+            }
+
+            const masterPassword = plainPassword
+                ? (await encryptWalletMasterPassword(this._httpWrapperService, plainPassword)) || ""
+                : "";
+
+            if (this.hasMasterPassword && !masterPassword) {
+                this._notify(this._translocoService.translate("zotp.protection.errors.password_required"));
+                this._keepFormForRetry();
+
+                return;
+            }
+
+            // Store ZOTP to ZelfKeys API (this is the creation step).
+            // Face-only wallets send no password. Face+password wallets always send the
+            // encrypted master password; the item protection flag is separate.
             await this._zotpService.storeZOTPToZelfKeys(
                 this.pendingZOTP,
                 encryptedImage,
@@ -633,24 +678,87 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             // Successfully created - return to list
             void this._router.navigate(["/zelf-authenticator"]);
         } catch (error) {
-            console.error("Error creating ZOTP:", error);
-            const message = extractZotpApiErrorMessage(error, this._translocoService);
-            this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
-            this.showBiometrics = false;
-            this.pendingZOTP = null;
-            this.pendingProtection = "face";
+            this._logZotpError("Error creating ZOTP", error);
+            this._notify(extractZotpApiErrorMessage(error, this._translocoService));
+            this._keepFormForRetry();
         } finally {
             this.loading = false;
         }
     }
 
     onBiometricsFailed(error: any): void {
-        console.error("Biometrics failed:", error);
-        const message = extractZotpApiErrorMessage(error, this._translocoService);
-        this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
+        this._logZotpError("Biometrics failed", error);
+        this._notify(extractZotpApiErrorMessage(error, this._translocoService));
+        // Face capture failed before store. Keep the form and let them scan again.
         this.showBiometrics = false;
-        this.pendingZOTP = null;
-        this.pendingProtection = "face";
+        this.loading = false;
+    }
+
+    private _notify(message: string): void {
+        this._snackBar.open(message, this._translocoService.translate("common.close"), {
+            duration: 5000,
+            horizontalPosition: "center",
+            verticalPosition: "bottom",
+            panelClass: ["zelf-snackbar", "zelf-snackbar--above-footer"],
+        });
+        clearTimeout(this._snackbarPlace);
+        this._snackbarPlace = setTimeout(() => this._placeSnackbarAboveBar());
+    }
+
+    /** Scroll the real container by the overlap with the sticky bar, not scrollIntoView. */
+    private _scheduleSetupKeyHintScroll(): void {
+        if (!this.setupKeyInvalidCharsMessage && !this.showSetupKeyTooShortHint) return;
+
+        clearTimeout(this._setupKeyHintScroll);
+        this._setupKeyHintScroll = setTimeout(() => this._revealSetupKeyHint());
+    }
+
+    private _revealSetupKeyHint(attempt = 0): void {
+        const hint = this._setupKeyFeedback?.nativeElement;
+        const bar = this._formActions?.nativeElement;
+
+        if (!hint || !bar || attempt > 4) return;
+
+        const delta = scrollDeltaToRevealAboveBar(hint.getBoundingClientRect().bottom, bar.getBoundingClientRect().top);
+
+        if (delta <= 0) return;
+
+        const scroller = scrollableAncestor(hint);
+
+        if (!scroller) return;
+
+        const before = scroller.scrollTop;
+
+        scroller.scrollTop = before + delta;
+
+        if (scroller.scrollTop === before) return;
+
+        this._setupKeyHintScroll = setTimeout(() => this._revealSetupKeyHint(attempt + 1));
+    }
+
+    /** Sit the toast fully above the action bar and the footer pill. */
+    private _placeSnackbarAboveBar(): void {
+        const container = document.querySelector(".mat-mdc-snack-bar-container.zelf-snackbar--above-footer") as HTMLElement | null;
+
+        if (!container) return;
+
+        const barTop = this._formActions?.nativeElement.getBoundingClientRect().top;
+        const footer = document.querySelector(".footer") as HTMLElement | null;
+        const obstacle = topmostObstacle([barTop, footer?.getBoundingClientRect().top], window.innerHeight);
+
+        container.style.setProperty("margin-bottom", `${snackbarMarginBottom(window.innerHeight, obstacle)}px`, "important");
+    }
+
+    /** Log status and code only. Store errors can echo the setup key in validationError. */
+    private _logZotpError(label: string, error: unknown): void {
+        const err = error as { status?: number };
+
+        console.error(label, { status: err?.status, code: resolveZotpServerErrorCode(error) || undefined });
+    }
+
+    /** Leave the camera, keep typed fields and the prepared ZOTP so Confirm scans again. */
+    private _keepFormForRetry(): void {
+        this.showBiometrics = false;
         this.loading = false;
     }
 

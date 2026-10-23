@@ -2010,7 +2010,9 @@
             "loading": "Cargando datos cifrados…"
         },
         "errors": {
-            "proof_load_failed": "No se pudieron cargar los datos cifrados de este código. Inténtalo de nuevo."
+            "proof_load_failed": "No se pudieron cargar los datos cifrados de este código. Inténtalo de nuevo.",
+            "invalid_setup_key": "Clave no válida. Usa A–Z y 2–7, mínimo 16 caracteres.",
+            "invalid_totp_params": "Esos ajustes de verificación no son compatibles."
         },
         "decrypt": {
             "button": "Mostrar código",

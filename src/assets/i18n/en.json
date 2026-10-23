@@ -2050,7 +2050,9 @@
             "loading": "Loading encrypted data…"
         },
         "errors": {
-            "proof_load_failed": "Couldn't load this code's encrypted data. Try again."
+            "proof_load_failed": "Couldn't load this code's encrypted data. Try again.",
+            "invalid_setup_key": "Invalid setup key. Use A–Z and 2–7, at least 16 characters.",
+            "invalid_totp_params": "Those verification settings aren't supported."
         },
         "decrypt_failed": "Could not open this ZOTP. Please try again.",
         "unlock_zotp": "Unlock ZOTP",
