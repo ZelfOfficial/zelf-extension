@@ -1838,6 +1838,10 @@
         "deleted_successfully": "ZOTP deletado com sucesso",
         "delete_failed": "Falha ao deletar ZOTP",
         "incorrect_password": "Senha mestra incorreta",
+        "errors": {
+            "invalid_setup_key": "Essa chave de configuração não é válida. Use o código do site (letras A–Z e dígitos 2–7, pelo menos 16 caracteres) e tente de novo.",
+            "invalid_totp_params": "Essas configurações de verificação não são suportadas. Use SHA1, SHA256 ou SHA512, de 6 a 8 dígitos e um período de 1 a 300 segundos."
+        },
         "biometrics_failed": "Verificação biométrica falhou",
         "export": "Exportar",
         "export_zotp": "Exportar ZOTP",

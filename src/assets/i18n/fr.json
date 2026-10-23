@@ -1831,6 +1831,10 @@
         "deleted_successfully": "ZOTP supprimé avec succès",
         "delete_failed": "Échec de la suppression du ZOTP",
         "incorrect_password": "Mot de passe maître incorrect",
+        "errors": {
+            "invalid_setup_key": "Cette clé de configuration n'est pas valide. Utilisez le code du site (lettres A–Z et chiffres 2–7, au moins 16 caractères), puis réessayez.",
+            "invalid_totp_params": "Ces paramètres de vérification ne sont pas pris en charge. Utilisez SHA1, SHA256 ou SHA512, 6 à 8 chiffres et une période de 1 à 300 secondes."
+        },
         "biometrics_failed": "Échec de la vérification biométrique",
         "export": "Exporter",
         "export_zotp": "Exporter ZOTP",

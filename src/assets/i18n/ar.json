@@ -1831,6 +1831,10 @@
         "deleted_successfully": "تم حذف ZOTP بنجاح",
         "delete_failed": "فشل حذف ZOTP",
         "incorrect_password": "كلمة المرور الرئيسية غير صحيحة",
+        "errors": {
+            "invalid_setup_key": "مفتاح الإعداد غير صالح. استخدم الرمز من الموقع (أحرف A–Z وأرقام 2–7، 16 حرفًا على الأقل) ثم أعد المحاولة.",
+            "invalid_totp_params": "إعدادات التحقق هذه غير مدعومة. استخدم SHA1 أو SHA256 أو SHA512، ومن 6 إلى 8 أرقام، وفترة من 1 إلى 300 ثانية."
+        },
         "biometrics_failed": "فشل التحقق الحيوي",
         "export": "تصدير",
         "export_zotp": "تصدير ZOTP",

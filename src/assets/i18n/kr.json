@@ -1831,6 +1831,10 @@
         "deleted_successfully": "ZOTP가 성공적으로 삭제되었습니다",
         "delete_failed": "ZOTP 삭제 실패",
         "incorrect_password": "마스터 비밀번호가 올바르지 않습니다",
+        "errors": {
+            "invalid_setup_key": "설정 키가 올바르지 않습니다. 사이트의 코드(A–Z와 숫자 2–7, 16자 이상)를 사용한 뒤 다시 시도하세요.",
+            "invalid_totp_params": "이 인증 설정은 지원되지 않습니다. SHA1, SHA256 또는 SHA512, 6–8자리, 1–300초 주기를 사용하세요."
+        },
         "biometrics_failed": "생체 인증 실패",
         "export": "내보내기",
         "export_zotp": "ZOTP 내보내기",

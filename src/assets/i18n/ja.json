@@ -1831,6 +1831,10 @@
         "deleted_successfully": "ZOTPが正常に削除されました",
         "delete_failed": "ZOTPの削除に失敗しました",
         "incorrect_password": "マスターパスワードが正しくありません",
+        "errors": {
+            "invalid_setup_key": "セットアップキーが無効です。サイトのコード（A–Z と 2–7、16 文字以上）を入力して、もう一度お試しください。",
+            "invalid_totp_params": "この検証設定は使えません。SHA1、SHA256、SHA512、6〜8 桁、1〜300 秒の周期を使ってください。"
+        },
         "biometrics_failed": "生体認証に失敗しました",
         "export": "エクスポート",
         "export_zotp": "ZOTPをエクスポート",

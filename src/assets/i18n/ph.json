@@ -1831,6 +1831,10 @@
         "deleted_successfully": "Matagumpay na na-delete ang ZOTP",
         "delete_failed": "Nabigong i-delete ang ZOTP",
         "incorrect_password": "Maling master password",
+        "errors": {
+            "invalid_setup_key": "Hindi wasto ang setup key. Gamitin ang code mula sa site (mga letrang A–Z at digitong 2–7, hindi bababa sa 16 character), tapos subukan ulit.",
+            "invalid_totp_params": "Hindi suportado ang mga setting na ito. Gamitin ang SHA1, SHA256, o SHA512, 6–8 digit, at period na 1–300 segundo."
+        },
         "biometrics_failed": "Nabigo ang biometric verification",
         "export": "I-export",
         "export_zotp": "I-export ang ZOTP",

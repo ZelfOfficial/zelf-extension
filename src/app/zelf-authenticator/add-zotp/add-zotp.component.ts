@@ -18,8 +18,8 @@ import { TagModel, TagsService } from "app/tags.service";
 import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
-import { extractZotpApiErrorMessage } from "../zotp-error.util";
-import { encryptWalletMasterPassword } from "../zotp-master-password.util";
+import { extractZotpApiErrorMessage, resolveZotpServerErrorCode } from "../zotp-error.util";
+import { encryptWalletMasterPassword, normalizeWalletMasterPassword } from "../zotp-master-password.util";
 import {
     migrationAlgorithmFromEnum,
     migrationDigitsFromEnum,
@@ -153,6 +153,14 @@ export class AddZotpComponent implements OnInit, OnDestroy {
 
     get isFormReadyToSave(): boolean {
         if (this.mode === "qr-upload") {
+            return false;
+        }
+
+        if (!this.setupKeyFieldState.valid) {
+            return false;
+        }
+
+        if (this.hasMasterPassword && !normalizeWalletMasterPassword(this.form.get("masterPassword")?.value)) {
             return false;
         }
 
@@ -558,13 +566,23 @@ export class AddZotpComponent implements OnInit, OnDestroy {
     async save(): Promise<void> {
         this.submitted = true;
 
-        if (this.form.invalid) return;
+        if (!this.isFormReadyToSave) {
+            if (!this.setupKeyFieldState.valid) {
+                this._notify(this._translocoService.translate("zotp.errors.invalid_setup_key"));
+            }
+
+            return;
+        }
 
         // Validate form and prepare ZOTP data
         const formValue = this.form.value;
         const secret = this.setupKeyFieldState.sanitized;
 
-        if (!secret) return;
+        if (!secret || !getSetupKeyValidationState(secret).valid) {
+            this._notify(this._translocoService.translate("zotp.errors.invalid_setup_key"));
+
+            return;
+        }
 
         try {
             // Get zelfProof from current wallet
@@ -597,9 +615,8 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             this.pendingZOTP = zotp;
             this.showBiometrics = true;
         } catch (error) {
-            console.error("Error preparing ZOTP:", error);
-            const message = extractZotpApiErrorMessage(error, this._translocoService);
-            this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
+            this._logZotpError("Error preparing ZOTP", error);
+            this._notify(extractZotpApiErrorMessage(error, this._translocoService));
         }
     }
 
@@ -616,13 +633,31 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         this.loading = true;
 
         try {
-            const masterPassword =
-                this.hasMasterPassword
-                    ? (await encryptWalletMasterPassword(this._httpWrapperService, this.form.get("masterPassword")?.value)) || ""
-                    : "";
+            const plainPassword = this.hasMasterPassword
+                ? normalizeWalletMasterPassword(this.form.get("masterPassword")?.value)
+                : "";
 
-            // Store ZOTP to ZelfKeys API (this is the creation step)
-            // The biometrics are part of the creation flow, not decryption
+            if (this.hasMasterPassword && !plainPassword) {
+                this._notify(this._translocoService.translate("zotp.protection.errors.password_required"));
+                this._keepFormForRetry();
+
+                return;
+            }
+
+            const masterPassword = plainPassword
+                ? (await encryptWalletMasterPassword(this._httpWrapperService, plainPassword)) || ""
+                : "";
+
+            if (this.hasMasterPassword && !masterPassword) {
+                this._notify(this._translocoService.translate("zotp.protection.errors.password_required"));
+                this._keepFormForRetry();
+
+                return;
+            }
+
+            // Store ZOTP to ZelfKeys API (this is the creation step).
+            // Face-only wallets send no password. Face+password wallets always send the
+            // encrypted master password; the item protection flag is separate.
             await this._zotpService.storeZOTPToZelfKeys(
                 this.pendingZOTP,
                 encryptedImage,
@@ -633,24 +668,36 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             // Successfully created - return to list
             void this._router.navigate(["/zelf-authenticator"]);
         } catch (error) {
-            console.error("Error creating ZOTP:", error);
-            const message = extractZotpApiErrorMessage(error, this._translocoService);
-            this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
-            this.showBiometrics = false;
-            this.pendingZOTP = null;
-            this.pendingProtection = "face";
+            this._logZotpError("Error creating ZOTP", error);
+            this._notify(extractZotpApiErrorMessage(error, this._translocoService));
+            this._keepFormForRetry();
         } finally {
             this.loading = false;
         }
     }
 
     onBiometricsFailed(error: any): void {
-        console.error("Biometrics failed:", error);
-        const message = extractZotpApiErrorMessage(error, this._translocoService);
-        this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
+        this._logZotpError("Biometrics failed", error);
+        this._notify(extractZotpApiErrorMessage(error, this._translocoService));
+        // Face capture failed before store. Keep the form and let them scan again.
         this.showBiometrics = false;
-        this.pendingZOTP = null;
-        this.pendingProtection = "face";
+        this.loading = false;
+    }
+
+    private _notify(message: string): void {
+        this._snackBar.open(message, this._translocoService.translate("common.close"), { duration: 5000 });
+    }
+
+    /** Log status and code only. Store errors can echo the setup key in validationError. */
+    private _logZotpError(label: string, error: unknown): void {
+        const err = error as { status?: number };
+
+        console.error(label, { status: err?.status, code: resolveZotpServerErrorCode(error) || undefined });
+    }
+
+    /** Leave the camera, keep typed fields and the prepared ZOTP so Confirm scans again. */
+    private _keepFormForRetry(): void {
+        this.showBiometrics = false;
         this.loading = false;
     }
 
