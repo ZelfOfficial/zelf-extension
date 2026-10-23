@@ -1,4 +1,5 @@
 import {
+    cardsAfterNetworkSettled,
     createNetworkStatusMap,
     displayTotalFiatBalance,
     mergeBalanceCacheSnapshots,
@@ -25,6 +26,28 @@ describe("wallet-balance-loader helpers", () => {
 
         expect(shouldDeferZeroTotalDisplay(0, status, 1200)).toBe(true);
         expect(displayTotalFiatBalance(0, status, 1200)).toBe(1200);
+    });
+
+    it("marks a network unavailable when it is the last to settle and adds no tokens", () => {
+        const enabled = ["ton", "polygon"];
+        const status = createNetworkStatusMap(enabled);
+        const ton = { symbol: "TON", network: "Ton", tokenType: "TON", amount: 1.2, balance: 1.2, fiatBalance: 2 };
+
+        status.ton = "loaded";
+        status.polygon = "loading";
+
+        const whilePolygonRetries = cardsAfterNetworkSettled([ton], status, "ton", "loaded", enabled);
+        const polPending = whilePolygonRetries.tokens.find((token) => token.symbol === "POL");
+
+        expect(polPending?.balanceState).toBe("pending");
+
+        const finished = cardsAfterNetworkSettled(whilePolygonRetries.tokens, whilePolygonRetries.status, "polygon", "error", enabled);
+        const pol = finished.tokens.find((token) => token.symbol === "POL");
+
+        expect(finished.status.polygon).toBe("error");
+        expect(pol?.balanceState).toBe("unavailable");
+        expect(finished.tokens.find((token) => token.symbol === "TON")?.amount).toBe(1.2);
+        expect(finished.tokens.filter((token) => token.symbol === "POL").length).toBe(1);
     });
 
     it("shows 0 once every network has settled", () => {

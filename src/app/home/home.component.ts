@@ -28,7 +28,7 @@ import {
 } from "app/core/utils/wallet-balance-loader";
 import { dedupeBalanceTokens } from "app/core/utils/balance-tokens.util";
 import { projectHomeNetworkTokens, uniqueChainIds } from "app/core/utils/home-network-list.util";
-import { walletAccountIdentity } from "app/core/utils/wallet-session.util";
+import { nextAccountToLoad, walletAccountIdentity } from "app/core/utils/wallet-session.util";
 import { WalletBalanceCacheService } from "app/services/wallet-balance-cache.service";
 import { HomeEnabledNetworksComponent } from "./home-enabled-networks/home-enabled-networks.component";
 
@@ -141,6 +141,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         await this._blockchainNetworkService._initNetwork();
 
         this._chromeService.onWalletChanged$.pipe(takeUntil(this._destroy$)).subscribe(this._onWalletChanged);
+        await this._loadStoredWalletIfNeeded();
 
         this._settingsService.settings$.pipe(takeUntil(this._destroy$)).subscribe(() => {
             void this._onNetworkSettingsChanged();
@@ -251,10 +252,27 @@ export class HomeComponent implements OnInit, OnDestroy {
         if (this.totalFiatBalance > 0) this._lastKnownTotalFiat = this.totalFiatBalance;
     }
 
-    private _onWalletChanged = async (wallet: TagModel): Promise<void> => {
-        const nextId = walletAccountIdentity(wallet);
+    /** The wallet subject starts as `{}`. That is "not yet known", so cold open reads storage itself. */
+    private async _loadStoredWalletIfNeeded(): Promise<void> {
+        if (this._portfolioAccountId) return;
 
-        if (!nextId || nextId === this._portfolioAccountId) return;
+        const stored = await this._walletService.getFirstWalletFromStorage();
+
+        if (this._portfolioAccountId) return;
+
+        if (nextAccountToLoad(stored, this._portfolioAccountId)) {
+            await this._onWalletChanged(stored as TagModel);
+
+            return;
+        }
+
+        await this._setWallet();
+    }
+
+    private _onWalletChanged = async (wallet: TagModel): Promise<void> => {
+        const nextId = nextAccountToLoad(wallet, this._portfolioAccountId);
+
+        if (!nextId) return;
 
         const switchingAccount = !!this._portfolioAccountId;
         this._portfolioAccountId = nextId;

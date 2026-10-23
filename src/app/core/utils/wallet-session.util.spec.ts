@@ -1,4 +1,4 @@
-import { shouldClearSessionForWalletChange } from "./wallet-session.util";
+import { coldOpenAccountsLoaded, shouldClearSessionForWalletChange } from "./wallet-session.util";
 
 const account = (tagName: string, extra: Record<string, unknown> = {}) => ({
     name: tagName,
@@ -15,6 +15,13 @@ describe("wallet session clear", () => {
 
     it("clears when the account identity changes", () => {
         expect(shouldClearSessionForWalletChange(account("alice.zelf"), account("bob.zelf"))).toBeTrue();
+    });
+
+    it("cold open with a stored wallet triggers exactly one load", () => {
+        const stored = account("alice.zelf");
+
+        expect(coldOpenAccountsLoaded({}, stored)).toEqual(["alice.zelf"]);
+        expect(coldOpenAccountsLoaded({}, {})).toEqual([]);
     });
 
     it("clears on logout and on the first account, and ignores an empty rewrite", () => {

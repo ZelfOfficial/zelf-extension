@@ -32,7 +32,7 @@ import {
 } from "app/core/utils/wallet-balance-loader";
 import { dedupeBalanceTokens } from "app/core/utils/balance-tokens.util";
 import { projectHomeNetworkTokens, uniqueChainIds } from "app/core/utils/home-network-list.util";
-import { walletAccountIdentity } from "app/core/utils/wallet-session.util";
+import { nextAccountToLoad, walletAccountIdentity } from "app/core/utils/wallet-session.util";
 import { WalletBalanceCacheService } from "app/services/wallet-balance-cache.service";
 import { TokenCardComponent } from "./token-card/token-card.component";
 import { WalletBalanceTopCardComponent } from "./wallet-balance-top-card/wallet-balance-top-card.component";
@@ -125,6 +125,7 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
         zelfWalletLoadPerfMark("initNetwork:end");
 
         this._chromeService.onWalletChanged$.pipe(takeUntil(this.unsubscriber$)).subscribe(this._onWalletChanged);
+        await this._loadStoredWalletIfNeeded();
 
         this._settingsService.settings$.pipe(takeUntil(this.unsubscriber$)).subscribe(() => {
             void this._onNetworkSettingsChanged();
@@ -260,10 +261,27 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
     /**
      * First call to initialize wallet, balances and refresh wallet if needed
      */
-    private _onWalletChanged = async (wallet: TagModel): Promise<void> => {
-        const nextId = walletAccountIdentity(wallet);
+    /** The wallet subject starts as `{}`. That is "not yet known", so cold open reads storage itself. */
+    private async _loadStoredWalletIfNeeded(): Promise<void> {
+        if (this._portfolioAccountId) return;
 
-        if (!nextId || nextId === this._portfolioAccountId) return;
+        const stored = await this._walletService.getFirstWalletFromStorage();
+
+        if (this._portfolioAccountId) return;
+
+        if (nextAccountToLoad(stored, this._portfolioAccountId)) {
+            await this._onWalletChanged(stored as TagModel);
+
+            return;
+        }
+
+        await this._setWallet();
+    }
+
+    private _onWalletChanged = async (wallet: TagModel): Promise<void> => {
+        const nextId = nextAccountToLoad(wallet, this._portfolioAccountId);
+
+        if (!nextId) return;
 
         const switchingAccount = !!this._portfolioAccountId;
         this._portfolioAccountId = nextId;

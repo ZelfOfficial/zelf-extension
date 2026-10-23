@@ -179,6 +179,23 @@ async function fetchNetworkWithRetry(ctx: WalletBalanceLoadContext, networkId: s
     return retryFailedBalanceNetworks(ctx, [networkId], response, status);
 }
 
+/** Recompute card hints after one network settles, including when that network added no rows. */
+export function cardsAfterNetworkSettled(
+    tokens: readonly any[] | null | undefined,
+    status: Record<string, NetworkBalanceStatus>,
+    networkId: string,
+    outcome: NetworkBalanceStatus,
+    enabledNetworkIds?: readonly string[]
+): { tokens: any[]; status: Record<string, NetworkBalanceStatus> } {
+    const nextStatus = { ...status, [networkId]: outcome };
+    const enabled = enabledNetworkIds?.length ? enabledNetworkIds : Object.keys(nextStatus);
+
+    return {
+        status: nextStatus,
+        tokens: withBalanceHints(projectHomeNetworkTokens(tokens, enabled), nextStatus),
+    };
+}
+
 function withBalanceHints(tokens: any[], status: Record<string, NetworkBalanceStatus>): any[] {
     return tokens.map((token) => {
         if (hasReportedBalance(token)) return { ...token, balanceState: undefined };
@@ -267,11 +284,19 @@ export async function loadWalletBalances(ctx: WalletBalanceLoadContext): Promise
                 );
             }
         }
+
+        if (ctx.shouldContinue() && (ctx.wallet?.tagName || ctx.wallet?.name) === walletTag) {
+            publishTokens(ctx, tokens, enabledIds, status, lastKnownTotal);
+        }
     } finally {
         ctx.callbacks.onLoadingFlags?.(false, background.length > 0);
     }
 
     if (!background.length) {
+        if (ctx.shouldContinue() && (ctx.wallet?.tagName || ctx.wallet?.name) === walletTag) {
+            publishTokens(ctx, tokens, enabledIds, status, lastKnownTotal);
+        }
+
         ctx.callbacks.onLoadingFlags?.(false, false);
         return;
     }
@@ -291,7 +316,6 @@ export async function loadWalletBalances(ctx: WalletBalanceLoadContext): Promise
 
                 if (result?.tokens?.length) {
                     tokens = mergeBalanceTokens(tokens, result.tokens);
-                    publishTokens(ctx, tokens, enabledIds, status, lastKnownTotal);
 
                     if (ctx.shouldContinue() && (ctx.wallet?.tagName || ctx.wallet?.name) === walletTag) {
                         await ctx.assetService.saveTokensToSession(tokens, "merge");
@@ -305,9 +329,17 @@ export async function loadWalletBalances(ctx: WalletBalanceLoadContext): Promise
                     }
                 }
             }
+
+            if (ctx.shouldContinue() && (ctx.wallet?.tagName || ctx.wallet?.name) === walletTag) {
+                publishTokens(ctx, tokens, enabledIds, status, lastKnownTotal);
+            }
         },
         ctx.shouldContinue
     );
+
+    if (ctx.shouldContinue() && (ctx.wallet?.tagName || ctx.wallet?.name) === walletTag) {
+        publishTokens(ctx, tokens, enabledIds, status, lastKnownTotal);
+    }
 
     ctx.callbacks.onLoadingFlags?.(false, false);
 }
