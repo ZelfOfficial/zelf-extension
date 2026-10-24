@@ -18,6 +18,100 @@
 
 @include device-scale.welcome-device-scale;
 
+// The device is content-box: padding (46+26) and the 6px border sit outside
+// --welcome-onboarding-height. Fit-height's 48px reserve ignored that chrome, so at
+// 1280x800 the painted frame started near -16px and the corners were clipped.
+// Reserve ~96px of the viewport and subtract the chrome so the frame stays centred.
+:host-context(.main-div--fullscreen) {
+    --welcome-onboarding-height: clamp(620px, calc((100vh - 96px) / var(--welcome-onboarding-scale) - 84px), 852px);
+}
+
+// Short viewports no longer have room for the 852px artboard's top gap.
+@media screen and (max-height: 860px) {
+    :host-context(.main-div--fullscreen) {
+        .carousel__eyebrow {
+            margin-top: 96px;
+        }
+
+        .carousel__feature-stack {
+            min-height: 248px;
+        }
+
+        .carousel__intro {
+            margin: 64px 30px 40px;
+        }
+    }
+}
+
+// Popup: fill the shell (no phone bezel hanging off a 360px window) and pull the
+// heading up. The 172px artboard margin plus 46px padding left a large empty top.
+:host-context(.main-div--popout) {
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    // The shell is 375px, but the extension window can be 360px. Size to the
+    // viewport so the 16px button inset stays on screen on both widths.
+    width: 100vw;
+    max-width: 100vw;
+
+    .welcome-onboarding,
+    .welcome-onboarding__header,
+    .carousel,
+    .carousel__item-container,
+    .carousel__item {
+        height: 100%;
+        max-width: 100%;
+        min-height: 0;
+        width: 100%;
+    }
+
+    .welcome-onboarding__header,
+    .carousel,
+    .carousel__item-container,
+    .carousel__item {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+    }
+
+    .carousel__device {
+        border-radius: 0;
+        border-width: 0;
+        box-sizing: border-box;
+        height: 100%;
+        left: auto;
+        min-height: 0;
+        padding: 48px 16px 20px;
+        position: relative;
+        top: auto;
+        transform: none;
+        width: 100%;
+    }
+
+    .carousel__eyebrow {
+        margin: 0 0 16px 26px;
+    }
+
+    .carousel__intro {
+        margin: 28px 16px 20px;
+    }
+
+    .carousel__feature-stack {
+        min-height: 0;
+    }
+
+    .carousel__mock-actions {
+        flex-shrink: 0;
+        padding: 16px 0 0;
+    }
+
+    .carousel__mock-link {
+        margin-top: 10px;
+        padding: 6px 8px 0;
+    }
+}
+
 .welcome-onboarding {
     align-items: center;
     display: flex;
@@ -300,16 +394,17 @@
         align-items: center;
         appearance: none;
         border: 2px solid rgba(255, 255, 255, 0.72);
-        border-radius: 14px;
+        border-radius: 16px;
         box-shadow: none;
+        box-sizing: border-box;
         cursor: pointer;
         display: flex;
         font-family: var(--welcome-onboarding-font);
-        font-size: 13px;
+        font-size: 14px;
         font-weight: 500;
         justify-content: space-between;
-        min-height: 53px;
-        padding: 0 22px;
+        min-height: 52px;
+        padding: 8px 20px;
         text-align: left;
         width: 100%;
 
