@@ -5,7 +5,7 @@ import {
     formatZns,
     insufficientTokensDetails,
     isInsufficientTokensError,
-    isLimitsUnsupportedError,
+    isLimitsFallbackError,
     isPlanLimitReachedError,
     limitsFromPlanError,
     parseLimitsPayload,
@@ -95,10 +95,17 @@ describe("zelf-keys plan limits", () => {
         expect(parseLimitsPayload(null)).toBeNull();
     });
 
-    it("treats HTTP 404 as an API without /limits", () => {
-        expect(isLimitsUnsupportedError({ status: 404, error: { message: "Not Found" } })).toBeTrue();
-        expect(isLimitsUnsupportedError({ status: 500, error: { message: "down" } })).toBeFalse();
-        expect(isLimitsUnsupportedError({ status: 409, error: { code: "ERR_PLAN_LIMIT_REACHED" } })).toBeFalse();
+    it("falls back when /limits is missing or the session is not verified", () => {
+        expect(isLimitsFallbackError({ status: 404, error: { message: "Not Found" } })).toBeTrue();
+        expect(isLimitsFallbackError({ status: 401, error: { code: "ERR_ZELF_IDENTITY_REQUIRED", message: "Authenticated Zelf identity is required" } })).toBeTrue();
+        expect(
+            isLimitsFallbackError({
+                status: 403,
+                error: { code: "ERR_SESSION_NOT_VERIFIED", message: "Session is not verified for this wallet" },
+            })
+        ).toBeTrue();
+        expect(isLimitsFallbackError({ status: 500, error: { message: "down" } })).toBeFalse();
+        expect(isLimitsFallbackError({ status: 409, error: { code: "ERR_PLAN_LIMIT_REACHED" } })).toBeFalse();
     });
 
     it("recognizes a plan-limit 409 and ignores other 409s", () => {

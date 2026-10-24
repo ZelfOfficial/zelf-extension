@@ -44,9 +44,14 @@ export function apiErrorCode(error: unknown): string {
     return "";
 }
 
-/** Prod before #207 has no /limits route. */
-export function isLimitsUnsupportedError(error: unknown): boolean {
-    return httpStatus(error) === 404;
+/**
+ * /limits cannot be used yet: the route is missing (404), or this session is not
+ * identity-verified (401 / 403 ERR_SESSION_NOT_VERIFIED). Saves keep working.
+ */
+export function isLimitsFallbackError(error: unknown): boolean {
+    const status = httpStatus(error);
+
+    return status === 401 || status === 403 || status === 404;
 }
 
 export function isPlanLimitReachedError(error: unknown): boolean {

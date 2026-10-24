@@ -4,7 +4,7 @@ import { HttpWrapperService } from "../http-wrapper.service";
 import { AuthService } from "./auth.service";
 import { FaceApiService } from "./face-api/face-api.service";
 import { ZelfKeysLimitsFetch } from "app/zelf-keys/plan-limits/zelf-keys-plan-limits.model";
-import { isLimitsUnsupportedError, parseLimitsPayload } from "app/zelf-keys/plan-limits/zelf-keys-plan-limits.util";
+import { isLimitsFallbackError, parseLimitsPayload } from "app/zelf-keys/plan-limits/zelf-keys-plan-limits.util";
 
 /**
  * Interface for storing a password via ZelfKeys API
@@ -188,7 +188,8 @@ export class ZelfKeysService {
      */
     /**
      * Plan, counts, and spendable ZNS for password and 2FA slots.
-     * 404 means this API build has no /limits route yet.
+     * 401, 403, and 404 mean this session cannot read limits yet. Callers fall back
+     * and do not surface those responses as a storage error.
      */
     async getVaultLimits(): Promise<ZelfKeysLimitsFetch> {
         try {
@@ -202,7 +203,7 @@ export class ZelfKeysService {
 
             return { status: "ok", limits };
         } catch (error) {
-            if (isLimitsUnsupportedError(error)) return { status: "unsupported" };
+            if (isLimitsFallbackError(error)) return { status: "unsupported" };
 
             return { status: "error" };
         }

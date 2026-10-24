@@ -9,6 +9,7 @@ import { TagModel } from "app/tags.service";
 import { WalletService } from "app/wallet.service";
 import { environment } from "environments/environment";
 import { generateUniqueFingerprint, simpleHash } from "app/core/utils/fingerprint.util";
+import { normalizeZelfName } from "app/core/utils/zelf-name.util";
 
 @Injectable({
     providedIn: "root",
@@ -34,11 +35,13 @@ export class AuthService {
             identifier: simpleHash(fingerprint),
         };
 
-        // Include tagName and domain if available
-        if (domain) payload.domain = domain;
+        const zelfName = normalizeZelfName(tagName, domain || "zelf");
+
+        // The session stores one lowercase name.domain, even when the wallet record is mixed case.
+        if (domain || zelfName.domain) payload.domain = zelfName.domain || domain;
         if (ethAddress) payload.ethAddress = ethAddress;
         if (killSession) payload.killSession = 1;
-        if (tagName) payload.tagName = tagName;
+        if (zelfName.zelfName) payload.tagName = zelfName.zelfName;
 
         return await _request(
             this._httpClient.post(`${environment.apiUrl}/api/sessions`, payload, {
@@ -119,14 +122,12 @@ export class AuthService {
         if (!token || !wallet) return false;
 
         const jwtTag = this.getJwtSessionTag(token);
-        const walletTagName = (wallet.tagName || wallet.name || "").trim().toLowerCase();
-        const walletDomain = (wallet.publicData?.domain || "zelf").trim().toLowerCase();
-        const jwtTagName = (jwtTag.tagName || "").trim().toLowerCase();
-        const jwtDomain = (jwtTag.domain || "zelf").trim().toLowerCase();
+        const walletName = normalizeZelfName(wallet.tagName || wallet.name, wallet.publicData?.domain || "zelf").zelfName;
+        const jwtName = normalizeZelfName(jwtTag.tagName, jwtTag.domain || wallet.publicData?.domain || "zelf").zelfName;
 
-        if (!walletTagName || !jwtTagName) return false;
+        if (!walletName || !jwtName) return false;
 
-        return walletTagName === jwtTagName && walletDomain === jwtDomain;
+        return walletName === jwtName;
     }
 
     async ensureAccessTokenForCurrentWallet(options: { forceReauth?: boolean } = {}): Promise<string> {

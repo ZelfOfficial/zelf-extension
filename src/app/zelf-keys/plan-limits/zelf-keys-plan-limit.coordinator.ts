@@ -31,7 +31,8 @@ import {
 
 /**
  * Plan caps for new passwords and 2FA accounts.
- * A missing /limits route (404) leaves saves on the previous path.
+ * A missing or unverified /limits response (401, 403, 404) leaves saves on the previous path.
+ * A later 409 ERR_PLAN_LIMIT_REACHED still opens the slot sheet.
  */
 @Injectable({
     providedIn: "root",

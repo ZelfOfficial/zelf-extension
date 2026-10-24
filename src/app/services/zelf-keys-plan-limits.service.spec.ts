@@ -55,8 +55,14 @@ describe("ZelfKeysService plan limits", () => {
         }
     });
 
-    it("reports 404 as unsupported and other failures as errors", async () => {
+    it("falls back on 401, 403, and 404, and reports other failures as errors", async () => {
         sendRequest.and.rejectWith({ status: 404, error: { message: "Not Found" } });
+        await expectAsync(service.getVaultLimits()).toBeResolvedTo({ status: "unsupported" });
+
+        sendRequest.and.rejectWith({ status: 401, error: { code: "ERR_ZELF_IDENTITY_REQUIRED" } });
+        await expectAsync(service.getVaultLimits()).toBeResolvedTo({ status: "unsupported" });
+
+        sendRequest.and.rejectWith({ status: 403, error: { code: "ERR_SESSION_NOT_VERIFIED", message: "Session is not verified for this wallet" } });
         await expectAsync(service.getVaultLimits()).toBeResolvedTo({ status: "unsupported" });
 
         sendRequest.and.rejectWith({ status: 500, error: { message: "down" } });

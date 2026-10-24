@@ -63,13 +63,43 @@ describe("ZelfKeysPlanLimitCoordinator", () => {
         }));
     }
 
-    it("lets a save continue when /limits is not on this API", async () => {
+    it("lets a save continue when /limits is missing or the session is not verified", async () => {
         const { coordinator, getVaultLimits, dialogOpen } = setup();
 
         getVaultLimits.and.resolveTo({ status: "unsupported" });
 
         await expectAsync(coordinator.ensureCanAdd("password", { hasMasterPassword: false })).toBeResolvedTo(true);
         expect(dialogOpen).not.toHaveBeenCalled();
+        expect(coordinator.limits).toBeNull();
+    });
+
+    it("still explains a plan-limit 409 when /limits itself was rejected", async () => {
+        const { coordinator, getVaultLimits, dialogOpen } = setup();
+
+        getVaultLimits.and.resolveTo({ status: "unsupported" });
+        dialogOpen.and.returnValue({ afterClosed: () => of(undefined) });
+
+        await expectAsync(
+            coordinator.recoverFromSaveError(
+                {
+                    status: 409,
+                    error: {
+                        code: "ERR_PLAN_LIMIT_REACHED",
+                        message: "Plan limit reached",
+                        kind: "password",
+                        count: 5,
+                        limit: 5,
+                        plan: "free",
+                        tokenCost: 10,
+                    },
+                },
+                "password",
+                { hasMasterPassword: false }
+            )
+        ).toBeResolvedTo("dismissed");
+
+        expect(dialogOpen).toHaveBeenCalled();
+        expect(dialogOpen.calls.mostRecent().args[1].data.limit).toBe(5);
         expect(coordinator.limits).toBeNull();
     });
 

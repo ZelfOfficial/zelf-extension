@@ -23,6 +23,7 @@ import {
 import { applyPreviewSecurity, type ProofPreview } from "./onboarding-stack";
 import { VaultService } from "./vault.service";
 import { FaceApiService } from "./services/face-api/face-api.service";
+import { withNormalizedZelfTag } from "./core/utils/zelf-name.util";
 
 export type ZelfIdPlan = "free" | "premium" | "unlimited" | "";
 
@@ -237,7 +238,7 @@ export class ZelfIdsService {
     }
 
     leaseTag(request: TagLeaseRequest): Promise<any> {
-        const promise = this._faceApi.sendWithFace("post", `${this.apiPath}/lease`, request, {
+        const promise = this._faceApi.sendWithFace("post", `${this.apiPath}/lease`, withNormalizedZelfTag(request), {
             action: "lease",
         });
 
@@ -248,10 +249,10 @@ export class ZelfIdsService {
 
     leaseRecovery(request: TagLeaseRecoveryRequest): Promise<any> {
         const { newTagName, ...rest } = request;
-        const body = {
+        const body = withNormalizedZelfTag({
             ...rest,
             tagName: newTagName,
-        };
+        });
 
         const promise = this._faceApi.sendWithFace("post", `${this.apiPath}/lease-recovery`, body, {
             action: "lease-recovery",
@@ -263,7 +264,7 @@ export class ZelfIdsService {
     }
 
     leaseOfflineTag(request: TagOfflineLeaseRequest): Promise<any> {
-        const promise = this._httpWrapper.sendRequest("post", `${this.apiPath}/lease-offline`, request).then((response) => {
+        const promise = this._httpWrapper.sendRequest("post", `${this.apiPath}/lease-offline`, withNormalizedZelfTag(request)).then((response) => {
             if (response?.data?.zelfIDObject && !response.data.tagObject) {
                 response.data.tagObject = response.data.zelfIDObject;
             }
@@ -277,7 +278,7 @@ export class ZelfIdsService {
     }
 
     decryptTag(request: TagDecryptRequest): Promise<any> {
-        const promise = this._faceApi.sendWithFace("post", `${this.apiPath}/decrypt`, request, {
+        const promise = this._faceApi.sendWithFace("post", `${this.apiPath}/decrypt`, withNormalizedZelfTag(request), {
             action: "decrypt",
         });
 

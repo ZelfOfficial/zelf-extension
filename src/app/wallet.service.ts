@@ -17,6 +17,7 @@ import { TagModel } from "./tags.service";
 import { ChromeService } from "./chrome.service";
 import { HttpWrapperService } from "./http-wrapper.service";
 import { FaceApiService } from "./services/face-api/face-api.service";
+import { withNormalizedZelfTag } from "./core/utils/zelf-name.util";
 import { Asset, Wallet } from "@shared/types/wallet.types";
 import { generateDeviceFingerprint, simpleHash, UserFingerPrint } from "./core/utils/fingerprint.util";
 import { isSuiSendTokenType } from "./core/utils/sui-coin.util";
@@ -412,10 +413,10 @@ export class WalletService {
         return this._httpWrapper.sendRequest(
             "post",
             url,
-            {
+            withNormalizedZelfTag({
                 ...data,
                 isWebExtension: this._chromeService.isExtension,
-            },
+            }),
             {
                 Headers: {},
             }
@@ -423,23 +424,23 @@ export class WalletService {
     }
 
     createWallet(data: any): Promise<any> {
-        const body = {
+        const body = withNormalizedZelfTag({
             ...data,
             password: data.password || undefined,
-        };
+        });
         return this._faceApi.sendWithFace("post", `${this.baseUrl}/api/my-wallets`, body, {
             action: "wallet-create",
         });
     }
 
     decryptWallet(data: any): Promise<any> {
-        return this._faceApi.sendWithFace("post", `${this.baseUrl}/api/my-wallets/decrypt`, data, {
+        return this._faceApi.sendWithFace("post", `${this.baseUrl}/api/my-wallets/decrypt`, withNormalizedZelfTag(data), {
             action: "wallet-decrypt",
         });
     }
 
     importWallet(data: any): Promise<any> {
-        return this._httpWrapper.sendRequest("post", `${this.baseUrl}/api/my-wallets/import`, data);
+        return this._httpWrapper.sendRequest("post", `${this.baseUrl}/api/my-wallets/import`, withNormalizedZelfTag(data));
     }
 
     previewWallet(zelfProof: string): Promise<any> {
