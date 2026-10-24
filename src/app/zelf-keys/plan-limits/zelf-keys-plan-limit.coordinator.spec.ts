@@ -39,7 +39,6 @@ describe("ZelfKeysPlanLimitCoordinator", () => {
     function setup() {
         const getVaultLimits = jasmine.createSpy("getVaultLimits").and.resolveTo({ status: "ok", limits: atCap });
         const purchaseExtraSlot = jasmine.createSpy("purchaseExtraSlot").and.resolveTo({ data: { kind: "password" } });
-        const navigate = jasmine.createSpy("navigate").and.resolveTo(true);
         const dialogOpen = jasmine.createSpy("open").and.returnValue({ afterClosed: () => of(undefined) });
         const bottomOpen = jasmine.createSpy("open").and.returnValue({ afterDismissed: () => of({ faceBase64: "face" }) });
         const encryptMessage = jasmine.createSpy("encryptMessage").and.callFake(async (value: string) => `pgp:${value}`);
@@ -49,11 +48,10 @@ describe("ZelfKeysPlanLimitCoordinator", () => {
             new ErrorService({ translate: (key: string) => key } as any),
             { encryptMessage } as any,
             { getVaultLimits, purchaseExtraSlot } as any,
-            { navigate } as any,
             { translate: (key: string) => key } as any
         );
 
-        return { coordinator, getVaultLimits, purchaseExtraSlot, navigate, dialogOpen, bottomOpen, encryptMessage };
+        return { coordinator, getVaultLimits, purchaseExtraSlot, dialogOpen, bottomOpen, encryptMessage };
     }
 
     function closeWithPurchase(dialogOpen: jasmine.Spy, input: { masterPassword: string; idempotencyKey: string }): void {
@@ -167,12 +165,13 @@ describe("ZelfKeysPlanLimitCoordinator", () => {
         expect(dialogOpen).not.toHaveBeenCalled();
     });
 
-    it("navigates to billing when the sheet asks to upgrade", async () => {
-        const { coordinator, dialogOpen, navigate } = setup();
+    it("opens Zelf ID pricing instead of the legacy billing page", async () => {
+        const { coordinator, dialogOpen } = setup();
+        const open = spyOn(window, "open");
 
         dialogOpen.and.returnValue({ afterClosed: () => of({ upgrade: true }) });
 
         await expectAsync(coordinator.ensureCanAdd("password", { hasMasterPassword: false })).toBeResolvedTo(false);
-        expect(navigate).toHaveBeenCalledWith(["/zelf-keys/billing"]);
+        expect(open).toHaveBeenCalledWith("https://zelf.world/pricing", "_blank", "noopener,noreferrer");
     });
 });

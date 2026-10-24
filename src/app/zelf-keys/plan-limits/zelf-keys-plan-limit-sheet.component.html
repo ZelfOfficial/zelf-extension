@@ -12,7 +12,10 @@
 
     <div class="plan-limit__body">
         <h1 class="plan-limit__title">{{ title }}</h1>
-        <p class="plan-limit__text">{{ t("zelf_keys.plan_limits.sheet.body") }}</p>
+        <p class="plan-limit__text" *ngIf="slotsNeeded === 1">{{ t("zelf_keys.plan_limits.sheet.body") }}</p>
+        <p class="plan-limit__text" *ngIf="slotsNeeded > 1">
+            {{ t("zelf_keys.plan_limits.sheet.over_body", { count: slotsNeeded, cost: costText }) }}
+        </p>
 
         <div class="plan-limit__balance" *ngIf="showBalance">
             <span>{{ t("zelf_keys.plan_limits.sheet.balance") }}</span>
@@ -39,13 +42,20 @@
 
     <div class="plan-limit__actions">
         <button type="button" class="zelf-button zelf-button--primary zelf-button--wide" (click)="buy()" [disabled]="buyDisabled">
-            {{ busy ? t("zelf_keys.plan_limits.sheet.buy_busy") : t("zelf_keys.plan_limits.sheet.buy", { cost: costText }) }}
+            {{
+                busy
+                    ? t("zelf_keys.plan_limits.sheet.buy_busy")
+                    : slotsNeeded > 1
+                      ? t("zelf_keys.plan_limits.sheet.buy_many", { count: slotsNeeded, cost: costText })
+                      : t("zelf_keys.plan_limits.sheet.buy", { cost: costText })
+            }}
         </button>
         <p class="plan-limit__hint" *ngIf="lowBalance">
             {{ t("zelf_keys.plan_limits.sheet.low_balance", { cost: costText, amount: balanceText }) }}
         </p>
-        <button type="button" class="zelf-button zelf-button--outlined zelf-button--wide" (click)="upgrade()" [disabled]="busy">
-            {{ t("zelf_keys.plan_limits.sheet.upgrade") }}
+        <button type="button" class="zelf-button zelf-button--outlined zelf-button--wide plan-limit__upgrade" (click)="upgrade()" [disabled]="busy">
+            <span class="plan-limit__upgrade-label">{{ t("zelf_keys.plan_limits.sheet.upgrade") }}</span>
         </button>
+        <p class="plan-limit__note">{{ t("zelf_keys.plan_limits.sheet.upgrade_note") }}</p>
     </div>
 </div>

@@ -8,12 +8,14 @@ import {
     PlanLimitPurchaseResult,
     ZelfKeysSlotKind,
 } from "./zelf-keys-plan-limits.model";
-import { createSlotIdempotencyKey, formatZns, slotAffordability, translatedPlanName } from "./zelf-keys-plan-limits.util";
+import { createSlotIdempotencyKey, formatZns, slotAffordability, slotsNeededToAdd, translatedPlanName } from "./zelf-keys-plan-limits.util";
 
 export interface PlanLimitSheetData {
     kind: ZelfKeysSlotKind;
     plan: string;
+    used: number;
     limit: number;
+    /** ZNS for a single extra slot. */
     tokenCost: number;
     tokenBalance: number | null;
     balanceAvailable: boolean;
@@ -36,6 +38,7 @@ export interface PlanLimitSheetResult {
 export class ZelfKeysPlanLimitSheetComponent {
     balanceAvailable: boolean;
     busy = false;
+    completed = 0;
     kind: ZelfKeysSlotKind;
     limit: number;
     message = "";
@@ -45,6 +48,7 @@ export class ZelfKeysPlanLimitSheetComponent {
     showPasswordField = false;
     tokenBalance: number | null;
     tokenCost: number;
+    used: number;
 
     readonly idempotencyKey = createSlotIdempotencyKey();
 
@@ -56,6 +60,7 @@ export class ZelfKeysPlanLimitSheetComponent {
     ) {
         this.kind = data.kind;
         this.plan = data.plan;
+        this.used = data.used ?? data.limit;
         this.limit = data.limit;
         this.tokenCost = data.tokenCost;
         this.tokenBalance = data.tokenBalance;
@@ -64,14 +69,30 @@ export class ZelfKeysPlanLimitSheetComponent {
         this.showPassword = data.hasMasterPassword && !data.masterPassword?.trim();
     }
 
+    get slotsNeeded(): number {
+        return slotsNeededToAdd(this.used, this.limit);
+    }
+
+    get overCap(): boolean {
+        return this.limit != null && this.used > this.limit;
+    }
+
+    get totalCost(): number {
+        return this.tokenCost * this.slotsNeeded;
+    }
+
     get title(): string {
         const plan = translatedPlanName(this.plan, (key) => this._transloco.translate(key));
-        const key =
-            this.kind === "password"
-                ? "zelf_keys.plan_limits.sheet.title_passwords"
-                : "zelf_keys.plan_limits.sheet.title_zotp";
+        const over = this.overCap;
+        const key = over
+            ? this.kind === "password"
+                ? "zelf_keys.plan_limits.sheet.title_over_passwords"
+                : "zelf_keys.plan_limits.sheet.title_over_zotp"
+            : this.kind === "password"
+              ? "zelf_keys.plan_limits.sheet.title_passwords"
+              : "zelf_keys.plan_limits.sheet.title_zotp";
 
-        return this._transloco.translate(key, { limit: this.limit, plan });
+        return this._transloco.translate(key, { limit: this.limit, used: this.used, plan });
     }
 
     get balanceText(): string {
@@ -79,7 +100,7 @@ export class ZelfKeysPlanLimitSheetComponent {
     }
 
     get costText(): string {
-        return formatZns(this.tokenCost);
+        return formatZns(this.totalCost);
     }
 
     get showBalance(): boolean {
@@ -123,37 +144,56 @@ export class ZelfKeysPlanLimitSheetComponent {
         this._changeDetectorRef.detectChanges();
 
         let closed = false;
+        const start = this.completed;
+        const end = start + this.slotsNeeded;
 
         try {
-            const result = await this.data.purchase({ masterPassword, idempotencyKey: this.idempotencyKey });
+            for (let index = start; index < end; index++) {
+                const result = await this.data.purchase({
+                    masterPassword,
+                    idempotencyKey: `${this.idempotencyKey}-${index}`,
+                });
 
-            if (result.ok) {
-                closed = true;
-                this._dialogRef.close({ purchased: true });
+                if (result.ok) {
+                    this.completed += 1;
+                    this.limit += 1;
+                    continue;
+                }
+
+                if (result.reason === "cancelled") {
+                    if (this.completed > 0) this.message = this._progressMessage();
+
+                    return;
+                }
+
+                if (result.reason === "password_required") {
+                    this.message = this._transloco.translate("zelf_keys.plan_limits.sheet.password_required");
+
+                    return;
+                }
+
+                if (result.reason === "insufficient") {
+                    this.balanceAvailable = true;
+                    this.tokenBalance = result.balance;
+                    this.message =
+                        this.completed > 0
+                            ? this._progressMessage()
+                            : this._transloco.translate("zelf_keys.plan_limits.sheet.insufficient");
+
+                    return;
+                }
+
+                this.message =
+                    (result.reason === "error" ? result.message : "") ||
+                    (this.completed > 0
+                        ? this._progressMessage()
+                        : this._transloco.translate("zelf_keys.plan_limits.sheet.purchase_failed"));
 
                 return;
             }
 
-            if (result.reason === "cancelled") return;
-
-            if (result.reason === "password_required") {
-                this.message = this._transloco.translate("zelf_keys.plan_limits.sheet.password_required");
-
-                return;
-            }
-
-            if (result.reason === "insufficient") {
-                this.balanceAvailable = true;
-                this.tokenBalance = result.balance;
-                if (result.cost != null) this.tokenCost = result.cost;
-                this.message = this._transloco.translate("zelf_keys.plan_limits.sheet.insufficient");
-
-                return;
-            }
-
-            this.message =
-                (result.reason === "error" ? result.message : "") ||
-                this._transloco.translate("zelf_keys.plan_limits.sheet.purchase_failed");
+            closed = true;
+            this._dialogRef.close({ purchased: true });
         } finally {
             if (!closed) {
                 this.busy = false;
@@ -162,9 +202,13 @@ export class ZelfKeysPlanLimitSheetComponent {
         }
     }
 
+    private _progressMessage(): string {
+        return this._transloco.translate("zelf_keys.plan_limits.sheet.partial", { count: this.completed });
+    }
+
     private get affordabilityInput(): { tokenCost: number; tokenBalance: number | null; balanceAvailable: boolean } {
         return {
-            tokenCost: this.tokenCost,
+            tokenCost: this.totalCost,
             tokenBalance: this.tokenBalance,
             balanceAvailable: this.balanceAvailable,
         };

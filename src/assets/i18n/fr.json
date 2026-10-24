@@ -466,7 +466,13 @@
                 "insufficient": "Votre solde ne suffit pas pour cet emplacement.",
                 "purchase_failed": "Nous n'avons pas pu acheter l'emplacement. Réessayez.",
                 "face_title": "Vérifiez votre identité pour acheter un emplacement",
-                "face_instructions": "Scannez votre visage pour payer un emplacement supplémentaire."
+                "face_instructions": "Scannez votre visage pour payer un emplacement supplémentaire.",
+                "title_over_passwords": "Vous avez {{used}} mots de passe sur {{limit}} avec le forfait {{plan}}",
+                "title_over_zotp": "Vous avez {{used}} comptes 2FA sur {{limit}} avec le forfait {{plan}}",
+                "over_body": "Un emplacement ne suffit pas. Il vous en faut {{count}} de plus ({{cost}} ZNS) pour en ajouter un autre. Chacun dure 12 mois.",
+                "buy_many": "Acheter {{count}} emplacements · {{cost}} ZNS",
+                "upgrade_note": "Comparez Gratuit, Premium et Illimité sur zelf.world.",
+                "partial": "{{count}} emplacement ajouté. Vérifiez à nouveau pour acheter le reste."
             }
         }
     },

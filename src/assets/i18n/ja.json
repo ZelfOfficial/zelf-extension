@@ -466,7 +466,13 @@
                 "insufficient": "この枠を購入するには残高が足りません。",
                 "purchase_failed": "枠を購入できませんでした。もう一度お試しください。",
                 "face_title": "枠を購入するために本人確認",
-                "face_instructions": "追加枠の支払いに顔をスキャンしてください。"
+                "face_instructions": "追加枠の支払いに顔をスキャンしてください。",
+                "title_over_passwords": "{{plan}}プランのパスワードは {{limit}} 件中 {{used}} 件です",
+                "title_over_zotp": "{{plan}}プランの2FAアカウントは {{limit}} 件中 {{used}} 件です",
+                "over_body": "1枠では足りません。もう1件追加するには、あと {{count}} 枠（{{cost}} ZNS）が必要です。各枠の有効期限は12か月です。",
+                "buy_many": "{{count}} 枠を購入 · {{cost}} ZNS",
+                "upgrade_note": "zelf.world で無料、プレミアム、無制限を比較します。",
+                "partial": "{{count}} 枠を追加しました。残りを購入するには、もう一度確認してください。"
             }
         }
     },

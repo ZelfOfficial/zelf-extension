@@ -466,7 +466,13 @@
                 "insufficient": "Hindi sapat ang balanse para sa slot na ito.",
                 "purchase_failed": "Hindi nabili ang slot. Subukan muli.",
                 "face_title": "I-verify ang pagkakakilanlan para bumili ng slot",
-                "face_instructions": "I-scan ang mukha mo para bayaran ang dagdag na slot."
+                "face_instructions": "I-scan ang mukha mo para bayaran ang dagdag na slot.",
+                "title_over_passwords": "Mayroon kang {{used}} sa {{limit}} password sa planong {{plan}}",
+                "title_over_zotp": "Mayroon kang {{used}} sa {{limit}} 2FA account sa planong {{plan}}",
+                "over_body": "Hindi sapat ang isang slot. Kailangan mo ng {{count}} pang slot ({{cost}} ZNS) bago makapagdagdag. Bawat slot ay 12 buwan.",
+                "buy_many": "Bumili ng {{count}} slot · {{cost}} ZNS",
+                "upgrade_note": "Ikumpara ang Libre, Premium, at Walang limitasyon sa zelf.world.",
+                "partial": "Nadagdag ang {{count}} slot. I-verify muli para bilhin ang natitira."
             }
         }
     },

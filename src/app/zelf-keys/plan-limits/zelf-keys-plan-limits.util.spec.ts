@@ -11,6 +11,7 @@ import {
     parseLimitsPayload,
     planLimitDetailsFromError,
     slotAffordability,
+    slotsNeededToAdd,
     translatedPlanName,
 } from "./zelf-keys-plan-limits.util";
 
@@ -151,6 +152,13 @@ describe("zelf-keys plan limits", () => {
 
         expect(isInsufficientTokensError(error)).toBeTrue();
         expect(insufficientTokensDetails(error)).toEqual({ kind: "zotp", balance: 4, cost: 20 });
+    });
+
+    it("asks for enough slots to get back under the cap and add one more", () => {
+        expect(slotsNeededToAdd(5, 5)).toBe(1);
+        expect(slotsNeededToAdd(6, 5)).toBe(2);
+        expect(slotsNeededToAdd(8, 5)).toBe(4);
+        expect(slotsNeededToAdd(12, null)).toBe(1);
     });
 
     it("disables a purchase only when the known balance is below the slot cost", () => {

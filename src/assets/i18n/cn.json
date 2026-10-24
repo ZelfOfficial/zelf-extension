@@ -466,7 +466,13 @@
                 "insufficient": "余额不足以购买此名额。",
                 "purchase_failed": "无法购买名额，请稍后再试。",
                 "face_title": "验证身份以购买名额",
-                "face_instructions": "扫描面部以支付一个额外名额。"
+                "face_instructions": "扫描面部以支付一个额外名额。",
+                "title_over_passwords": "你在{{plan}}方案已有 {{used}}/{{limit}} 个密码",
+                "title_over_zotp": "你在{{plan}}方案已有 {{used}}/{{limit}} 个双重验证账户",
+                "over_body": "一个名额不够。你还需要 {{count}} 个名额（{{cost}} ZNS）才能再添加。每个名额有效期 12 个月。",
+                "buy_many": "购买 {{count}} 个名额 · {{cost}} ZNS",
+                "upgrade_note": "在 zelf.world 比较免费、高级和无限方案。",
+                "partial": "已添加 {{count}} 个名额。请再次验证以购买剩余名额。"
             }
         }
     },

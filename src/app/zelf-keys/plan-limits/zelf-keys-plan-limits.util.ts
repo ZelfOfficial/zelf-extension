@@ -153,6 +153,16 @@ export function limitsFromPlanError(error: unknown): ZelfKeysLimits | null {
     };
 }
 
+/** Slots required so `used` can grow by one. One when already at the cap; more after extras expire. */
+export function slotsNeededToAdd(used: number, limit: number | null): number {
+    if (limit == null) return 1;
+
+    const count = Number.isFinite(used) ? Math.floor(used) : 0;
+    const cap = Number.isFinite(limit) ? Math.floor(limit) : 0;
+
+    return Math.max(1, count - cap + 1);
+}
+
 export function slotAffordability(input: {
     tokenCost: number;
     tokenBalance: number | null;

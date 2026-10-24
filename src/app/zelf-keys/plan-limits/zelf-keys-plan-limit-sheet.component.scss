@@ -137,4 +137,19 @@
         gap: calc(10px * var(--zns-space-scale, 1));
         padding-top: calc(12px * var(--zns-space-scale, 1));
     }
+
+    // Disabled outlined buttons inherit a label color that matches the card in both themes.
+    &__upgrade[disabled],
+    &__upgrade[disabled] &__upgrade-label {
+        color: variables.$themeText !important;
+        -webkit-text-fill-color: variables.$themeText !important;
+        opacity: 0.72;
+        background: variables.$themeCard !important;
+        border-color: variables.$themeBorder !important;
+    }
+
+    &__upgrade-label {
+        color: inherit;
+        -webkit-text-fill-color: currentColor;
+    }
 }

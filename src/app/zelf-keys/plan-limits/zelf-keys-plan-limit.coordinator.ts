@@ -1,7 +1,6 @@
 import { Injectable } from "@angular/core";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
 import { MatDialog } from "@angular/material/dialog";
-import { Router } from "@angular/router";
 import { TranslocoService } from "@jsverse/transloco";
 import { BehaviorSubject, firstValueFrom } from "rxjs";
 
@@ -49,7 +48,6 @@ export class ZelfKeysPlanLimitCoordinator {
         private _errors: ErrorService,
         private _http: HttpWrapperService,
         private _keys: ZelfKeysService,
-        private _router: Router,
         private _transloco: TranslocoService
     ) {}
 
@@ -143,6 +141,7 @@ export class ZelfKeysPlanLimitCoordinator {
         const data: PlanLimitSheetData = {
             kind,
             plan: limits.plan,
+            used: usage.used,
             limit: usage.limit ?? usage.used,
             tokenCost: usage.tokenCost,
             tokenBalance: limits.tokenBalance,
@@ -168,7 +167,7 @@ export class ZelfKeysPlanLimitCoordinator {
         const closed = await firstValueFrom(ref.afterClosed());
 
         if (closed?.upgrade) {
-            await this._router.navigate(["/zelf-keys/billing"]);
+            window.open("https://zelf.world/pricing", "_blank", "noopener,noreferrer");
 
             return "dismissed";
         }

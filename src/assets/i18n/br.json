@@ -466,7 +466,13 @@
                 "insufficient": "Seu saldo não é suficiente para este espaço.",
                 "purchase_failed": "Não foi possível comprar o espaço. Tente de novo.",
                 "face_title": "Verifique sua identidade para comprar um espaço",
-                "face_instructions": "Escaneie seu rosto para pagar um espaço extra."
+                "face_instructions": "Escaneie seu rosto para pagar um espaço extra.",
+                "title_over_passwords": "Você tem {{used}} de {{limit}} senhas no plano {{plan}}",
+                "title_over_zotp": "Você tem {{used}} de {{limit}} contas 2FA no plano {{plan}}",
+                "over_body": "Um espaço não é suficiente. Você precisa de mais {{count}} espaços ({{cost}} ZNS) para adicionar outro. Cada um dura 12 meses.",
+                "buy_many": "Comprar {{count}} espaços · {{cost}} ZNS",
+                "upgrade_note": "Compare Grátis, Premium e Ilimitado em zelf.world.",
+                "partial": "{{count}} espaço adicionado. Verifique de novo para comprar o restante."
             }
         }
     },
