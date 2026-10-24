@@ -1947,9 +1947,22 @@
             "already_claimed": "本日のデイリー報酬はすでに請求済みです。また明日お越しください！",
             "spin_failed": "ホイールの回転に失敗しました。もう一度お試しください。",
             "timeout": "リクエストがタイムアウトしました。もう一度お試しください。",
-            "account_not_active": "Solanaアカウントはまだ有効化されていません。ホイールを回す前に、ウォレットを有効化するためにSOLを入金してください。"
+            "account_not_active": "Solanaアカウントはまだ有効化されていません。ホイールを回す前に、ウォレットを有効化するためにSOLを入金してください。",
+            "identity_required": "今日の報酬を受け取るには顔写真が必要です。撮影してからもう一度お試しください。",
+            "verification_failed": "顔がこの Zelf ID と一致しません。顔を中央に合わせて再度お試しください。",
+            "missing_password": "今日の報酬を受け取るには、この Zelf ID のパスワードが必要です。",
+            "invalid_password": "パスワードが正しくありません。確認してもう一度お試しください。",
+            "password_required": "この Zelf ID にはパスワードが必要です。入力してもう一度お試しください。"
         },
-        "activate_account": "アカウントを有効化"
+        "activate_account": "アカウントを有効化",
+        "verify": {
+            "face_title": "顔を確認",
+            "face_subtitle": "今日の報酬の受け取りに顔を一度だけ使います。写真は保存しません。",
+            "password_title": "パスワードを入力",
+            "password_subtitle": "この Zelf ID はパスワードを使います。入力して今日の受け取りを完了してください。",
+            "pin_title": "PIN を入力",
+            "pin_subtitle": "この Zelf ID は PIN を使います。入力して今日の受け取りを完了してください。"
+        }
     },
     "referrals": {
         "invite_title": "友達を招待",

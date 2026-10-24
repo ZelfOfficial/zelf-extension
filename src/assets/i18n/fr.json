@@ -1947,9 +1947,22 @@
             "already_claimed": "Vous avez déjà réclamé votre récompense quotidienne aujourd'hui. Revenez demain !",
             "spin_failed": "Échec du tour de roue. Veuillez réessayer.",
             "timeout": "La demande a expiré. Veuillez réessayer.",
-            "account_not_active": "Votre compte Solana n'est pas encore activé. Veuillez déposer des SOL pour activer votre portefeuille avant de faire tourner la roue."
+            "account_not_active": "Votre compte Solana n'est pas encore activé. Veuillez déposer des SOL pour activer votre portefeuille avant de faire tourner la roue.",
+            "identity_required": "Prenez une photo de votre visage pour réclamer la récompense du jour, puis réessayez.",
+            "verification_failed": "Votre visage ne correspond pas à ce Zelf ID. Centrez votre visage et réessayez.",
+            "missing_password": "Ce Zelf ID a besoin de son mot de passe avant de réclamer la récompense du jour.",
+            "invalid_password": "Ce mot de passe est incorrect. Vérifiez-le et réessayez.",
+            "password_required": "Ce Zelf ID exige un mot de passe. Saisissez-le et réessayez."
         },
-        "activate_account": "Activer le compte"
+        "activate_account": "Activer le compte",
+        "verify": {
+            "face_title": "Vérifiez votre visage",
+            "face_subtitle": "Nous utilisons votre visage une seule fois pour réclamer la récompense du jour. La photo n'est pas enregistrée.",
+            "password_title": "Saisissez votre mot de passe",
+            "password_subtitle": "Ce Zelf ID utilise un mot de passe. Saisissez-le pour terminer la réclamation du jour.",
+            "pin_title": "Saisissez votre code PIN",
+            "pin_subtitle": "Ce Zelf ID utilise un code PIN. Saisissez-le pour terminer la réclamation du jour."
+        }
     },
     "referrals": {
         "invite_title": "Inviter des amis",

@@ -1947,9 +1947,22 @@
             "already_claimed": "Na-claim mo na ang iyong araw-araw na reward ngayong araw. Balik na lang bukas!",
             "spin_failed": "Nabigong i-spin ang wheel. Pakisubukan muli.",
             "timeout": "Nag-timeout ang request. Pakisubukan muli.",
-            "account_not_active": "Ang iyong Solana account ay hindi pa na-activate. Mangyaring mag-deposit ng ilang SOL para ma-activate ang iyong wallet bago umikot ng gulong."
+            "account_not_active": "Ang iyong Solana account ay hindi pa na-activate. Mangyaring mag-deposit ng ilang SOL para ma-activate ang iyong wallet bago umikot ng gulong.",
+            "identity_required": "Kumuha ng larawan ng iyong mukha para makuha ang reward ngayong araw, tapos subukan muli.",
+            "verification_failed": "Hindi tumugma ang mukha mo sa Zelf ID na ito. Igitna ang mukha at subukan muli.",
+            "missing_password": "Kailangan ang password ng Zelf ID na ito bago makuha ang reward ngayong araw.",
+            "invalid_password": "Mali ang password. Suriin ito at subukan muli.",
+            "password_required": "Kailangan ng password ang Zelf ID na ito. Ilagay ito at subukan muli."
         },
-        "activate_account": "I-activate ang Account"
+        "activate_account": "I-activate ang Account",
+        "verify": {
+            "face_title": "I-verify ang mukha mo",
+            "face_subtitle": "Ginamit ang mukha mo nang isang beses para makuha ang reward ngayong araw. Hindi iniimbak ang larawan.",
+            "password_title": "Ilagay ang password",
+            "password_subtitle": "Gumagamit ng password ang Zelf ID na ito. Ilagay ito para matapos ang reward ngayong araw.",
+            "pin_title": "Ilagay ang PIN",
+            "pin_subtitle": "Gumagamit ng PIN ang Zelf ID na ito. Ilagay ito para matapos ang reward ngayong araw."
+        }
     },
     "referrals": {
         "invite_title": "Mag-imbita ng mga kaibigan",

@@ -1947,9 +1947,22 @@
             "already_claimed": "您今天已经领取过每日奖励了。明天再来吧！",
             "spin_failed": "旋转转盘失败。请重试。",
             "timeout": "请求超时。请重试。",
-            "account_not_active": "您的 Solana 账户尚未激活。请先存入一些 SOL 来激活您的钱包，然后再转动转盘。"
+            "account_not_active": "您的 Solana 账户尚未激活。请先存入一些 SOL 来激活您的钱包，然后再转动转盘。",
+            "identity_required": "请拍摄面部照片以领取今日奖励，然后重试。",
+            "verification_failed": "面孔与此 Zelf ID 不匹配。请将面部置于画面中央后重试。",
+            "missing_password": "领取今日奖励前，此 Zelf ID 需要密码。",
+            "invalid_password": "密码不正确。请核对后重试。",
+            "password_required": "此 Zelf ID 需要密码。请输入后重试。"
         },
-        "activate_account": "激活账户"
+        "activate_account": "激活账户",
+        "verify": {
+            "face_title": "验证您的面孔",
+            "face_subtitle": "领取今日奖励时会使用一次面孔。照片不会被保存。",
+            "password_title": "输入密码",
+            "password_subtitle": "此 Zelf ID 使用密码。输入密码以完成今日领取。",
+            "pin_title": "输入 PIN",
+            "pin_subtitle": "此 Zelf ID 使用 PIN。输入 PIN 以完成今日领取。"
+        }
     },
     "referrals": {
         "invite_title": "邀请好友",

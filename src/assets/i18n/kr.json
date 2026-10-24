@@ -1947,9 +1947,22 @@
             "already_claimed": "오늘의 일일 보상을 이미 청구하셨습니다. 내일 다시 오세요!",
             "spin_failed": "룰렛 회전에 실패했습니다. 다시 시도해 주세요.",
             "timeout": "요청 시간이 초과되었습니다. 다시 시도해 주세요.",
-            "account_not_active": "Solana 계정이 아직 활성화되지 않았습니다. 휠을 돌리기 전에 지갑을 활성화하려면 SOL을 입금하세요."
+            "account_not_active": "Solana 계정이 아직 활성화되지 않았습니다. 휠을 돌리기 전에 지갑을 활성화하려면 SOL을 입금하세요.",
+            "identity_required": "오늘 보상을 받으려면 얼굴 사진이 필요합니다. 촬영한 뒤 다시 시도하세요.",
+            "verification_failed": "얼굴이 이 Zelf ID와 일치하지 않습니다. 얼굴을 가운데에 두고 다시 시도하세요.",
+            "missing_password": "오늘 보상을 받으려면 이 Zelf ID의 비밀번호가 필요합니다.",
+            "invalid_password": "비밀번호가 올바르지 않습니다. 확인한 뒤 다시 시도하세요.",
+            "password_required": "이 Zelf ID에는 비밀번호가 필요합니다. 입력한 뒤 다시 시도하세요."
         },
-        "activate_account": "계정 활성화"
+        "activate_account": "계정 활성화",
+        "verify": {
+            "face_title": "얼굴 확인",
+            "face_subtitle": "오늘 보상을 받으려면 얼굴을 한 번 사용합니다. 사진은 저장하지 않습니다.",
+            "password_title": "비밀번호 입력",
+            "password_subtitle": "이 Zelf ID는 비밀번호를 사용합니다. 입력하고 오늘 받기를 완료하세요.",
+            "pin_title": "PIN 입력",
+            "pin_subtitle": "이 Zelf ID는 PIN을 사용합니다. 입력하고 오늘 받기를 완료하세요."
+        }
     },
     "referrals": {
         "invite_title": "친구 초대",

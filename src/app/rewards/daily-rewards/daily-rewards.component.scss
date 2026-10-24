@@ -364,16 +364,17 @@
         transition: all 0.2s variables.$smoothBezier;
         margin-top: auto;
 
-        &:hover:not(&--disabled) {
+        &:hover:not(&--disabled):not(:disabled) {
             background: #333;
             transform: translateY(calc(-2px * var(--zns-space-scale, 1)));
         }
 
-        &:active:not(&--disabled) {
+        &:active:not(&--disabled):not(:disabled) {
             transform: scale(0.98);
         }
 
-        &--disabled {
+        &--disabled,
+        &:disabled {
             background: rgba(150, 150, 150, 0.06);
             color: variables.$themeTextMuted;
             cursor: not-allowed;
@@ -388,6 +389,52 @@
                 background: linear-gradient(135deg, #ffab40 0%, #ff6d3a 100%);
                 transform: translateY(calc(-2px * var(--zns-space-scale, 1)));
             }
+        }
+    }
+
+    &__verify {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: calc(12px * var(--zns-space-scale, 1));
+    }
+
+    &__password {
+        width: 100%;
+        max-width: min(304px, var(--zns-card-width, 304px));
+        display: flex;
+        flex-direction: column;
+        gap: calc(12px * var(--zns-space-scale, 1));
+    }
+
+    &__ghost,
+    &__cancel,
+    &__retry {
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        font-family: variables.$themeBodyFamily;
+    }
+
+    &__ghost,
+    &__cancel {
+        color: variables.$themeTextMuted;
+        font-size: calc(13px * var(--zns-font-scale, 1));
+        font-weight: 500;
+    }
+
+    &__retry {
+        margin-top: calc(8px * var(--zns-space-scale, 1));
+        padding: 0;
+        align-self: flex-start;
+        color: #e53935;
+        font-size: calc(13px * var(--zns-font-scale, 1));
+        font-weight: 600;
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: default;
         }
     }
 }

@@ -21,13 +21,71 @@
     <!-- Content -->
     <div class="daily-rewards__content">
         <!-- Title Section -->
-        <div class="daily-rewards__intro">
+        <div class="daily-rewards__intro" *ngIf="verificationStep === 'none'">
             <h1 class="daily-rewards__headline">{{ t("rewards.spin_the_wheel") }}</h1>
             <p class="daily-rewards__subtitle">{{ t("rewards.spin_subtitle") }}</p>
         </div>
 
+        <section class="daily-rewards__verify" *ngIf="verificationStep !== 'none'" aria-live="polite">
+            <h1 class="daily-rewards__headline">
+                {{
+                    verificationStep === "face"
+                        ? t("rewards.verify.face_title")
+                        : isPinUnlock
+                          ? t("rewards.verify.pin_title")
+                          : t("rewards.verify.password_title")
+                }}
+            </h1>
+            <p class="daily-rewards__subtitle">
+                {{
+                    verificationStep === "face"
+                        ? t("rewards.verify.face_subtitle")
+                        : isPinUnlock
+                          ? t("rewards.verify.pin_subtitle")
+                          : t("rewards.verify.password_subtitle")
+                }}
+            </p>
+
+            <biometrics-general
+                *ngIf="verificationStep === 'face'"
+                displayMode="portrait"
+                [maxDisplayHeight]="320"
+                [maxDisplayWidth]="240"
+                (imageCaptured)="onFaceCaptured($event)"
+            ></biometrics-general>
+
+            <form *ngIf="verificationStep === 'password'" class="daily-rewards__password" (ngSubmit)="submitMasterPassword()">
+                <div class="zelf-input zelf-input--wide">
+                    <input
+                        [type]="showMasterPassword ? 'text' : 'password'"
+                        class="zelf-input__control zelf-input__control--floating-label"
+                        [(ngModel)]="masterPassword"
+                        id="dailyRewardMasterPassword"
+                        name="dailyRewardMasterPassword"
+                        autocomplete="current-password"
+                        [attr.aria-label]="isPinUnlock ? t('security.pin_title') : t('common.password')"
+                        placeholder=" "
+                        required
+                    />
+                    <label class="zelf-input__floating-label" for="dailyRewardMasterPassword">
+                        {{ isPinUnlock ? t("security.pin_title") : t("common.password") }}
+                    </label>
+                </div>
+                <button type="button" class="daily-rewards__ghost" (click)="showMasterPassword = !showMasterPassword">
+                    {{ t(showMasterPassword ? "common.hide_password" : "common.show_password") }}
+                </button>
+                <button type="submit" class="daily-rewards__spin-button" [disabled]="!masterPassword.trim()">
+                    {{ t("common.continue") }}
+                </button>
+            </form>
+
+            <button type="button" class="daily-rewards__cancel" (click)="cancelVerification()">
+                {{ t("common.cancel") }}
+            </button>
+        </section>
+
         <!-- Wheel Container -->
-        <div class="daily-rewards__wheel-container">
+        <div class="daily-rewards__wheel-container" *ngIf="verificationStep === 'none'">
             <!-- Loading Overlay -->
             <div class="daily-rewards__loading-overlay" *ngIf="isLoading">
                 <div class="daily-rewards__spinner"></div>
@@ -110,7 +168,7 @@
         </div>
 
         <!-- Error Message (e.g. Inactive Account) -->
-        <div class="daily-rewards__error-banner" *ngIf="errorMessage && !wonAmount && !hasSpunToday">
+        <div class="daily-rewards__error-banner" *ngIf="verificationStep === 'none' && errorMessage && !wonAmount && !hasSpunToday">
             <div class="daily-rewards__error-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
@@ -121,11 +179,20 @@
             </div>
             <div class="daily-rewards__error-content">
                 <p class="daily-rewards__error-text">{{ errorMessage }}</p>
+                <button
+                    type="button"
+                    class="daily-rewards__retry"
+                    *ngIf="canRetryClaim"
+                    (click)="spinWheel()"
+                    [disabled]="isSpinning"
+                >
+                    {{ t("claim_reward.error.retry") }}
+                </button>
             </div>
         </div>
 
         <!-- Already Claimed Message (loaded from backend) -->
-        <div class="daily-rewards__already-claimed" *ngIf="hasSpunToday && !isSpinning">
+        <div class="daily-rewards__already-claimed" *ngIf="verificationStep === 'none' && hasSpunToday && !isSpinning">
             <div class="daily-rewards__claimed-icon">
                 <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="24" cy="24" r="24" fill="currentColor" fill-opacity="0.15" />
@@ -163,6 +230,7 @@
 
         <!-- Spin Button -->
         <button
+            *ngIf="verificationStep === 'none'"
             class="daily-rewards__spin-button"
             [class.daily-rewards__spin-button--disabled]="isSpinDisabled"
             [class.daily-rewards__spin-button--activate]="!isAccountActive && !isLoading"
