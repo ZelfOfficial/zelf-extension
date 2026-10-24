@@ -46,13 +46,10 @@
                 }}
             </p>
 
-            <biometrics-general
-                *ngIf="verificationStep === 'face'"
-                displayMode="portrait"
-                [maxDisplayHeight]="320"
-                [maxDisplayWidth]="240"
-                (imageCaptured)="onFaceCaptured($event)"
-            ></biometrics-general>
+            <div class="daily-rewards__preview" *ngIf="verificationStep === 'face'">
+                <biometrics-general displayMode="portrait" (imageCaptured)="onFaceCaptured($event)"></biometrics-general>
+            </div>
+            <p class="daily-rewards__hint" *ngIf="verificationStep === 'face'">{{ t("liveness.center_your_face_subtitle") }}</p>
 
             <form *ngIf="verificationStep === 'password'" class="daily-rewards__password" (ngSubmit)="submitMasterPassword()">
                 <div class="zelf-input zelf-input--wide">
