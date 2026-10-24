@@ -60,11 +60,17 @@
     &__text,
     &__note,
     &__hint,
-    &__error {
+    &__error,
+    &__plan {
         margin: 0;
         font-size: calc(14px * var(--zns-font-scale, 1));
         line-height: 1.45;
         color: variables.$themeTextSecondary;
+    }
+
+    &__plan {
+        font-weight: 600;
+        color: variables.$themeText;
     }
 
     &__balance {

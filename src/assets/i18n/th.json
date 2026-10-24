@@ -472,6 +472,10 @@
                 "over_body": "หนึ่งช่องไม่พอ คุณต้องซื้ออีก {{count}} ช่อง ({{cost}} ZNS) ก่อนเพิ่มรายการใหม่ แต่ละช่องอยู่ได้ 12 เดือน",
                 "buy_many": "ซื้อ {{count}} ช่อง · {{cost}} ZNS",
                 "upgrade_note": "เปรียบเทียบฟรี พรีเมียม และไม่จำกัดที่ zelf.world",
+                "plan_status": "แผน {{plan}} · หมดอายุ {{date}}",
+                "plan_status_open": "แผน {{plan}} · ไม่มีวันหมดอายุ",
+                "expires": "หมดอายุ {{date}}",
+                "mobile_note": "อัปเกรดในแอป Zelf บน App Store หรือ Google Play",
                 "partial": "เพิ่มแล้ว {{count}} ช่อง ยืนยันอีกครั้งเพื่อซื้อส่วนที่เหลือ"
             }
         }

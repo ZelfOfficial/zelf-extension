@@ -1,6 +1,7 @@
 import { from, of } from "rxjs";
 
 import { ErrorService } from "app/services/error.service";
+import { ZelfIdMyPlan } from "./zelf-id-my-plan";
 import { ZelfKeysPlanLimitCoordinator } from "./zelf-keys-plan-limit.coordinator";
 import { PlanLimitPurchaseResult, ZelfKeysLimits } from "./zelf-keys-plan-limits.model";
 
@@ -36,22 +37,24 @@ const atCap: ZelfKeysLimits = {
 };
 
 describe("ZelfKeysPlanLimitCoordinator", () => {
-    function setup() {
+    function setup(myPlan: ZelfIdMyPlan | null = null) {
         const getVaultLimits = jasmine.createSpy("getVaultLimits").and.resolveTo({ status: "ok", limits: atCap });
         const purchaseExtraSlot = jasmine.createSpy("purchaseExtraSlot").and.resolveTo({ data: { kind: "password" } });
         const dialogOpen = jasmine.createSpy("open").and.returnValue({ afterClosed: () => of(undefined) });
         const bottomOpen = jasmine.createSpy("open").and.returnValue({ afterDismissed: () => of({ faceBase64: "face" }) });
         const encryptMessage = jasmine.createSpy("encryptMessage").and.callFake(async (value: string) => `pgp:${value}`);
+        const getMyPlan = jasmine.createSpy("getMyPlan").and.resolveTo(myPlan);
         const coordinator = new ZelfKeysPlanLimitCoordinator(
             { open: bottomOpen } as any,
             { open: dialogOpen } as any,
             new ErrorService({ translate: (key: string) => key } as any),
             { encryptMessage } as any,
             { getVaultLimits, purchaseExtraSlot } as any,
-            { translate: (key: string) => key } as any
+            { translate: (key: string) => key } as any,
+            { getMyPlan } as any
         );
 
-        return { coordinator, getVaultLimits, purchaseExtraSlot, dialogOpen, bottomOpen, encryptMessage };
+        return { coordinator, getVaultLimits, purchaseExtraSlot, dialogOpen, bottomOpen, encryptMessage, getMyPlan };
     }
 
     function closeWithPurchase(dialogOpen: jasmine.Spy, input: { masterPassword: string; idempotencyKey: string }): void {
@@ -165,13 +168,35 @@ describe("ZelfKeysPlanLimitCoordinator", () => {
         expect(dialogOpen).not.toHaveBeenCalled();
     });
 
-    it("opens Zelf ID pricing instead of the legacy billing page", async () => {
-        const { coordinator, dialogOpen } = setup();
+    it("opens Zelf ID pricing when my-plan is missing", async () => {
+        const { coordinator, dialogOpen, getMyPlan } = setup(null);
         const open = spyOn(window, "open");
 
         dialogOpen.and.returnValue({ afterClosed: () => of({ upgrade: true }) });
 
         await expectAsync(coordinator.ensureCanAdd("password", { hasMasterPassword: false })).toBeResolvedTo(false);
+        expect(getMyPlan).toHaveBeenCalled();
         expect(open).toHaveBeenCalledWith("https://zelf.world/pricing", "_blank", "noopener,noreferrer");
+    });
+
+    it("opens the Stripe portal url returned by my-plan", async () => {
+        const portal = "https://billing.stripe.com/session/cus_123";
+        const { coordinator, dialogOpen, getMyPlan } = setup({
+            plan: "premium",
+            duration: "1y",
+            expiresAt: "2027-10-24T18:00:00.000Z",
+            upgrade: { action: "stripe_portal", url: portal },
+        });
+        const open = spyOn(window, "open");
+
+        dialogOpen.and.callFake((_component: unknown, config: { data: { myPlan: ZelfIdMyPlan } }) => {
+            expect(config.data.myPlan.upgrade).toEqual({ action: "stripe_portal", url: portal });
+
+            return { afterClosed: () => of({ upgrade: true, url: portal }) };
+        });
+
+        await expectAsync(coordinator.ensureCanAdd("password", { hasMasterPassword: false })).toBeResolvedTo(false);
+        expect(getMyPlan).toHaveBeenCalled();
+        expect(open).toHaveBeenCalledWith(portal, "_blank", "noopener,noreferrer");
     });
 });

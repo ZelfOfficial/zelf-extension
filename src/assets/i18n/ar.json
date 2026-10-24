@@ -472,6 +472,10 @@
                 "over_body": "خانة واحدة لا تكفي. تحتاج إلى {{count}} خانات إضافية ({{cost}} ZNS) قبل إضافة أخرى. كل خانة تدوم 12 شهرًا.",
                 "buy_many": "شراء {{count}} خانات · {{cost}} ZNS",
                 "upgrade_note": "قارن المجانية وبريميوم وغير المحدودة على zelf.world.",
+                "plan_status": "خطة {{plan}} · تنتهي في {{date}}",
+                "plan_status_open": "خطة {{plan}} · بلا انتهاء",
+                "expires": "تنتهي في {{date}}",
+                "mobile_note": "رقِّ الخطة في تطبيق Zelf على App Store أو Google Play.",
                 "partial": "تمت إضافة {{count}} خانة. أكّد مرة أخرى لشراء الباقي."
             }
         }

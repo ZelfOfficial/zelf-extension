@@ -8,6 +8,7 @@ import {
     PlanLimitPurchaseResult,
     ZelfKeysSlotKind,
 } from "./zelf-keys-plan-limits.model";
+import { dateLocale, planExpiryLabel, upgradeTarget, ZELF_ID_PRICING_URL, ZelfIdMyPlan } from "./zelf-id-my-plan";
 import { createSlotIdempotencyKey, formatZns, slotAffordability, slotsNeededToAdd, translatedPlanName } from "./zelf-keys-plan-limits.util";
 
 export interface PlanLimitSheetData {
@@ -22,11 +23,14 @@ export interface PlanLimitSheetData {
     hasMasterPassword: boolean;
     masterPassword: string;
     purchase: (input: { masterPassword: string; idempotencyKey: string }) => Promise<PlanLimitPurchaseResult>;
+    /** Null when /my-plan is missing or rejected. Upgrade then opens zelf.world/pricing. */
+    myPlan: ZelfIdMyPlan | null;
 }
 
 export interface PlanLimitSheetResult {
     purchased?: boolean;
     upgrade?: boolean;
+    url?: string;
 }
 
 @Component({
@@ -49,6 +53,7 @@ export class ZelfKeysPlanLimitSheetComponent {
     tokenBalance: number | null;
     tokenCost: number;
     used: number;
+    myPlan: ZelfIdMyPlan | null;
 
     readonly idempotencyKey = createSlotIdempotencyKey();
 
@@ -67,6 +72,7 @@ export class ZelfKeysPlanLimitSheetComponent {
         this.balanceAvailable = data.balanceAvailable;
         this.password = data.masterPassword || "";
         this.showPassword = data.hasMasterPassword && !data.masterPassword?.trim();
+        this.myPlan = data.myPlan ?? null;
     }
 
     get slotsNeeded(): number {
@@ -79,6 +85,51 @@ export class ZelfKeysPlanLimitSheetComponent {
 
     get totalCost(): number {
         return this.tokenCost * this.slotsNeeded;
+    }
+
+    get upgradeDestination() {
+        return upgradeTarget(this.myPlan);
+    }
+
+    get showUpgradeButton(): boolean {
+        return this.upgradeDestination.kind === "url";
+    }
+
+    get showMobileNote(): boolean {
+        return this.upgradeDestination.kind === "mobile";
+    }
+
+    /** Generic pricing note only when Upgrade falls back to zelf.world/pricing. */
+    get showPricingNote(): boolean {
+        const target = this.upgradeDestination;
+
+        return target.kind === "url" && (!this.myPlan || target.url === ZELF_ID_PRICING_URL);
+    }
+
+    get planStatus(): string | null {
+        const planName = this.myPlan?.plan ? translatedPlanName(this.myPlan.plan, (key) => this._transloco.translate(key)) : "";
+        const expiry = planExpiryLabel(
+            this.myPlan?.expiresAt ?? null,
+            Date.now(),
+            dateLocale(this._transloco.getActiveLang()),
+            this.myPlan?.duration
+        );
+
+        if (planName && expiry?.kind === "date") {
+            return this._transloco.translate("zelf_keys.plan_limits.sheet.plan_status", { plan: planName, date: expiry.label });
+        }
+
+        if (planName && expiry?.kind === "open") {
+            return this._transloco.translate("zelf_keys.plan_limits.sheet.plan_status_open", { plan: planName });
+        }
+
+        if (planName) return this._transloco.translate("zelf_keys.plan_limits.usage_plan", { plan: planName });
+
+        if (expiry?.kind === "date") {
+            return this._transloco.translate("zelf_keys.plan_limits.sheet.expires", { date: expiry.label });
+        }
+
+        return null;
     }
 
     get title(): string {
@@ -122,9 +173,12 @@ export class ZelfKeysPlanLimitSheetComponent {
     }
 
     upgrade(): void {
-        if (this.busy) return;
+        if (this.busy || !this.showUpgradeButton) return;
 
-        this._dialogRef.close({ upgrade: true });
+        const target = this.upgradeDestination;
+        const url = target.kind === "url" ? target.url : undefined;
+
+        this._dialogRef.close({ upgrade: true, url });
     }
 
     async buy(): Promise<void> {

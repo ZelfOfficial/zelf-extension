@@ -472,6 +472,10 @@
                 "over_body": "1枠では足りません。もう1件追加するには、あと {{count}} 枠（{{cost}} ZNS）が必要です。各枠の有効期限は12か月です。",
                 "buy_many": "{{count}} 枠を購入 · {{cost}} ZNS",
                 "upgrade_note": "zelf.world で無料、プレミアム、無制限を比較します。",
+                "plan_status": "{{plan}} プラン · {{date}} まで",
+                "plan_status_open": "{{plan}} プラン · 有効期限なし",
+                "expires": "{{date}} まで",
+                "mobile_note": "アップグレードは Zelf アプリ（App Store または Google Play）で行ってください。",
                 "partial": "{{count}} 枠を追加しました。残りを購入するには、もう一度確認してください。"
             }
         }

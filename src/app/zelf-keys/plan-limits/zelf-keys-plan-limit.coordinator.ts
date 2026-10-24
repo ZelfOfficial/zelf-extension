@@ -7,12 +7,14 @@ import { BehaviorSubject, firstValueFrom } from "rxjs";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { ErrorService } from "app/services/error.service";
 import { ZelfKeysService } from "app/services/zelf-keys.service";
+import { ZelfIdsService } from "app/zelf-ids.service";
 import {
     BiometricsBottomSheetComponent,
     BiometricsBottomSheetData,
 } from "../shared/biometrics-bottom-sheet/biometrics-bottom-sheet.component";
 import { encryptWalletMasterPassword } from "app/zelf-authenticator/zotp-master-password.util";
 import { PlanLimitSheetData, PlanLimitSheetResult, ZelfKeysPlanLimitSheetComponent } from "./zelf-keys-plan-limit-sheet.component";
+import { ZELF_ID_PRICING_URL } from "./zelf-id-my-plan";
 import {
     PlanLimitPurchaseContext,
     PlanLimitPurchaseResult,
@@ -48,7 +50,8 @@ export class ZelfKeysPlanLimitCoordinator {
         private _errors: ErrorService,
         private _http: HttpWrapperService,
         private _keys: ZelfKeysService,
-        private _transloco: TranslocoService
+        private _transloco: TranslocoService,
+        private _zelfIds: ZelfIdsService
     ) {}
 
     get limits(): ZelfKeysLimits | null {
@@ -149,6 +152,7 @@ export class ZelfKeysPlanLimitCoordinator {
             hasMasterPassword: context.hasMasterPassword,
             masterPassword: context.masterPassword?.trim() || "",
             purchase: (input) => this._purchase(kind, context, input),
+            myPlan: await this._loadMyPlan(limits.zelfName),
         };
 
         const ref = this._dialog.open<ZelfKeysPlanLimitSheetComponent, PlanLimitSheetData, PlanLimitSheetResult>(
@@ -167,12 +171,20 @@ export class ZelfKeysPlanLimitCoordinator {
         const closed = await firstValueFrom(ref.afterClosed());
 
         if (closed?.upgrade) {
-            window.open("https://zelf.world/pricing", "_blank", "noopener,noreferrer");
+            window.open(closed.url || ZELF_ID_PRICING_URL, "_blank", "noopener,noreferrer");
 
             return "dismissed";
         }
 
         return closed?.purchased ? "retry" : "dismissed";
+    }
+
+    private async _loadMyPlan(zelfName?: string) {
+        try {
+            return await this._zelfIds.getMyPlan(zelfName);
+        } catch {
+            return null;
+        }
     }
 
     private async _purchase(

@@ -472,6 +472,10 @@
                 "over_body": "Hindi sapat ang isang slot. Kailangan mo ng {{count}} pang slot ({{cost}} ZNS) bago makapagdagdag. Bawat slot ay 12 buwan.",
                 "buy_many": "Bumili ng {{count}} slot · {{cost}} ZNS",
                 "upgrade_note": "Ikumpara ang Libre, Premium, at Walang limitasyon sa zelf.world.",
+                "plan_status": "Planong {{plan}} · mag-e-expire sa {{date}}",
+                "plan_status_open": "Planong {{plan}} · walang expiration",
+                "expires": "Mag-e-expire sa {{date}}",
+                "mobile_note": "Mag-upgrade sa Zelf app sa App Store o Google Play.",
                 "partial": "Nadagdag ang {{count}} slot. I-verify muli para bilhin ang natitira."
             }
         }

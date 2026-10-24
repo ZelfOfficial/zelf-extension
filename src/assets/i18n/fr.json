@@ -472,6 +472,10 @@
                 "over_body": "Un emplacement ne suffit pas. Il vous en faut {{count}} de plus ({{cost}} ZNS) pour en ajouter un autre. Chacun dure 12 mois.",
                 "buy_many": "Acheter {{count}} emplacements · {{cost}} ZNS",
                 "upgrade_note": "Comparez Gratuit, Premium et Illimité sur zelf.world.",
+                "plan_status": "Forfait {{plan}} · expire le {{date}}",
+                "plan_status_open": "Forfait {{plan}} · sans expiration",
+                "expires": "Expire le {{date}}",
+                "mobile_note": "Changez de forfait dans l'application Zelf, sur l'App Store ou Google Play.",
                 "partial": "{{count}} emplacement ajouté. Vérifiez à nouveau pour acheter le reste."
             }
         }
