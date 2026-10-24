@@ -47,6 +47,16 @@
             </div>
 
             <canvas #toSend hidden="true"></canvas>
+
+            <div
+                *ngIf="displayMode === 'portrait' && ovalGuide"
+                class="biometric__oval"
+                [style.left.%]="ovalGuide.left"
+                [style.top.%]="ovalGuide.top"
+                [style.width.%]="ovalGuide.width"
+                [style.height.%]="ovalGuide.height"
+                aria-hidden="true"
+            ></div>
         </div>
     </div>
 

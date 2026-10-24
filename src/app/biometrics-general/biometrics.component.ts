@@ -44,10 +44,14 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
     @Input() maxDisplayHeight = 600;
     @Input() maxDisplayWidth = 420;
 
+    /** JPEG quality used by the other face flows (`canvas.toDataURL("image/jpeg")` default). */
+    private static readonly CAPTURE_JPEG_QUALITY = 0.92;
+
     @Output() canNavigate: EventEmitter<boolean> = new EventEmitter<boolean>();
     @Output() error: EventEmitter<any> = new EventEmitter<any>();
     @Output() imageCaptured: EventEmitter<string> = new EventEmitter<string>();
 
+    private _resizeObserver?: ResizeObserver;
     private _resizeUnlisten: () => void = () => {};
 
     private _debounceWindowResize: DebouncedFunc<() => void>;
@@ -61,6 +65,8 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
     isActiveDebug!: Boolean;
 
     aspectRatio = 0.75;
+    /** DOM oval so the guide stays visible when a dark color-scheme hides the canvas stroke. */
+    ovalGuide: { left: number; top: number; width: number; height: number } | null = null;
     camera!: CameraData;
     deviceData: any;
     direction!: directionImage;
@@ -77,7 +83,8 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         private _mediaStreamService: MediaStreamService,
         private _renderer: Renderer2,
         private _translocoService: TranslocoService,
-        private _walletService: WalletService
+        private _walletService: WalletService,
+        private _host: ElementRef<HTMLElement>
     ) {
         this.deviceData = this._walletService.getDeviceData();
 
@@ -100,6 +107,15 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
 
         this._resizeUnlisten = this._renderer.listen("window", "resize", this._debounceWindowResize);
 
+        if (this.displayMode === "portrait" && typeof ResizeObserver !== "undefined") {
+            const parent = this._host.nativeElement.parentElement;
+
+            if (parent) {
+                this._resizeObserver = new ResizeObserver(() => this._debounceWindowResize());
+                this._resizeObserver.observe(parent);
+            }
+        }
+
         this._walletService.faceapi$.pipe(takeUntil(this.unsubscriber$)).subscribe(async (isLoaded) => {
             this.canNavigate.emit(false);
 
@@ -118,6 +134,7 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
 
         this.canNavigate.emit(true);
 
+        this._resizeObserver?.disconnect();
         this._resizeUnlisten();
         this._killIntervals();
 
@@ -135,14 +152,13 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         const isLandscape = window.innerHeight < window.innerWidth;
 
         if (this.displayMode === "portrait") {
-            const portraitAspectRatio = this.maxDisplayWidth / this.maxDisplayHeight;
-            const maxAvailableHeight = Math.ceil(window.innerHeight - 96);
-            const maxAvailableWidth = Math.ceil(window.innerWidth * 0.92);
-            const maxHeight = Math.min(maxAvailableHeight, this.maxDisplayHeight);
-            const maxWidth = Math.min(maxAvailableWidth, this.maxDisplayWidth);
-            const widthFromHeight = Math.round(maxHeight * portraitAspectRatio);
-            const width = Math.min(widthFromHeight, maxWidth);
-            const height = Math.round(width / portraitAspectRatio);
+            const host = this._host.nativeElement;
+            const parent = host.parentElement;
+            const availableWidth = Math.floor(parent?.clientWidth || host.clientWidth || window.innerWidth);
+            const availableHeight = Math.floor(parent?.clientHeight || 0);
+            const width = Math.max(160, Math.min(this.maxDisplayWidth, availableWidth || Math.ceil(window.innerWidth * 0.92)));
+            const heightLimit = availableHeight > 0 ? availableHeight : Math.round(width * 1.25);
+            const height = Math.max(200, Math.min(this.maxDisplayHeight, heightLimit));
 
             return {
                 isLandscape: false,
@@ -219,12 +235,15 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
 
         maskResultCanvas.height = videoDim.height;
         maskResultCanvas.width = videoDim.width;
+        maskResultCanvas.style.colorScheme = "only light";
 
         const ctx: CanvasRenderingContext2D = maskResultCanvas.getContext("2d");
 
         ctx.clearRect(0, 0, videoDim.width || 0, videoDim.height || 0);
 
-        ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+        const portrait = this.displayMode === "portrait";
+
+        ctx.fillStyle = portrait ? "rgba(8, 8, 8, 0.55)" : "rgba(255, 255, 255, 0.75)";
         ctx.fillRect(0, 0, videoDim.width || 0, videoDim.height || 0);
         ctx.globalCompositeOperation = "destination-out";
 
@@ -236,6 +255,8 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         ctx.fill();
         ctx.closePath();
         ctx.globalCompositeOperation = "source-over";
+
+        this._syncOvalGuide();
     }
 
     private _drawStatusOval(ctx: any, isOk?: any): void {
@@ -437,12 +458,7 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
             hasPermissions: true,
             isLoading: true,
             isLowQuality: false,
-            configuration: {
-                height: { ideal: displayDimensions.isLandscape ? 1080 : 1920 },
-                width: { ideal: displayDimensions.isLandscape ? 1920 : 1080 },
-                facingMode: FacingMode.USER,
-                frameRate: { ideal: 30, max: 30 },
-            },
+            configuration: this._cameraConfiguration(displayDimensions.isLandscape),
             dimensions: {
                 video: {
                     max: displayDimensions,
@@ -521,14 +537,12 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
             setTimeout(() => {
                 this.camera.dimensions.video = {
                     max: displayDimensions,
+                    ...(this.displayMode === "portrait"
+                        ? { width: displayDimensions.width, height: displayDimensions.height }
+                        : {}),
                 };
 
-                this.camera.configuration = {
-                    height: { ideal: displayDimensions.isLandscape ? 1080 : 1920 },
-                    width: { ideal: displayDimensions.isLandscape ? 1920 : 1080 },
-                    facingMode: FacingMode.USER,
-                    frameRate: { ideal: 30, max: 30 },
-                };
+                this.camera.configuration = this._cameraConfiguration(displayDimensions.isLandscape);
 
                 this.camera.dimensions.result = undefined;
                 this.camera.isLoading = false;
@@ -563,9 +577,51 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         dimensions.offsetX = center.x - dimensions.width / 2;
     }
 
+    private _syncOvalGuide(): void {
+        if (this.displayMode !== "portrait") {
+            this.ovalGuide = null;
+            return;
+        }
+
+        const { width, height } = this.camera?.dimensions?.video || {};
+        const { center, radius } = this.face?.video || {};
+
+        if (!width || !height || !center || !radius?.x || !radius?.y) {
+            this.ovalGuide = null;
+            return;
+        }
+
+        this.ovalGuide = {
+            left: ((center.x - radius.x) / width) * 100,
+            top: ((center.y - radius.y) / height) * 100,
+            width: ((radius.x * 2) / width) * 100,
+            height: ((radius.y * 2) / height) * 100,
+        };
+    }
+
+    /** 720p or higher when the camera can provide it. Portrait previews cover this landscape frame. */
+    private _cameraConfiguration(isLandscape: boolean): CameraData["configuration"] {
+        if (this.displayMode === "portrait") {
+            return {
+                width: { ideal: 1920 },
+                height: { ideal: 1080 },
+                facingMode: FacingMode.USER,
+                frameRate: { ideal: 30, max: 30 },
+            };
+        }
+
+        return {
+            height: { ideal: isLandscape ? 1080 : 1920 },
+            width: { ideal: isLandscape ? 1920 : 1080 },
+            facingMode: FacingMode.USER,
+            frameRate: { ideal: 30, max: 30 },
+        };
+    }
+
     private _setVideoDimensions(videoElement: HTMLVideoElement) {
-        const actualWidth = videoElement.clientWidth;
-        const actualHeight = videoElement.clientHeight;
+        const frame = this.displayMode === "portrait" ? this.camera.dimensions.video.max : undefined;
+        const actualWidth = frame?.width || videoElement.clientWidth;
+        const actualHeight = frame?.height || videoElement.clientHeight;
 
         this.camera.dimensions.video.height = actualHeight;
         this.camera.dimensions.video.width = actualWidth;
@@ -574,6 +630,13 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         this._setResultDimensions("result", actualHeight, actualWidth);
 
         this.face.video = this._getCenterAndRadius(actualHeight, actualWidth);
+
+        if (this.displayMode === "portrait" && this.face.video?.radius) {
+            this.face.video.radius.x *= 0.82;
+            this.face.video.radius.y *= 0.82;
+        }
+
+        this._syncOvalGuide();
 
         const maskResultCanvas = this.maskResultCanvasRef?.nativeElement;
 
@@ -590,7 +653,7 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         this._setImageOnCanvas(maskResultCanvas, img, this.camera.dimensions.real, this.camera.dimensions.result);
         this._setImageOnCanvas(toSendCanvas, img, this.camera.dimensions.real, this.camera.dimensions.real);
 
-        this.response.base64Image = toSendCanvas.toDataURL("image/jpeg");
+        this.response.base64Image = toSendCanvas.toDataURL("image/jpeg", BiometricsGeneralComponent.CAPTURE_JPEG_QUALITY);
 
         this._emitBiometricCapture();
     }

@@ -2,6 +2,9 @@ import { Injectable } from "@angular/core";
 
 import { environment } from "../../environments/environment";
 import { HttpWrapperService } from "../http-wrapper.service";
+import { encryptWalletMasterPassword } from "../zelf-authenticator/zotp-master-password.util";
+import { FaceApiService } from "./face-api/face-api.service";
+import { DAILY_REWARD_FACE_ACTION, DailyRewardClaimRequest } from "../rewards/daily-reward-identity";
 
 export interface WheelSegment {
     value: number;
@@ -72,7 +75,10 @@ export interface RewardStatsResponse {
 export class RewardsService {
     private baseUrl: string = environment.apiUrl;
 
-    constructor(private _httpWrapper: HttpWrapperService) {}
+    constructor(
+        private _httpWrapper: HttpWrapperService,
+        private _faceApi: FaceApiService
+    ) {}
 
     /**
      * Get the roulette wheel configuration based on the user's tag type
@@ -85,13 +91,40 @@ export class RewardsService {
     }
 
     /**
-     * Claim daily reward by spinning the wheel
-     * The backend determines the winning value and returns the winning index
+     * Claim daily reward by spinning the wheel.
+     * Face (and the Zelf ID password, when the ID has one) prove ownership.
+     * Secrets are dropped after the request returns; nothing is written to storage.
      */
-    async claimDailyReward(tagName: string, domain: string): Promise<DailyRewardResponse> {
-        const body = { tagName, domain };
-        const response = await this._httpWrapper.sendRequest<DailyRewardResponse>("post", `${this.baseUrl}/api/rewards/daily`, body);
-        return response;
+    async claimDailyReward(input: DailyRewardClaimRequest): Promise<DailyRewardResponse> {
+        const body: Record<string, string> = {
+            tagName: input.tagName,
+            domain: input.domain,
+            faceBase64: input.faceBase64,
+        };
+        const secret = { masterPassword: input.masterPassword || "" };
+
+        input.faceBase64 = "";
+        input.masterPassword = undefined;
+
+        try {
+            if (secret.masterPassword) {
+                const plain = secret.masterPassword;
+                secret.masterPassword = "";
+                const encrypted = await encryptWalletMasterPassword(this._httpWrapper, plain);
+
+                if (encrypted) {
+                    body.masterPassword = encrypted;
+                }
+            }
+
+            return await this._faceApi.sendWithFace<DailyRewardResponse>("post", `${this.baseUrl}/api/rewards/daily`, body, {
+                action: DAILY_REWARD_FACE_ACTION,
+            });
+        } finally {
+            secret.masterPassword = "";
+            body.faceBase64 = "";
+            body.masterPassword = "";
+        }
     }
 
     /**

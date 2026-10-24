@@ -88,6 +88,7 @@ export const FACE_ALLOWED_BY_ACTION: Record<string, readonly string[]> = {
     ),
     "wallet-decrypt": withCommon(),
     "wallet-create": withCommon(),
+    "daily-reward": withCommon("tagName", "domain"),
 };
 
 /** Server-only keys stripped silently when present (never forwarded). */

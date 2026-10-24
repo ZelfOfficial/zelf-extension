@@ -2192,9 +2192,22 @@
             "already_claimed": "Ya has reclamado tu recompensa diaria hoy. ¡Vuelve mañana!",
             "spin_failed": "Error al girar la rueda. Inténtalo de nuevo.",
             "timeout": "La solicitud expiró. Inténtalo de nuevo.",
-            "account_not_active": "Tu cuenta de Solana aún no está activada. Por favor, deposita algo de SOL para activar tu billetera antes de girar la ruleta."
+            "account_not_active": "Tu cuenta de Solana aún no está activada. Por favor, deposita algo de SOL para activar tu billetera antes de girar la ruleta.",
+            "identity_required": "Toma una foto de tu rostro para reclamar la recompensa de hoy e inténtalo de nuevo.",
+            "verification_failed": "Tu rostro no coincide con este Zelf ID. Centra tu rostro e inténtalo de nuevo.",
+            "missing_password": "Este Zelf ID necesita su contraseña antes de reclamar la recompensa de hoy.",
+            "invalid_password": "La contraseña es incorrecta. Revísala e inténtalo de nuevo.",
+            "password_required": "Este Zelf ID requiere una contraseña. Escríbela e inténtalo de nuevo."
         },
-        "activate_account": "Activar Cuenta"
+        "activate_account": "Activar Cuenta",
+        "verify": {
+            "face_title": "Verifica tu rostro",
+            "face_subtitle": "Usamos tu rostro una sola vez para reclamar la recompensa de hoy. La foto no se guarda.",
+            "password_title": "Ingresa tu contraseña",
+            "password_subtitle": "Este Zelf ID usa una contraseña. Escríbela para terminar de reclamar la recompensa de hoy.",
+            "pin_title": "Ingresa tu PIN",
+            "pin_subtitle": "Este Zelf ID usa un PIN. Escríbelo para terminar de reclamar la recompensa de hoy."
+        }
     },
     "referrals": {
         "invite_title": "Invitar amigos",

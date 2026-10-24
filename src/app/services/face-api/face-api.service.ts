@@ -34,7 +34,8 @@ export type FaceApiAction =
     | "store-passwords-bulk"
     | "store-zotp"
     | "store-notes"
-    | "store-credit-card";
+    | "store-credit-card"
+    | "daily-reward";
 
 export interface FaceRequestContext {
     action: FaceApiAction | string;
