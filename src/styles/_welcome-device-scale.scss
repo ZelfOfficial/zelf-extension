@@ -6,7 +6,7 @@ $welcome-design-height: 852px;
 $welcome-min-height: 560px;
 // 0.95 => 14px body copy renders ~13.3px at the fullscreen floor (1366x768 laptops).
 $welcome-fullscreen-min-scale: 0.95;
-$welcome-fullscreen-reserved: 140px; // top bar + breathing room around the frame
+$welcome-fullscreen-reserved: 48px; // breathing room around the frame
 $welcome-popout-scale: 0.95; // slightly above 375/402 so popup copy stays >= ~13px
 $welcome-popout-reserved: 8px;
 

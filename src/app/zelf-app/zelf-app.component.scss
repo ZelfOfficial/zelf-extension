@@ -200,30 +200,6 @@
         }
     }
 
-    &__header {
-        align-items: center;
-        display: flex;
-        justify-content: space-between;
-        height: calc(96px * var(--zns-space-scale, 1));
-        padding: calc(1rem * var(--zns-space-scale, 1));
-        width: 100%;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        background: transparent; /* Changed to allow dots to show */
-        z-index: 999;
-
-        @media screen and (max-width: variables.$medium) {
-            height: calc(72px * var(--zns-space-scale, 1));
-            background: linear-gradient(to bottom, variables.$themeCard 70%, transparent);
-        }
-    }
-
-    &__logo-container {
-        cursor: pointer;
-    }
-
     &__content {
         position: relative;
         z-index: 1;
@@ -232,27 +208,7 @@
         display: flex;
         flex-direction: column;
         height: 100vh;
-        padding: calc(100px * var(--zns-space-scale, 1)) 0 calc(64px * var(--zns-space-scale, 1));
-
-        @media screen and (max-width: variables.$medium) {
-            padding: calc(56px * var(--zns-space-scale, 1)) 0 0;
-        }
-    }
-
-    &--fullscreen {
-        .zelf-app__header {
-            height: calc(56px * var(--zns-space-scale, 1));
-            pointer-events: none;
-
-            .zelf-app__logo-container {
-                pointer-events: auto;
-            }
-        }
-
-        .zelf-app__content {
-            padding-top: calc(56px * var(--zns-space-scale, 1));
-            padding-bottom: calc(16px * var(--zns-space-scale, 1));
-        }
+        padding: 0;
     }
 
     &__footer {
