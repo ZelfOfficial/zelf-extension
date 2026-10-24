@@ -229,7 +229,8 @@
             "errors": {
                 "no_face_detected": "顔が検出されません",
                 "look_at_camera": "カメラを見てください"
-            }
+            },
+            "storing": "保存しています…"
         },
         "subscription_banner": {
             "title": "プレミアム機能のロックを解除",
@@ -476,8 +477,15 @@
                 "plan_status_open": "{{plan}} プラン · 有効期限なし",
                 "expires": "{{date}} まで",
                 "mobile_note": "アップグレードは Zelf アプリ（App Store または Google Play）で行ってください。",
-                "partial": "{{count}} 枠を追加しました。残りを購入するには、もう一度確認してください。"
+                "partial": "{{count}} 枠を追加しました。残りを購入するには、もう一度確認してください。",
+                "partial_one": "1 枠を追加しました。残りを購入するには、もう一度確認してください。",
+                "partial_other": "{{count}} 枠を追加しました。残りを購入するには、もう一度確認してください。"
             }
+        },
+        "vault": {
+            "reverify_title": "アイテムを表示するには再確認してください",
+            "reverify_description": "このセッションではボルトを開けません。顔を再確認して、パスワードとカードを読み込んでください。",
+            "reverify_action": "再確認"
         }
     },
     "cancel": "キャンセル",

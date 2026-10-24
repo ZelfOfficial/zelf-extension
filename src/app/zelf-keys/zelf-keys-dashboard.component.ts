@@ -14,6 +14,7 @@ import { ScrollToSectionService } from "../services/scroll-to-section.service";
 import { WalletService } from "../wallet.service";
 import { ZelfFooterComponent } from "app/zelf-footer/zelf-footer.component";
 import { ZelfKeysData, ZelfKeysDataService } from "../services/zelf-keys-data.service";
+import { zelfKeysRouteAfterList } from "./zelf-keys-route";
 
 @Component({
     imports: [
@@ -173,24 +174,17 @@ export class ZelfKeysDashboardComponent implements OnInit, OnDestroy {
 
     /** Start vs vault is chosen by a route guard only on navigation — re-sync after wallet/data changes. */
     private _syncRouteForWalletData(data: ZelfKeysData): void {
-        const hasAnyItems = data.passwords.length > 0 || data.paymentCards.length > 0;
-        const path = this._router.url.split("?")[0];
-        const onStart = path === "/zelf-keys" || path.endsWith("/zelf-keys/start");
-        const onVault = path.includes("/zelf-keys/vault");
+        const next = zelfKeysRouteAfterList({
+            path: this._router.url,
+            passwordCount: data.passwords.length,
+            paymentCardCount: data.paymentCards.length,
+            needsReverify: this._zelfKeysDataService.needsReverify,
+        });
 
-        if (hasAnyItems && onStart) {
-            console.log("[Zelf Keys] route sync → vault (wallet has items)", {
-                passwordCount: data.passwords.length,
-                paymentCardCount: data.paymentCards.length,
-            });
-            void this._router.navigate(["/zelf-keys/vault"], { replaceUrl: true });
-            return;
-        }
+        if (!next) return;
 
-        if (!hasAnyItems && onVault) {
-            console.log("[Zelf Keys] route sync → start (wallet has no items)");
-            void this._router.navigate(["/zelf-keys/start"], { replaceUrl: true });
-        }
+        console.log("[Zelf Keys] route sync", { next, needsReverify: this._zelfKeysDataService.needsReverify });
+        void this._router.navigate([next], { replaceUrl: true });
     }
 
     async openProfilePanel(): Promise<void> {

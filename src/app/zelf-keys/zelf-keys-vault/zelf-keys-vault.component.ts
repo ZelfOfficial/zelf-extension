@@ -11,6 +11,8 @@ import { PasswordDataService } from "../../services/password-data.service";
 import { PaymentCardDataService } from "../../services/payment-card-data.service";
 import { ZelfKeysData, ZelfKeysDataService } from "../../services/zelf-keys-data.service";
 import { WalletService } from "../../wallet.service";
+import { VaultService } from "../../vault.service";
+import { ZelfIdsService } from "../../zelf-ids.service";
 
 import { MatDialog, MatDialogModule } from "@angular/material/dialog";
 import { MatMenuModule } from "@angular/material/menu";
@@ -43,6 +45,7 @@ export class ZelfKeysVaultComponent implements OnInit, OnDestroy {
     filteredItems: VaultItem[] = [];
     loading = true;
     error: string | null = null;
+    needsReverify = false;
     searchControl = new FormControl("");
     folderControl = new FormControl("");
     noteCount = 0;
@@ -55,7 +58,9 @@ export class ZelfKeysVaultComponent implements OnInit, OnDestroy {
         private _paymentCardDataService: PaymentCardDataService,
         private _router: Router,
         private _translocoService: TranslocoService,
+        private _vaultService: VaultService,
         private _walletService: WalletService,
+        private _zelfIdsService: ZelfIdsService,
         private _zelfKeysDataService: ZelfKeysDataService
     ) {}
 
@@ -70,6 +75,7 @@ export class ZelfKeysVaultComponent implements OnInit, OnDestroy {
         this._subscribeToDataService();
         this._subscribeToLoadingState();
         this._subscribeToErrorState();
+        this._subscribeToReverify();
         this._subscribeToWalletChanges();
 
         const wallet = await this._walletService.getCurrentWallet();
@@ -203,6 +209,13 @@ export class ZelfKeysVaultComponent implements OnInit, OnDestroy {
     private _subscribeToLoadingState(): void {
         this._zelfKeysDataService.loading$.pipe(takeUntil(this.destroy$)).subscribe((loading) => {
             this.loading = loading;
+            this._changeDetectorRef.detectChanges();
+        });
+    }
+
+    private _subscribeToReverify(): void {
+        this._zelfKeysDataService.needsReverify$.pipe(takeUntil(this.destroy$)).subscribe((needsReverify) => {
+            this.needsReverify = needsReverify;
             this._changeDetectorRef.detectChanges();
         });
     }
@@ -357,6 +370,28 @@ export class ZelfKeysVaultComponent implements OnInit, OnDestroy {
             this._paymentCardDataService.setCurrentPaymentCard(cardItem);
             this._router.navigate(["/zelf-keys/payment-cards/detail"]);
         }
+    }
+
+    async onReverify(): Promise<void> {
+        const wallet = (await this._walletService.getCurrentWallet()) as { publicData?: { tagName?: string; domain?: string }; name?: string; zelfProof?: string } | null;
+        const publicData = wallet?.publicData || {};
+        const tagName = String(publicData.tagName || wallet?.name || "")
+            .split(".")[0]
+            .toLowerCase();
+
+        if (!tagName) {
+            void this._router.navigate(["/welcome-zelfid"]);
+
+            return;
+        }
+
+        this._vaultService.password = "";
+        await this._zelfIdsService.setTagName(tagName, null);
+        await this._zelfIdsService.setDomain(publicData.domain || "zelf");
+        await this._zelfIdsService.setZelfProof(wallet?.zelfProof || "");
+        await this._zelfIdsService.setTagNameObject(wallet);
+        await this._zelfIdsService.setFlow("unlock");
+        void this._router.navigate(["/security-zelfid/password"], { queryParams: { return: "/zelf-keys/vault" } });
     }
 
     onAddPassword(): void {

@@ -229,7 +229,8 @@
             "errors": {
                 "no_face_detected": "Aucun visage détecté",
                 "look_at_camera": "Veuillez regarder la caméra"
-            }
+            },
+            "storing": "Enregistrement…"
         },
         "subscription_banner": {
             "title": "Débloquer les fonctionnalités Premium",
@@ -476,8 +477,15 @@
                 "plan_status_open": "Forfait {{plan}} · sans expiration",
                 "expires": "Expire le {{date}}",
                 "mobile_note": "Changez de forfait dans l'application Zelf, sur l'App Store ou Google Play.",
-                "partial": "{{count}} emplacement ajouté. Vérifiez à nouveau pour acheter le reste."
+                "partial": "{{count}} emplacements ajoutés. Vérifiez à nouveau pour acheter le reste.",
+                "partial_one": "1 emplacement ajouté. Vérifiez à nouveau pour acheter le reste.",
+                "partial_other": "{{count}} emplacements ajoutés. Vérifiez à nouveau pour acheter le reste."
             }
+        },
+        "vault": {
+            "reverify_title": "Vérifiez à nouveau pour voir vos éléments",
+            "reverify_description": "Cette session ne peut pas encore ouvrir votre coffre. Vérifiez votre visage à nouveau pour charger vos mots de passe et cartes.",
+            "reverify_action": "Vérifier à nouveau"
         }
     },
     "cancel": "Annuler",

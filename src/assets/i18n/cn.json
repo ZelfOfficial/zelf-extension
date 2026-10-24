@@ -229,7 +229,8 @@
             "errors": {
                 "no_face_detected": "未检测到面部",
                 "look_at_camera": "请注视摄像头"
-            }
+            },
+            "storing": "正在保存…"
         },
         "subscription_banner": {
             "title": "解锁高级功能",
@@ -476,8 +477,15 @@
                 "plan_status_open": "{{plan}} 方案 · 无到期日",
                 "expires": "{{date}} 到期",
                 "mobile_note": "请在 Zelf 手机应用（App Store 或 Google Play）中升级。",
-                "partial": "已添加 {{count}} 个名额。请再次验证以购买剩余名额。"
+                "partial": "已添加 {{count}} 个名额。请再次验证以购买剩余名额。",
+                "partial_one": "已添加 1 个名额。请再次验证以购买剩余名额。",
+                "partial_other": "已添加 {{count}} 个名额。请再次验证以购买剩余名额。"
             }
+        },
+        "vault": {
+            "reverify_title": "重新验证以查看你的项目",
+            "reverify_description": "当前会话还不能打开保险库。请再次验证面容以加载密码和银行卡。",
+            "reverify_action": "重新验证"
         }
     },
     "cancel": "取消",

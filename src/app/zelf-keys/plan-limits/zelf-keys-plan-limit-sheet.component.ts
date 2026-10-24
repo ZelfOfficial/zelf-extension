@@ -257,7 +257,9 @@ export class ZelfKeysPlanLimitSheetComponent {
     }
 
     private _progressMessage(): string {
-        return this._transloco.translate("zelf_keys.plan_limits.sheet.partial", { count: this.completed });
+        const key = this.completed === 1 ? "zelf_keys.plan_limits.sheet.partial_one" : "zelf_keys.plan_limits.sheet.partial_other";
+
+        return this._transloco.translate(key, { count: this.completed });
     }
 
     private get affordabilityInput(): { tokenCost: number; tokenBalance: number | null; balanceAvailable: boolean } {

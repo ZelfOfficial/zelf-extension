@@ -41,4 +41,35 @@ describe("AuthService Zelf name", () => {
         expect(service.jwtMatchesCurrentWallet(token, { tagName: "Alice", publicData: { domain: "Zelf" } } as any)).toBeTrue();
         expect(service.jwtMatchesCurrentWallet(token, { tagName: "bob.zelf", publicData: { domain: "zelf" } } as any)).toBeFalse();
     });
+
+    it("keeps the verified token until the vault list, even when the identifier drifted", async () => {
+        const token = jwt({ identifier: "stale-session", tagName: "alice.zelf", domain: "zelf" });
+        const post = jasmine.createSpy("post");
+        const service = new AuthService(
+            {
+                getItem: async (key: string) => {
+                    if (key === "accessToken") return token;
+                    if (key === "accessTokenExpiresAt") return moment().add(1, "hour").unix();
+                    return null;
+                },
+                setItem: async () => undefined,
+                removeItem: async () => undefined,
+            } as any,
+            { post } as any,
+            {
+                getCurrentWallet: async () => ({
+                    tagName: "alice.zelf",
+                    publicData: { domain: "zelf", ethAddress: "0xabc" },
+                }),
+            } as any
+        );
+
+        service.keepVerifiedSession();
+
+        await expectAsync(service.checkAccessToken()).toBeResolvedTo(token);
+        await expectAsync(service.reauthenticateSession()).toBeResolvedTo(token);
+        expect(post).not.toHaveBeenCalled();
+
+        service.releaseVerifiedSession();
+    });
 });

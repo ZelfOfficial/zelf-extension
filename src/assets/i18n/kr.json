@@ -229,7 +229,8 @@
             "errors": {
                 "no_face_detected": "얼굴이 감지되지 않음",
                 "look_at_camera": "카메라를 응시해 주세요"
-            }
+            },
+            "storing": "저장 중…"
         },
         "subscription_banner": {
             "title": "프리미엄 기능 잠금 해제",
@@ -476,8 +477,15 @@
                 "plan_status_open": "{{plan}} 플랜 · 만료 없음",
                 "expires": "{{date}} 만료",
                 "mobile_note": "Zelf 앱(App Store 또는 Google Play)에서 업그레이드하세요.",
-                "partial": "슬롯 {{count}}개를 추가했습니다. 나머지를 구매하려면 다시 확인하세요."
+                "partial": "슬롯 {{count}}개를 추가했습니다. 나머지를 구매하려면 다시 확인하세요.",
+                "partial_one": "슬롯 1개를 추가했습니다. 나머지를 구매하려면 다시 확인하세요.",
+                "partial_other": "슬롯 {{count}}개를 추가했습니다. 나머지를 구매하려면 다시 확인하세요."
             }
+        },
+        "vault": {
+            "reverify_title": "항목을 보려면 다시 확인하세요",
+            "reverify_description": "이 세션으로는 금고를 열 수 없습니다. 얼굴을 다시 확인해 비밀번호와 카드를 불러오세요.",
+            "reverify_action": "다시 확인"
         }
     },
     "cancel": "취소",

@@ -17,6 +17,8 @@ describe("ZelfKeysPlanLimitSheetComponent", () => {
             if (key === "zelf_keys.plan_limits.sheet.plan_status") return `${params?.["plan"]} plan · expires ${params?.["date"]}`;
             if (key === "zelf_keys.plan_limits.sheet.plan_status_open") return `${params?.["plan"]} plan · no expiration`;
             if (key === "zelf_keys.plan_limits.usage_plan") return `${params?.["plan"]} plan`;
+            if (key === "zelf_keys.plan_limits.sheet.partial_one") return "Added 1 slot. Verify again to buy the rest.";
+            if (key === "zelf_keys.plan_limits.sheet.partial_other") return `Added ${params?.["count"]} slots. Verify again to buy the rest.`;
 
             return key;
         };
@@ -103,6 +105,29 @@ describe("ZelfKeysPlanLimitSheetComponent", () => {
         expect(keys[1].endsWith("-1")).toBeTrue();
         expect(keys[0]).not.toBe(keys[1]);
         expect(close).toHaveBeenCalledWith({ purchased: true });
+    });
+
+    it("uses a singular message after one slot and a plural message after more", async () => {
+        const { component, purchase } = sheet({
+            used: 7,
+            limit: 5,
+            tokenCost: 10,
+            tokenBalance: 40,
+            balanceAvailable: true,
+        });
+
+        purchase.and.returnValues(
+            Promise.resolve({ ok: true }),
+            Promise.resolve({ ok: false, reason: "cancelled" }),
+            Promise.resolve({ ok: true }),
+            Promise.resolve({ ok: false, reason: "cancelled" })
+        );
+
+        await component.buy();
+        expect(component.message).toBe("Added 1 slot. Verify again to buy the rest.");
+
+        await component.buy();
+        expect(component.message).toBe("Added 2 slots. Verify again to buy the rest.");
     });
 
     it("asks for the master password before starting verification", async () => {

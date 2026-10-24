@@ -17,6 +17,9 @@ import { normalizeZelfName } from "app/core/utils/zelf-name.util";
 export class AuthService {
     private _accessToken: string = "";
     private _accessTokenExpiresAt: number = 0;
+    /** After a verified unlock, reuse this token until the first vault list finishes. */
+    private _keepVerifiedSession = false;
+    private _minting: Promise<string> | null = null;
 
     constructor(
         private _chromeService: ChromeService,
@@ -118,6 +121,22 @@ export class AuthService {
         await this._chromeService.setItem("sessionIdentifier", sessionIdentifier);
     }
 
+    /**
+     * A successful face unlock stamps the current token.
+     * Do not POST /api/sessions again until the first vault list has run.
+     */
+    keepVerifiedSession(): void {
+        this._keepVerifiedSession = true;
+    }
+
+    releaseVerifiedSession(): void {
+        this._keepVerifiedSession = false;
+    }
+
+    get keepingVerifiedSession(): boolean {
+        return this._keepVerifiedSession;
+    }
+
     jwtMatchesCurrentWallet(token: string, wallet: Partial<TagModel> | null | undefined): boolean {
         if (!token || !wallet) return false;
 
@@ -165,6 +184,8 @@ export class AuthService {
 
         const isValidToken = this._isValidToken();
 
+        if (isValidToken && this._keepVerifiedSession) return this._accessToken;
+
         if (isValidToken) {
             // Detect identifier drift between the stored JWT and the current device fingerprint
             // (e.g. background script may have created a session under a different identifier).
@@ -186,12 +207,39 @@ export class AuthService {
             return this._accessToken;
         }
 
+        if (this._keepVerifiedSession && this._accessToken) return this._accessToken;
+
+        return this._mintSession(false);
+    }
+
+    async reauthenticateSession(): Promise<string> {
+        if (!this._accessToken || !this._accessTokenExpiresAt) {
+            this._accessToken = (await this._chromeService.getItem("accessToken")) || "";
+            this._accessTokenExpiresAt = (await this._chromeService.getItem("accessTokenExpiresAt")) || 0;
+        }
+
+        if (this._keepVerifiedSession && this._accessToken) return this._accessToken;
+
+        return this._mintSession(true);
+    }
+
+    private _mintSession(killSession: boolean): Promise<string> {
+        if (!this._minting) {
+            this._minting = this._mintSessionNow(killSession).finally(() => {
+                this._minting = null;
+            });
+        }
+
+        return this._minting;
+    }
+
+    private async _mintSessionNow(killSession: boolean): Promise<string> {
         const { tagName, domain, ethAddress } = await this._resolveWalletParams();
 
         try {
             const fingerprint = generateUniqueFingerprint(ethAddress, tagName, domain);
             const sessionIdentifier = simpleHash(fingerprint);
-            const newAuthToken = await this._requestAuthToken(fingerprint, tagName, domain, ethAddress);
+            const newAuthToken = await this._requestAuthToken(fingerprint, tagName, domain, ethAddress, killSession);
 
             await this._persistSession(newAuthToken.data.token, newAuthToken.data.expiresAt, sessionIdentifier);
 
@@ -206,18 +254,6 @@ export class AuthService {
 
             throw error;
         }
-    }
-
-    async reauthenticateSession(): Promise<string> {
-        const { tagName, domain, ethAddress } = await this._resolveWalletParams();
-
-        const fingerprint = generateUniqueFingerprint(ethAddress, tagName, domain);
-        const sessionIdentifier = simpleHash(fingerprint);
-        const newAuthToken = await this._requestAuthToken(fingerprint, tagName, domain, ethAddress, true);
-
-        await this._persistSession(newAuthToken.data.token, newAuthToken.data.expiresAt, sessionIdentifier);
-
-        return this._accessToken;
     }
 }
 

@@ -229,7 +229,8 @@
             "errors": {
                 "no_face_detected": "Walang mukhang nahanap",
                 "look_at_camera": "Mangyaring tumingin sa camera"
-            }
+            },
+            "storing": "Sine-save…"
         },
         "subscription_banner": {
             "title": "I-unlock ang Premium Features",
@@ -476,8 +477,15 @@
                 "plan_status_open": "Planong {{plan}} · walang expiration",
                 "expires": "Mag-e-expire sa {{date}}",
                 "mobile_note": "Mag-upgrade sa Zelf app sa App Store o Google Play.",
-                "partial": "Nadagdag ang {{count}} slot. I-verify muli para bilhin ang natitira."
+                "partial": "Nadagdag ang {{count}} na slot. I-verify muli para bilhin ang natitira.",
+                "partial_one": "Nadagdag ang 1 slot. I-verify muli para bilhin ang natitira.",
+                "partial_other": "Nadagdag ang {{count}} na slot. I-verify muli para bilhin ang natitira."
             }
+        },
+        "vault": {
+            "reverify_title": "I-verify muli para makita ang mga item",
+            "reverify_description": "Hindi pa mabuksan ng session na ito ang vault. I-verify muli ang mukha mo para ma-load ang mga password at card.",
+            "reverify_action": "I-verify muli"
         }
     },
     "cancel": "Kanselahin",

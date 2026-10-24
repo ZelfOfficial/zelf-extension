@@ -80,7 +80,10 @@
             "import_success_title": "Import complete",
             "import_success_desc": "{{count}} password(s) secured in your vault.",
             "import_failed_notice": "{{count}} item(s) could not be imported:",
-            "import_done_btn": "Done"
+            "import_done_btn": "Done",
+            "reverify_title": "Re-verify to view your items",
+            "reverify_description": "This session can't open your vault yet. Verify your face again to load your passwords and cards.",
+            "reverify_action": "Re-verify"
         },
         "common": {
             "qr_code": "QR Code",
@@ -343,7 +346,8 @@
             "errors": {
                 "no_face_detected": "No face detected",
                 "look_at_camera": "Please look at the camera"
-            }
+            },
+            "storing": "Storing…"
         },
         "subscription_banner": {
             "title": "Unlock Premium Features",
@@ -608,7 +612,7 @@
                 "plan_status_open": "{{plan}} plan · no expiration",
                 "expires": "Expires {{date}}",
                 "mobile_note": "Upgrade in the Zelf app on the App Store or Google Play.",
-                "partial": "Added {{count}} slot. Verify again to buy the rest.",
+                "partial": "Added {{count}} slots. Verify again to buy the rest.",
                 "password_label": "Master password",
                 "password_required": "Enter your master password to continue.",
                 "show_password": "Show password",
@@ -616,7 +620,9 @@
                 "insufficient": "Your balance isn't enough for this slot.",
                 "purchase_failed": "We couldn't buy the slot. Please try again.",
                 "face_title": "Verify identity to buy a slot",
-                "face_instructions": "Scan your face to pay for one extra slot."
+                "face_instructions": "Scan your face to pay for one extra slot.",
+                "partial_one": "Added 1 slot. Verify again to buy the rest.",
+                "partial_other": "Added {{count}} slots. Verify again to buy the rest."
             }
         }
     },
