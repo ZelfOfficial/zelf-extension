@@ -1,15 +1,26 @@
 import { CommonModule } from "@angular/common";
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { ChangeDetectorRef, Component, OnInit, OnDestroy } from "@angular/core";
+import { FormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { Router, RouterModule } from "@angular/router";
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 
+import { previewProofSecurity, type ProofPreview } from "app/onboarding-stack";
+import { BiometricsGeneralComponent } from "app/biometrics-general/biometrics.component";
+import { ZelfIdsService } from "app/zelf-ids.service";
+
 import { RewardsService, WheelSegment, RouletteWheelResponse, DailyRewardResponse } from "../../services/rewards.service";
 import { WalletService } from "../../wallet.service";
 import { TagsService } from "../../tags.service";
+import {
+    dailyRewardErrorTranslationKey,
+    DailyRewardClaimRequest,
+    resolveDailyRewardErrorCode,
+    resolveRequiresMasterPassword,
+} from "../daily-reward-identity";
 
 @Component({
-    imports: [CommonModule, MatButtonModule, RouterModule, TranslocoModule],
+    imports: [BiometricsGeneralComponent, CommonModule, FormsModule, MatButtonModule, RouterModule, TranslocoModule],
     selector: "daily-rewards",
     styleUrls: ["./daily-rewards.component.scss", "../../main.scss"],
     templateUrl: "./daily-rewards.component.html",
@@ -23,6 +34,12 @@ export class DailyRewardsComponent implements OnInit, OnDestroy {
     wonAmount: number | null = null;
     errorMessage: string | null = null;
     nextClaimAvailable: string | null = null;
+    verificationStep: "none" | "face" | "password" = "none";
+    requiresMasterPassword = false;
+    isPinUnlock = false;
+    canRetryClaim = false;
+    masterPassword = "";
+    showMasterPassword = false;
 
     // Countdown timer
     countdownHours: number = 0;
@@ -37,13 +54,20 @@ export class DailyRewardsComponent implements OnInit, OnDestroy {
     // Current tag info
     private tagName: string = "";
     private domain: string = "zelf";
+    /** Held only until the claim request finishes. Never logged or stored. */
+    private _secrets: { faceBase64: string; masterPassword: string } = { faceBase64: "", masterPassword: "" };
+    private _submitting = false;
+    private _claimOutcome: "pending" | "already-claimed" | "failed" = "pending";
+    private _finalizeInterval: ReturnType<typeof setInterval> | null = null;
 
     constructor(
         private _rewardsService: RewardsService,
         private _walletService: WalletService,
         private _tagsService: TagsService,
+        private _zelfIdsService: ZelfIdsService,
         private _translocoService: TranslocoService,
-        private _router: Router
+        private _router: Router,
+        private _changeDetectorRef: ChangeDetectorRef
     ) {}
 
     async ngOnInit(): Promise<void> {
@@ -53,6 +77,8 @@ export class DailyRewardsComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this.stopCountdown();
         this.stopContinuousSpin();
+        this._clearFinalizeInterval();
+        this._wipeSecrets();
     }
 
     /**
@@ -121,6 +147,12 @@ export class DailyRewardsComponent implements OnInit, OnDestroy {
 
             this.tagName = currentWallet.tagName || currentWallet.name || "";
             this.domain = currentWallet.publicData?.domain || (await this._tagsService.getDomain()) || "zelf";
+            this.isPinUnlock = (currentWallet.publicData as { st?: string } | undefined)?.st === "pin";
+            this.requiresMasterPassword = await resolveRequiresMasterPassword(
+                currentWallet.publicData,
+                currentWallet.zelfProof || (await this._tagsService.getZelfProof()),
+                (proof) => this._previewPasswordLayer(proof)
+            );
 
             // Pre-populate wheel segments immediately based on wallet type
             // This provides instant visual feedback while backend loads
@@ -206,8 +238,9 @@ export class DailyRewardsComponent implements OnInit, OnDestroy {
     private spinStartTime: number = 0;
 
     /**
-     * Spin the wheel - starts spinning immediately and calls backend in background
-     * If account is not active, redirect to SOL deposit page instead
+     * Start a claim. Face is captured first; password wallets then enter the Zelf ID secret.
+     * The wheel animation starts only after that, once the claim request is sent.
+     * If the Solana account is not active, redirect to the deposit page instead.
      */
     async spinWheel(): Promise<void> {
         if (!this.isAccountActive) {
@@ -215,22 +248,56 @@ export class DailyRewardsComponent implements OnInit, OnDestroy {
             return;
         }
 
-        if (this.isSpinning || this.hasSpunToday) return;
+        if (this.isSpinning || this.hasSpunToday || this.verificationStep !== "none" || this._submitting) return;
 
-        this.isSpinning = true;
         this.wonAmount = null;
         this.errorMessage = null;
-        this.backendResponseReceived = false;
-        this.pendingWinningIndex = null;
-        this.pendingWinningAmount = null;
-        this.pendingNextClaimAvailable = null;
-        this.spinStartTime = Date.now();
+        this.canRetryClaim = false;
+        this._wipeSecrets();
+        this.verificationStep = "face";
+        this._changeDetectorRef.markForCheck();
+    }
 
-        // Start spinning immediately with continuous rotation
-        this.startContinuousSpin();
+    async onFaceCaptured(faceBase64: string): Promise<void> {
+        if (this.verificationStep !== "face" || !faceBase64) return;
 
-        // Call backend in the background
-        this.fetchRewardFromBackend();
+        this._secrets.faceBase64 = faceBase64;
+
+        if (this.requiresMasterPassword) {
+            this.masterPassword = "";
+            this.showMasterPassword = false;
+            this.verificationStep = "password";
+            this._changeDetectorRef.markForCheck();
+            return;
+        }
+
+        await this._submitClaim();
+    }
+
+    async submitMasterPassword(): Promise<void> {
+        if (this.verificationStep !== "password") return;
+
+        const password = this.masterPassword.trim();
+        this.masterPassword = "";
+        this.showMasterPassword = false;
+
+        if (!password) {
+            this._changeDetectorRef.markForCheck();
+            return;
+        }
+
+        this._secrets.masterPassword = password;
+        await this._submitClaim();
+    }
+
+    cancelVerification(): void {
+        this._wipeSecrets();
+        this._submitting = false;
+        this.verificationStep = "none";
+        this.isSpinning = false;
+        this.wonAmount = null;
+        this.canRetryClaim = false;
+        this._changeDetectorRef.markForCheck();
     }
 
     /**
@@ -258,17 +325,78 @@ export class DailyRewardsComponent implements OnInit, OnDestroy {
     private continuousSpinInterval: any = null;
 
     /**
+     * Face is already captured. Password wallets have also collected the Zelf ID secret.
+     * The wheel starts only after that, and a rejected verification never lands a prize.
+     */
+    private async _submitClaim(): Promise<void> {
+        if (this._submitting || this.isSpinning || this.hasSpunToday) return;
+
+        const payload: DailyRewardClaimRequest = {
+            tagName: this.tagName,
+            domain: this.domain,
+            faceBase64: this._secrets.faceBase64,
+        };
+
+        if (this.requiresMasterPassword && this._secrets.masterPassword) {
+            payload.masterPassword = this._secrets.masterPassword;
+        }
+
+        this._wipeSecrets();
+
+        if (!payload.faceBase64) {
+            this.verificationStep = "none";
+            this.canRetryClaim = true;
+            this.errorMessage = this._translocoService.translate("rewards.error.identity_required");
+            this._changeDetectorRef.markForCheck();
+            return;
+        }
+
+        this._submitting = true;
+        this.verificationStep = "none";
+        this.isSpinning = true;
+        this.wonAmount = null;
+        this.errorMessage = null;
+        this.canRetryClaim = false;
+        this.backendResponseReceived = false;
+        this.pendingWinningIndex = null;
+        this.pendingWinningAmount = null;
+        this.pendingNextClaimAvailable = null;
+        this._claimOutcome = "pending";
+        this.spinStartTime = Date.now();
+        this._changeDetectorRef.markForCheck();
+
+        this.startContinuousSpin();
+
+        try {
+            await this.fetchRewardFromBackend(payload);
+        } finally {
+            payload.faceBase64 = "";
+            payload.masterPassword = undefined;
+            this._submitting = false;
+            this._changeDetectorRef.markForCheck();
+        }
+    }
+
+    /**
      * Fetch the reward from the backend
      */
-    private async fetchRewardFromBackend(): Promise<void> {
+    private async fetchRewardFromBackend(payload: DailyRewardClaimRequest): Promise<void> {
         try {
-            const response: DailyRewardResponse = await this._rewardsService.claimDailyReward(this.tagName, this.domain);
+            const response: DailyRewardResponse = await this._rewardsService.claimDailyReward(payload);
 
             if (!response.success) {
-                // Handle already claimed today
                 this.backendResponseReceived = true;
-                this.pendingWinningIndex = -1; // Signal error
+
+                if (this._textSaysAlreadyClaimed(response?.message)) {
+                    this._markAlreadyClaimed();
+                    return;
+                }
+
+                this._claimOutcome = "failed";
+                this.pendingWinningIndex = null;
+                this.canRetryClaim = true;
                 this.errorMessage = response.message || this._translocoService.translate("rewards.error.claim_failed");
+                this._stopSpinWithoutReward();
                 return;
             }
 
@@ -277,52 +405,86 @@ export class DailyRewardsComponent implements OnInit, OnDestroy {
             this.pendingWinningAmount = response.reward.amount;
             this.pendingNextClaimAvailable = response.reward.nextClaimAvailable;
             this.backendResponseReceived = true;
-        } catch (error: any) {
-            console.error("Error claiming reward:", error);
+        } catch (error: unknown) {
+            const code = resolveDailyRewardErrorCode(error);
+            console.error("Error claiming reward:", code || (error as { status?: number })?.status || "failed");
             this.backendResponseReceived = true;
-            this.pendingWinningIndex = -1; // Signal error
+            this.pendingWinningIndex = null;
 
-            if (error?.error?.includes("already claimed") || error?.message?.includes("already claimed")) {
-                this.hasSpunToday = true;
-                this.errorMessage = this._translocoService.translate("rewards.error.already_claimed");
-            } else {
-                this.errorMessage = error?.error || error?.message || this._translocoService.translate("rewards.error.spin_failed");
+            if (this._textSaysAlreadyClaimed(this._errorText(error))) {
+                this._markAlreadyClaimed();
+                return;
             }
+
+            this._claimOutcome = "failed";
+            this.canRetryClaim = true;
+
+            if (code === "ERR_MISSING_PASSWORD" || code === "ERR_PASSWORD_REQUIRED") {
+                this.requiresMasterPassword = true;
+            }
+
+            const key = dailyRewardErrorTranslationKey(code);
+            this.errorMessage = key
+                ? this._translocoService.translate(key)
+                : this._translocoService.translate("rewards.error.spin_failed");
+            this._stopSpinWithoutReward();
         }
+    }
+
+    /** A rejected claim never lands on a segment or counts as today's reward. */
+    private _stopSpinWithoutReward(): void {
+        this._clearFinalizeInterval();
+        this.stopContinuousSpin();
+        this.animationPhase = "idle";
+        this.isSpinning = false;
+        this.pendingWinningIndex = null;
+        this.pendingWinningAmount = null;
     }
 
     /**
      * Check if backend responded and finalize the spin
      */
     private checkAndFinalizeSpintrue(): void {
-        const checkInterval = setInterval(() => {
+        this._clearFinalizeInterval();
+        this._finalizeInterval = setInterval(() => {
             const elapsedTime = Date.now() - this.spinStartTime;
             const minimumSpinTime = 2000; // Minimum 2 seconds of spinning before we can land
 
             if (this.backendResponseReceived && elapsedTime >= minimumSpinTime) {
-                clearInterval(checkInterval);
+                this._clearFinalizeInterval();
                 this.stopContinuousSpin();
 
                 if (this.pendingWinningIndex !== null && this.pendingWinningIndex >= 0) {
                     // Backend returned a valid winning index - land on it
                     this.landOnSegment(this.pendingWinningIndex, this.pendingWinningAmount!);
                 } else {
-                    // Error occurred - stop spinning
+                    // Error occurred - stop spinning without treating the day as claimed
                     this.animationPhase = "idle";
                     this.isSpinning = false;
-                    if (this.pendingWinningIndex === -1) {
+                    if (this._claimOutcome === "already-claimed") {
                         this.hasSpunToday = true;
                     }
+                    this._changeDetectorRef.markForCheck();
                 }
             } else if (elapsedTime >= 10000) {
                 // Timeout - backend took too long
-                clearInterval(checkInterval);
+                this._clearFinalizeInterval();
                 this.stopContinuousSpin();
                 this.animationPhase = "idle";
                 this.isSpinning = false;
+                this._claimOutcome = "failed";
+                this.canRetryClaim = true;
                 this.errorMessage = this._translocoService.translate("rewards.error.timeout");
+                this._changeDetectorRef.markForCheck();
             }
         }, 100);
+    }
+
+    private _clearFinalizeInterval(): void {
+        if (this._finalizeInterval) {
+            clearInterval(this._finalizeInterval);
+            this._finalizeInterval = null;
+        }
     }
 
     /**
@@ -488,6 +650,45 @@ export class DailyRewardsComponent implements OnInit, OnDestroy {
      * Check if the spin button should be disabled
      */
     get isSpinDisabled(): boolean {
-        return this.isLoading || this.isSpinning || this.hasSpunToday || this.segments.length === 0;
+        return this.isLoading || this.isSpinning || this.hasSpunToday || this.segments.length === 0 || this.verificationStep !== "none";
+    }
+
+    private async _previewPasswordLayer(zelfProof: string): Promise<ProofPreview | null> {
+        return previewProofSecurity(
+            zelfProof,
+            (proof) => this._zelfIdsService.previewZelfProof({ zelfProof: proof, os: "DESKTOP" }),
+            (proof) => this._tagsService.previewZelfProof({ zelfProof: proof, os: "DESKTOP" })
+        );
+    }
+
+    private _markAlreadyClaimed(): void {
+        this._claimOutcome = "already-claimed";
+        this.pendingWinningIndex = null;
+        this.canRetryClaim = false;
+        this.hasSpunToday = true;
+        this.errorMessage = this._translocoService.translate("rewards.error.already_claimed");
+    }
+
+    private _textSaysAlreadyClaimed(value: unknown): boolean {
+        return typeof value === "string" && value.toLowerCase().includes("already claimed");
+    }
+
+    private _errorText(error: unknown): string {
+        if (!error || typeof error !== "object") return "";
+
+        const body = (error as { error?: unknown }).error;
+        if (typeof body === "string") return body;
+        if (body && typeof body === "object" && typeof (body as { message?: unknown }).message === "string") {
+            return (body as { message: string }).message;
+        }
+
+        const message = (error as { message?: unknown }).message;
+        return typeof message === "string" ? message : "";
+    }
+
+    private _wipeSecrets(): void {
+        this._secrets.faceBase64 = "";
+        this._secrets.masterPassword = "";
+        this.masterPassword = "";
     }
 }

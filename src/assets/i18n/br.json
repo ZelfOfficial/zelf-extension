@@ -1954,9 +1954,22 @@
             "already_claimed": "Você já resgatou sua recompensa diária hoje. Volte amanhã!",
             "spin_failed": "Falha ao girar a roda. Tente novamente.",
             "timeout": "A solicitação expirou. Tente novamente.",
-            "account_not_active": "Sua conta Solana ainda não está ativada. Por favor, deposite algum SOL para ativar sua carteira antes de girar a roleta."
+            "account_not_active": "Sua conta Solana ainda não está ativada. Por favor, deposite algum SOL para ativar sua carteira antes de girar a roleta.",
+            "identity_required": "Tire uma foto do seu rosto para resgatar a recompensa de hoje e tente de novo.",
+            "verification_failed": "Seu rosto não corresponde a este Zelf ID. Centralize o rosto e tente de novo.",
+            "missing_password": "Este Zelf ID precisa da senha antes de resgatar a recompensa de hoje.",
+            "invalid_password": "A senha está incorreta. Confira e tente de novo.",
+            "password_required": "Este Zelf ID exige uma senha. Digite-a e tente de novo."
         },
-        "activate_account": "Ativar Conta"
+        "activate_account": "Ativar Conta",
+        "verify": {
+            "face_title": "Verifique seu rosto",
+            "face_subtitle": "Usamos seu rosto uma vez para resgatar a recompensa de hoje. A foto não é armazenada.",
+            "password_title": "Digite sua senha",
+            "password_subtitle": "Este Zelf ID usa uma senha. Digite-a para concluir o resgate de hoje.",
+            "pin_title": "Digite seu PIN",
+            "pin_subtitle": "Este Zelf ID usa um PIN. Digite-o para concluir o resgate de hoje."
+        }
     },
     "referrals": {
         "invite_title": "Convidar amigos",

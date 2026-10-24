@@ -2207,9 +2207,22 @@
             "already_claimed": "You have already claimed your daily reward today. Come back tomorrow!",
             "spin_failed": "Failed to spin the wheel. Please try again.",
             "timeout": "Request timed out. Please try again.",
-            "account_not_active": "Your Solana account is not activated yet. Please deposit some SOL to activate your wallet before spinning the wheel."
+            "account_not_active": "Your Solana account is not activated yet. Please deposit some SOL to activate your wallet before spinning the wheel.",
+            "identity_required": "Take a photo of your face to claim today's reward, then try again.",
+            "verification_failed": "Your face did not match this Zelf ID. Center your face and try again.",
+            "missing_password": "This Zelf ID needs its password before today's reward can be claimed.",
+            "invalid_password": "That password is incorrect. Check it and try again.",
+            "password_required": "This Zelf ID requires a password. Enter it and try again."
         },
-        "activate_account": "Activate Account"
+        "activate_account": "Activate Account",
+        "verify": {
+            "face_title": "Verify your face",
+            "face_subtitle": "We use your face once to claim today's reward. The photo is not stored.",
+            "password_title": "Enter your password",
+            "password_subtitle": "This Zelf ID uses a password. Enter it to finish claiming today's reward.",
+            "pin_title": "Enter your PIN",
+            "pin_subtitle": "This Zelf ID uses a PIN. Enter it to finish claiming today's reward."
+        }
     },
     "referrals": {
         "invite_title": "Invite friends",

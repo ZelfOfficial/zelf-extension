@@ -111,6 +111,11 @@ video {
     object-fit: cover;
 }
 
+/* Dark color-scheme otherwise drops this canvas (oval guide and mask) in Chrome. */
+canvas {
+    color-scheme: only light;
+}
+
 .p-4 {
     padding: calc(1rem * var(--zns-space-scale, 1));
 }
@@ -165,6 +170,69 @@ video {
 }
 
 .biometric-shell.biometric-shell--portrait {
-    min-height: 100%;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
     padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    > div {
+        width: 100%;
+        height: 100%;
+        padding: 0 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .relative {
+        background: #111;
+        overflow: hidden;
+        border-radius: calc(28px * var(--zns-space-scale, 1));
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    canvas {
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    .biometric__oval {
+        position: absolute;
+        z-index: 4;
+        box-sizing: border-box;
+        pointer-events: none;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        box-shadow:
+            0 0 0 1px rgba(0, 0, 0, 0.55),
+            inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+    }
+
+    ::ng-deep webcam,
+    ::ng-deep .webcam-wrapper {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        display: block !important;
+        width: 100% !important;
+        height: 100% !important;
+        background: #111;
+        line-height: 0;
+    }
+
+    ::ng-deep video {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        object-position: center center !important;
+        background: #111;
+    }
+
+    ::ng-deep video.mirrored {
+        transform: scaleX(-1) !important;
+    }
 }
