@@ -16,6 +16,8 @@ describe("AddZotpComponent face verification", () => {
 
     function setup(kind: "face" | "face_password") {
         const storeZOTPToZelfKeys = jasmine.createSpy("storeZOTPToZelfKeys").and.resolveTo({ id: "stored" });
+        const ensureCanAdd = jasmine.createSpy("ensureCanAdd").and.resolveTo(true);
+        const recoverFromSaveError = jasmine.createSpy("recoverFromSaveError").and.resolveTo("not-limit");
         const navigate = jasmine.createSpy("navigate").and.resolveTo(true);
         const snack = jasmine.createSpy("open");
         const encryptMessage = jasmine.createSpy("encryptMessage").and.callFake(async (value: string) => `pgp:${value}`);
@@ -26,6 +28,7 @@ describe("AddZotpComponent face verification", () => {
             { open: snack } as any,
             { getZelfProof: jasmine.createSpy("getZelfProof").and.resolveTo("wallet-proof") } as any,
             { translate: (key: string) => copy[key] ?? key } as any,
+            { ensureCanAdd, recoverFromSaveError } as any,
             {} as any,
             {
                 getCurrentWallet: jasmine.createSpy("getCurrentWallet").and.resolveTo({
@@ -36,7 +39,7 @@ describe("AddZotpComponent face verification", () => {
             { generateId: () => "zotp-id", storeZOTPToZelfKeys } as any
         );
 
-        return { component, storeZOTPToZelfKeys, navigate, snack, encryptMessage };
+        return { component, storeZOTPToZelfKeys, navigate, snack, encryptMessage, ensureCanAdd, recoverFromSaveError };
     }
 
     async function fill(component: AddZotpComponent, setupKey = SETUP_KEY, password?: string): Promise<void> {
@@ -175,5 +178,34 @@ describe("AddZotpComponent face verification", () => {
         expect(zotp.protection).toBe("face");
         expect(protection).toBe("face");
         expect(password).toBe("pgp:wallet-secret");
+    });
+
+    it("stops a new 2FA at the plan cap before the face step, and retries the scan after a slot purchase", async () => {
+        const { component, storeZOTPToZelfKeys, snack, ensureCanAdd, recoverFromSaveError } = setup("face");
+
+        await fill(component);
+        ensureCanAdd.and.resolveTo(false);
+
+        await component.save();
+
+        expect(component.showBiometrics).toBeFalse();
+        expect(storeZOTPToZelfKeys).not.toHaveBeenCalled();
+        expect(snack).not.toHaveBeenCalled();
+
+        ensureCanAdd.and.resolveTo(true);
+        await component.save();
+        expect(component.showBiometrics).toBeTrue();
+
+        recoverFromSaveError.and.resolveTo("retry");
+        storeZOTPToZelfKeys.and.rejectWith({
+            status: 409,
+            error: { code: "ERR_PLAN_LIMIT_REACHED", message: "Plan limit reached", kind: "zotp", count: 3, limit: 3, plan: "free", tokenCost: 20 },
+        });
+
+        await component.onBiometricsScanned(FACE);
+
+        expect(snack).not.toHaveBeenCalled();
+        expect(component.showBiometrics).toBeTrue();
+        expect(recoverFromSaveError).toHaveBeenCalled();
     });
 });

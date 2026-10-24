@@ -434,6 +434,40 @@
             "error": {
                 "no_result": "कोई API परिणाम उपलब्ध नहीं है"
             }
+        },
+        "plan_limits": {
+            "usage_passwords": "{{used}} में से {{limit}} पासवर्ड",
+            "usage_passwords_unlimited": "{{used}} पासवर्ड",
+            "usage_zotp": "{{used}} में से {{limit}} 2FA खाते",
+            "usage_zotp_unlimited": "{{used}} 2FA खाते",
+            "usage_plan": "{{plan}} प्लान",
+            "buy_slot_aria": "एक अतिरिक्त स्लॉट खरीदें",
+            "checking": "आपका प्लान जाँचा जा रहा है…",
+            "plan": {
+                "free": "मुफ़्त",
+                "premium": "प्रीमियम",
+                "unlimited": "असीमित"
+            },
+            "sheet": {
+                "title_passwords": "आपने {{plan}} प्लान के सभी {{limit}} पासवर्ड इस्तेमाल कर लिए हैं",
+                "title_zotp": "आपने {{plan}} प्लान के सभी {{limit}} 2FA खाते इस्तेमाल कर लिए हैं",
+                "body": "अतिरिक्त स्लॉट 12 महीने तक रहता है और आपके ZNS बैलेंस से भुगतान होता है।",
+                "balance": "बैलेंस",
+                "balance_amount": "{{amount}} ZNS",
+                "balance_unavailable": "ZNS बैलेंस नहीं पढ़ा जा सका। आप फिर भी स्लॉट खरीदने की कोशिश कर सकते हैं।",
+                "buy": "एक और स्लॉट खरीदें · {{cost}} ZNS",
+                "buy_busy": "सत्यापन हो रहा है…",
+                "low_balance": "आपको {{cost}} ZNS चाहिए। आपका बैलेंस {{amount}} ZNS है।",
+                "upgrade": "प्लान अपग्रेड करें",
+                "password_label": "मास्टर पासवर्ड",
+                "password_required": "जारी रखने के लिए मास्टर पासवर्ड दर्ज करें।",
+                "show_password": "पासवर्ड दिखाएँ",
+                "hide_password": "पासवर्ड छिपाएँ",
+                "insufficient": "इस स्लॉट के लिए बैलेंस पर्याप्त नहीं है।",
+                "purchase_failed": "स्लॉट नहीं खरीदा जा सका। फिर से कोशिश करें।",
+                "face_title": "स्लॉट खरीदने के लिए पहचान सत्यापित करें",
+                "face_instructions": "एक अतिरिक्त स्लॉट के भुगतान के लिए अपना चेहरा स्कैन करें।"
+            }
         }
     },
     "cancel": "रद्द करें",

@@ -1,17 +1,18 @@
 import { CommonModule } from "@angular/common";
-import { ChangeDetectorRef, Component, DestroyRef, OnInit, TemplateRef, ViewChild } from "@angular/core";
+import { ChangeDetectorRef, Component, DestroyRef, OnInit } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
-import { MatDialog, MatDialogModule } from "@angular/material/dialog";
 import { ActivatedRoute, Router, RouterModule } from "@angular/router";
 import { TranslocoModule } from "@jsverse/transloco";
 
 import { TagModel } from "app/tags.service";
 import { WalletService } from "app/wallet.service";
-import { SolanaService } from "app/solana.service";
 import { AutofillDataService, AutofillUrlInfo } from "../../../services/autofill-data.service";
 import { DataPassingService } from "../../../services/data-passing.service";
+import { ZelfKeysPlanLimitCoordinator } from "../../plan-limits/zelf-keys-plan-limit.coordinator";
+import { ZelfKeysPlanUsageComponent } from "../../plan-limits/zelf-keys-plan-usage.component";
+import { PlanLimitPurchaseContext } from "../../plan-limits/zelf-keys-plan-limits.model";
 import {
     BiometricResult,
     BiometricsBottomSheetComponent,
@@ -22,14 +23,12 @@ import { PasswordGeneratorService, PasswordAlgorithm } from "../../../services/p
 import { environment } from "../../../../environments/environment";
 
 @Component({
-    imports: [CommonModule, TranslocoModule, RouterModule, ReactiveFormsModule, MatDialogModule],
+    imports: [CommonModule, TranslocoModule, RouterModule, ReactiveFormsModule, ZelfKeysPlanUsageComponent],
     selector: "zelf-keys-password-form",
     styleUrls: ["./zelf-keys-password-form.component.scss"],
     templateUrl: "./zelf-keys-password-form.component.html",
 })
 export class PasswordFormComponent implements OnInit {
-    @ViewChild("znsCostModal") znsCostModalTemplate!: TemplateRef<any>;
-
     currentAlgorithm: PasswordAlgorithm = "strong";
     formValid = false;
     hasMasterPassword = false;
@@ -43,11 +42,6 @@ export class PasswordFormComponent implements OnInit {
     view?: string;
     wallet!: TagModel;
 
-    znsBalance: number = 0;
-    znsBalanceLoading: boolean = false;
-    readonly costZns = environment.zelfKeysPasswordSaveZns;
-    readonly costUsd = (environment.zelfKeysPasswordSaveZns * environment.znsUsdPrice).toFixed(2);
-
     constructor(
         private _activatedRoute: ActivatedRoute,
         private _autofillDataService: AutofillDataService,
@@ -55,12 +49,11 @@ export class PasswordFormComponent implements OnInit {
         private _changeDetectorRef: ChangeDetectorRef,
         private _dataPassingService: DataPassingService,
         private _destroyRef: DestroyRef,
-        private _dialog: MatDialog,
         private _formBuilder: FormBuilder,
         private _httpWrapperService: HttpWrapperService,
         private _passwordGeneratorService: PasswordGeneratorService,
+        private _planLimits: ZelfKeysPlanLimitCoordinator,
         private _router: Router,
-        private _solanaService: SolanaService,
         private _walletService: WalletService
     ) {
         this.view = this._activatedRoute.snapshot.queryParamMap.get("view") || "home";
@@ -81,7 +74,6 @@ export class PasswordFormComponent implements OnInit {
         this.isNewPassword = id === "new";
 
         await this._setWallet();
-        this._loadZnsBalance();
 
         this.checkFormValidity();
     }
@@ -146,42 +138,11 @@ export class PasswordFormComponent implements OnInit {
         this._router.navigate(["/zelf-keys/passwords/result"]);
     }
 
-    private async _loadZnsBalance(): Promise<void> {
-        this.znsBalanceLoading = true;
-
-        try {
-            const wallet = await this._walletService.getCurrentWallet();
-            const solanaAddress = wallet?.publicData?.solanaAddress;
-
-            if (!solanaAddress) return;
-
-            this.znsBalance = await this._solanaService.getZnsBalance(solanaAddress);
-        } catch {
-            this.znsBalance = 0;
-        } finally {
-            this.znsBalanceLoading = false;
-            this._changeDetectorRef.detectChanges();
-        }
-    }
-
-    get hasSufficientZns(): boolean {
-        return !this.znsBalanceLoading && this.znsBalance >= this.costZns;
-    }
-
-    openZnsCostModal(): void {
-        this._dialog.open(this.znsCostModalTemplate, {
-            maxWidth: "360px",
-            panelClass: "zns-cost-dialog",
-        });
-    }
-
-    goToPresale(): void {
-        window.open("https://zelf.world/presale", "_blank");
-    }
-
-    goToRewards(): void {
-        this._dialog.closeAll();
-        this._router.navigate(["/rewards"]);
+    private _limitContext(): PlanLimitPurchaseContext {
+        return {
+            hasMasterPassword: this.hasMasterPassword,
+            masterPassword: this.passwordForm.get("masterPassword")?.value || "",
+        };
     }
 
     private _openBiometricsBottomSheet(): void {
@@ -197,7 +158,13 @@ export class PasswordFormComponent implements OnInit {
             panelClass: "zelf-bottom-sheet-biometrics",
         });
 
-        bottomSheetRef.afterDismissed().subscribe((result: BiometricResult | undefined) => {
+        bottomSheetRef.afterDismissed().subscribe((result: (BiometricResult & { planLimitReached?: unknown }) | undefined) => {
+            if (result?.planLimitReached) {
+                void this._recoverFromPlanLimit(result.planLimitReached);
+
+                return;
+            }
+
             if (!result) return;
 
             this._onBiometricsSuccess();
@@ -272,12 +239,20 @@ export class PasswordFormComponent implements OnInit {
     async onSave(): Promise<void> {
         if (!this.formValid) return;
 
-        if (!this.hasSufficientZns) {
-            this.openZnsCostModal();
+        const allowed = await this._planLimits.ensureCanAdd("password", this._limitContext());
 
-            return;
-        }
+        if (!allowed) return;
 
+        await this._storePreparedPassword();
+    }
+
+    private async _recoverFromPlanLimit(error: unknown): Promise<void> {
+        const outcome = await this._planLimits.recoverFromSaveError(error, "password", this._limitContext());
+
+        if (outcome === "retry") this._openBiometricsBottomSheet();
+    }
+
+    private async _storePreparedPassword(): Promise<void> {
         const formValue = this.passwordForm.value;
 
         this.transformedPasswordData = {

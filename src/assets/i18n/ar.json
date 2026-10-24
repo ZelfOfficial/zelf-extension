@@ -434,6 +434,40 @@
             "error": {
                 "no_result": "لا توجد نتيجة API متاحة"
             }
+        },
+        "plan_limits": {
+            "usage_passwords": "{{used}} من {{limit}} كلمات مرور",
+            "usage_passwords_unlimited": "{{used}} كلمات مرور",
+            "usage_zotp": "{{used}} من {{limit}} حسابات المصادقة الثنائية",
+            "usage_zotp_unlimited": "{{used}} حسابات المصادقة الثنائية",
+            "usage_plan": "خطة {{plan}}",
+            "buy_slot_aria": "شراء خانة إضافية",
+            "checking": "جارٍ التحقق من خطتك…",
+            "plan": {
+                "free": "مجانية",
+                "premium": "بريميوم",
+                "unlimited": "غير محدودة"
+            },
+            "sheet": {
+                "title_passwords": "لقد استخدمت كل كلمات المرور الـ {{limit}} في خطة {{plan}}",
+                "title_zotp": "لقد استخدمت كل حسابات المصادقة الثنائية الـ {{limit}} في خطة {{plan}}",
+                "body": "تدوم الخانة الإضافية 12 شهرًا وتُدفع من رصيد ZNS.",
+                "balance": "الرصيد",
+                "balance_amount": "{{amount}} ZNS",
+                "balance_unavailable": "تعذر قراءة رصيد ZNS. يمكنك مع ذلك محاولة شراء خانة.",
+                "buy": "شراء خانة إضافية · {{cost}} ZNS",
+                "buy_busy": "جارٍ التحقق…",
+                "low_balance": "تحتاج إلى {{cost}} ZNS. رصيدك {{amount}} ZNS.",
+                "upgrade": "ترقية الخطة",
+                "password_label": "كلمة المرور الرئيسية",
+                "password_required": "أدخل كلمة المرور الرئيسية للمتابعة.",
+                "show_password": "إظهار كلمة المرور",
+                "hide_password": "إخفاء كلمة المرور",
+                "insufficient": "رصيدك لا يكفي لهذه الخانة.",
+                "purchase_failed": "تعذر شراء الخانة. حاول مرة أخرى.",
+                "face_title": "أكّد هويتك لشراء خانة",
+                "face_instructions": "امسح وجهك لدفع ثمن خانة إضافية."
+            }
         }
     },
     "cancel": "إلغاء",

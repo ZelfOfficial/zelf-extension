@@ -434,6 +434,40 @@
             "error": {
                 "no_result": "Результат API недоступен"
             }
+        },
+        "plan_limits": {
+            "usage_passwords": "{{used}} из {{limit}} паролей",
+            "usage_passwords_unlimited": "{{used}} паролей",
+            "usage_zotp": "{{used}} из {{limit}} аккаунтов 2FA",
+            "usage_zotp_unlimited": "{{used}} аккаунтов 2FA",
+            "usage_plan": "Тариф {{plan}}",
+            "buy_slot_aria": "Купить дополнительный слот",
+            "checking": "Проверяем тариф…",
+            "plan": {
+                "free": "Бесплатный",
+                "premium": "Premium",
+                "unlimited": "Безлимитный"
+            },
+            "sheet": {
+                "title_passwords": "Вы использовали все {{limit}} паролей тарифа {{plan}}",
+                "title_zotp": "Вы использовали все {{limit}} аккаунтов 2FA тарифа {{plan}}",
+                "body": "Дополнительный слот действует 12 месяцев и оплачивается с баланса ZNS.",
+                "balance": "Баланс",
+                "balance_amount": "{{amount}} ZNS",
+                "balance_unavailable": "Не удалось прочитать баланс ZNS. Вы всё ещё можете попробовать купить слот.",
+                "buy": "Купить ещё один слот · {{cost}} ZNS",
+                "buy_busy": "Проверка…",
+                "low_balance": "Нужно {{cost}} ZNS. Ваш баланс: {{amount}} ZNS.",
+                "upgrade": "Улучшить тариф",
+                "password_label": "Мастер-пароль",
+                "password_required": "Введите мастер-пароль, чтобы продолжить.",
+                "show_password": "Показать пароль",
+                "hide_password": "Скрыть пароль",
+                "insufficient": "Баланса недостаточно для этого слота.",
+                "purchase_failed": "Не удалось купить слот. Попробуйте ещё раз.",
+                "face_title": "Подтвердите личность, чтобы купить слот",
+                "face_instructions": "Отсканируйте лицо, чтобы оплатить дополнительный слот."
+            }
         }
     },
     "cancel": "Отмена",

@@ -566,6 +566,40 @@
             "error": {
                 "no_result": "No hay resultado de API disponible"
             }
+        },
+        "plan_limits": {
+            "usage_passwords": "{{used}} de {{limit}} contraseñas",
+            "usage_passwords_unlimited": "{{used}} contraseñas",
+            "usage_zotp": "{{used}} de {{limit}} cuentas 2FA",
+            "usage_zotp_unlimited": "{{used}} cuentas 2FA",
+            "usage_plan": "Plan {{plan}}",
+            "buy_slot_aria": "Comprar un espacio extra",
+            "checking": "Comprobando tu plan…",
+            "plan": {
+                "free": "Gratis",
+                "premium": "Premium",
+                "unlimited": "Ilimitado"
+            },
+            "sheet": {
+                "title_passwords": "Has usado las {{limit}} contraseñas del plan {{plan}}",
+                "title_zotp": "Has usado las {{limit}} cuentas 2FA del plan {{plan}}",
+                "body": "Un espacio extra dura 12 meses y se paga con tu saldo de ZNS.",
+                "balance": "Saldo",
+                "balance_amount": "{{amount}} ZNS",
+                "balance_unavailable": "No pudimos leer tu saldo de ZNS. Aún puedes intentar comprar un espacio.",
+                "buy": "Comprar un espacio más · {{cost}} ZNS",
+                "buy_busy": "Verificando…",
+                "low_balance": "Necesitas {{cost}} ZNS. Tu saldo es {{amount}} ZNS.",
+                "upgrade": "Mejorar plan",
+                "password_label": "Contraseña maestra",
+                "password_required": "Ingresa tu contraseña maestra para continuar.",
+                "show_password": "Mostrar contraseña",
+                "hide_password": "Ocultar contraseña",
+                "insufficient": "Tu saldo no alcanza para este espacio.",
+                "purchase_failed": "No pudimos comprar el espacio. Inténtalo de nuevo.",
+                "face_title": "Verifica tu identidad para comprar un espacio",
+                "face_instructions": "Escanea tu rostro para pagar un espacio extra."
+            }
         }
     },
     "cancel": "Cancelar",

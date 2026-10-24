@@ -11,6 +11,7 @@
     </div>
 
     <ng-container *ngIf="!showBiometrics">
+        <zelf-keys-plan-usage kind="zotp"></zelf-keys-plan-usage>
         <div class="form-content">
             <div [formGroup]="form" class="password-form__form">
                 <div class="password-form__credentials">

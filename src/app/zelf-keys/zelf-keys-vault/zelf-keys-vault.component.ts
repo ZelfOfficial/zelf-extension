@@ -14,6 +14,7 @@ import { WalletService } from "../../wallet.service";
 
 import { MatDialog, MatDialogModule } from "@angular/material/dialog";
 import { MatMenuModule } from "@angular/material/menu";
+import { ZelfKeysPlanUsageComponent } from "../plan-limits/zelf-keys-plan-usage.component";
 import { ExportKeyModalComponent } from "../shared/export-key-modal/export-key-modal.component";
 import { ImportVaultModalComponent } from "../shared/import-vault-modal/import-vault-modal.component";
 
@@ -27,7 +28,7 @@ export interface VaultItem {
 }
 
 @Component({
-    imports: [CommonModule, TranslocoModule, RouterModule, ReactiveFormsModule, MatDialogModule, MatMenuModule],
+    imports: [CommonModule, TranslocoModule, RouterModule, ReactiveFormsModule, MatDialogModule, MatMenuModule, ZelfKeysPlanUsageComponent],
     selector: "zelf-keys-vault",
     styleUrls: ["./zelf-keys-vault.component.scss"],
     templateUrl: "./zelf-keys-vault.component.html",

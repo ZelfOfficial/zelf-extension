@@ -434,6 +434,40 @@
             "error": {
                 "no_result": "کوئی API نتیجہ دستیاب نہیں ہے"
             }
+        },
+        "plan_limits": {
+            "usage_passwords": "{{used}} میں سے {{limit}} پاس ورڈ",
+            "usage_passwords_unlimited": "{{used}} پاس ورڈ",
+            "usage_zotp": "{{used}} میں سے {{limit}} 2FA اکاؤنٹس",
+            "usage_zotp_unlimited": "{{used}} 2FA اکاؤنٹس",
+            "usage_plan": "{{plan}} پلان",
+            "buy_slot_aria": "اضافی سلاٹ خریدیں",
+            "checking": "آپ کا پلان دیکھا جا رہا ہے…",
+            "plan": {
+                "free": "مفت",
+                "premium": "پریمیم",
+                "unlimited": "لامحدود"
+            },
+            "sheet": {
+                "title_passwords": "آپ نے {{plan}} پلان کے تمام {{limit}} پاس ورڈ استعمال کر لیے ہیں",
+                "title_zotp": "آپ نے {{plan}} پلان کے تمام {{limit}} 2FA اکاؤنٹس استعمال کر لیے ہیں",
+                "body": "اضافی سلاٹ 12 مہینے رہتا ہے اور آپ کے ZNS بیلنس سے ادا ہوتا ہے۔",
+                "balance": "بیلنس",
+                "balance_amount": "{{amount}} ZNS",
+                "balance_unavailable": "ZNS بیلنس نہیں پڑھا جا سکا۔ آپ پھر بھی سلاٹ خریدنے کی کوشش کر سکتے ہیں۔",
+                "buy": "ایک اور سلاٹ خریدیں · {{cost}} ZNS",
+                "buy_busy": "تصدیق ہو رہی ہے…",
+                "low_balance": "آپ کو {{cost}} ZNS چاہیے۔ آپ کا بیلنس {{amount}} ZNS ہے۔",
+                "upgrade": "پلان اپ گریڈ کریں",
+                "password_label": "ماسٹر پاس ورڈ",
+                "password_required": "جاری رکھنے کے لیے ماسٹر پاس ورڈ درج کریں۔",
+                "show_password": "پاس ورڈ دکھائیں",
+                "hide_password": "پاس ورڈ چھپائیں",
+                "insufficient": "اس سلاٹ کے لیے بیلنس کافی نہیں۔",
+                "purchase_failed": "سلاٹ نہیں خریدا جا سکا۔ دوبارہ کوشش کریں۔",
+                "face_title": "سلاٹ خریدنے کے لیے شناخت کی تصدیق کریں",
+                "face_instructions": "ایک اضافی سلاٹ کی ادائیگی کے لیے اپنا چہرہ اسکین کریں۔"
+            }
         }
     },
     "cancel": "منسوخ کریں",

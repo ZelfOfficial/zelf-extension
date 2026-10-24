@@ -15,6 +15,9 @@ import { protectionFromDecryptToggle, ZelfKeysProtection } from "app/models/zelf
 import { ZOTP } from "app/models/zotp.model";
 import { ZOTPService } from "app/services/zotp.service";
 import { TagModel, TagsService } from "app/tags.service";
+import { ZelfKeysPlanLimitCoordinator } from "app/zelf-keys/plan-limits/zelf-keys-plan-limit.coordinator";
+import { PlanLimitPurchaseContext } from "app/zelf-keys/plan-limits/zelf-keys-plan-limits.model";
+import { ZelfKeysPlanUsageComponent } from "app/zelf-keys/plan-limits/zelf-keys-plan-usage.component";
 import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
@@ -46,6 +49,7 @@ import { scrollableAncestor, scrollDeltaToRevealAboveBar, snackbarMarginBottom, 
         NgTemplateOutlet,
         ReactiveFormsModule,
         TranslocoModule,
+        ZelfKeysPlanUsageComponent,
         ZelfLoaderComponent,
     ],
     selector: "add-zotp",
@@ -85,6 +89,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         private _snackBar: MatSnackBar,
         private _tagsService: TagsService,
         private _translocoService: TranslocoService,
+        private _planLimits: ZelfKeysPlanLimitCoordinator,
         private _vaultService: VaultService,
         private _walletService: WalletService,
         private _zotpService: ZOTPService
@@ -594,6 +599,10 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             return;
         }
 
+        const allowed = await this._planLimits.ensureCanAdd("zotp", this._limitContext());
+
+        if (!allowed) return;
+
         try {
             // Get zelfProof from current wallet
             const zelfProof = await this._tagsService.getZelfProof();
@@ -678,6 +687,16 @@ export class AddZotpComponent implements OnInit, OnDestroy {
             // Successfully created - return to list
             void this._router.navigate(["/zelf-authenticator"]);
         } catch (error) {
+            const outcome = await this._planLimits.recoverFromSaveError(error, "zotp", this._limitContext());
+
+            if (outcome !== "not-limit") {
+                this._keepFormForRetry();
+
+                if (outcome === "retry") this.showBiometrics = true;
+
+                return;
+            }
+
             this._logZotpError("Error creating ZOTP", error);
             this._notify(extractZotpApiErrorMessage(error, this._translocoService));
             this._keepFormForRetry();
@@ -754,6 +773,13 @@ export class AddZotpComponent implements OnInit, OnDestroy {
         const err = error as { status?: number };
 
         console.error(label, { status: err?.status, code: resolveZotpServerErrorCode(error) || undefined });
+    }
+
+    private _limitContext(): PlanLimitPurchaseContext {
+        return {
+            hasMasterPassword: this.hasMasterPassword,
+            masterPassword: normalizeWalletMasterPassword(this.form.get("masterPassword")?.value),
+        };
     }
 
     /** Leave the camera, keep typed fields and the prepared ZOTP so Confirm scans again. */

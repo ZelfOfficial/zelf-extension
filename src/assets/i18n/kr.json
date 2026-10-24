@@ -434,6 +434,40 @@
             "error": {
                 "no_result": "사용 가능한 API 결과가 없습니다"
             }
+        },
+        "plan_limits": {
+            "usage_passwords": "비밀번호 {{used}}/{{limit}}",
+            "usage_passwords_unlimited": "비밀번호 {{used}}개",
+            "usage_zotp": "2FA 계정 {{used}}/{{limit}}",
+            "usage_zotp_unlimited": "2FA 계정 {{used}}개",
+            "usage_plan": "{{plan}} 플랜",
+            "buy_slot_aria": "추가 슬롯 구매",
+            "checking": "플랜을 확인하는 중…",
+            "plan": {
+                "free": "무료",
+                "premium": "프리미엄",
+                "unlimited": "무제한"
+            },
+            "sheet": {
+                "title_passwords": "{{plan}} 플랜의 비밀번호 {{limit}}개를 모두 사용했습니다",
+                "title_zotp": "{{plan}} 플랜의 2FA 계정 {{limit}}개를 모두 사용했습니다",
+                "body": "추가 슬롯은 12개월 동안 유지되며 ZNS 잔액으로 결제됩니다.",
+                "balance": "잔액",
+                "balance_amount": "{{amount}} ZNS",
+                "balance_unavailable": "ZNS 잔액을 읽지 못했습니다. 슬롯 구매는 시도할 수 있습니다.",
+                "buy": "슬롯 하나 더 구매 · {{cost}} ZNS",
+                "buy_busy": "확인 중…",
+                "low_balance": "{{cost}} ZNS가 필요합니다. 잔액은 {{amount}} ZNS입니다.",
+                "upgrade": "플랜 업그레이드",
+                "password_label": "마스터 비밀번호",
+                "password_required": "계속하려면 마스터 비밀번호를 입력하세요.",
+                "show_password": "비밀번호 표시",
+                "hide_password": "비밀번호 숨기기",
+                "insufficient": "이 슬롯을 구매하기에 잔액이 부족합니다.",
+                "purchase_failed": "슬롯을 구매하지 못했습니다. 다시 시도하세요.",
+                "face_title": "슬롯 구매를 위해 신원을 확인하세요",
+                "face_instructions": "추가 슬롯 결제를 위해 얼굴을 스캔하세요."
+            }
         }
     },
     "cancel": "취소",

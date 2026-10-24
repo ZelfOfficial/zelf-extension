@@ -11,9 +11,10 @@ import { AuthService } from "app/services/auth.service";
 import { ZOTP } from "app/models/zotp.model";
 import { ZotpDataService } from "app/services/zotp-data.service";
 import { ZOTPService } from "app/services/zotp.service";
+import { ZelfKeysPlanUsageComponent } from "app/zelf-keys/plan-limits/zelf-keys-plan-usage.component";
 
 @Component({
-    imports: [CommonModule, NgFor, NgIf, ReactiveFormsModule, TranslocoModule],
+    imports: [CommonModule, NgFor, NgIf, ReactiveFormsModule, TranslocoModule, ZelfKeysPlanUsageComponent],
     selector: "zelf-authenticator",
     styleUrls: ["./zelf-authenticator.component.scss"],
     templateUrl: "./zelf-authenticator.component.html",

@@ -11,6 +11,7 @@ import { WalletService } from "app/wallet.service";
 import { DecryptedItemData } from "../../../models/zelf-key-item.model";
 import { DataBiometricsComponent } from "../data-biometrics/data-biometrics.component";
 import { VaultService } from "app/vault.service";
+import { isPlanLimitReachedError } from "../../plan-limits/zelf-keys-plan-limits.util";
 
 export interface BiometricResult {
     faceBase64: string;
@@ -356,6 +357,13 @@ export class BiometricsBottomSheetComponent implements OnInit {
 
             this._bottomSheetRef.dismiss(biometricData);
         } catch (error: any) {
+            if (isPlanLimitReachedError(error)) {
+                this.isLoading = false;
+                this._bottomSheetRef.dismiss({ planLimitReached: error });
+
+                return;
+            }
+
             console.error(`Error storing ${this.itemType} data:`, error);
 
             this.isLoading = false;

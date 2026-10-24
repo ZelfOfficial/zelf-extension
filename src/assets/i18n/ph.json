@@ -434,6 +434,40 @@
             "error": {
                 "no_result": "Walang available na API result"
             }
+        },
+        "plan_limits": {
+            "usage_passwords": "{{used}} sa {{limit}} password",
+            "usage_passwords_unlimited": "{{used}} password",
+            "usage_zotp": "{{used}} sa {{limit}} 2FA account",
+            "usage_zotp_unlimited": "{{used}} 2FA account",
+            "usage_plan": "Planong {{plan}}",
+            "buy_slot_aria": "Bumili ng dagdag na slot",
+            "checking": "Tinitingnan ang iyong plan…",
+            "plan": {
+                "free": "Libre",
+                "premium": "Premium",
+                "unlimited": "Walang limitasyon"
+            },
+            "sheet": {
+                "title_passwords": "Nagamit mo na ang lahat ng {{limit}} password sa planong {{plan}}",
+                "title_zotp": "Nagamit mo na ang lahat ng {{limit}} 2FA account sa planong {{plan}}",
+                "body": "Ang dagdag na slot ay tumatagal ng 12 buwan at binabayaran mula sa ZNS balance mo.",
+                "balance": "Balanse",
+                "balance_amount": "{{amount}} ZNS",
+                "balance_unavailable": "Hindi mabasa ang ZNS balance. Maaari mo pa ring subukang bumili ng slot.",
+                "buy": "Bumili ng isa pang slot · {{cost}} ZNS",
+                "buy_busy": "Vine-verify…",
+                "low_balance": "Kailangan mo ng {{cost}} ZNS. Ang balanse mo ay {{amount}} ZNS.",
+                "upgrade": "I-upgrade ang plan",
+                "password_label": "Master password",
+                "password_required": "Ilagay ang master password para magpatuloy.",
+                "show_password": "Ipakita ang password",
+                "hide_password": "Itago ang password",
+                "insufficient": "Hindi sapat ang balanse para sa slot na ito.",
+                "purchase_failed": "Hindi nabili ang slot. Subukan muli.",
+                "face_title": "I-verify ang pagkakakilanlan para bumili ng slot",
+                "face_instructions": "I-scan ang mukha mo para bayaran ang dagdag na slot."
+            }
         }
     },
     "cancel": "Kanselahin",

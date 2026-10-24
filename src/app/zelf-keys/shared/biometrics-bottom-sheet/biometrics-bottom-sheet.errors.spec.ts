@@ -37,4 +37,44 @@ describe("BiometricsBottomSheetComponent API errors (decrypt audit)", () => {
     it("falls back for unknown errors instead of showing raw text", () => {
         expect(t(make(), { status: 409, error: { message: "failed_to_decrypt", code: "Conflict" } })).toBe("Fallback");
     });
+
+    it("closes the face sheet on ERR_PLAN_LIMIT_REACHED instead of the generic storage error", async () => {
+        const dismiss = jasmine.createSpy("dismiss");
+        const storePasswordWithAuth = jasmine.createSpy("storePasswordWithAuth").and.rejectWith({
+            status: 409,
+            error: {
+                message: "Plan limit reached",
+                code: "ERR_PLAN_LIMIT_REACHED",
+                kind: "password",
+                count: 5,
+                limit: 5,
+                plan: "free",
+                tokenCost: 10,
+            },
+        });
+        const component = new BiometricsBottomSheetComponent(
+            {
+                itemData: { email: "a@a.com", password: "secret", url: "https://example.com" },
+                itemType: "password",
+                mode: "encrypt",
+            } as any,
+            { dismiss } as any,
+            { detectChanges() {} } as any,
+            {} as any,
+            new ErrorService(transloco),
+            transloco,
+            {} as any,
+            {} as any,
+            { storePasswordWithAuth } as any
+        );
+
+        component.wallet = { zelfProof: "proof", hasPassword: false };
+
+        await component.onBiometricsSuccess({ faceBase64: "face" });
+
+        expect(storePasswordWithAuth).toHaveBeenCalled();
+        expect(dismiss).toHaveBeenCalledWith(jasmine.objectContaining({ planLimitReached: jasmine.anything() }));
+        expect(component.hasStorageError).toBeFalse();
+        expect(component.errorMessage).toBe("");
+    });
 });

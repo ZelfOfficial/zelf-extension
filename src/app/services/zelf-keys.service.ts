@@ -3,6 +3,8 @@ import { environment } from "environments/environment";
 import { HttpWrapperService } from "../http-wrapper.service";
 import { AuthService } from "./auth.service";
 import { FaceApiService } from "./face-api/face-api.service";
+import { ZelfKeysLimitsFetch } from "app/zelf-keys/plan-limits/zelf-keys-plan-limits.model";
+import { isLimitsUnsupportedError, parseLimitsPayload } from "app/zelf-keys/plan-limits/zelf-keys-plan-limits.util";
 
 /**
  * Interface for storing a password via ZelfKeys API
@@ -184,6 +186,45 @@ export class ZelfKeysService {
      * @param request - Store password request with all required fields
      * @returns Promise with the stored item response (wrapped in { data })
      */
+    /**
+     * Plan, counts, and spendable ZNS for password and 2FA slots.
+     * 404 means this API build has no /limits route yet.
+     */
+    async getVaultLimits(): Promise<ZelfKeysLimitsFetch> {
+        try {
+            const token = await this._authService.checkAccessToken();
+            const response = await this._httpWrapper.sendRequest("get", `${this.baseUrl}${this.apiPath}/limits`, {}, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            const limits = parseLimitsPayload(response);
+
+            if (!limits) return { status: "error" };
+
+            return { status: "ok", limits };
+        } catch (error) {
+            if (isLimitsUnsupportedError(error)) return { status: "unsupported" };
+
+            return { status: "error" };
+        }
+    }
+
+    /**
+     * Spend ZNS for one extra password or 2FA slot (12 months).
+     * Face verification matches a key save.
+     */
+    async purchaseExtraSlot(request: {
+        kind: "password" | "zotp";
+        idempotencyKey: string;
+        faceBase64: string;
+        masterPassword?: string;
+    }): Promise<any> {
+        const token = await this._authService.checkAccessToken();
+
+        return this._postWithFace("purchase-slot", `${this.baseUrl}${this.apiPath}/slots`, request, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+    }
+
     async storePassword(request: StorePasswordRequest): Promise<any> {
         const url = `${this.baseUrl}${this.apiPath}/store/password`;
 

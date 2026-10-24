@@ -35,6 +35,7 @@ export type FaceApiAction =
     | "store-zotp"
     | "store-notes"
     | "store-credit-card"
+    | "purchase-slot"
     | "daily-reward";
 
 export interface FaceRequestContext {
