@@ -65,6 +65,8 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
     isActiveDebug!: Boolean;
 
     aspectRatio = 0.75;
+    /** DOM oval so the guide stays visible when a dark color-scheme hides the canvas stroke. */
+    ovalGuide: { left: number; top: number; width: number; height: number } | null = null;
     camera!: CameraData;
     deviceData: any;
     direction!: directionImage;
@@ -233,6 +235,7 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
 
         maskResultCanvas.height = videoDim.height;
         maskResultCanvas.width = videoDim.width;
+        maskResultCanvas.style.colorScheme = "only light";
 
         const ctx: CanvasRenderingContext2D = maskResultCanvas.getContext("2d");
 
@@ -253,14 +256,7 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         ctx.closePath();
         ctx.globalCompositeOperation = "source-over";
 
-        if (portrait && radius?.x && radius?.y) {
-            ctx.beginPath();
-            ctx.ellipse(center.x, center.y, radius.x, radius.y, 0, 0, 2 * Math.PI);
-            ctx.lineWidth = 3;
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.92)";
-            ctx.stroke();
-            ctx.closePath();
-        }
+        this._syncOvalGuide();
     }
 
     private _drawStatusOval(ctx: any, isOk?: any): void {
@@ -581,6 +577,28 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         dimensions.offsetX = center.x - dimensions.width / 2;
     }
 
+    private _syncOvalGuide(): void {
+        if (this.displayMode !== "portrait") {
+            this.ovalGuide = null;
+            return;
+        }
+
+        const { width, height } = this.camera?.dimensions?.video || {};
+        const { center, radius } = this.face?.video || {};
+
+        if (!width || !height || !center || !radius?.x || !radius?.y) {
+            this.ovalGuide = null;
+            return;
+        }
+
+        this.ovalGuide = {
+            left: ((center.x - radius.x) / width) * 100,
+            top: ((center.y - radius.y) / height) * 100,
+            width: ((radius.x * 2) / width) * 100,
+            height: ((radius.y * 2) / height) * 100,
+        };
+    }
+
     /** 720p or higher when the camera can provide it. Portrait previews cover this landscape frame. */
     private _cameraConfiguration(isLandscape: boolean): CameraData["configuration"] {
         if (this.displayMode === "portrait") {
@@ -617,6 +635,8 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
             this.face.video.radius.x *= 0.82;
             this.face.video.radius.y *= 0.82;
         }
+
+        this._syncOvalGuide();
 
         const maskResultCanvas = this.maskResultCanvasRef?.nativeElement;
 

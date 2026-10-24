@@ -111,6 +111,11 @@ video {
     object-fit: cover;
 }
 
+/* Dark color-scheme otherwise drops this canvas (oval guide and mask) in Chrome. */
+canvas {
+    color-scheme: only light;
+}
+
 .p-4 {
     padding: calc(1rem * var(--zns-space-scale, 1));
 }
@@ -193,6 +198,18 @@ video {
     canvas {
         z-index: 2;
         pointer-events: none;
+    }
+
+    .biometric__oval {
+        position: absolute;
+        z-index: 4;
+        box-sizing: border-box;
+        pointer-events: none;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        box-shadow:
+            0 0 0 1px rgba(0, 0, 0, 0.55),
+            inset 0 0 0 1px rgba(0, 0, 0, 0.35);
     }
 
     ::ng-deep webcam,
