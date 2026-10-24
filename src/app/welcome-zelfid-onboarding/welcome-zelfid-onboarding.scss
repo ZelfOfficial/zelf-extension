@@ -24,6 +24,17 @@
 // Reserve ~96px of the viewport and subtract the chrome so the frame stays centred.
 :host-context(.main-div--fullscreen) {
     --welcome-onboarding-height: clamp(620px, calc((100vh - 96px) / var(--welcome-onboarding-scale) - 84px), 852px);
+
+    // The device is content-box, so 72px of padding and 12px of border sit outside
+    // the height token. Include that chrome in the layout box; otherwise a short
+    // window clips the top of the frame and the overflow cannot be scrolled to.
+    .carousel__item {
+        height: calc((var(--welcome-onboarding-height) + 84px) * var(--welcome-onboarding-scale));
+    }
+
+    .carousel__item-container {
+        min-height: calc((var(--welcome-onboarding-height) + 84px) * var(--welcome-onboarding-scale));
+    }
 }
 
 // Short viewports no longer have room for the 852px artboard's top gap.
@@ -229,8 +240,8 @@
 
     &__device-bottom-glow {
         background: linear-gradient(180deg, rgba(255, 150, 102, 0) 0%, rgba(255, 135, 86, 0.14) 34%, rgba(255, 122, 69, 0.26) 100%);
-        bottom: 146px;
-        height: 222px;
+        bottom: 0;
+        height: 368px;
         left: 0;
         pointer-events: none;
         position: absolute;
