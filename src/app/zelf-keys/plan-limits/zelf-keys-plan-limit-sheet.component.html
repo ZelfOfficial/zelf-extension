@@ -13,6 +13,7 @@
     <div class="plan-limit__body">
         <h1 class="plan-limit__title">{{ title }}</h1>
         <p class="plan-limit__plan" *ngIf="planStatus">{{ planStatus }}</p>
+        <p class="plan-limit__note" *ngIf="showPlanKeepsName">{{ t("zelf_keys.plan_limits.sheet.plan_keeps_name") }}</p>
         <p class="plan-limit__text" *ngIf="slotsNeeded === 1">{{ t("zelf_keys.plan_limits.sheet.body") }}</p>
         <p class="plan-limit__text" *ngIf="slotsNeeded > 1">
             {{ t("zelf_keys.plan_limits.sheet.over_body", { count: slotsNeeded, cost: costText }) }}

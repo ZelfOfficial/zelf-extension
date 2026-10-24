@@ -608,7 +608,7 @@
                 "low_balance": "You need {{cost}} ZNS. Your balance is {{amount}} ZNS.",
                 "upgrade": "Upgrade plan",
                 "upgrade_note": "Compare Free, Premium, and Unlimited on zelf.world.",
-                "plan_status": "{{plan}} plan · expires {{date}}",
+                "plan_status": "{{plan}} plan · until {{date}}",
                 "plan_status_open": "{{plan}} plan · no expiration",
                 "expires": "Expires {{date}}",
                 "mobile_note": "Upgrade in the Zelf app on the App Store or Google Play.",
@@ -622,7 +622,8 @@
                 "face_title": "Verify identity to buy a slot",
                 "face_instructions": "Scan your face to pay for one extra slot.",
                 "partial_one": "Added 1 slot. Verify again to buy the rest.",
-                "partial_other": "Added {{count}} slots. Verify again to buy the rest."
+                "partial_other": "Added {{count}} slots. Verify again to buy the rest.",
+                "plan_keeps_name": "Your name stays yours. The plan drops back to Free when it ends."
             }
         }
     },

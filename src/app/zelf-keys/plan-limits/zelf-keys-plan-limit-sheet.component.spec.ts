@@ -14,7 +14,7 @@ describe("ZelfKeysPlanLimitSheetComponent", () => {
             if (key === "zelf_keys.plan_limits.sheet.title_over_passwords") {
                 return `You have ${params?.["used"]} of ${params?.["limit"]} passwords on the ${params?.["plan"]} plan`;
             }
-            if (key === "zelf_keys.plan_limits.sheet.plan_status") return `${params?.["plan"]} plan · expires ${params?.["date"]}`;
+            if (key === "zelf_keys.plan_limits.sheet.plan_status") return `${params?.["plan"]} plan · until ${params?.["date"]}`;
             if (key === "zelf_keys.plan_limits.sheet.plan_status_open") return `${params?.["plan"]} plan · no expiration`;
             if (key === "zelf_keys.plan_limits.usage_plan") return `${params?.["plan"]} plan`;
             if (key === "zelf_keys.plan_limits.sheet.partial_one") return "Added 1 slot. Verify again to buy the rest.";
@@ -151,12 +151,15 @@ describe("ZelfKeysPlanLimitSheetComponent", () => {
         const myPlan: ZelfIdMyPlan = {
             plan: "premium",
             duration: "1y",
+            planExpiresAt: "2027-10-24T00:00:00.000Z",
+            leaseExpiresAt: "2030-01-01T00:00:00.000Z",
             expiresAt: "2027-10-24T00:00:00.000Z",
             upgrade: { action: "checkout", url: checkout },
         };
         const { component, close } = sheet({ myPlan });
 
-        expect(component.planStatus).toBe("Premium plan · expires Oct 24, 2027");
+        expect(component.planStatus).toBe("Premium plan · until Oct 24, 2027");
+        expect(component.showPlanKeepsName).toBeTrue();
         expect(component.showUpgradeButton).toBeTrue();
         expect(component.showPricingNote).toBeFalse();
         expect(component.showMobileNote).toBeFalse();
@@ -171,6 +174,8 @@ describe("ZelfKeysPlanLimitSheetComponent", () => {
             myPlan: {
                 plan: "unlimited",
                 duration: "lifetime",
+                planExpiresAt: null,
+                leaseExpiresAt: null,
                 expiresAt: null,
                 upgrade: { action: "none", url: null },
             },
@@ -189,6 +194,8 @@ describe("ZelfKeysPlanLimitSheetComponent", () => {
             myPlan: {
                 plan: "premium",
                 duration: "1y",
+                planExpiresAt: "2027-10-24T00:00:00.000Z",
+                leaseExpiresAt: null,
                 expiresAt: "2027-10-24T00:00:00.000Z",
                 upgrade: { action: "mobile_store", url: null },
             },
@@ -200,5 +207,21 @@ describe("ZelfKeysPlanLimitSheetComponent", () => {
         component.upgrade();
 
         expect(close).not.toHaveBeenCalled();
+    });
+
+    it("shows Free as no expiration even when the name lease has a date", () => {
+        const { component } = sheet({
+            myPlan: {
+                plan: "free",
+                duration: "1y",
+                planExpiresAt: null,
+                leaseExpiresAt: "2126-10-24T00:00:00.000Z",
+                expiresAt: null,
+                upgrade: { action: "checkout", url: "https://zelf.world/pricing?plan=premium" },
+            },
+        });
+
+        expect(component.planStatus).toBe("Free plan · no expiration");
+        expect(component.showPlanKeepsName).toBeFalse();
     });
 });

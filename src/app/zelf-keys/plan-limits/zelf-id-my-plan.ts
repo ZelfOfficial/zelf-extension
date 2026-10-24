@@ -4,6 +4,8 @@ import { normalizeZelfName } from "app/core/utils/zelf-name.util";
  * GET /api/zelf-ids/my-plan (zelf-online-version #209).
  * The body is the plan object itself (not wrapped in `data`). `zelfName` is a required query.
  * `upgrade.action` is stripe_portal, checkout, mobile_store, or none. `url` is only set for the first two.
+ * `planExpiresAt` is when the paid plan ends. `leaseExpiresAt` is the name's lease.
+ * `expiresAt` is an alias of `planExpiresAt`.
  */
 
 export const ZELF_ID_PRICING_URL = "https://zelf.world/pricing";
@@ -14,6 +16,11 @@ export interface ZelfIdMyPlan {
     plan: string | null;
     /** Lease duration from the API, such as `1y` or `lifetime`. */
     duration: string | null;
+    /** When the paid plan ends. Absent on Free. */
+    planExpiresAt: string | null;
+    /** When the Zelf name's lease ends. Not shown on the plan line. */
+    leaseExpiresAt: string | null;
+    /** Alias of `planExpiresAt`. */
     expiresAt: string | null;
     upgrade: {
         action: ZelfIdUpgradeAction;
@@ -49,10 +56,14 @@ export function parseMyPlan(payload: unknown): ZelfIdMyPlan | null {
     const rawUrl = (upgrade as { url?: unknown }).url;
     const url = typeof rawUrl === "string" && rawUrl.trim() ? rawUrl.trim() : null;
 
+    const planExpiresAt = readPlanExpiresAt(source);
+
     return {
         plan: readPlan(source),
         duration: readDuration(source),
-        expiresAt: readExpiry(source),
+        planExpiresAt,
+        leaseExpiresAt: readDate(source["leaseExpiresAt"]),
+        expiresAt: planExpiresAt,
         upgrade: { action: action as ZelfIdUpgradeAction, url },
     };
 }
@@ -111,17 +122,37 @@ export function resolveMyPlanZelfName(input: {
     return normalizeZelfName(input.walletTag, input.walletDomain || "zelf").zelfName || null;
 }
 
-/** Far-future free leases (about 100 years) and lifetime plans read as no expiration. */
+/**
+ * Plan line date. Free, lifetime, and a missing plan end read as no expiration.
+ * Uses `planExpiresAt`, then `expiresAt`. The name lease is not included.
+ */
+export function planEndLabel(
+    plan: Pick<ZelfIdMyPlan, "plan" | "duration" | "planExpiresAt" | "expiresAt"> | null,
+    now = Date.now(),
+    locale = "en-US"
+): { kind: "date"; label: string } | { kind: "open" } | null {
+    if (!plan?.plan) return null;
+
+    const name = plan.plan.trim().toLowerCase();
+    const duration = String(plan.duration || "")
+        .trim()
+        .toLowerCase();
+
+    if (name === "free" || duration === "lifetime" || duration === "999") return { kind: "open" };
+
+    const raw = plan.planExpiresAt || plan.expiresAt;
+
+    if (!raw) return { kind: "open" };
+
+    return planExpiryLabel(raw, now, locale) ?? { kind: "open" };
+}
+
+/** Far-future dates (about 100 years) and unreadable values are not shown as a plan end. */
 export function planExpiryLabel(
     expiresAt: string | null,
     now = Date.now(),
-    locale = "en-US",
-    duration?: string | null
+    locale = "en-US"
 ): { kind: "date"; label: string } | { kind: "open" } | null {
-    const rawDuration = String(duration || "").trim().toLowerCase();
-
-    if (rawDuration === "lifetime" || rawDuration === "999") return { kind: "open" };
-
     if (!expiresAt) return null;
 
     const date = new Date(expiresAt);
@@ -169,9 +200,11 @@ function readDuration(source: Record<string, unknown>): string | null {
     return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
-function readExpiry(source: Record<string, unknown>): string | null {
-    const value = source["expiresAt"] ?? source["expiry"] ?? source["expires"];
+function readPlanExpiresAt(source: Record<string, unknown>): string | null {
+    return readDate(source["planExpiresAt"]) ?? readDate(source["expiresAt"]) ?? readDate(source["expiry"]) ?? readDate(source["expires"]);
+}
 
+function readDate(value: unknown): string | null {
     return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 

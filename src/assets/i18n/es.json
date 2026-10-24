@@ -608,13 +608,14 @@
                 "over_body": "Un espacio no alcanza. Necesitas {{count}} espacios más ({{cost}} ZNS) para poder añadir otro. Cada uno dura 12 meses.",
                 "buy_many": "Comprar {{count}} espacios · {{cost}} ZNS",
                 "upgrade_note": "Compara Gratis, Premium e Ilimitado en zelf.world.",
-                "plan_status": "Plan {{plan}} · vence el {{date}}",
+                "plan_status": "Plan {{plan}} · hasta el {{date}}",
                 "plan_status_open": "Plan {{plan}} · sin vencimiento",
                 "expires": "Vence el {{date}}",
                 "mobile_note": "Mejora el plan en la app de Zelf, en App Store o Google Play.",
                 "partial": "Se añadieron {{count}} espacios. Verifica de nuevo para comprar el resto.",
                 "partial_one": "Se añadió 1 espacio. Verifica de nuevo para comprar el resto.",
-                "partial_other": "Se añadieron {{count}} espacios. Verifica de nuevo para comprar el resto."
+                "partial_other": "Se añadieron {{count}} espacios. Verifica de nuevo para comprar el resto.",
+                "plan_keeps_name": "El nombre sigue siendo tuyo. El plan vuelve a Gratis cuando termina."
             }
         }
     },

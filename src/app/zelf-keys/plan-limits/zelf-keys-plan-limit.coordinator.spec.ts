@@ -184,6 +184,8 @@ describe("ZelfKeysPlanLimitCoordinator", () => {
         const { coordinator, dialogOpen, getMyPlan } = setup({
             plan: "premium",
             duration: "1y",
+            planExpiresAt: "2027-10-24T18:00:00.000Z",
+            leaseExpiresAt: null,
             expiresAt: "2027-10-24T18:00:00.000Z",
             upgrade: { action: "stripe_portal", url: portal },
         });

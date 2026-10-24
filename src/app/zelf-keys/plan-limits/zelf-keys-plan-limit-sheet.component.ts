@@ -8,7 +8,7 @@ import {
     PlanLimitPurchaseResult,
     ZelfKeysSlotKind,
 } from "./zelf-keys-plan-limits.model";
-import { dateLocale, planExpiryLabel, upgradeTarget, ZELF_ID_PRICING_URL, ZelfIdMyPlan } from "./zelf-id-my-plan";
+import { dateLocale, planEndLabel, upgradeTarget, ZELF_ID_PRICING_URL, ZelfIdMyPlan } from "./zelf-id-my-plan";
 import { createSlotIdempotencyKey, formatZns, slotAffordability, slotsNeededToAdd, translatedPlanName } from "./zelf-keys-plan-limits.util";
 
 export interface PlanLimitSheetData {
@@ -106,14 +106,14 @@ export class ZelfKeysPlanLimitSheetComponent {
         return target.kind === "url" && (!this.myPlan || target.url === ZELF_ID_PRICING_URL);
     }
 
+    /** Paid plan with an end date. The name stays; the plan returns to Free. */
+    get showPlanKeepsName(): boolean {
+        return this._planEnd?.kind === "date";
+    }
+
     get planStatus(): string | null {
         const planName = this.myPlan?.plan ? translatedPlanName(this.myPlan.plan, (key) => this._transloco.translate(key)) : "";
-        const expiry = planExpiryLabel(
-            this.myPlan?.expiresAt ?? null,
-            Date.now(),
-            dateLocale(this._transloco.getActiveLang()),
-            this.myPlan?.duration
-        );
+        const expiry = this._planEnd;
 
         if (planName && expiry?.kind === "date") {
             return this._transloco.translate("zelf_keys.plan_limits.sheet.plan_status", { plan: planName, date: expiry.label });
@@ -125,11 +125,22 @@ export class ZelfKeysPlanLimitSheetComponent {
 
         if (planName) return this._transloco.translate("zelf_keys.plan_limits.usage_plan", { plan: planName });
 
-        if (expiry?.kind === "date") {
-            return this._transloco.translate("zelf_keys.plan_limits.sheet.expires", { date: expiry.label });
-        }
-
         return null;
+    }
+
+    private get _planEnd() {
+        if (!this.myPlan) return null;
+
+        return planEndLabel(
+            {
+                plan: this.myPlan.plan,
+                duration: this.myPlan.duration,
+                planExpiresAt: this.myPlan.planExpiresAt ?? null,
+                expiresAt: this.myPlan.expiresAt,
+            },
+            Date.now(),
+            dateLocale(this._transloco.getActiveLang())
+        );
     }
 
     get title(): string {

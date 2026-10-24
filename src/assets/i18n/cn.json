@@ -473,13 +473,14 @@
                 "over_body": "一个名额不够。你还需要 {{count}} 个名额（{{cost}} ZNS）才能再添加。每个名额有效期 12 个月。",
                 "buy_many": "购买 {{count}} 个名额 · {{cost}} ZNS",
                 "upgrade_note": "在 zelf.world 比较免费、高级和无限方案。",
-                "plan_status": "{{plan}} 方案 · {{date}} 到期",
+                "plan_status": "{{plan}} 方案 · 至 {{date}}",
                 "plan_status_open": "{{plan}} 方案 · 无到期日",
                 "expires": "{{date}} 到期",
                 "mobile_note": "请在 Zelf 手机应用（App Store 或 Google Play）中升级。",
                 "partial": "已添加 {{count}} 个名额。请再次验证以购买剩余名额。",
                 "partial_one": "已添加 1 个名额。请再次验证以购买剩余名额。",
-                "partial_other": "已添加 {{count}} 个名额。请再次验证以购买剩余名额。"
+                "partial_other": "已添加 {{count}} 个名额。请再次验证以购买剩余名额。",
+                "plan_keeps_name": "名称仍归你所有。到期后方案会回到免费。"
             }
         },
         "vault": {
