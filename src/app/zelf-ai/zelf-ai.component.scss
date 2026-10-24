@@ -24,8 +24,8 @@
     justify-content: space-between;
     width: 100%;
     max-width: var(--zns-card-width, 536px);
-    height: calc(100vh - 164px);
-    min-height: calc(100vh - 164px);
+    height: 100vh;
+    min-height: 100vh;
     margin: 0 auto;
     box-sizing: border-box;
     overflow: hidden;
@@ -36,8 +36,8 @@
 
     @media screen and (max-width: variables.$medium) {
         max-width: 100%;
-        height: calc(100vh - 60px);
-        min-height: calc(100vh - 60px);
+        height: 100vh;
+        min-height: 100vh;
         border: none;
         border-radius: 0 !important;
         box-shadow: none;
