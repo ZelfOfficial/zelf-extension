@@ -77,7 +77,10 @@
             "import_success_title": "Importación completa",
             "import_success_desc": "{{count}} contraseña(s) aseguradas en tu bóveda.",
             "import_failed_notice": "{{count}} elemento(s) no se pudieron importar:",
-            "import_done_btn": "Listo"
+            "import_done_btn": "Listo",
+            "reverify_title": "Vuelve a verificar para ver tus elementos",
+            "reverify_description": "Esta sesión aún no puede abrir tu bóveda. Verifica tu rostro de nuevo para cargar tus contraseñas y tarjetas.",
+            "reverify_action": "Verificar de nuevo"
         },
         "common": {
             "qr_code": "Código QR",
@@ -338,7 +341,8 @@
             "errors": {
                 "no_face_detected": "No se detectó rostro",
                 "look_at_camera": "Por favor, mire a la cámara"
-            }
+            },
+            "storing": "Guardando…"
         },
         "subscription_banner": {
             "title": "Desbloquear funciones premium",
@@ -565,6 +569,53 @@
             },
             "error": {
                 "no_result": "No hay resultado de API disponible"
+            }
+        },
+        "plan_limits": {
+            "usage_passwords": "{{used}} de {{limit}} contraseñas",
+            "usage_passwords_unlimited": "{{used}} contraseñas",
+            "usage_zotp": "{{used}} de {{limit}} cuentas 2FA",
+            "usage_zotp_unlimited": "{{used}} cuentas 2FA",
+            "usage_plan": "Plan {{plan}}",
+            "buy_slot_aria": "Comprar un espacio extra",
+            "checking": "Comprobando tu plan…",
+            "plan": {
+                "free": "Gratis",
+                "premium": "Premium",
+                "unlimited": "Ilimitado"
+            },
+            "sheet": {
+                "title_passwords": "Has usado las {{limit}} contraseñas del plan {{plan}}",
+                "title_zotp": "Has usado las {{limit}} cuentas 2FA del plan {{plan}}",
+                "body": "Un espacio extra dura 12 meses y se paga con tu saldo de ZNS.",
+                "balance": "Saldo",
+                "balance_amount": "{{amount}} ZNS",
+                "balance_unavailable": "No pudimos leer tu saldo de ZNS. Aún puedes intentar comprar un espacio.",
+                "buy": "Comprar un espacio más · {{cost}} ZNS",
+                "buy_busy": "Verificando…",
+                "low_balance": "Necesitas {{cost}} ZNS. Tu saldo es {{amount}} ZNS.",
+                "upgrade": "Mejorar plan",
+                "password_label": "Contraseña maestra",
+                "password_required": "Ingresa tu contraseña maestra para continuar.",
+                "show_password": "Mostrar contraseña",
+                "hide_password": "Ocultar contraseña",
+                "insufficient": "Tu saldo no alcanza para este espacio.",
+                "purchase_failed": "No pudimos comprar el espacio. Inténtalo de nuevo.",
+                "face_title": "Verifica tu identidad para comprar un espacio",
+                "face_instructions": "Escanea tu rostro para pagar un espacio extra.",
+                "title_over_passwords": "Tienes {{used}} de {{limit}} contraseñas en el plan {{plan}}",
+                "title_over_zotp": "Tienes {{used}} de {{limit}} cuentas 2FA en el plan {{plan}}",
+                "over_body": "Un espacio no alcanza. Necesitas {{count}} espacios más ({{cost}} ZNS) para poder añadir otro. Cada uno dura 12 meses.",
+                "buy_many": "Comprar {{count}} espacios · {{cost}} ZNS",
+                "upgrade_note": "Compara Gratis, Premium e Ilimitado en zelf.world.",
+                "plan_status": "Plan {{plan}} · hasta el {{date}}",
+                "plan_status_open": "Plan {{plan}} · sin vencimiento",
+                "expires": "Vence el {{date}}",
+                "mobile_note": "Mejora el plan en la app de Zelf, en App Store o Google Play.",
+                "partial": "Se añadieron {{count}} espacios. Verifica de nuevo para comprar el resto.",
+                "partial_one": "Se añadió 1 espacio. Verifica de nuevo para comprar el resto.",
+                "partial_other": "Se añadieron {{count}} espacios. Verifica de nuevo para comprar el resto.",
+                "plan_keeps_name": "El nombre sigue siendo tuyo. El plan vuelve a Gratis cuando termina."
             }
         }
     },

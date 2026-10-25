@@ -1,7 +1,7 @@
 <div class="password-decryptor" *transloco="let t">
     <section *ngIf="checkingZns" class="password-decryptor__loading password-decryptor__loading--zns" role="status">
         <mat-spinner diameter="30"></mat-spinner>
-        <p>{{ t("zelf_keys.popout_decryptor.checking_zns") }}</p>
+        <p>{{ t("zelf_keys.plan_limits.checking") }}</p>
     </section>
 
     <form *ngIf="awaitingMasterPassword && !checkingZns" class="master-password-sheet" (ngSubmit)="continueToBiometrics()">

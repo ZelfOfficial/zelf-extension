@@ -20,8 +20,8 @@ import { TagModel } from "app/tags.service";
 import { ThemeService } from "app/theme.service";
 import { VaultService } from "app/vault.service";
 import { SuperappPendingKeysOperation, ZelfKeysOperationAction } from "@shared/types/superapp.types";
-import { SolanaService } from "app/solana.service";
-import { environment } from "environments/environment";
+import { ZelfKeysPlanLimitCoordinator } from "app/zelf-keys/plan-limits/zelf-keys-plan-limit.coordinator";
+import { isPlanLimitReachedError } from "app/zelf-keys/plan-limits/zelf-keys-plan-limits.util";
 import { PopoutCommunicationService } from "../services/popout-communication.service";
 import { WalletService } from "../wallet.service";
 
@@ -99,7 +99,6 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
     superappResult: Record<string, any> | null = null;
     awaitingMasterPassword = false;
     checkingZns = false;
-    znsCheckFailed = false;
     masterPassword = "";
     showMasterPassword = false;
 
@@ -117,8 +116,8 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         private _errorService: ErrorService,
         private _httpWrapperService: HttpWrapperService,
         private _popoutCommunicationService: PopoutCommunicationService,
+        private _planLimits: ZelfKeysPlanLimitCoordinator,
         private _router: Router,
-        private _solanaService: SolanaService,
         private _themeService: ThemeService,
         private _translocoService: TranslocoService,
         private _vaultService: VaultService,
@@ -139,7 +138,7 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         this._setupCloseMessageListener();
 
         if (this.superappAction === "create") {
-            await this._gateCreateOnZnsBalance();
+            await this._gateCreateOnPlan();
             return;
         }
 
@@ -257,64 +256,74 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         this._changeDetectorRef.detectChanges();
     }
 
-    private async _gateCreateOnZnsBalance(): Promise<void> {
+    /** Cards are not capped. Passwords use /limits, and a 404 keeps the previous save path. */
+    private async _gateCreateOnPlan(): Promise<void> {
+        const isCard = this._pendingSuperappOperation?.kind === "credit_card";
+
         this.checkingZns = true;
-        this.znsCheckFailed = false;
         this.error = null;
         this._changeDetectorRef.detectChanges();
 
-        const result = await this._checkCreateZnsBalance();
-        this.checkingZns = false;
-
-        if (result === "ok") {
-            await this._continueSecureFlow();
-            return;
-        }
-
-        if (result === "insufficient") {
-            const message = this._translocoService.translate("zelf_keys.popout_decryptor.insufficient_zns", {
-                amount: environment.zelfKeysPasswordSaveZns,
-            });
-            this.error = message;
-            this._changeDetectorRef.detectChanges();
-            await this._notifySuperappOperation("failed", message);
-            return;
-        }
-
-        this.znsCheckFailed = true;
-        this.error = this._translocoService.translate("zelf_keys.popout_decryptor.zns_check_failed");
-        this._changeDetectorRef.detectChanges();
-    }
-
-    private async _checkCreateZnsBalance(): Promise<"ok" | "insufficient" | "error"> {
-        const solanaAddress = this.wallet?.publicData?.solanaAddress;
-        if (!solanaAddress) return "error";
+        let allowed = true;
 
         try {
-            await this._solanaService.getConnection();
-            const first = await this._readZnsBalance(solanaAddress);
-            if (first >= environment.zelfKeysPasswordSaveZns) return "ok";
-
-            await this._wait(2000);
-            const second = await this._readZnsBalance(solanaAddress);
-            if (second >= environment.zelfKeysPasswordSaveZns) return "ok";
-
-            return "insufficient";
-        } catch {
-            return "error";
+            if (!isCard) {
+                allowed = await this._planLimits.ensureCanAdd("password", {
+                    hasMasterPassword: Boolean(this.wallet?.hasPassword),
+                    masterPassword: "",
+                });
+            }
+        } finally {
+            this.checkingZns = false;
+            this._changeDetectorRef.detectChanges();
         }
+
+        if (!allowed) {
+            await this._notifySuperappOperation("cancelled");
+            this._closeDecryptor();
+
+            return;
+        }
+
+        await this._continueSecureFlow();
     }
 
-    private async _readZnsBalance(solanaAddress: string): Promise<number> {
-        const balance = await this._solanaService.getZnsBalance(solanaAddress);
-        if (typeof balance !== "number" || Number.isNaN(balance)) {
-            throw new Error("Invalid ZNS balance");
-        }
-        return balance;
-    }
+    private async _offerPasswordSlotAfterLimit(error: unknown): Promise<boolean> {
+        if (!isPlanLimitReachedError(error)) return false;
 
-    private _wait(ms: number): Promise<void> {
-        return new Promise((resolve) => setTimeout(resolve, ms));
+        this.checkingZns = true;
+        this.response.isLoading = false;
+        this._changeDetectorRef.detectChanges();
+        this._stopCamera();
+
+        const outcome = await this._planLimits.recoverFromSaveError(error, "password", {
+            hasMasterPassword: Boolean(this.wallet?.hasPassword),
+            masterPassword: this.masterPassword || "",
+        });
+
+        this.checkingZns = false;
+
+        if (outcome === "not-limit") {
+            this._changeDetectorRef.detectChanges();
+
+            return false;
+        }
+
+        if (outcome === "retry") {
+            this.response.base64Image = "";
+            this.response.isLoading = false;
+            this.error = null;
+            this._biometricsInitialized = false;
+            this._changeDetectorRef.detectChanges();
+            await this._initializeBiometrics();
+
+            return true;
+        }
+
+        await this._notifySuperappOperation("cancelled");
+        this._closeDecryptor();
+
+        return true;
     }
 
     private _checkVideoStreamReady(): void {
@@ -487,12 +496,19 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         }
 
         if (this.superappAction === "create") {
-            const item =
-                this._pendingSuperappOperation?.kind === "credit_card"
-                    ? await this._createSuperappCard(faceBase64)
-                    : await this._createSuperappPassword(faceBase64);
-            await this._notifySuperappOperation("completed", undefined, item);
-            this._closeDecryptor();
+            const isCard = this._pendingSuperappOperation?.kind === "credit_card";
+
+            try {
+                const item = isCard ? await this._createSuperappCard(faceBase64) : await this._createSuperappPassword(faceBase64);
+
+                await this._notifySuperappOperation("completed", undefined, item);
+                this._closeDecryptor();
+            } catch (error) {
+                if (!isCard && (await this._offerPasswordSlotAfterLimit(error))) return;
+
+                throw error;
+            }
+
             return;
         }
 
@@ -1196,10 +1212,6 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
 
     onRetry(): void {
         this.error = null;
-        if (this.znsCheckFailed && this.superappAction === "create") {
-            void this._gateCreateOnZnsBalance();
-            return;
-        }
         this._resetBiometricSession();
     }
 

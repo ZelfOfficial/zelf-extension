@@ -229,7 +229,8 @@
             "errors": {
                 "no_face_detected": "Walang mukhang nahanap",
                 "look_at_camera": "Mangyaring tumingin sa camera"
-            }
+            },
+            "storing": "Sine-save…"
         },
         "subscription_banner": {
             "title": "I-unlock ang Premium Features",
@@ -434,6 +435,58 @@
             "error": {
                 "no_result": "Walang available na API result"
             }
+        },
+        "plan_limits": {
+            "usage_passwords": "{{used}} sa {{limit}} password",
+            "usage_passwords_unlimited": "{{used}} password",
+            "usage_zotp": "{{used}} sa {{limit}} 2FA account",
+            "usage_zotp_unlimited": "{{used}} 2FA account",
+            "usage_plan": "Planong {{plan}}",
+            "buy_slot_aria": "Bumili ng dagdag na slot",
+            "checking": "Tinitingnan ang iyong plan…",
+            "plan": {
+                "free": "Libre",
+                "premium": "Premium",
+                "unlimited": "Walang limitasyon"
+            },
+            "sheet": {
+                "title_passwords": "Nagamit mo na ang lahat ng {{limit}} password sa planong {{plan}}",
+                "title_zotp": "Nagamit mo na ang lahat ng {{limit}} 2FA account sa planong {{plan}}",
+                "body": "Ang dagdag na slot ay tumatagal ng 12 buwan at binabayaran mula sa ZNS balance mo.",
+                "balance": "Balanse",
+                "balance_amount": "{{amount}} ZNS",
+                "balance_unavailable": "Hindi mabasa ang ZNS balance. Maaari mo pa ring subukang bumili ng slot.",
+                "buy": "Bumili ng isa pang slot · {{cost}} ZNS",
+                "buy_busy": "Vine-verify…",
+                "low_balance": "Kailangan mo ng {{cost}} ZNS. Ang balanse mo ay {{amount}} ZNS.",
+                "upgrade": "I-upgrade ang plan",
+                "password_label": "Master password",
+                "password_required": "Ilagay ang master password para magpatuloy.",
+                "show_password": "Ipakita ang password",
+                "hide_password": "Itago ang password",
+                "insufficient": "Hindi sapat ang balanse para sa slot na ito.",
+                "purchase_failed": "Hindi nabili ang slot. Subukan muli.",
+                "face_title": "I-verify ang pagkakakilanlan para bumili ng slot",
+                "face_instructions": "I-scan ang mukha mo para bayaran ang dagdag na slot.",
+                "title_over_passwords": "Mayroon kang {{used}} sa {{limit}} password sa planong {{plan}}",
+                "title_over_zotp": "Mayroon kang {{used}} sa {{limit}} 2FA account sa planong {{plan}}",
+                "over_body": "Hindi sapat ang isang slot. Kailangan mo ng {{count}} pang slot ({{cost}} ZNS) bago makapagdagdag. Bawat slot ay 12 buwan.",
+                "buy_many": "Bumili ng {{count}} slot · {{cost}} ZNS",
+                "upgrade_note": "Ikumpara ang Libre, Premium, at Walang limitasyon sa zelf.world.",
+                "plan_status": "Planong {{plan}} · hanggang {{date}}",
+                "plan_status_open": "Planong {{plan}} · walang expiration",
+                "expires": "Mag-e-expire sa {{date}}",
+                "mobile_note": "Mag-upgrade sa Zelf app sa App Store o Google Play.",
+                "partial": "Nadagdag ang {{count}} na slot. I-verify muli para bilhin ang natitira.",
+                "partial_one": "Nadagdag ang 1 slot. I-verify muli para bilhin ang natitira.",
+                "partial_other": "Nadagdag ang {{count}} na slot. I-verify muli para bilhin ang natitira.",
+                "plan_keeps_name": "Sayyo pa rin ang pangalan. Babalik sa Libre ang plano kapag natapos ito."
+            }
+        },
+        "vault": {
+            "reverify_title": "I-verify muli para makita ang mga item",
+            "reverify_description": "Hindi pa mabuksan ng session na ito ang vault. I-verify muli ang mukha mo para ma-load ang mga password at card.",
+            "reverify_action": "I-verify muli"
         }
     },
     "cancel": "Kanselahin",

@@ -11,6 +11,12 @@ export const ZelfKeysStartGuard: CanActivateFn = () => {
     const zelfKeysDataService = inject(ZelfKeysDataService);
     const router = inject(Router);
 
+    if (zelfKeysDataService.needsReverify) {
+        void router.navigate(["/zelf-keys/vault"], { replaceUrl: true });
+
+        return false;
+    }
+
     const data = zelfKeysDataService.data;
 
     if (!data) return true;

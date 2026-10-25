@@ -229,7 +229,8 @@
             "errors": {
                 "no_face_detected": "Aucun visage détecté",
                 "look_at_camera": "Veuillez regarder la caméra"
-            }
+            },
+            "storing": "Enregistrement…"
         },
         "subscription_banner": {
             "title": "Débloquer les fonctionnalités Premium",
@@ -434,6 +435,58 @@
             "error": {
                 "no_result": "Aucun résultat API disponible"
             }
+        },
+        "plan_limits": {
+            "usage_passwords": "{{used}} sur {{limit}} mots de passe",
+            "usage_passwords_unlimited": "{{used}} mots de passe",
+            "usage_zotp": "{{used}} sur {{limit}} comptes 2FA",
+            "usage_zotp_unlimited": "{{used}} comptes 2FA",
+            "usage_plan": "Forfait {{plan}}",
+            "buy_slot_aria": "Acheter un emplacement supplémentaire",
+            "checking": "Vérification de votre forfait…",
+            "plan": {
+                "free": "Gratuit",
+                "premium": "Premium",
+                "unlimited": "Illimité"
+            },
+            "sheet": {
+                "title_passwords": "Vous avez utilisé les {{limit}} mots de passe du forfait {{plan}}",
+                "title_zotp": "Vous avez utilisé les {{limit}} comptes 2FA du forfait {{plan}}",
+                "body": "Un emplacement supplémentaire dure 12 mois et est payé avec votre solde ZNS.",
+                "balance": "Solde",
+                "balance_amount": "{{amount}} ZNS",
+                "balance_unavailable": "Nous n'avons pas pu lire votre solde ZNS. Vous pouvez quand même essayer d'acheter un emplacement.",
+                "buy": "Acheter un emplacement · {{cost}} ZNS",
+                "buy_busy": "Vérification…",
+                "low_balance": "Il vous faut {{cost}} ZNS. Votre solde est de {{amount}} ZNS.",
+                "upgrade": "Changer de forfait",
+                "password_label": "Mot de passe principal",
+                "password_required": "Saisissez votre mot de passe principal pour continuer.",
+                "show_password": "Afficher le mot de passe",
+                "hide_password": "Masquer le mot de passe",
+                "insufficient": "Votre solde ne suffit pas pour cet emplacement.",
+                "purchase_failed": "Nous n'avons pas pu acheter l'emplacement. Réessayez.",
+                "face_title": "Vérifiez votre identité pour acheter un emplacement",
+                "face_instructions": "Scannez votre visage pour payer un emplacement supplémentaire.",
+                "title_over_passwords": "Vous avez {{used}} mots de passe sur {{limit}} avec le forfait {{plan}}",
+                "title_over_zotp": "Vous avez {{used}} comptes 2FA sur {{limit}} avec le forfait {{plan}}",
+                "over_body": "Un emplacement ne suffit pas. Il vous en faut {{count}} de plus ({{cost}} ZNS) pour en ajouter un autre. Chacun dure 12 mois.",
+                "buy_many": "Acheter {{count}} emplacements · {{cost}} ZNS",
+                "upgrade_note": "Comparez Gratuit, Premium et Illimité sur zelf.world.",
+                "plan_status": "Forfait {{plan}} · jusqu'au {{date}}",
+                "plan_status_open": "Forfait {{plan}} · sans expiration",
+                "expires": "Expire le {{date}}",
+                "mobile_note": "Changez de forfait dans l'application Zelf, sur l'App Store ou Google Play.",
+                "partial": "{{count}} emplacements ajoutés. Vérifiez à nouveau pour acheter le reste.",
+                "partial_one": "1 emplacement ajouté. Vérifiez à nouveau pour acheter le reste.",
+                "partial_other": "{{count}} emplacements ajoutés. Vérifiez à nouveau pour acheter le reste.",
+                "plan_keeps_name": "Le nom reste le vôtre. Le forfait repasse à Gratuit à la fin."
+            }
+        },
+        "vault": {
+            "reverify_title": "Vérifiez à nouveau pour voir vos éléments",
+            "reverify_description": "Cette session ne peut pas encore ouvrir votre coffre. Vérifiez votre visage à nouveau pour charger vos mots de passe et cartes.",
+            "reverify_action": "Vérifier à nouveau"
         }
     },
     "cancel": "Annuler",

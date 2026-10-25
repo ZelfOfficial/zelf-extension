@@ -80,7 +80,10 @@
             "import_success_title": "Import complete",
             "import_success_desc": "{{count}} password(s) secured in your vault.",
             "import_failed_notice": "{{count}} item(s) could not be imported:",
-            "import_done_btn": "Done"
+            "import_done_btn": "Done",
+            "reverify_title": "Re-verify to view your items",
+            "reverify_description": "This session can't open your vault yet. Verify your face again to load your passwords and cards.",
+            "reverify_action": "Re-verify"
         },
         "common": {
             "qr_code": "QR Code",
@@ -343,7 +346,8 @@
             "errors": {
                 "no_face_detected": "No face detected",
                 "look_at_camera": "Please look at the camera"
-            }
+            },
+            "storing": "Storing…"
         },
         "subscription_banner": {
             "title": "Unlock Premium Features",
@@ -573,6 +577,53 @@
             },
             "error": {
                 "no_result": "No API result available"
+            }
+        },
+        "plan_limits": {
+            "usage_passwords": "{{used}} of {{limit}} passwords",
+            "usage_passwords_unlimited": "{{used}} passwords",
+            "usage_zotp": "{{used}} of {{limit}} 2FA accounts",
+            "usage_zotp_unlimited": "{{used}} 2FA accounts",
+            "usage_plan": "{{plan}} plan",
+            "buy_slot_aria": "Buy an extra slot",
+            "checking": "Checking your plan…",
+            "plan": {
+                "free": "Free",
+                "premium": "Premium",
+                "unlimited": "Unlimited"
+            },
+            "sheet": {
+                "title_passwords": "You've used all {{limit}} passwords on the {{plan}} plan",
+                "title_zotp": "You've used all {{limit}} 2FA accounts on the {{plan}} plan",
+                "title_over_passwords": "You have {{used}} of {{limit}} passwords on the {{plan}} plan",
+                "title_over_zotp": "You have {{used}} of {{limit}} 2FA accounts on the {{plan}} plan",
+                "body": "An extra slot lasts 12 months and is paid from your ZNS balance.",
+                "over_body": "One slot is not enough. You need {{count}} more slots ({{cost}} ZNS) before you can add another. Each slot lasts 12 months.",
+                "balance": "Balance",
+                "balance_amount": "{{amount}} ZNS",
+                "balance_unavailable": "We couldn't read your ZNS balance. You can still try to buy a slot.",
+                "buy": "Buy one more slot · {{cost}} ZNS",
+                "buy_many": "Buy {{count}} slots · {{cost}} ZNS",
+                "buy_busy": "Verifying…",
+                "low_balance": "You need {{cost}} ZNS. Your balance is {{amount}} ZNS.",
+                "upgrade": "Upgrade plan",
+                "upgrade_note": "Compare Free, Premium, and Unlimited on zelf.world.",
+                "plan_status": "{{plan}} plan · until {{date}}",
+                "plan_status_open": "{{plan}} plan · no expiration",
+                "expires": "Expires {{date}}",
+                "mobile_note": "Upgrade in the Zelf app on the App Store or Google Play.",
+                "partial": "Added {{count}} slots. Verify again to buy the rest.",
+                "password_label": "Master password",
+                "password_required": "Enter your master password to continue.",
+                "show_password": "Show password",
+                "hide_password": "Hide password",
+                "insufficient": "Your balance isn't enough for this slot.",
+                "purchase_failed": "We couldn't buy the slot. Please try again.",
+                "face_title": "Verify identity to buy a slot",
+                "face_instructions": "Scan your face to pay for one extra slot.",
+                "partial_one": "Added 1 slot. Verify again to buy the rest.",
+                "partial_other": "Added {{count}} slots. Verify again to buy the rest.",
+                "plan_keeps_name": "Your name stays yours. The plan drops back to Free when it ends."
             }
         }
     },

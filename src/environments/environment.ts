@@ -13,7 +13,6 @@ export const environment = {
     devBiometricsBypass: true,
     testnetAddress: "",
     znsUsdPrice: 0.05,
-    zelfKeysPasswordSaveZns: 10,
     networks: {
         ethereum: "sepolia",
         avalanche: "avalanche",

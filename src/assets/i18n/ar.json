@@ -229,7 +229,8 @@
             "errors": {
                 "no_face_detected": "لم يتم اكتشاف وجه",
                 "look_at_camera": "يرجى النظر إلى الكاميرا"
-            }
+            },
+            "storing": "جارٍ الحفظ…"
         },
         "subscription_banner": {
             "title": "فتح الميزات المميزة",
@@ -434,6 +435,58 @@
             "error": {
                 "no_result": "لا توجد نتيجة API متاحة"
             }
+        },
+        "plan_limits": {
+            "usage_passwords": "{{used}} من {{limit}} كلمات مرور",
+            "usage_passwords_unlimited": "{{used}} كلمات مرور",
+            "usage_zotp": "{{used}} من {{limit}} حسابات المصادقة الثنائية",
+            "usage_zotp_unlimited": "{{used}} حسابات المصادقة الثنائية",
+            "usage_plan": "خطة {{plan}}",
+            "buy_slot_aria": "شراء خانة إضافية",
+            "checking": "جارٍ التحقق من خطتك…",
+            "plan": {
+                "free": "مجانية",
+                "premium": "بريميوم",
+                "unlimited": "غير محدودة"
+            },
+            "sheet": {
+                "title_passwords": "لقد استخدمت كل كلمات المرور الـ {{limit}} في خطة {{plan}}",
+                "title_zotp": "لقد استخدمت كل حسابات المصادقة الثنائية الـ {{limit}} في خطة {{plan}}",
+                "body": "تدوم الخانة الإضافية 12 شهرًا وتُدفع من رصيد ZNS.",
+                "balance": "الرصيد",
+                "balance_amount": "{{amount}} ZNS",
+                "balance_unavailable": "تعذر قراءة رصيد ZNS. يمكنك مع ذلك محاولة شراء خانة.",
+                "buy": "شراء خانة إضافية · {{cost}} ZNS",
+                "buy_busy": "جارٍ التحقق…",
+                "low_balance": "تحتاج إلى {{cost}} ZNS. رصيدك {{amount}} ZNS.",
+                "upgrade": "ترقية الخطة",
+                "password_label": "كلمة المرور الرئيسية",
+                "password_required": "أدخل كلمة المرور الرئيسية للمتابعة.",
+                "show_password": "إظهار كلمة المرور",
+                "hide_password": "إخفاء كلمة المرور",
+                "insufficient": "رصيدك لا يكفي لهذه الخانة.",
+                "purchase_failed": "تعذر شراء الخانة. حاول مرة أخرى.",
+                "face_title": "أكّد هويتك لشراء خانة",
+                "face_instructions": "امسح وجهك لدفع ثمن خانة إضافية.",
+                "title_over_passwords": "لديك {{used}} من {{limit}} كلمات مرور في خطة {{plan}}",
+                "title_over_zotp": "لديك {{used}} من {{limit}} حسابات مصادقة ثنائية في خطة {{plan}}",
+                "over_body": "خانة واحدة لا تكفي. تحتاج إلى {{count}} خانات إضافية ({{cost}} ZNS) قبل إضافة أخرى. كل خانة تدوم 12 شهرًا.",
+                "buy_many": "شراء {{count}} خانات · {{cost}} ZNS",
+                "upgrade_note": "قارن المجانية وبريميوم وغير المحدودة على zelf.world.",
+                "plan_status": "خطة {{plan}} · حتى {{date}}",
+                "plan_status_open": "خطة {{plan}} · بلا انتهاء",
+                "expires": "تنتهي في {{date}}",
+                "mobile_note": "رقِّ الخطة في تطبيق Zelf على App Store أو Google Play.",
+                "partial": "تمت إضافة {{count}} خانات. أكّد مرة أخرى لشراء الباقي.",
+                "partial_one": "تمت إضافة خانة واحدة. أكّد مرة أخرى لشراء الباقي.",
+                "partial_other": "تمت إضافة {{count}} خانات. أكّد مرة أخرى لشراء الباقي.",
+                "plan_keeps_name": "يبقى الاسم لك. تعود الخطة إلى المجانية عند انتهائها."
+            }
+        },
+        "vault": {
+            "reverify_title": "أعد التحقق لعرض عناصرك",
+            "reverify_description": "لا يمكن لهذه الجلسة فتح الخزنة بعد. تحقق من وجهك مرة أخرى لتحميل كلمات المرور والبطاقات.",
+            "reverify_action": "إعادة التحقق"
         }
     },
     "cancel": "إلغاء",

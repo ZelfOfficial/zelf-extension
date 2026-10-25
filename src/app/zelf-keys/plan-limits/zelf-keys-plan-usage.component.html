@@ -1,0 +1,28 @@
+<ng-container *transloco="let t">
+    <ng-container *ngIf="limits$ | async as limits">
+        <ng-container *ngIf="row(limits) as usage">
+            <button
+                *ngIf="usage.atLimit; else status"
+                type="button"
+                class="plan-usage plan-usage--limit"
+                (click)="onBuy()"
+                [attr.aria-label]="t(usage.countKey, { used: usage.used, limit: usage.limit }) + '. ' + usage.planLabel"
+            >
+                <span class="plan-usage__copy">
+                    <strong>{{ t(usage.countKey, { used: usage.used, limit: usage.limit }) }}</strong>
+                    <span>{{ usage.planLabel }}</span>
+                </span>
+                <span class="material-symbols-outlined plan-usage__icon" aria-hidden="true">add_circle</span>
+            </button>
+
+            <ng-template #status>
+                <div class="plan-usage" role="status">
+                    <span class="plan-usage__copy">
+                        <strong>{{ t(usage.countKey, { used: usage.used, limit: usage.limit }) }}</strong>
+                        <span>{{ usage.planLabel }}</span>
+                    </span>
+                </div>
+            </ng-template>
+        </ng-container>
+    </ng-container>
+</ng-container>

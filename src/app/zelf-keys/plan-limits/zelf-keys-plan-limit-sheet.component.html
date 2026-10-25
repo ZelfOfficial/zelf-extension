@@ -1,0 +1,70 @@
+<div class="plan-limit" *transloco="let t">
+    <header class="plan-limit__header">
+        <button type="button" class="plan-limit__back" (click)="close()" [disabled]="busy" [attr.aria-label]="t('common.close')">
+            <svg width="22" height="14" viewBox="0 0 22 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path
+                    d="M20.0898 5.8277H4.72478L8.08478 2.4677C8.53978 2.0127 8.53978 1.2777 8.08478 0.822695C7.62978 0.367695 6.89478 0.367695 6.43978 0.822695L1.08478 6.1777C0.62978 6.6327 0.62978 7.3677 1.08478 7.8227L6.43978 13.1777C6.89478 13.6327 7.62978 13.6327 8.08478 13.1777C8.53978 12.7227 8.53978 11.9877 8.08478 11.5327L4.72478 8.16103H20.0898C20.7314 8.16103 21.2564 7.63603 21.2564 6.99436C21.2564 6.3527 20.7314 5.8277 20.0898 5.8277Z"
+                    fill="currentColor"
+                />
+            </svg>
+        </button>
+    </header>
+
+    <div class="plan-limit__body">
+        <h1 class="plan-limit__title">{{ title }}</h1>
+        <p class="plan-limit__plan" *ngIf="planStatus">{{ planStatus }}</p>
+        <p class="plan-limit__note" *ngIf="showPlanKeepsName">{{ t("zelf_keys.plan_limits.sheet.plan_keeps_name") }}</p>
+        <p class="plan-limit__text" *ngIf="slotsNeeded === 1">{{ t("zelf_keys.plan_limits.sheet.body") }}</p>
+        <p class="plan-limit__text" *ngIf="slotsNeeded > 1">
+            {{ t("zelf_keys.plan_limits.sheet.over_body", { count: slotsNeeded, cost: costText }) }}
+        </p>
+
+        <div class="plan-limit__balance" *ngIf="showBalance">
+            <span>{{ t("zelf_keys.plan_limits.sheet.balance") }}</span>
+            <strong>{{ t("zelf_keys.plan_limits.sheet.balance_amount", { amount: balanceText }) }}</strong>
+        </div>
+        <p class="plan-limit__note" *ngIf="!showBalance">{{ t("zelf_keys.plan_limits.sheet.balance_unavailable") }}</p>
+
+        <label class="plan-limit__password" *ngIf="showPassword">
+            <span>{{ t("zelf_keys.plan_limits.sheet.password_label") }}</span>
+            <input
+                [(ngModel)]="password"
+                [attr.type]="showPasswordField ? 'text' : 'password'"
+                autocomplete="current-password"
+                autocapitalize="off"
+                spellcheck="false"
+            />
+            <button type="button" class="plan-limit__reveal" (click)="showPasswordField = !showPasswordField">
+                {{ showPasswordField ? t("zelf_keys.plan_limits.sheet.hide_password") : t("zelf_keys.plan_limits.sheet.show_password") }}
+            </button>
+        </label>
+
+        <p class="plan-limit__error" *ngIf="message" role="alert">{{ message }}</p>
+    </div>
+
+    <div class="plan-limit__actions">
+        <button type="button" class="zelf-button zelf-button--primary zelf-button--wide" (click)="buy()" [disabled]="buyDisabled">
+            {{
+                busy
+                    ? t("zelf_keys.plan_limits.sheet.buy_busy")
+                    : slotsNeeded > 1
+                      ? t("zelf_keys.plan_limits.sheet.buy_many", { count: slotsNeeded, cost: costText })
+                      : t("zelf_keys.plan_limits.sheet.buy", { cost: costText })
+            }}
+        </button>
+        <p class="plan-limit__hint" *ngIf="lowBalance">
+            {{ t("zelf_keys.plan_limits.sheet.low_balance", { cost: costText, amount: balanceText }) }}
+        </p>
+        <button
+            type="button"
+            class="zelf-button zelf-button--outlined zelf-button--wide plan-limit__upgrade"
+            *ngIf="showUpgradeButton"
+            (click)="upgrade()"
+            [disabled]="busy"
+        >
+            <span class="plan-limit__upgrade-label">{{ t("zelf_keys.plan_limits.sheet.upgrade") }}</span>
+        </button>
+        <p class="plan-limit__note" *ngIf="showPricingNote">{{ t("zelf_keys.plan_limits.sheet.upgrade_note") }}</p>
+        <p class="plan-limit__note" *ngIf="showMobileNote">{{ t("zelf_keys.plan_limits.sheet.mobile_note") }}</p>
+    </div>
+</div>

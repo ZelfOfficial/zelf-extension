@@ -229,7 +229,8 @@
             "errors": {
                 "no_face_detected": "कोई चेहरा नहीं मिला",
                 "look_at_camera": "कृपया कैमरे की ओर देखें"
-            }
+            },
+            "storing": "सहेजा जा रहा है…"
         },
         "subscription_banner": {
             "title": "प्रीमियम सुविधाएं अनलॉक करें",
@@ -434,6 +435,58 @@
             "error": {
                 "no_result": "कोई API परिणाम उपलब्ध नहीं है"
             }
+        },
+        "plan_limits": {
+            "usage_passwords": "{{used}} में से {{limit}} पासवर्ड",
+            "usage_passwords_unlimited": "{{used}} पासवर्ड",
+            "usage_zotp": "{{used}} में से {{limit}} 2FA खाते",
+            "usage_zotp_unlimited": "{{used}} 2FA खाते",
+            "usage_plan": "{{plan}} प्लान",
+            "buy_slot_aria": "एक अतिरिक्त स्लॉट खरीदें",
+            "checking": "आपका प्लान जाँचा जा रहा है…",
+            "plan": {
+                "free": "मुफ़्त",
+                "premium": "प्रीमियम",
+                "unlimited": "असीमित"
+            },
+            "sheet": {
+                "title_passwords": "आपने {{plan}} प्लान के सभी {{limit}} पासवर्ड इस्तेमाल कर लिए हैं",
+                "title_zotp": "आपने {{plan}} प्लान के सभी {{limit}} 2FA खाते इस्तेमाल कर लिए हैं",
+                "body": "अतिरिक्त स्लॉट 12 महीने तक रहता है और आपके ZNS बैलेंस से भुगतान होता है।",
+                "balance": "बैलेंस",
+                "balance_amount": "{{amount}} ZNS",
+                "balance_unavailable": "ZNS बैलेंस नहीं पढ़ा जा सका। आप फिर भी स्लॉट खरीदने की कोशिश कर सकते हैं।",
+                "buy": "एक और स्लॉट खरीदें · {{cost}} ZNS",
+                "buy_busy": "सत्यापन हो रहा है…",
+                "low_balance": "आपको {{cost}} ZNS चाहिए। आपका बैलेंस {{amount}} ZNS है।",
+                "upgrade": "प्लान अपग्रेड करें",
+                "password_label": "मास्टर पासवर्ड",
+                "password_required": "जारी रखने के लिए मास्टर पासवर्ड दर्ज करें।",
+                "show_password": "पासवर्ड दिखाएँ",
+                "hide_password": "पासवर्ड छिपाएँ",
+                "insufficient": "इस स्लॉट के लिए बैलेंस पर्याप्त नहीं है।",
+                "purchase_failed": "स्लॉट नहीं खरीदा जा सका। फिर से कोशिश करें।",
+                "face_title": "स्लॉट खरीदने के लिए पहचान सत्यापित करें",
+                "face_instructions": "एक अतिरिक्त स्लॉट के भुगतान के लिए अपना चेहरा स्कैन करें।",
+                "title_over_passwords": "{{plan}} प्लान पर आपके {{limit}} में से {{used}} पासवर्ड हैं",
+                "title_over_zotp": "{{plan}} प्लान पर आपके {{limit}} में से {{used}} 2FA खाते हैं",
+                "over_body": "एक स्लॉट काफ़ी नहीं है। एक और जोड़ने से पहले {{count}} और स्लॉट ({{cost}} ZNS) चाहिए। हर स्लॉट 12 महीने रहता है।",
+                "buy_many": "{{count}} स्लॉट खरीदें · {{cost}} ZNS",
+                "upgrade_note": "zelf.world पर मुफ़्त, प्रीमियम और असीमित की तुलना करें।",
+                "plan_status": "{{plan}} प्लान · {{date}} तक",
+                "plan_status_open": "{{plan}} प्लान · कोई समाप्ति नहीं",
+                "expires": "{{date}} को समाप्त",
+                "mobile_note": "Zelf ऐप में App Store या Google Play पर अपग्रेड करें।",
+                "partial": "{{count}} स्लॉट जोड़ दिए गए। बाकी खरीदने के लिए फिर से सत्यापित करें।",
+                "partial_one": "1 स्लॉट जोड़ दिया गया। बाकी खरीदने के लिए फिर से सत्यापित करें।",
+                "partial_other": "{{count}} स्लॉट जोड़ दिए गए। बाकी खरीदने के लिए फिर से सत्यापित करें।",
+                "plan_keeps_name": "नाम आपका ही रहता है। अवधि खत्म होने पर प्लान फिर से मुफ़्त हो जाता है।"
+            }
+        },
+        "vault": {
+            "reverify_title": "अपनी चीज़ें देखने के लिए फिर से सत्यापित करें",
+            "reverify_description": "यह सत्र अभी तिजोरी नहीं खोल सकता। पासवर्ड और कार्ड लोड करने के लिए अपना चेहरा फिर से सत्यापित करें।",
+            "reverify_action": "फिर से सत्यापित करें"
         }
     },
     "cancel": "रद्द करें",

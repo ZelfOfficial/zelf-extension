@@ -3,6 +3,7 @@ import { inject, Injectable } from "@angular/core";
 import { DomainLicense } from "app/core/models/domain.type";
 import { environment } from "../environments/environment";
 import { ChromeService } from "./chrome.service";
+import { WalletService } from "./wallet.service";
 import { HttpWrapperService } from "./http-wrapper.service";
 import {
     DomainConfiguration,
@@ -23,6 +24,8 @@ import {
 import { applyPreviewSecurity, type ProofPreview } from "./onboarding-stack";
 import { VaultService } from "./vault.service";
 import { FaceApiService } from "./services/face-api/face-api.service";
+import { withNormalizedZelfTag } from "./core/utils/zelf-name.util";
+import { parseMyPlan, resolveMyPlanZelfName, ZelfIdMyPlan } from "./zelf-keys/plan-limits/zelf-id-my-plan";
 
 export type ZelfIdPlan = "free" | "premium" | "unlimited" | "";
 
@@ -82,6 +85,7 @@ export class ZelfIdsService {
     private _domainConfigs: { [domainName: string]: DomainLicense } = {};
 
     private readonly _faceApi = inject(FaceApiService);
+    private readonly _wallet = inject(WalletService);
 
     constructor(
         private _httpWrapper: HttpWrapperService,
@@ -111,6 +115,49 @@ export class ZelfIdsService {
 
     getDomainByName(domain: string): Promise<{ data: DomainLicense }> {
         return this._httpWrapper.sendRequest("get", `${this.apiPath}/domains/${domain}`);
+    }
+
+    /**
+     * Current Zelf ID plan and how Upgrade should behave.
+     * The route requires `zelfName`. 401, 403, and 404 (including an API that does not
+     * have this route yet) return null so the caller can open https://zelf.world/pricing.
+     */
+    async getMyPlan(zelfName?: string | null): Promise<ZelfIdMyPlan | null> {
+        const name = await this._resolveMyPlanName(zelfName);
+
+        if (!name) return null;
+
+        try {
+            const response = await this._httpWrapper.sendRequest("get", `${this.apiPath}/my-plan`, { zelfName: name });
+
+            return parseMyPlan(response);
+        } catch {
+            return null;
+        }
+    }
+
+    private async _resolveMyPlanName(explicit?: string | null): Promise<string | null> {
+        let walletTag: string | null = null;
+        let walletDomain: string | null = null;
+
+        if (!explicit?.trim()) {
+            try {
+                const wallet = await this._wallet.getCurrentWallet();
+                const record = wallet as {
+                    fullTagName?: string;
+                    tagName?: string;
+                    name?: string;
+                    publicData?: { tagName?: string; domain?: string };
+                } | null;
+
+                walletTag = record?.fullTagName || record?.publicData?.tagName || record?.tagName || record?.name || null;
+                walletDomain = record?.publicData?.domain || null;
+            } catch {
+                walletTag = null;
+            }
+        }
+
+        return resolveMyPlanZelfName({ explicit, walletTag, walletDomain });
     }
 
     getDomainLicense(domainName: string): DomainLicense | undefined {
@@ -237,7 +284,7 @@ export class ZelfIdsService {
     }
 
     leaseTag(request: TagLeaseRequest): Promise<any> {
-        const promise = this._faceApi.sendWithFace("post", `${this.apiPath}/lease`, request, {
+        const promise = this._faceApi.sendWithFace("post", `${this.apiPath}/lease`, withNormalizedZelfTag(request), {
             action: "lease",
         });
 
@@ -248,10 +295,10 @@ export class ZelfIdsService {
 
     leaseRecovery(request: TagLeaseRecoveryRequest): Promise<any> {
         const { newTagName, ...rest } = request;
-        const body = {
+        const body = withNormalizedZelfTag({
             ...rest,
             tagName: newTagName,
-        };
+        });
 
         const promise = this._faceApi.sendWithFace("post", `${this.apiPath}/lease-recovery`, body, {
             action: "lease-recovery",
@@ -263,7 +310,7 @@ export class ZelfIdsService {
     }
 
     leaseOfflineTag(request: TagOfflineLeaseRequest): Promise<any> {
-        const promise = this._httpWrapper.sendRequest("post", `${this.apiPath}/lease-offline`, request).then((response) => {
+        const promise = this._httpWrapper.sendRequest("post", `${this.apiPath}/lease-offline`, withNormalizedZelfTag(request)).then((response) => {
             if (response?.data?.zelfIDObject && !response.data.tagObject) {
                 response.data.tagObject = response.data.zelfIDObject;
             }
@@ -277,7 +324,7 @@ export class ZelfIdsService {
     }
 
     decryptTag(request: TagDecryptRequest): Promise<any> {
-        const promise = this._faceApi.sendWithFace("post", `${this.apiPath}/decrypt`, request, {
+        const promise = this._faceApi.sendWithFace("post", `${this.apiPath}/decrypt`, withNormalizedZelfTag(request), {
             action: "decrypt",
         });
 

@@ -4,7 +4,16 @@
         <p class="vault__state-text">{{ t("zelf_keys.vault.loading") }}</p>
     </div>
 
-    <div *ngIf="error && !loading" class="vault__state vault__state--error">
+    <div *ngIf="needsReverify && !loading" class="vault__state vault__state--reverify">
+        <span class="material-symbols-outlined vault__state-symbol">face</span>
+        <strong>{{ t("zelf_keys.vault.reverify_title") }}</strong>
+        <p class="vault__state-text">{{ t("zelf_keys.vault.reverify_description") }}</p>
+        <button type="button" class="zelf-button zelf-button--primary" (click)="onReverify()">
+            {{ t("zelf_keys.vault.reverify_action") }}
+        </button>
+    </div>
+
+    <div *ngIf="error && !loading && !needsReverify" class="vault__state vault__state--error">
         <span class="material-symbols-outlined vault__state-symbol">cloud_off</span>
         <strong>{{ t("zelf_keys.vault.load_error") }}</strong>
         <p class="vault__state-text">{{ error }}</p>
@@ -13,7 +22,7 @@
         </button>
     </div>
 
-    <div *ngIf="!loading && !error" class="vault__content">
+    <div *ngIf="!loading && !error && !needsReverify" class="vault__content">
         <header class="vault__header">
             <p class="vault__eyebrow">{{ t("zelf_keys.vault.eyebrow") }}</p>
             <h1>{{ t("zelf_keys.vault.title") }}</h1>
@@ -23,6 +32,8 @@
                 {{ t("zelf_keys.vault.trust") }}
             </p>
         </header>
+
+        <zelf-keys-plan-usage kind="password"></zelf-keys-plan-usage>
 
         <div class="vault__stats" role="list" [attr.aria-label]="t('zelf_keys.vault.stats_label')">
             <div class="vault__stat vault__stat--total" role="listitem">

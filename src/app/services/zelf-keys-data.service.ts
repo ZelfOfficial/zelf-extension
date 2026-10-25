@@ -14,6 +14,15 @@ export interface ZelfKeysData {
 }
 
 const TTL_ONE_HOUR = 3600000;
+
+/** /list (and the sibling category calls) rejected the session. */
+export function isListAuthError(error: unknown): boolean {
+    if (!error || typeof error !== "object") return false;
+
+    const status = (error as { status?: unknown; statusCode?: unknown }).status ?? (error as { statusCode?: unknown }).statusCode;
+
+    return status === 401 || status === 403;
+}
 const CACHE_KEY_PREFIX = "zelfKeysData";
 const CACHE_TTL_PREFIX = "zelfKeysDataTtl";
 const LEGACY_CACHE_KEY = "zelfKeysData";
@@ -26,6 +35,7 @@ export class ZelfKeysDataService {
     private _data$ = new BehaviorSubject<ZelfKeysData | null>(null);
     private _error$ = new BehaviorSubject<string | null>(null);
     private _loading$ = new BehaviorSubject<boolean>(false);
+    private _needsReverify$ = new BehaviorSubject<boolean>(false);
     private _memoryOwnerTag: string | null = null;
     private _legacyCacheMigrated = false;
     private _loadPromise: Promise<ZelfKeysData> | null = null;
@@ -50,6 +60,14 @@ export class ZelfKeysDataService {
 
     get error$(): Observable<string | null> {
         return this._error$.asObservable();
+    }
+
+    get needsReverify$(): Observable<boolean> {
+        return this._needsReverify$.asObservable();
+    }
+
+    get needsReverify(): boolean {
+        return this._needsReverify$.value;
     }
 
     get data(): ZelfKeysData | null {
@@ -110,8 +128,11 @@ export class ZelfKeysDataService {
         await this._chromeService.removeItemSession(LEGACY_CACHE_TTL_KEY);
     }
 
-    private async _ensureSessionForFetch(wallet: Partial<TagModel> | null): Promise<string> {
+    private async _ensureSessionForFetch(wallet: Partial<TagModel> | null, skipNewSession = false): Promise<string> {
         let token = await this._authService.ensureAccessTokenForCurrentWallet({ forceReauth: false });
+
+        // The unlock just verified this token, or we already minted one for this retry.
+        if (skipNewSession || this._authService.keepingVerifiedSession) return token;
 
         if (!this._authService.jwtMatchesCurrentWallet(token, wallet)) {
             this._log("JWT still mismatched after ensure — forcing reauth", {
@@ -126,9 +147,9 @@ export class ZelfKeysDataService {
         return token;
     }
 
-    private async _fetchDataFromApi(ownerTag: string, reason: string, loadGeneration: number): Promise<ZelfKeysData> {
+    private async _fetchDataFromApi(ownerTag: string, reason: string, loadGeneration: number, retried = false): Promise<ZelfKeysData> {
         const wallet = await this._walletService.getCurrentWallet();
-        const token = await this._ensureSessionForFetch(wallet);
+        const token = await this._ensureSessionForFetch(wallet, retried);
         const jwtTag = this._authService.getJwtSessionTag(token);
 
         this._log("fetch list from API", {
@@ -139,11 +160,31 @@ export class ZelfKeysDataService {
             jwtDomain: jwtTag.domain,
         });
 
-        const [passwordsResponse, notesResponse, paymentCardsResponse] = await Promise.all([
-            this._zelfKeysService.list("password"),
-            this._zelfKeysService.list("notes"),
-            this._zelfKeysService.list("credit_card"),
-        ]);
+        const heldVerifiedSession = this._authService.keepingVerifiedSession;
+        let passwordsResponse: any;
+        let notesResponse: any;
+        let paymentCardsResponse: any;
+
+        try {
+            [passwordsResponse, notesResponse, paymentCardsResponse] = await Promise.all([
+                this._zelfKeysService.list("password"),
+                this._zelfKeysService.list("notes"),
+                this._zelfKeysService.list("credit_card"),
+            ]);
+        } catch (error) {
+            this._authService.releaseVerifiedSession();
+
+            if (!retried && isListAuthError(error)) {
+                this._log("list unauthorized — recreating the session once", { reason, ownerTag });
+                await this._authService.reauthenticateSession();
+
+                return this._fetchDataFromApi(ownerTag, reason, loadGeneration, true);
+            }
+
+            throw error;
+        }
+
+        this._authService.releaseVerifiedSession();
 
         const currentOwnerTag = this._walletTagForCache(await this._walletService.getCurrentWallet());
         if (currentOwnerTag !== ownerTag || loadGeneration !== this._loadGeneration) {
@@ -159,7 +200,7 @@ export class ZelfKeysDataService {
         const postFetchToken = await this._authService.ensureAccessTokenForCurrentWallet({ forceReauth: false });
         const postFetchWallet = await this._walletService.getCurrentWallet();
 
-        if (!this._authService.jwtMatchesCurrentWallet(postFetchToken, postFetchWallet)) {
+        if (!heldVerifiedSession && !retried && !this._authService.jwtMatchesCurrentWallet(postFetchToken, postFetchWallet)) {
             this._log("discarding fetch — JWT no longer matches wallet after API call", {
                 reason,
                 ownerTag,
@@ -221,6 +262,7 @@ export class ZelfKeysDataService {
         this._data$.next(null);
         this._loading$.next(false);
         this._error$.next(null);
+        this._needsReverify$.next(false);
 
         this._log("cache cleared", { ownerTag });
     }
@@ -353,6 +395,7 @@ export class ZelfKeysDataService {
 
         this._loading$.next(true);
         this._error$.next(null);
+        this._needsReverify$.next(false);
 
         try {
             if (!forceRefresh) {
@@ -412,6 +455,18 @@ export class ZelfKeysDataService {
 
             return data;
         } catch (error) {
+            if (isListAuthError(error)) {
+                this._needsReverify$.next(true);
+                this._error$.next(null);
+                this._loading$.next(false);
+                this._memoryOwnerTag = null;
+                this._data$.next(null);
+
+                this._log("list still unauthorized — ask the owner to re-verify", { reason, ownerTag });
+
+                return emptyData;
+            }
+
             const errorMessage = error instanceof Error ? error.message : "Failed to load ZelfKeys data";
 
             this._error$.next(errorMessage);

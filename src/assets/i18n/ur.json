@@ -229,7 +229,8 @@
             "errors": {
                 "no_face_detected": "کوئی چہرہ نہیں پہچانا گیا",
                 "look_at_camera": "براہ کرم کیمرے کی طرف دیکھیں"
-            }
+            },
+            "storing": "محفوظ کیا جا رہا ہے…"
         },
         "subscription_banner": {
             "title": "پریمیم خصوصیات کو غیر مقفل کریں",
@@ -434,6 +435,58 @@
             "error": {
                 "no_result": "کوئی API نتیجہ دستیاب نہیں ہے"
             }
+        },
+        "plan_limits": {
+            "usage_passwords": "{{used}} میں سے {{limit}} پاس ورڈ",
+            "usage_passwords_unlimited": "{{used}} پاس ورڈ",
+            "usage_zotp": "{{used}} میں سے {{limit}} 2FA اکاؤنٹس",
+            "usage_zotp_unlimited": "{{used}} 2FA اکاؤنٹس",
+            "usage_plan": "{{plan}} پلان",
+            "buy_slot_aria": "اضافی سلاٹ خریدیں",
+            "checking": "آپ کا پلان دیکھا جا رہا ہے…",
+            "plan": {
+                "free": "مفت",
+                "premium": "پریمیم",
+                "unlimited": "لامحدود"
+            },
+            "sheet": {
+                "title_passwords": "آپ نے {{plan}} پلان کے تمام {{limit}} پاس ورڈ استعمال کر لیے ہیں",
+                "title_zotp": "آپ نے {{plan}} پلان کے تمام {{limit}} 2FA اکاؤنٹس استعمال کر لیے ہیں",
+                "body": "اضافی سلاٹ 12 مہینے رہتا ہے اور آپ کے ZNS بیلنس سے ادا ہوتا ہے۔",
+                "balance": "بیلنس",
+                "balance_amount": "{{amount}} ZNS",
+                "balance_unavailable": "ZNS بیلنس نہیں پڑھا جا سکا۔ آپ پھر بھی سلاٹ خریدنے کی کوشش کر سکتے ہیں۔",
+                "buy": "ایک اور سلاٹ خریدیں · {{cost}} ZNS",
+                "buy_busy": "تصدیق ہو رہی ہے…",
+                "low_balance": "آپ کو {{cost}} ZNS چاہیے۔ آپ کا بیلنس {{amount}} ZNS ہے۔",
+                "upgrade": "پلان اپ گریڈ کریں",
+                "password_label": "ماسٹر پاس ورڈ",
+                "password_required": "جاری رکھنے کے لیے ماسٹر پاس ورڈ درج کریں۔",
+                "show_password": "پاس ورڈ دکھائیں",
+                "hide_password": "پاس ورڈ چھپائیں",
+                "insufficient": "اس سلاٹ کے لیے بیلنس کافی نہیں۔",
+                "purchase_failed": "سلاٹ نہیں خریدا جا سکا۔ دوبارہ کوشش کریں۔",
+                "face_title": "سلاٹ خریدنے کے لیے شناخت کی تصدیق کریں",
+                "face_instructions": "ایک اضافی سلاٹ کی ادائیگی کے لیے اپنا چہرہ اسکین کریں۔",
+                "title_over_passwords": "{{plan}} پلان پر آپ کے {{limit}} میں سے {{used}} پاس ورڈ ہیں",
+                "title_over_zotp": "{{plan}} پلان پر آپ کے {{limit}} میں سے {{used}} 2FA اکاؤنٹس ہیں",
+                "over_body": "ایک سلاٹ کافی نہیں۔ ایک اور شامل کرنے سے پہلے مزید {{count}} سلاٹ ({{cost}} ZNS) چاہییں۔ ہر سلاٹ 12 مہینے رہتا ہے۔",
+                "buy_many": "{{count}} سلاٹ خریدیں · {{cost}} ZNS",
+                "upgrade_note": "zelf.world پر مفت، پریمیم اور لامحدود کا موازنہ کریں۔",
+                "plan_status": "{{plan}} پلان · {{date}} تک",
+                "plan_status_open": "{{plan}} پلان · کوئی میعاد نہیں",
+                "expires": "{{date}} کو ختم",
+                "mobile_note": "Zelf ایپ میں App Store یا Google Play پر اپ گریڈ کریں۔",
+                "partial": "{{count}} سلاٹس شامل ہو گئے۔ باقی خریدنے کے لیے دوبارہ تصدیق کریں۔",
+                "partial_one": "1 سلاٹ شامل ہو گیا۔ باقی خریدنے کے لیے دوبارہ تصدیق کریں۔",
+                "partial_other": "{{count}} سلاٹس شامل ہو گئے۔ باقی خریدنے کے لیے دوبارہ تصدیق کریں۔",
+                "plan_keeps_name": "نام آپ کا ہی رہتا ہے۔ مدت ختم ہونے پر پلان دوبارہ مفت ہو جاتا ہے۔"
+            }
+        },
+        "vault": {
+            "reverify_title": "اپنی اشیاء دیکھنے کے لیے دوبارہ تصدیق کریں",
+            "reverify_description": "یہ سیشن ابھی والٹ نہیں کھول سکتا۔ پاس ورڈ اور کارڈ لوڈ کرنے کے لیے اپنا چہرہ دوبارہ تصدیق کریں۔",
+            "reverify_action": "دوبارہ تصدیق کریں"
         }
     },
     "cancel": "منسوخ کریں",

@@ -229,7 +229,8 @@
             "errors": {
                 "no_face_detected": "顔が検出されません",
                 "look_at_camera": "カメラを見てください"
-            }
+            },
+            "storing": "保存しています…"
         },
         "subscription_banner": {
             "title": "プレミアム機能のロックを解除",
@@ -434,6 +435,58 @@
             "error": {
                 "no_result": "利用可能なAPI結果がありません"
             }
+        },
+        "plan_limits": {
+            "usage_passwords": "パスワード {{used}} / {{limit}}",
+            "usage_passwords_unlimited": "パスワード {{used}} 件",
+            "usage_zotp": "2FA アカウント {{used}} / {{limit}}",
+            "usage_zotp_unlimited": "2FA アカウント {{used}} 件",
+            "usage_plan": "{{plan}}プラン",
+            "buy_slot_aria": "追加枠を購入",
+            "checking": "プランを確認しています…",
+            "plan": {
+                "free": "無料",
+                "premium": "プレミアム",
+                "unlimited": "無制限"
+            },
+            "sheet": {
+                "title_passwords": "{{plan}}プランのパスワード {{limit}} 件をすべて使用しました",
+                "title_zotp": "{{plan}}プランの2FAアカウント {{limit}} 件をすべて使用しました",
+                "body": "追加枠の有効期限は12か月で、ZNS残高から支払われます。",
+                "balance": "残高",
+                "balance_amount": "{{amount}} ZNS",
+                "balance_unavailable": "ZNS残高を読み取れませんでした。枠の購入は試せます。",
+                "buy": "枠を1つ購入 · {{cost}} ZNS",
+                "buy_busy": "確認しています…",
+                "low_balance": "{{cost}} ZNSが必要です。残高は {{amount}} ZNSです。",
+                "upgrade": "プランをアップグレード",
+                "password_label": "マスターパスワード",
+                "password_required": "続行するにはマスターパスワードを入力してください。",
+                "show_password": "パスワードを表示",
+                "hide_password": "パスワードを隠す",
+                "insufficient": "この枠を購入するには残高が足りません。",
+                "purchase_failed": "枠を購入できませんでした。もう一度お試しください。",
+                "face_title": "枠を購入するために本人確認",
+                "face_instructions": "追加枠の支払いに顔をスキャンしてください。",
+                "title_over_passwords": "{{plan}}プランのパスワードは {{limit}} 件中 {{used}} 件です",
+                "title_over_zotp": "{{plan}}プランの2FAアカウントは {{limit}} 件中 {{used}} 件です",
+                "over_body": "1枠では足りません。もう1件追加するには、あと {{count}} 枠（{{cost}} ZNS）が必要です。各枠の有効期限は12か月です。",
+                "buy_many": "{{count}} 枠を購入 · {{cost}} ZNS",
+                "upgrade_note": "zelf.world で無料、プレミアム、無制限を比較します。",
+                "plan_status": "{{plan}} プラン · {{date}} まで",
+                "plan_status_open": "{{plan}} プラン · 有効期限なし",
+                "expires": "{{date}} まで",
+                "mobile_note": "アップグレードは Zelf アプリ（App Store または Google Play）で行ってください。",
+                "partial": "{{count}} 枠を追加しました。残りを購入するには、もう一度確認してください。",
+                "partial_one": "1 枠を追加しました。残りを購入するには、もう一度確認してください。",
+                "partial_other": "{{count}} 枠を追加しました。残りを購入するには、もう一度確認してください。",
+                "plan_keeps_name": "名前はそのままです。期限が切れるとプランは無料に戻ります。"
+            }
+        },
+        "vault": {
+            "reverify_title": "アイテムを表示するには再確認してください",
+            "reverify_description": "このセッションではボルトを開けません。顔を再確認して、パスワードとカードを読み込んでください。",
+            "reverify_action": "再確認"
         }
     },
     "cancel": "キャンセル",

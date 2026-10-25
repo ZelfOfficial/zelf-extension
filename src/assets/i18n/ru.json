@@ -229,7 +229,8 @@
             "errors": {
                 "no_face_detected": "Лицо не обнаружено",
                 "look_at_camera": "Пожалуйста, смотрите в камеру"
-            }
+            },
+            "storing": "Сохранение…"
         },
         "subscription_banner": {
             "title": "Разблокировать премиум-функции",
@@ -434,6 +435,58 @@
             "error": {
                 "no_result": "Результат API недоступен"
             }
+        },
+        "plan_limits": {
+            "usage_passwords": "{{used}} из {{limit}} паролей",
+            "usage_passwords_unlimited": "{{used}} паролей",
+            "usage_zotp": "{{used}} из {{limit}} аккаунтов 2FA",
+            "usage_zotp_unlimited": "{{used}} аккаунтов 2FA",
+            "usage_plan": "Тариф {{plan}}",
+            "buy_slot_aria": "Купить дополнительный слот",
+            "checking": "Проверяем тариф…",
+            "plan": {
+                "free": "Бесплатный",
+                "premium": "Premium",
+                "unlimited": "Безлимитный"
+            },
+            "sheet": {
+                "title_passwords": "Вы использовали все {{limit}} паролей тарифа {{plan}}",
+                "title_zotp": "Вы использовали все {{limit}} аккаунтов 2FA тарифа {{plan}}",
+                "body": "Дополнительный слот действует 12 месяцев и оплачивается с баланса ZNS.",
+                "balance": "Баланс",
+                "balance_amount": "{{amount}} ZNS",
+                "balance_unavailable": "Не удалось прочитать баланс ZNS. Вы всё ещё можете попробовать купить слот.",
+                "buy": "Купить ещё один слот · {{cost}} ZNS",
+                "buy_busy": "Проверка…",
+                "low_balance": "Нужно {{cost}} ZNS. Ваш баланс: {{amount}} ZNS.",
+                "upgrade": "Улучшить тариф",
+                "password_label": "Мастер-пароль",
+                "password_required": "Введите мастер-пароль, чтобы продолжить.",
+                "show_password": "Показать пароль",
+                "hide_password": "Скрыть пароль",
+                "insufficient": "Баланса недостаточно для этого слота.",
+                "purchase_failed": "Не удалось купить слот. Попробуйте ещё раз.",
+                "face_title": "Подтвердите личность, чтобы купить слот",
+                "face_instructions": "Отсканируйте лицо, чтобы оплатить дополнительный слот.",
+                "title_over_passwords": "У вас {{used}} из {{limit}} паролей на тарифе {{plan}}",
+                "title_over_zotp": "У вас {{used}} из {{limit}} аккаунтов 2FA на тарифе {{plan}}",
+                "over_body": "Одного слота недостаточно. Нужно ещё {{count}} ({{cost}} ZNS), чтобы добавить ещё один. Каждый слот действует 12 месяцев.",
+                "buy_many": "Купить {{count}} слота · {{cost}} ZNS",
+                "upgrade_note": "Сравните Бесплатный, Premium и Безлимитный на zelf.world.",
+                "plan_status": "План {{plan}} · до {{date}}",
+                "plan_status_open": "План {{plan}} · без срока",
+                "expires": "До {{date}}",
+                "mobile_note": "Обновите план в приложении Zelf в App Store или Google Play.",
+                "partial": "Добавлено {{count}} слотов. Подтвердите ещё раз, чтобы купить остальные.",
+                "partial_one": "Добавлен 1 слот. Подтвердите ещё раз, чтобы купить остальные.",
+                "partial_other": "Добавлено {{count}} слотов. Подтвердите ещё раз, чтобы купить остальные.",
+                "plan_keeps_name": "Имя остаётся вашим. Когда срок плана закончится, он снова станет Бесплатным."
+            }
+        },
+        "vault": {
+            "reverify_title": "Подтвердите личность ещё раз, чтобы увидеть элементы",
+            "reverify_description": "Эта сессия ещё не может открыть хранилище. Снова подтвердите лицо, чтобы загрузить пароли и карты.",
+            "reverify_action": "Подтвердить снова"
         }
     },
     "cancel": "Отмена",

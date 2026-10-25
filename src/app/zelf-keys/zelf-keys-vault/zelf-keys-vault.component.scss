@@ -37,6 +37,14 @@
         &--error {
             color: variables.$error;
         }
+
+        &--reverify {
+            color: variables.$themeText;
+
+            strong {
+                font-size: calc(18px * var(--zns-font-scale, 1));
+            }
+        }
     }
 
     &__spinner {

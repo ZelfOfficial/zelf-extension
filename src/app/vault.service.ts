@@ -1,7 +1,8 @@
-import { Injectable } from "@angular/core";
+import { inject, Injectable } from "@angular/core";
 import * as openpgp from "openpgp";
 import { BehaviorSubject, Observable } from "rxjs";
 
+import { AuthService } from "./services/auth.service";
 import { ChromeService } from "./chrome.service";
 import { WalletService } from "./wallet.service";
 import { ZaiService } from "./zai/zai.service";
@@ -19,6 +20,7 @@ export class VaultService {
     private _password$: BehaviorSubject<void> = new BehaviorSubject<void>(undefined);
     private _passwordAttempts: number = 5;
     private _securityType: "password" | "pin" | "withoutPassword" = "password";
+    private readonly _auth = inject(AuthService);
 
     constructor(
         private _chromeService: ChromeService,
@@ -218,6 +220,7 @@ export class VaultService {
         this._lastVerified = newLastVerified;
 
         await this._chromeService.setItem("lastVerified", newLastVerified);
+        this._auth.keepVerifiedSession();
     }
 
     async lockVault(): Promise<void> {

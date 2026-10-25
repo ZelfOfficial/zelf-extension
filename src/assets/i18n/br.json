@@ -229,7 +229,8 @@
             "errors": {
                 "no_face_detected": "Nenhum rosto detectado",
                 "look_at_camera": "Por favor, olhe para a câmera"
-            }
+            },
+            "storing": "Salvando…"
         },
         "subscription_banner": {
             "title": "Desbloquear recursos premium",
@@ -434,6 +435,58 @@
             "error": {
                 "no_result": "Nenhum resultado da API disponível"
             }
+        },
+        "plan_limits": {
+            "usage_passwords": "{{used}} de {{limit}} senhas",
+            "usage_passwords_unlimited": "{{used}} senhas",
+            "usage_zotp": "{{used}} de {{limit}} contas 2FA",
+            "usage_zotp_unlimited": "{{used}} contas 2FA",
+            "usage_plan": "Plano {{plan}}",
+            "buy_slot_aria": "Comprar um espaço extra",
+            "checking": "Verificando seu plano…",
+            "plan": {
+                "free": "Grátis",
+                "premium": "Premium",
+                "unlimited": "Ilimitado"
+            },
+            "sheet": {
+                "title_passwords": "Você usou todas as {{limit}} senhas do plano {{plan}}",
+                "title_zotp": "Você usou todas as {{limit}} contas 2FA do plano {{plan}}",
+                "body": "Um espaço extra dura 12 meses e é pago com seu saldo de ZNS.",
+                "balance": "Saldo",
+                "balance_amount": "{{amount}} ZNS",
+                "balance_unavailable": "Não foi possível ler seu saldo de ZNS. Você ainda pode tentar comprar um espaço.",
+                "buy": "Comprar mais um espaço · {{cost}} ZNS",
+                "buy_busy": "Verificando…",
+                "low_balance": "Você precisa de {{cost}} ZNS. Seu saldo é {{amount}} ZNS.",
+                "upgrade": "Fazer upgrade do plano",
+                "password_label": "Senha mestra",
+                "password_required": "Digite sua senha mestra para continuar.",
+                "show_password": "Mostrar senha",
+                "hide_password": "Ocultar senha",
+                "insufficient": "Seu saldo não é suficiente para este espaço.",
+                "purchase_failed": "Não foi possível comprar o espaço. Tente de novo.",
+                "face_title": "Verifique sua identidade para comprar um espaço",
+                "face_instructions": "Escaneie seu rosto para pagar um espaço extra.",
+                "title_over_passwords": "Você tem {{used}} de {{limit}} senhas no plano {{plan}}",
+                "title_over_zotp": "Você tem {{used}} de {{limit}} contas 2FA no plano {{plan}}",
+                "over_body": "Um espaço não é suficiente. Você precisa de mais {{count}} espaços ({{cost}} ZNS) para adicionar outro. Cada um dura 12 meses.",
+                "buy_many": "Comprar {{count}} espaços · {{cost}} ZNS",
+                "upgrade_note": "Compare Grátis, Premium e Ilimitado em zelf.world.",
+                "plan_status": "Plano {{plan}} · até {{date}}",
+                "plan_status_open": "Plano {{plan}} · sem validade",
+                "expires": "Expira em {{date}}",
+                "mobile_note": "Atualize no app Zelf, na App Store ou no Google Play.",
+                "partial": "{{count}} espaços adicionados. Verifique de novo para comprar o restante.",
+                "partial_one": "1 espaço adicionado. Verifique de novo para comprar o restante.",
+                "partial_other": "{{count}} espaços adicionados. Verifique de novo para comprar o restante.",
+                "plan_keeps_name": "O nome continua seu. O plano volta para Grátis quando termina."
+            }
+        },
+        "vault": {
+            "reverify_title": "Verifique de novo para ver seus itens",
+            "reverify_description": "Esta sessão ainda não consegue abrir seu cofre. Verifique seu rosto de novo para carregar suas senhas e cartões.",
+            "reverify_action": "Verificar de novo"
         }
     },
     "cancel": "Cancelar",

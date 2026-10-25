@@ -17,6 +17,7 @@ import { WalletService } from "./wallet.service";
 import { ZelfIdsService } from "./zelf-ids.service";
 import { ZaiService } from "./zai/zai.service";
 import { FaceApiService } from "./services/face-api/face-api.service";
+import { withNormalizedZelfTag } from "./core/utils/zelf-name.util";
 
 export type TagFlow = "create" | "import" | "unlock" | "recover" | "";
 export type TagType = "create" | "import";
@@ -327,7 +328,7 @@ export class TagsService {
 
     // Lease Endpoints
     leaseTag(request: TagLeaseRequest): Promise<any> {
-        const promise = this._faceApi.sendWithFace("post", `${this.baseUrl}/api/tags/lease`, request, {
+        const promise = this._faceApi.sendWithFace("post", `${this.baseUrl}/api/tags/lease`, withNormalizedZelfTag(request), {
             action: "lease",
         });
 
@@ -338,10 +339,10 @@ export class TagsService {
 
     leaseRecovery(request: TagLeaseRecoveryRequest): Promise<any> {
         const { newTagName, ...rest } = request;
-        const body = {
+        const body = withNormalizedZelfTag({
             ...rest,
             tagName: newTagName,
-        };
+        });
         const promise = this._faceApi.sendWithFace("post", `${this.baseUrl}/api/tags/lease-recovery`, body, {
             action: "lease-recovery",
         });
@@ -352,7 +353,7 @@ export class TagsService {
     }
 
     leaseOfflineTag(request: TagOfflineLeaseRequest): Promise<any> {
-        const promise = this._httpWrapper.sendRequest("post", `${this.baseUrl}/api/tags/lease-offline`, request);
+        const promise = this._httpWrapper.sendRequest("post", `${this.baseUrl}/api/tags/lease-offline`, withNormalizedZelfTag(request));
 
         promise.then(() => this._vaultService.setLastVerified());
 
@@ -361,13 +362,13 @@ export class TagsService {
 
     // Management Endpoints
     deleteTag(request: TagDeleteRequest): Promise<any> {
-        return this._faceApi.sendWithFace("delete", `${this.baseUrl}/api/tags/delete`, request, {
+        return this._faceApi.sendWithFace("delete", `${this.baseUrl}/api/tags/delete`, withNormalizedZelfTag(request), {
             action: "delete",
         });
     }
 
     decryptTag(request: TagDecryptRequest): Promise<any> {
-        const promise = this._faceApi.sendWithFace("post", `${this.baseUrl}/api/tags/decrypt`, request, {
+        const promise = this._faceApi.sendWithFace("post", `${this.baseUrl}/api/tags/decrypt`, withNormalizedZelfTag(request), {
             action: "decrypt",
         });
 
@@ -388,7 +389,7 @@ export class TagsService {
 
     // User-specific Tag Management (My Tags)
     transferTag(request: TagTransferRequest): Promise<any> {
-        return this._faceApi.sendWithFace("post", `${this.baseUrl}/api/my-tags/transfer`, request, {
+        return this._faceApi.sendWithFace("post", `${this.baseUrl}/api/my-tags/transfer`, withNormalizedZelfTag(request), {
             action: "my-tags-transfer",
         });
     }

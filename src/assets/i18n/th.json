@@ -229,7 +229,8 @@
             "errors": {
                 "no_face_detected": "ไม่ตรวจพบใบหน้า",
                 "look_at_camera": "กรุณามองที่กล้อง"
-            }
+            },
+            "storing": "กำลังบันทึก…"
         },
         "subscription_banner": {
             "title": "ปลดล็อกฟีเจอร์พรีเมียม",
@@ -434,6 +435,58 @@
             "error": {
                 "no_result": "ไม่มีผลลัพธ์ API"
             }
+        },
+        "plan_limits": {
+            "usage_passwords": "รหัสผ่าน {{used}} จาก {{limit}}",
+            "usage_passwords_unlimited": "รหัสผ่าน {{used}}",
+            "usage_zotp": "บัญชี 2FA {{used}} จาก {{limit}}",
+            "usage_zotp_unlimited": "บัญชี 2FA {{used}}",
+            "usage_plan": "แผน {{plan}}",
+            "buy_slot_aria": "ซื้อช่องเพิ่ม",
+            "checking": "กำลังตรวจสอบแผน…",
+            "plan": {
+                "free": "ฟรี",
+                "premium": "พรีเมียม",
+                "unlimited": "ไม่จำกัด"
+            },
+            "sheet": {
+                "title_passwords": "คุณใช้รหัสผ่านครบ {{limit}} รายการในแผน {{plan}} แล้ว",
+                "title_zotp": "คุณใช้บัญชี 2FA ครบ {{limit}} รายการในแผน {{plan}} แล้ว",
+                "body": "ช่องเพิ่มมีอายุ 12 เดือน และชำระจากยอด ZNS",
+                "balance": "ยอดคงเหลือ",
+                "balance_amount": "{{amount}} ZNS",
+                "balance_unavailable": "อ่านยอด ZNS ไม่ได้ คุณยังลองซื้อช่องได้",
+                "buy": "ซื้ออีก 1 ช่อง · {{cost}} ZNS",
+                "buy_busy": "กำลังยืนยัน…",
+                "low_balance": "ต้องใช้ {{cost}} ZNS ยอดของคุณคือ {{amount}} ZNS",
+                "upgrade": "อัปเกรดแผน",
+                "password_label": "รหัสผ่านหลัก",
+                "password_required": "ป้อนรหัสผ่านหลักเพื่อดำเนินการต่อ",
+                "show_password": "แสดงรหัสผ่าน",
+                "hide_password": "ซ่อนรหัสผ่าน",
+                "insufficient": "ยอดไม่พอสำหรับช่องนี้",
+                "purchase_failed": "ซื้อช่องไม่สำเร็จ โปรดลองอีกครั้ง",
+                "face_title": "ยืนยันตัวตนเพื่อซื้อช่อง",
+                "face_instructions": "สแกนใบหน้าเพื่อชำระช่องเพิ่ม",
+                "title_over_passwords": "คุณมีรหัสผ่าน {{used}} จาก {{limit}} ในแผน {{plan}}",
+                "title_over_zotp": "คุณมีบัญชี 2FA {{used}} จาก {{limit}} ในแผน {{plan}}",
+                "over_body": "หนึ่งช่องไม่พอ คุณต้องซื้ออีก {{count}} ช่อง ({{cost}} ZNS) ก่อนเพิ่มรายการใหม่ แต่ละช่องอยู่ได้ 12 เดือน",
+                "buy_many": "ซื้อ {{count}} ช่อง · {{cost}} ZNS",
+                "upgrade_note": "เปรียบเทียบฟรี พรีเมียม และไม่จำกัดที่ zelf.world",
+                "plan_status": "แผน {{plan}} · จนถึง {{date}}",
+                "plan_status_open": "แผน {{plan}} · ไม่มีวันหมดอายุ",
+                "expires": "หมดอายุ {{date}}",
+                "mobile_note": "อัปเกรดในแอป Zelf บน App Store หรือ Google Play",
+                "partial": "เพิ่มแล้ว {{count}} ช่อง ยืนยันอีกครั้งเพื่อซื้อส่วนที่เหลือ",
+                "partial_one": "เพิ่มแล้ว 1 ช่อง ยืนยันอีกครั้งเพื่อซื้อส่วนที่เหลือ",
+                "partial_other": "เพิ่มแล้ว {{count}} ช่อง ยืนยันอีกครั้งเพื่อซื้อส่วนที่เหลือ",
+                "plan_keeps_name": "ชื่อยังเป็นของคุณ แผนจะกลับเป็นฟรีเมื่อสิ้นสุด"
+            }
+        },
+        "vault": {
+            "reverify_title": "ยืนยันอีกครั้งเพื่อดูรายการของคุณ",
+            "reverify_description": "เซสชันนี้ยังเปิดตู้เซฟไม่ได้ ยืนยันใบหน้าอีกครั้งเพื่อโหลดรหัสผ่านและบัตร",
+            "reverify_action": "ยืนยันอีกครั้ง"
         }
     },
     "cancel": "ยกเลิก",

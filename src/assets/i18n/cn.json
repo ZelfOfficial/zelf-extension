@@ -229,7 +229,8 @@
             "errors": {
                 "no_face_detected": "未检测到面部",
                 "look_at_camera": "请注视摄像头"
-            }
+            },
+            "storing": "正在保存…"
         },
         "subscription_banner": {
             "title": "解锁高级功能",
@@ -434,6 +435,58 @@
             "error": {
                 "no_result": "无可用 API 结果"
             }
+        },
+        "plan_limits": {
+            "usage_passwords": "密码 {{used}}/{{limit}}",
+            "usage_passwords_unlimited": "{{used}} 个密码",
+            "usage_zotp": "双重验证 {{used}}/{{limit}}",
+            "usage_zotp_unlimited": "{{used}} 个双重验证账户",
+            "usage_plan": "{{plan}}方案",
+            "buy_slot_aria": "购买额外名额",
+            "checking": "正在检查方案…",
+            "plan": {
+                "free": "免费",
+                "premium": "高级",
+                "unlimited": "无限"
+            },
+            "sheet": {
+                "title_passwords": "你已用完{{plan}}方案的全部 {{limit}} 个密码",
+                "title_zotp": "你已用完{{plan}}方案的全部 {{limit}} 个双重验证账户",
+                "body": "额外名额有效期为 12 个月，从你的 ZNS 余额中支付。",
+                "balance": "余额",
+                "balance_amount": "{{amount}} ZNS",
+                "balance_unavailable": "无法读取 ZNS 余额。你仍可尝试购买名额。",
+                "buy": "再购买一个名额 · {{cost}} ZNS",
+                "buy_busy": "正在验证…",
+                "low_balance": "需要 {{cost}} ZNS。当前余额为 {{amount}} ZNS。",
+                "upgrade": "升级方案",
+                "password_label": "主密码",
+                "password_required": "请输入主密码以继续。",
+                "show_password": "显示密码",
+                "hide_password": "隐藏密码",
+                "insufficient": "余额不足以购买此名额。",
+                "purchase_failed": "无法购买名额，请稍后再试。",
+                "face_title": "验证身份以购买名额",
+                "face_instructions": "扫描面部以支付一个额外名额。",
+                "title_over_passwords": "你在{{plan}}方案已有 {{used}}/{{limit}} 个密码",
+                "title_over_zotp": "你在{{plan}}方案已有 {{used}}/{{limit}} 个双重验证账户",
+                "over_body": "一个名额不够。你还需要 {{count}} 个名额（{{cost}} ZNS）才能再添加。每个名额有效期 12 个月。",
+                "buy_many": "购买 {{count}} 个名额 · {{cost}} ZNS",
+                "upgrade_note": "在 zelf.world 比较免费、高级和无限方案。",
+                "plan_status": "{{plan}} 方案 · 至 {{date}}",
+                "plan_status_open": "{{plan}} 方案 · 无到期日",
+                "expires": "{{date}} 到期",
+                "mobile_note": "请在 Zelf 手机应用（App Store 或 Google Play）中升级。",
+                "partial": "已添加 {{count}} 个名额。请再次验证以购买剩余名额。",
+                "partial_one": "已添加 1 个名额。请再次验证以购买剩余名额。",
+                "partial_other": "已添加 {{count}} 个名额。请再次验证以购买剩余名额。",
+                "plan_keeps_name": "名称仍归你所有。到期后方案会回到免费。"
+            }
+        },
+        "vault": {
+            "reverify_title": "重新验证以查看你的项目",
+            "reverify_description": "当前会话还不能打开保险库。请再次验证面容以加载密码和银行卡。",
+            "reverify_action": "重新验证"
         }
     },
     "cancel": "取消",
