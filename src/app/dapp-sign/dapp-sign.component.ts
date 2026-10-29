@@ -14,6 +14,8 @@ import { TxDecoderService } from "app/services/tx-decoder.service";
 import { VaultService } from "app/vault.service";
 import { SigningAuthorizationService } from "app/services/signing-authorization.service";
 import { FACE_ONLY_PASSPHRASE, SigningGateInput, resolveSigningGate, signingNeedsFace } from "app/core/security/signing-gate.util";
+import { previewProofSecurity, proofRequiresPassword } from "app/onboarding-stack";
+import { ZelfIdsService } from "app/zelf-ids.service";
 import { WalletService } from "app/wallet.service";
 import { TagsService } from "app/tags.service";
 import { TagModel } from "app/tags.service";
@@ -84,7 +86,8 @@ export class DappSignComponent implements OnInit {
         private _txDecoder: TxDecoderService,
         private _vaultService: VaultService,
         private _walletService: WalletService,
-        private _signingAuthorization: SigningAuthorizationService
+        private _signingAuthorization: SigningAuthorizationService,
+        private _zelfIdsService?: ZelfIdsService
     ) {
         this.remainingAttempts = this._vaultService.remainingAttempts;
         this._carriedSecret = this._vaultService.password;
@@ -196,16 +199,38 @@ export class DappSignComponent implements OnInit {
     }
 
     async goToBiometrics(): Promise<void> {
+        await this._checkPasswordlessWallet();
         if (!this.hasCredentials || !this.wallet) return;
+
+        const secret = this.isFaceOnly ? FACE_ONLY_PASSPHRASE : this._typedSecret() || this._carriedSecret;
+        if (!this.isFaceOnly && !secret) {
+            this.passwordSet = false;
+            await this._checkBiometrics();
+            this._openErrorSnackBar(this.isPinUnlock ? "Enter your PIN" : "Enter your password");
+            return;
+        }
 
         // #88: the face step needs the password/PIN typed for this request (face-only: placeholder),
         // and it can only approve this request.
-        this._vaultService.password = this.isFaceOnly ? FACE_ONLY_PASSPHRASE : this._typedSecret();
+        this._vaultService.password = secret;
+        if (!this.isFaceOnly) {
+            this._carriedSecret = secret;
+        }
         this._signingAuthorization.requestAuthorization(this._signingScope());
 
-        const tagName = this.wallet?.publicData?.tagName || this.wallet?.fullTagName || "";
+        const tagName = this.wallet?.tagName || this.wallet?.publicData?.tagName || this.wallet?.fullTagName || "";
+        const domain = this.wallet?.domain || this.wallet?.publicData?.domain || "zelf";
+        const zelfProof = this.wallet?.zelfProof || "";
+
         await this._tagsService.setTagName(tagName);
+        await this._tagsService.setDomain?.(domain);
+        if (zelfProof) await this._tagsService.setZelfProof?.(zelfProof);
         await this._tagsService.setFlow("unlock");
+
+        await this._zelfIdsService?.setTagName?.(tagName);
+        await this._zelfIdsService?.setDomain?.(domain);
+        if (zelfProof) await this._zelfIdsService?.setZelfProof?.(zelfProof);
+        await this._zelfIdsService?.setFlow?.("unlock");
 
         sessionStorage.setItem("pending_sign_request_id", this.requestId);
         this._router.navigate(["security/biometrics"], { queryParams: { return: "/dapp/sign" } });
@@ -464,7 +489,41 @@ export class DappSignComponent implements OnInit {
 
         const publicData = this.wallet.publicData as any;
 
-        this.isFaceOnly = String(publicData.hasPassword) === "false";
+        let requiresPassword: boolean | undefined =
+            publicData.hasPassword === "true" ? true : publicData.hasPassword === "false" ? false : undefined;
+
+        if (requiresPassword !== true) {
+            try {
+                const zelfProof =
+                    this.wallet.zelfProof ||
+                    (await this._zelfIdsService?.getZelfProof?.()) ||
+                    (await this._tagsService?.getZelfProof?.()) ||
+                    "";
+
+                if (zelfProof && (this._zelfIdsService?.previewZelfProof || this._tagsService?.previewZelfProof)) {
+                    const preview = await previewProofSecurity(
+                        zelfProof,
+                        (proof) => this._zelfIdsService?.previewZelfProof?.({ zelfProof: proof, os: "DESKTOP" }) ?? Promise.resolve(null),
+                        (proof) => this._tagsService?.previewZelfProof?.({ zelfProof: proof, os: "DESKTOP" }) ?? Promise.resolve(null)
+                    );
+
+                    if (preview) {
+                        this._zelfIdsService?.mergePreviewSecurity?.(this.wallet, preview);
+                        this._tagsService?.mergePreviewSecurity?.(this.wallet, preview);
+                        await this._walletService?.updateWallet?.(this.wallet);
+                    }
+
+                    const resolved = proofRequiresPassword(preview?.passwordLayer, this.wallet.publicData?.hasPassword);
+                    if (resolved !== undefined) {
+                        requiresPassword = resolved;
+                    }
+                }
+            } catch {
+                // Keep fallback
+            }
+        }
+
+        this.isFaceOnly = requiresPassword === false;
 
         if (this.isFaceOnly) {
             this._vaultService.securityType = "withoutPassword";

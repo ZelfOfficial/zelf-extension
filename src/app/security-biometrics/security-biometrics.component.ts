@@ -21,6 +21,7 @@ import {
     parseRetryAfterSeconds,
 } from "app/services/face-api/face-api.errors";
 import { SigningAuthorizationService } from "app/services/signing-authorization.service";
+import { FACE_ONLY_PASSPHRASE } from "app/core/security/signing-gate.util";
 import { TagFlow, TagModel, TagsService } from "app/tags.service";
 import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
@@ -197,6 +198,7 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
     private async _decryptTag(payload: any): Promise<void> {
         const zelfProof = await this._tagsService.getZelfProof();
         const userFingerprint = this._walletService.getUserFingerprint();
+        const usedRealPassword = Boolean(this._vaultService.password && this._vaultService.password !== FACE_ONLY_PASSPHRASE);
 
         this._tagsService
             .decryptTag({
@@ -205,11 +207,23 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
                 identifier: userFingerprint.hash,
             })
             .then(async (response) => {
+                if (!response?.data || response.data.available) {
+                    this.onBiometricsFailed({ status: 404, error: { message: "tag_not_found", code: "NotFound" } });
+                    return;
+                }
+
                 await this._chromeService.removeItem("flow");
                 await this._chromeService.removeItem("tagName");
                 await this._chromeService.removeItem("newTagName");
 
+                const currentWallet = await this._walletService.getCurrentWallet?.();
                 const newWallet = new TagModel(response.data);
+
+                if (usedRealPassword || currentWallet?.publicData?.hasPassword === "true") {
+                    newWallet.updatePublicData({ hasPassword: "true" });
+                    newWallet.hasPassword = true;
+                }
+
                 await this._walletService.switchWallet(newWallet);
 
                 // #88: only a face decrypt that succeeded on this screen, started from a signing screen, approves it.
@@ -293,14 +307,28 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
     }
 
     canNavigateAway(): boolean {
-        return this._canNavigate;
+        return this.apiSuccess || this._canNavigate;
     }
 
     canNavigateAwayHandler(canNavigate: boolean = false): void {
         this._canNavigate = canNavigate;
     }
 
+    private async _healWalletRequiresPassword(): Promise<void> {
+        try {
+            const wallet = (await this._walletService.getCurrentWallet?.()) as TagModel | null;
+            if (wallet && wallet.publicData) {
+                wallet.updatePublicData({ hasPassword: "true" });
+                wallet.hasPassword = true;
+                await this._walletService.updateWallet?.(wallet);
+            }
+        } catch {
+            // Non-blocking heal
+        }
+    }
+
     goBack(): void {
+        this._canNavigate = true;
         this._signingAuthorization.revoke();
         this.errorTitle = "";
         this.errorMessage = "";
@@ -355,6 +383,10 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
                 errorKey === "incorrect_passphrase" ||
                 errorKey === "ERR_MISSING_PASSWORD")
         ) {
+            if (this._vaultService.securityType === "withoutPassword") {
+                this._vaultService.securityType = "password";
+            }
+            void this._healWalletRequiresPassword();
             this.goBack();
             return;
         }

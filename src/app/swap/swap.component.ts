@@ -29,6 +29,8 @@ import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { SettingsService } from "app/services/settings.service";
 import { SigningAuthorizationService } from "app/services/signing-authorization.service";
 import { FACE_ONLY_PASSPHRASE, SigningGateInput, resolveSigningGate, signingNeedsFace } from "app/core/security/signing-gate.util";
+import { previewProofSecurity, proofRequiresPassword } from "app/onboarding-stack";
+import { ZelfIdsService } from "app/zelf-ids.service";
 import { environment } from "environments/environment";
 import { AssetChangeData, SwapCurrencyComponent } from "../swap-currency/swap-currency.component";
 import { DisplayAmountPipe, DisplayFiatPipe } from "../pipes/display-number.pipe";
@@ -133,7 +135,8 @@ export class SwapComponent implements OnInit, OnDestroy {
         private _walletService: WalletService,
         private _tagsService: TagsService,
         private _settingsService: SettingsService,
-        private _signingAuthorization: SigningAuthorizationService
+        private _signingAuthorization: SigningAuthorizationService,
+        private _zelfIdsService?: ZelfIdsService
     ) {
         this.CAN_SWAP = this._assetService.canSwap;
         this.wallet = {} as TagModel;
@@ -161,7 +164,7 @@ export class SwapComponent implements OnInit, OnDestroy {
             });
 
         this.wallet = (await this._walletService.getCurrentWallet()) as TagModel;
-        this.isFaceOnly = String((this.wallet?.publicData as any)?.hasPassword) === "false";
+        await this._checkPasswordlessWallet();
 
         this._initForm();
 
@@ -770,10 +773,73 @@ export class SwapComponent implements OnInit, OnDestroy {
         };
     }
 
-    async _redirectToBiometrics(): Promise<void> {
-        await this._tagsService.setFlow("unlock");
+    private async _checkPasswordlessWallet(): Promise<void> {
+        if (!this.wallet?.publicData) return;
 
-        await this._tagsService.setTagName(this.wallet?.tagName as string);
+        const publicData = this.wallet.publicData as any;
+
+        let requiresPassword: boolean | undefined =
+            publicData.hasPassword === "true" ? true : publicData.hasPassword === "false" ? false : undefined;
+
+        if (requiresPassword !== true) {
+            try {
+                const zelfProof =
+                    this.wallet.zelfProof ||
+                    (await this._zelfIdsService?.getZelfProof?.()) ||
+                    (await this._tagsService?.getZelfProof?.()) ||
+                    "";
+
+                if (zelfProof && (this._zelfIdsService?.previewZelfProof || this._tagsService?.previewZelfProof)) {
+                    const preview = await previewProofSecurity(
+                        zelfProof,
+                        (proof) => this._zelfIdsService?.previewZelfProof?.({ zelfProof: proof, os: "DESKTOP" }) ?? Promise.resolve(null),
+                        (proof) => this._tagsService?.previewZelfProof?.({ zelfProof: proof, os: "DESKTOP" }) ?? Promise.resolve(null)
+                    );
+
+                    if (preview) {
+                        this._zelfIdsService?.mergePreviewSecurity?.(this.wallet, preview);
+                        this._tagsService?.mergePreviewSecurity?.(this.wallet, preview);
+                        await this._walletService?.updateWallet?.(this.wallet);
+                    }
+
+                    const resolved = proofRequiresPassword(preview?.passwordLayer, this.wallet.publicData?.hasPassword);
+                    if (resolved !== undefined) {
+                        requiresPassword = resolved;
+                    }
+                }
+            } catch {
+                // Keep fallback
+            }
+        }
+
+        this.isFaceOnly = requiresPassword === false;
+
+        if (this.isFaceOnly) {
+            this._vaultService.securityType = "withoutPassword";
+            this.passwordSet = true;
+        } else if (publicData.st === "pin") {
+            this._vaultService.securityType = "pin";
+        } else {
+            this._vaultService.securityType = "password";
+        }
+    }
+
+    async _redirectToBiometrics(): Promise<void> {
+        await this._checkPasswordlessWallet();
+
+        const tagName = (this.wallet?.tagName || this.wallet?.publicData?.tagName || this.wallet?.name || "") as string;
+        const domain = (this.wallet?.domain || this.wallet?.publicData?.domain || "zelf") as string;
+        const zelfProof = this.wallet?.zelfProof || "";
+
+        await this._tagsService.setFlow("unlock");
+        await this._tagsService.setTagName(tagName);
+        await this._tagsService.setDomain?.(domain);
+        if (zelfProof) await this._tagsService.setZelfProof?.(zelfProof);
+
+        await this._zelfIdsService?.setFlow?.("unlock");
+        await this._zelfIdsService?.setTagName?.(tagName);
+        await this._zelfIdsService?.setDomain?.(domain);
+        if (zelfProof) await this._zelfIdsService?.setZelfProof?.(zelfProof);
 
         const { password: _password, ...rest } = this.form.value;
 
@@ -784,7 +850,11 @@ export class SwapComponent implements OnInit, OnDestroy {
         });
         // #88: the face step needs the password/PIN typed for this swap (face-only wallets: placeholder),
         // and it can only approve this swap.
-        this._vaultService.password = this.isFaceOnly ? FACE_ONLY_PASSPHRASE : this.form.get("password")?.value || "";
+        const typedSecret = (this.form.get("password")?.value || "").trim() || (this._carriedSecret || "").trim();
+        this._vaultService.password = this.isFaceOnly ? FACE_ONLY_PASSPHRASE : typedSecret;
+        if (!this.isFaceOnly && typedSecret) {
+            this._carriedSecret = typedSecret;
+        }
         this._signingAuthorization.requestAuthorization(this._signingScope());
         this._router.navigate(["/security/biometrics"], { queryParams: { return: "/swap" } });
     }
@@ -805,7 +875,7 @@ export class SwapComponent implements OnInit, OnDestroy {
         if (this._requiresBiometricsInterval) this._clearRequiresBiometricsInterval();
 
         this._requiresBiometricsInterval = setInterval(() => {
-            void this._signingGateInput().then((input) => (this.requiresBiometrics = signingNeedsFace(input)));
+            void this._decryptMnemonics();
         }, 1000);
     }
 

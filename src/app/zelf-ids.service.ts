@@ -472,7 +472,11 @@ export class ZelfIdsService {
     }
 
     async getTagName(): Promise<string> {
-        return (this._variables.name as string) || (await this._chromeService.getItem(CHROME_KEYS.name));
+        const tagName = (this._variables.name as string) || (await this._chromeService.getItem(CHROME_KEYS.name));
+        if (tagName) return tagName;
+
+        const wallet = await this._wallet.getFirstWalletFromStorage();
+        return wallet?.tagName || wallet?.publicData?.tagName?.split(".")[0] || "";
     }
 
     async getDuration(): Promise<any> {
@@ -480,11 +484,19 @@ export class ZelfIdsService {
     }
 
     async getZelfProof(): Promise<string> {
-        return (this._variables.proof as string) || (await this._chromeService.getItem(CHROME_KEYS.proof)) || "";
+        const zelfProof = (this._variables.proof as string) || (await this._chromeService.getItem(CHROME_KEYS.proof));
+        if (zelfProof) return zelfProof;
+
+        const wallet = await this._wallet.getFirstWalletFromStorage();
+        return wallet?.zelfProof || "";
     }
 
     async getDomain(): Promise<string> {
-        return (this._variables.domain as string) || (await this._chromeService.getItem(CHROME_KEYS.domain)) || "zelf";
+        const domain = (this._variables.domain as string) || (await this._chromeService.getItem(CHROME_KEYS.domain));
+        if (domain) return domain;
+
+        const wallet = await this._wallet.getFirstWalletFromStorage();
+        return wallet?.domain || wallet?.publicData?.domain || "zelf";
     }
 
     parseTagName(tagName: string): { name: string; domain: string } {

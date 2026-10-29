@@ -203,17 +203,22 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
 
         this._intervals.checkNgxVideo = null;
 
-        videoNgx.addEventListener(
-            "loadeddata",
-            () => {
-                this._startFaceDetectionInterval();
-                this.canNavigate.emit(true);
+        if (videoNgx.readyState >= 2) {
+            this._startFaceDetectionInterval();
+            this.canNavigate.emit(true);
+        } else {
+            videoNgx.addEventListener(
+                "loadeddata",
+                () => {
+                    this._startFaceDetectionInterval();
+                    this.canNavigate.emit(true);
 
-                this._setVideoDimensions(videoNgx);
-                this._drawOvalCenterAndMask();
-            },
-            { once: true }
-        );
+                    this._setVideoDimensions(videoNgx);
+                    this._drawOvalCenterAndMask();
+                },
+                { once: true }
+            );
+        }
 
         this._setVideoDimensions(videoNgx);
         this._drawOvalCenterAndMask();
@@ -336,8 +341,10 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         try {
             const base64 = await loadDevBiometricsFixtureBase64();
             this.response.base64Image = `data:image/jpeg;base64,${base64}`;
+            this.canNavigate.emit(true);
             await this._emitBiometricCapture();
         } catch (error) {
+            this.canNavigate.emit(true);
             this.error.emit(error);
         }
     }

@@ -337,7 +337,12 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
             const amountText = String(this.transactionData.amount ?? "0").replace(/,/g, "").trim();
             const tokenSymbol = this.transactionData.token?.symbol;
 
-            let tokenAddress = this.transactionData.token?.address_token;
+            let tokenAddress =
+                this.transactionData.token?.address_token ||
+                this.transactionData.token?.tokenAddress ||
+                this.transactionData.token?.contractAddress ||
+                this.transactionData.token?.mint ||
+                this.transactionData.token?.address;
 
             const isNativeToken = ["AVAX", "ETH", "BNB", "MATIC", "BDAG", "XLM", "DOT", "KSM", "APT"].includes(tokenSymbol);
 
@@ -350,7 +355,14 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
                         (t: any) => t.symbol === tokenSymbol
                     );
 
-                    if (foundToken) tokenAddress = foundToken.address;
+                    if (foundToken) {
+                        tokenAddress =
+                            foundToken.address ||
+                            foundToken.tokenAddress ||
+                            foundToken.address_token ||
+                            foundToken.contractAddress ||
+                            foundToken.mint;
+                    }
                 } catch (error) {
                     console.error("Error fetching token data from API:", error);
                 }
@@ -598,12 +610,18 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
 
         const publicData = this.wallet.publicData as any;
 
+        // Pinata `hasPassword: "false"` can be stale on proofs that actually have a password layer (e.g. qa.zelf),
+        // so preview whenever a zelfProof is available unless `hasPassword` is already `"true"`.
         let requiresPassword: boolean | undefined =
             publicData.hasPassword === "true" ? true : publicData.hasPassword === "false" ? false : undefined;
 
-        if (requiresPassword === undefined) {
+        if (requiresPassword !== true) {
             try {
-                const zelfProof = (await this._tagsService.getZelfProof()) || this.wallet.zelfProof || "";
+                const zelfProof =
+                    this.wallet.zelfProof ||
+                    (await this._zelfIdsService?.getZelfProof?.()) ||
+                    (await this._tagsService?.getZelfProof?.()) ||
+                    "";
 
                 if (zelfProof) {
                     const preview = await previewProofSecurity(
@@ -612,10 +630,19 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
                         (proof) => this._tagsService.previewZelfProof({ zelfProof: proof, os: "DESKTOP" })
                     );
 
-                    requiresPassword = proofRequiresPassword(preview?.passwordLayer, publicData?.hasPassword);
+                    if (preview) {
+                        this._zelfIdsService?.mergePreviewSecurity?.(this.wallet, preview);
+                        this._tagsService?.mergePreviewSecurity?.(this.wallet, preview);
+                        await this._walletService?.updateWallet?.(this.wallet);
+                    }
+
+                    const resolved = proofRequiresPassword(preview?.passwordLayer, this.wallet.publicData?.hasPassword);
+                    if (resolved !== undefined) {
+                        requiresPassword = resolved;
+                    }
                 }
             } catch {
-                // Unknown metadata: treat as password wallet (never skip the password field).
+                // Unknown metadata: keep fallback (never skip the password field when undefined).
             }
         }
 
@@ -652,10 +679,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
         if (this._requiresBiometricsInterval) clearInterval(this._requiresBiometricsInterval);
 
         this._requiresBiometricsInterval = setInterval(() => {
-            void this._signingGateInput().then((input) => {
-                this.requiresBiometrics = signingNeedsFace(input);
-                this._changeDetectorRef.detectChanges();
-            });
+            void this._refreshSigningGate();
         }, 1000);
     }
 
@@ -679,9 +703,28 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
             this._carriedSecret = secret;
         }
 
-        await this._tagsService.setTagName(this.transactionData.sender.tagName);
+        const senderTagName =
+            this.transactionData?.sender?.tagName ||
+            this.wallet?.tagName ||
+            this.wallet?.publicData?.tagName ||
+            this.wallet?.name ||
+            "";
+        const senderDomain =
+            this.transactionData?.sender?.domain ||
+            this.wallet?.domain ||
+            this.wallet?.publicData?.domain ||
+            "zelf";
+        const senderProof = this.wallet?.zelfProof || "";
 
+        await this._tagsService.setTagName(senderTagName);
+        await this._tagsService.setDomain?.(senderDomain);
+        if (senderProof) await this._tagsService.setZelfProof?.(senderProof);
         await this._tagsService.setFlow("unlock");
+
+        await this._zelfIdsService?.setTagName?.(senderTagName);
+        await this._zelfIdsService?.setDomain?.(senderDomain);
+        if (senderProof) await this._zelfIdsService?.setZelfProof?.(senderProof);
+        await this._zelfIdsService?.setFlow?.("unlock");
 
         // #88: the biometrics screen can only authorize the transaction that started it.
         this._signingAuthorization.requestAuthorization(this._signingScope());
@@ -824,7 +867,12 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
             value: this.transactionData.network === "sui" ? exactAmount : String(normalizedAmount),
             network: this.transactionData.network,
             mnemonic: cleanMnemonic,
-            tokenAddress: this.transactionData.token?.address_token || this.transactionData.token?.tokenAddress,
+            tokenAddress:
+                this.transactionData.token?.address_token ||
+                this.transactionData.token?.tokenAddress ||
+                this.transactionData.token?.contractAddress ||
+                this.transactionData.token?.mint ||
+                this.transactionData.token?.address,
             tokenDecimals: this.transactionData.token?.decimals,
             memo: this.transactionData.memo?.trim() || undefined,
             sendAll: this.transactionData.sendAll === true,

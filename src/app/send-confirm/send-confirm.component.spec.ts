@@ -279,4 +279,25 @@ describe("SendConfirmComponent signing rule (#88)", () => {
 
         expect(t.signingAuth.has(t.scope)).toBeFalse();
     });
+
+    it("does not skip the password step when publicData.hasPassword is stale 'false' but proof preview has WithPassword (#138)", async () => {
+        const t = setup("solana", "faceonly", false);
+        t.component.wallet!.zelfProof = "stale-proof-base64";
+        (t.component as any)._zelfIdsService = {
+            previewZelfProof: jasmine.createSpy("previewZelfProof").and.resolveTo({
+                data: { preview: { passwordLayer: "WithPassword", publicData: { hasPassword: "false" } } },
+            }),
+            mergePreviewSecurity: (w: any) => {
+                w.publicData.hasPassword = "true";
+            },
+        };
+
+        const opened = await (t.component as any)._beginFaceStep();
+
+        expect(opened).toBeFalse();
+        expect(t.component.isFaceOnly).toBeFalse();
+        expect(t.component.passwordSet).toBeFalse();
+        expect(t.navigate).not.toHaveBeenCalledWith(...BIOMETRICS);
+        expect(t.snack).toHaveBeenCalled();
+    });
 });

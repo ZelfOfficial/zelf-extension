@@ -141,6 +141,8 @@ export interface TagPublicData {
     avalancheAddress: string;
     binanceAddress: string;
     st?: string;
+    v?: string | number;
+    plan?: string;
 }
 
 export interface PGP {
@@ -170,6 +172,8 @@ export class TagPublicDataModel {
     expiresAt?: string;
     gracePeriod?: Date | null;
     st?: string;
+    v?: string | number;
+    plan?: string;
 
     constructor(data: any) {
         this.avalancheAddress = data.avalancheAddress || data.ethAddress || "";
@@ -192,6 +196,8 @@ export class TagPublicDataModel {
         this.registeredAt = data.registeredAt || "";
         this.expiresAt = data.expiresAt || "";
         this.st = data.st || "";
+        if (data.v !== undefined && data.v !== "") this.v = data.v;
+        if (data.plan !== undefined && data.plan !== "") this.plan = data.plan;
 
         this.gracePeriod = this._calculateGracePeriod();
     }

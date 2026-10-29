@@ -547,7 +547,11 @@ export class TagsService {
     }
 
     async getTagName(): Promise<string> {
-        return this.variables.tagName || (await this._chromeService.getItem("tagName"));
+        const tagName = this.variables.tagName || (await this._chromeService.getItem("tagName"));
+        if (tagName) return tagName;
+
+        const wallet = await this._walletService.getFirstWalletFromStorage();
+        return wallet?.tagName || wallet?.publicData?.tagName?.split(".")[0] || "";
     }
 
     async getTagPrice(): Promise<any> {
@@ -577,7 +581,11 @@ export class TagsService {
     }
 
     async getDomain(): Promise<string> {
-        return this.variables.domain || (await this._chromeService.getItem("domain")) || "zelf";
+        const domain = this.variables.domain || (await this._chromeService.getItem("domain"));
+        if (domain) return domain;
+
+        const wallet = await this._walletService.getFirstWalletFromStorage();
+        return wallet?.domain || wallet?.publicData?.domain || "zelf";
     }
 
     // Wallet Data Refresh Methods
@@ -690,7 +698,12 @@ export class TagsService {
 
         if (!tagObject?.publicData || !tag) return null;
 
-        tag.updatePublicData(tagObject?.publicData as Partial<TagPublicData>);
+        const existingHasPassword = tag.publicData?.hasPassword;
+
+        tag.updatePublicData({
+            ...(tagObject?.publicData as Partial<TagPublicData>),
+            ...(existingHasPassword === "true" ? { hasPassword: "true" } : {}),
+        });
 
         await this._walletService.updateWallet(tag);
 

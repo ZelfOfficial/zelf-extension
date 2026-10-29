@@ -20,6 +20,8 @@ import {
     isFaceReplayDetectedError,
     parseRetryAfterSeconds,
 } from "app/services/face-api/face-api.errors";
+import { SigningAuthorizationService } from "app/services/signing-authorization.service";
+import { FACE_ONLY_PASSPHRASE } from "app/core/security/signing-gate.util";
 import { TagFlow, TagModel } from "app/tags.service";
 import { ZelfIdsService } from "app/zelf-ids.service";
 import { VaultService } from "app/vault.service";
@@ -80,7 +82,8 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
         private _vaultService: VaultService,
         private _walletService: WalletService,
         private _faceApi: FaceApiService,
-        private _changeDetectorRef: ChangeDetectorRef
+        private _changeDetectorRef: ChangeDetectorRef,
+        private _signingAuthorization: SigningAuthorizationService
     ) {
         this.form = this._formBuilder.group({
             hideBiometricsCheckbox: [false],
@@ -196,6 +199,7 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
     private async _decryptTag(payload: any): Promise<void> {
         const zelfProof = await this._zelfIdsService.getZelfProof();
         const userFingerprint = this._walletService.getUserFingerprint();
+        const usedRealPassword = Boolean(this._vaultService.password && this._vaultService.password !== FACE_ONLY_PASSPHRASE);
 
         this._zelfIdsService
             .decryptTag({
@@ -213,8 +217,20 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
                 await this._chromeService.removeItem("zelfIdFlow");
                 await this._chromeService.removeItem("newZelfIdName");
 
+                const currentWallet = await this._walletService.getCurrentWallet?.();
                 const newWallet = new TagModel(response.data);
+
+                if (usedRealPassword || currentWallet?.publicData?.hasPassword === "true") {
+                    newWallet.updatePublicData({ hasPassword: "true" });
+                    newWallet.hasPassword = true;
+                }
+
                 await this._walletService.switchWallet(newWallet);
+
+                // #88: only a face decrypt that succeeded on this screen, started from a signing screen, approves it.
+                if (this._isSigningReturn()) this._signingAuthorization?.approvePending();
+                else this._signingAuthorization?.revoke();
+
                 await this._showSuccessAndContinue(() => this._redirect());
             })
             .catch(this.onBiometricsFailed);
@@ -271,6 +287,24 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
             .catch(this.onBiometricsFailed);
     }
 
+    /** #88: screens whose pending signature this face step may approve (one-time, per request). */
+    private _isSigningReturn(): boolean {
+        return ["/send/confirmation", "/swap", "/dapp/sign"].includes((this.returnState || "").split("?")[0]);
+    }
+
+    private async _healWalletRequiresPassword(): Promise<void> {
+        try {
+            const wallet = (await this._walletService.getCurrentWallet?.()) as TagModel | null;
+            if (wallet && wallet.publicData) {
+                wallet.updatePublicData({ hasPassword: "true" });
+                wallet.hasPassword = true;
+                await this._walletService.updateWallet?.(wallet);
+            }
+        } catch {
+            // Non-blocking heal
+        }
+    }
+
     private async _redirect(): Promise<void> {
         if (this.returnState) {
             let cleanReturn = this.returnState;
@@ -303,6 +337,8 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
     }
 
     goBack(): void {
+        this._canNavigate = true;
+        this._signingAuthorization?.revoke();
         this.errorTitle = "";
         this.errorMessage = "";
 
@@ -320,6 +356,7 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
     }
 
     onBiometricsFailed = (exception: any): void => {
+        this._signingAuthorization?.revoke();
         this.apiLoading = false;
         this.apiSuccess = false;
 
@@ -345,6 +382,21 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
         if (this._errorService.isLivenessError(errorKey)) {
             this.errorTitle = this._translocoService.translate("errors.liveness_failed");
             this.errorMessage = this._translocoService.translate("errors.liveness_failed_help");
+            return;
+        }
+
+        if (
+            this._isSigningReturn() &&
+            (errorKey === "ERR_PASSWORD_REQUIRED" ||
+                errorKey === "ERR_INVALID_PASSWORD" ||
+                errorKey === "incorrect_passphrase" ||
+                errorKey === "ERR_MISSING_PASSWORD")
+        ) {
+            if (this._vaultService.securityType === "withoutPassword") {
+                this._vaultService.securityType = "password";
+            }
+            void this._healWalletRequiresPassword();
+            this.goBack();
             return;
         }
 
