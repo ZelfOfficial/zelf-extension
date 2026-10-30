@@ -96,11 +96,18 @@
 
         .form-actions {
             display: flex;
+            flex-wrap: wrap;
+            align-items: center;
             gap: 16px;
-            justify-content: flex-end;
+            justify-content: space-between;
+            width: 100%;
             margin-top: 32px;
             padding-top: 24px;
             border-top: 1px solid variables.$themeBorder;
+
+            .zelf-button {
+                flex: 0 1 auto;
+            }
         }
     }
 }
@@ -375,6 +382,11 @@
 
         .form-actions {
             flex-direction: column;
+            align-items: stretch;
+
+            .zelf-button {
+                width: 100%;
+            }
         }
     }
 
