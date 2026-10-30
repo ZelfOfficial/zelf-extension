@@ -158,7 +158,7 @@ export class SendTransactionComponent implements OnDestroy {
     }
 
     /** Matches truncated max used for validation and "withdraw all". */
-    /** Display only (max 4 decimals, floored so it never shows more than can be sent). "Max" still fills the exact amount. */
+    /** Display only (max 5 decimals, floored so it never shows more than can be sent). "Max" still fills the exact amount. */
     get displaySendableBalance(): string {
         return formatDisplayAmount(this._getMaxSendableAmount(), { rounding: "floor" }) || "0";
     }
@@ -174,7 +174,7 @@ export class SendTransactionComponent implements OnDestroy {
         return !!(e?.dustTooSmall || e?.lessThan || e?.invalidNumber);
     }
 
-    /** Display-only copy for inline validation (max 4 decimals). */
+    /** Display-only copy for inline validation (max 5 decimals). */
     formatAmountForInlineError(value: unknown): string {
         const formatted = formatDisplayAmount(value, { rounding: "floor" });
         return formatted || String(value ?? "");

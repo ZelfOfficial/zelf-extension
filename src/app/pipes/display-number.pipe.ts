@@ -2,7 +2,7 @@ import { Pipe, type PipeTransform } from "@angular/core";
 
 import { formatDisplayAmount, formatDisplayFiat, type DisplayAmountOptions } from "../core/utils/display-number.util";
 
-/** `{{ token.amount | displayAmount }}`: at most 4 decimals, "<0.0001" for dust. Display only. */
+/** `{{ token.amount | displayAmount }}`: at most 5 decimals, "<0.00001" for dust. Display only. */
 @Pipe({ name: "displayAmount", standalone: true })
 export class DisplayAmountPipe implements PipeTransform {
     transform(value: unknown, minDecimals = 0, rounding: DisplayAmountOptions["rounding"] = "round"): string {

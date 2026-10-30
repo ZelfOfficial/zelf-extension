@@ -1,11 +1,12 @@
 import { DisplayAmountPipe, DisplayFiatPipe } from "./display-number.pipe";
 
 describe("DisplayAmountPipe / DisplayFiatPipe", () => {
-    it("formats amounts with at most 4 decimals", () => {
+    it("formats amounts with at most 5 decimals", () => {
         const pipe = new DisplayAmountPipe();
-        expect(pipe.transform("0.000292177900390457")).toBe("0.0003");
-        expect(pipe.transform(0.00001)).toBe("<0.0001");
-        expect(pipe.transform("0.00029217", 0, "floor")).toBe("0.0002");
+        expect(pipe.transform("0.000292177900390457")).toBe("0.00029");
+        expect(pipe.transform(0.00001)).toBe("0.00001");
+        expect(pipe.transform(0.000009)).toBe("<0.00001");
+        expect(pipe.transform("0.00029217", 0, "floor")).toBe("0.00029");
         expect(pipe.transform(2, 2)).toBe("2.00");
     });
 
