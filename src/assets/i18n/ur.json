@@ -10,7 +10,9 @@
             "back_to_payment_cards": "ادائیگی کارڈز پر واپس جائیں",
             "add_another_card": "دوسرا کارڈ شامل کریں",
             "try_again": "دوبارہ کوشش کریں",
-            "image_not_available": "تصویر دستیاب نہیں ہے"
+            "image_not_available": "تصویر دستیاب نہیں ہے",
+            "proof_loading": "مرموز ڈیٹا لوڈ ہو رہا ہے…",
+            "proof_load_failed": "اس آئٹم کا مرموز ڈیٹا لوڈ نہیں ہو سکا۔ دوبارہ کوشش کریں۔"
         },
         "payment_cards": {
             "labels": {
@@ -196,6 +198,39 @@
                 "premium_plan": "پریمیم پلان",
                 "not_available": "دستیاب نہیں",
                 "month": "مہینہ"
+            },
+            "stripe_checkout": {
+                "interval_year": "سال",
+                "waiting": {
+                    "title": "Stripe میں ادائیگی مکمل کریں",
+                    "message": "ہم نے Stripe نئی ٹیب میں کھولا۔ وہاں ادائیگی مکمل کریں اور یہ اسکرین کھلی رکھیں — ہم خود اپ ڈیٹ کر دیں گے۔"
+                },
+                "confirmed": {
+                    "title": "ادائیگی کی تصدیق ہو گئی",
+                    "message": "{{ planName }} اب آپ کے اکاؤنٹ پر فعال ہے۔"
+                },
+                "cancelled": {
+                    "title": "ادائیگی منسوخ ہو گئی",
+                    "message": "آپ کوئی اور پلان چن سکتے ہیں یا تیار ہونے پر Stripe دوبارہ آزما سکتے ہیں۔"
+                },
+                "failed": {
+                    "title": "ادائیگی کی تصدیق نہیں ہو سکی",
+                    "message": "سبسکرپشن چیک کرتے ہوئے خرابی ہوئی۔ دوبارہ کوشش کریں یا کوئی اور پلان چنیں۔"
+                },
+                "expired": {
+                    "title": "ابھی تصدیق کا انتظار ہے",
+                    "message": "ہمیں ابھی Stripe کی تصدیق نہیں ملی۔",
+                    "hint": "اگر آپ ادا کر چکے ہیں تو ایک منٹ لگ سکتا ہے۔ دوبارہ چیک کریں یا Stripe کھولیں۔"
+                },
+                "actions": {
+                    "reopen_stripe": "Stripe چیک آؤٹ دوبارہ کھولیں",
+                    "check_now": "میں ادا کر چکا ہوں / ابھی چیک کریں",
+                    "check_again": "دوبارہ چیک کریں",
+                    "cancel": "منسوخ کریں اور کوئی اور پلان چنیں",
+                    "continue": "جاری رکھیں",
+                    "choose_plan": "پلانز پر واپس",
+                    "try_stripe_again": "Stripe دوبارہ آزمائیں"
+                }
             }
         },
         "biometrics": {
@@ -244,7 +279,8 @@
             "zelf_name_label": "Zelf ID: {{ zelfName }}",
             "category_label": "زمرہ: {{ category }}",
             "type_label": "قسم: {{ type }}",
-            "secure_credential": "محفوظ کریڈنشل"
+            "secure_credential": "محفوظ کریڈنشل",
+            "secure_note": "محفوظ نوٹ"
         },
         "data_types": {
             "note": "نوٹ",
@@ -287,7 +323,12 @@
                 "storage_failed": "{{ category }} کے اسٹوریج کے دوران غلطی ہوئی، براہ کرم بعد میں دوبارہ کوشش کریں۔",
                 "try_again_later": "براہ کرم کچھ دیر بعد دوبارہ کوشش کریں۔",
                 "close": "بند کریں"
-            }
+            },
+            "delete_payment_card": "کارڈ حذف کرنے کے لیے شناخت کی تصدیق کریں",
+            "delete_note": "نوٹ حذف کرنے کے لیے شناخت کی تصدیق کریں",
+            "delete_password": "پاس ورڈ حذف کرنے کے لیے شناخت کی تصدیق کریں",
+            "authorize_title": "اپنی شناخت کی تصدیق کریں",
+            "authorize_instructions": "جاری رکھنے کے لیے اپنا چہرہ فریم میں رکھیں۔"
         },
         "popout_decryptor": {
             "back": "واپس",
@@ -315,7 +356,30 @@
                 "payment-card": "ادائیگی کارڈ",
                 "wallet": "والٹ",
                 "zotp": "ZOTP"
-            }
+            },
+            "master_password_action_subtitle": "جاری رکھنے کے لیے Zelf ID پاس ورڈ درج کریں پھر چہرے سے تصدیق کریں۔",
+            "verified": "Zelf میں تصدیق ہو گئی",
+            "copy_password": "پاس ورڈ کاپی کریں",
+            "copy_card_number": "کارڈ نمبر کاپی کریں",
+            "copy_expiry": "میعاد کاپی کریں",
+            "copy_cvv": "CVV کاپی کریں",
+            "extension_only": "یہ پاس ورڈ Zelf ایکسٹینشن کے اندر رہتا ہے۔",
+            "card_extension_only": "کارڈ نمبر اور CVV Zelf ایکسٹینشن کے اندر رہتے ہیں۔",
+            "done": "ہو گیا",
+            "create_heading": "نیا پاس ورڈ",
+            "create_title": "نیا پاس ورڈ مرموز کریں",
+            "create_processing": "Zelf میں مرموز ہو رہا ہے...",
+            "create_master_password": "ماسٹر پاس ورڈ (اگر فعال ہو)",
+            "verify_create": "چہرے سے تصدیق کریں",
+            "delete_title": "یہ پاس ورڈ حذف کریں؟",
+            "delete_description": "یہ مرموز ریکارڈ ہٹاتا ہے۔ جاری رکھنے کے لیے چہرے کی تصدیق کریں۔",
+            "delete_master_password": "ماسٹر پاس ورڈ (اگر فعال ہو)",
+            "verify_delete": "تصدیق کریں اور حذف کریں",
+            "request_expired": "یہ درخواست ختم ہو گئی۔ SuperApp پر واپس جا کر دوبارہ کوشش کریں۔",
+            "missing_request": "محفوظ درخواست نامکمل ہے۔ SuperApp پر واپس جا کر دوبارہ کوشش کریں۔",
+            "insufficient_zns": "یہ پاس ورڈ محفوظ کرنے کے لیے کم از کم {{amount}} ZNS درکار ہیں۔",
+            "checking_zns": "ZNS بیلنس چیک ہو رہا ہے...",
+            "zns_check_failed": "ZNS بیلنس کی تصدیق نہیں ہو سکی۔ کنکشن چیک کر کے دوبارہ کوشش کریں۔"
         },
         "password_biometrics": {
             "back_to_details": "پاس ورڈ کی تفصیلات پر واپس جائیں",
@@ -361,9 +425,12 @@
                         "token_id": "ٹوکن ID",
                         "cost": "لاگت",
                         "contract": "کنٹریکٹ",
-                        "transaction": "لین دین"
+                        "transaction": "لین دین",
+                        "metadata_url": "میٹا ڈیٹا URL"
                     },
-                    "image_alt": "ZelfKey NFT"
+                    "image_alt": "ZelfKey NFT",
+                    "metadata_link": "میٹا ڈیٹا دیکھیں",
+                    "copy_hint": "کاپی کرنے کے لیے کلک کریں"
                 },
                 "ipfs": {
                     "title": "ادائیگی کارڈ کی معلومات",
@@ -486,7 +553,84 @@
         "vault": {
             "reverify_title": "اپنی اشیاء دیکھنے کے لیے دوبارہ تصدیق کریں",
             "reverify_description": "یہ سیشن ابھی والٹ نہیں کھول سکتا۔ پاس ورڈ اور کارڈ لوڈ کرنے کے لیے اپنا چہرہ دوبارہ تصدیق کریں۔",
-            "reverify_action": "دوبارہ تصدیق کریں"
+            "reverify_action": "دوبارہ تصدیق کریں",
+            "eyebrow": "پاس ورڈ مینیجر",
+            "title": "آپ کا نجی والٹ",
+            "subtitle": "اپنی مرموز اشیاء تلاش کریں اور کھولیں۔",
+            "trust": "راز اور بایومیٹرک عمل Zelf کے اندر رہتے ہیں۔",
+            "stats_label": "والٹ کے مجموعے",
+            "stat_total": "اشیاء",
+            "stat_passwords": "پاس ورڈز",
+            "stat_cards": "کارڈز",
+            "stat_notes": "نوٹس",
+            "add_password": "پاس ورڈ شامل کریں",
+            "add_card": "کارڈ شامل کریں",
+            "search": "والٹ میں تلاش کریں",
+            "filter_folder": "فولڈر کے لحاظ سے فلٹر",
+            "all_folders": "تمام فولڈرز",
+            "refresh": "والٹ تازہ کریں",
+            "loading": "آپ کا نجی والٹ کھل رہا ہے…",
+            "load_error": "والٹ نہیں کھل سکا",
+            "retry": "دوبارہ کوشش کریں",
+            "empty_title": "آپ کا والٹ تیار ہے",
+            "empty_description": "پاس ورڈ یا کارڈ شامل کریں اور چہرے سے محفوظ کریں۔",
+            "add_first": "اپنا پہلا پاس ورڈ شامل کریں",
+            "no_results": "کچھ نہیں ملا",
+            "no_results_description": "کوئی اور تلاش یا فولڈر آزمائیں۔",
+            "alias": "عرف",
+            "alias_placeholder": "ذاتی، کام، مرکزی…",
+            "delete": "آئٹم حذف کریں",
+            "delete_confirm": "اس آئٹم کو مستقل حذف کریں؟",
+            "delete_description": "چہرے سے تصدیق کریں تاکہ والٹ سے ہٹ جائے۔",
+            "deleting": "حذف ہو رہا ہے…",
+            "delete_failed": "یہ آئٹم حذف نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
+            "export_vault": "والٹ برآمد کریں",
+            "export_item": "برآمد",
+            "import_vault": "پاس ورڈز درآمد کریں",
+            "more_options": "مزید اختیارات",
+            "master_password_label": "ماسٹر پاس ورڈ",
+            "master_password_placeholder": "ماسٹر پاس ورڈ درج کریں",
+            "export_title": "پاس ورڈز برآمد کریں",
+            "export_subtitle": "دوسرے پاس ورڈ مینیجرز سے مطابقت رکھنے والے اسناد برآمد کریں۔",
+            "export_single_subtitle": "دوسرے پاس ورڈ مینیجرز میں برآمد کریں۔",
+            "export_biometrics_required": "چہرے کی تصدیق",
+            "export_biometrics_explain": "چہرے کی تصدیق کریں تاکہ {{count}} پاس ورڈ ڈکرپٹ ہوں۔",
+            "export_local_only": "صرف مقامی میموری میں ڈکرپٹ · ڈیوائس سے باہر نہیں جاتا",
+            "export_scan_face_btn": "چہرے سے تصدیق کریں",
+            "export_face_instructions": "برآمد کی اجازت کے لیے چہرہ بیضوی میں رکھیں۔",
+            "export_decrypting_title": "اسناد ڈکرپٹ ہو رہے ہیں",
+            "export_ready_count": "{{count}} پاس ورڈ برآمد کے لیے تیار",
+            "export_failed_count": "{{count}} ڈکرپٹ نہیں ہو سکے",
+            "export_format_label": "فارمیٹ",
+            "export_preview_label": "پیش منظر",
+            "download_file": "ڈاؤن لوڈ",
+            "copy_to_clipboard": "کاپی",
+            "copied": "کاپی ہو گیا!",
+            "import_title": "پاس ورڈز درآمد کریں",
+            "import_subtitle": "اپنے پاس ورڈ مینیجر سے فائل منتخب کریں۔",
+            "import_drop_title": "فائل یہاں چھوڑیں",
+            "import_drop_subtitle": "LastPass, Bitwarden, 1Password, Chrome, Apple, KeePassXC",
+            "import_browse_btn": "فائل براؤز کریں",
+            "import_paste_label": "یا خام متن چسپاں کریں",
+            "import_paste_placeholder": "برآمد شدہ CSV یا JSON چسپاں کریں...",
+            "import_parse_btn": "پیش منظر",
+            "import_switch_file": "اس کے بجائے فائل اپ لوڈ کریں",
+            "import_switch_paste": "اس کے بجائے متن چسپاں کریں",
+            "import_detected": "شناخت ہو گئی",
+            "select_all": "سب منتخب کریں",
+            "deselect_all": "سب غیر منتخب کریں",
+            "import_selected_count": "{{total}} میں سے {{selected}} منتخب",
+            "import_back": "واپس",
+            "import_now_btn": "تصدیق کریں اور درآمد کریں ({{count}})",
+            "import_face_instructions": "چہرہ اسکین کریں تاکہ پاس ورڈز مرموز ہو کر محفوظ ہوں۔",
+            "import_store_mode_label": "اسٹور API (dev)",
+            "import_store_mode_one_by_one": "One-by-one (/store/password)",
+            "import_store_mode_bulk": "Bulk (/store/passwords)",
+            "importing_title": "پاس ورڈز مرموز ہو رہے ہیں",
+            "import_success_title": "درآمد مکمل",
+            "import_success_desc": "{{count}} پاس ورڈ آپ کے والٹ میں محفوظ ہو گئے۔",
+            "import_failed_notice": "{{count}} آئٹم درآمد نہیں ہو سکے:",
+            "import_done_btn": "ہو گیا"
         }
     },
     "cancel": "منسوخ کریں",
@@ -538,12 +682,12 @@
         "zelf_name_registered": "زیلف نام رجسٹرڈ ہے",
         "from_address": "ایڈریس سے",
         "private_transaction": "نجی لین دین",
-        "amount_inline_required": "Required",
-        "amount_inline_invalid": "Invalid amount",
-        "amount_inline_min": "Min {{amount}}",
-        "amount_inline_max": "Max {{amount}}",
-        "memo_optional": "Memo (optional)",
-        "memo_placeholder": "Exchange or note (max 28 characters)",
+        "amount_inline_required": "ضروری",
+        "amount_inline_invalid": "غلط رقم",
+        "amount_inline_min": "کم از کم {{amount}}",
+        "amount_inline_max": "زیادہ سے زیادہ {{amount}}",
+        "memo_optional": "میمو (اختیاری)",
+        "memo_placeholder": "ایکسچینج یا نوٹ (زیادہ سے زیادہ 28 حروف)",
         "stellar": {
             "below_min": "رقم نئی Stellar اکاؤنٹ کھولنے کے لیے درکار کم از کم ({{min}} XLM) سے کم ہے۔",
             "new_account_title": "نیا Stellar اکاؤنٹ",
@@ -554,7 +698,9 @@
             "classic_fund_first": "وصول کنندہ کے پاس فنڈ شدہ Stellar اکاؤنٹ ہونے تک یہ اثاثہ نہیں بھیجا جا سکتا۔ پہلے مقامی XLM بھیجیں تاکہ ان کا اکاؤنٹ بنے۔",
             "classic_trustline": "وصول کنندہ کو یہ اثاثہ وصول کرنے سے پہلے اس کے لیے ٹرسٹ لائن شامل کرنی ہوگی۔",
             "invalid_amount": "جاری رکھنے کے لیے درست رقم درج کریں۔"
-        }
+        },
+        "transaction_sent": "لین دین بھیج دی گئی",
+        "transaction_failed": "لین دین نہیں بھیجی جا سکی"
     },
     "transaction": {
         "go_to_my_history": "میری تاریخ پر جائیں",
@@ -634,7 +780,23 @@
         "enter_tag_name_subtitle": "سائن ان کے لیے اپنا موجودہ Zelf ID درج کریں",
         "enter_with_recovery_phrase": "بحالی فقرے سے داخل ہوں",
         "found": "مل گیا",
-        "login_to_this_domain": "یہ Zelf ID ملا — اپنی بحالی فقرے کے ساتھ جاری رکھیں"
+        "login_to_this_domain": "یہ Zelf ID ملا — اپنی بحالی فقرے کے ساتھ جاری رکھیں",
+        "onboarding": {
+            "reinventing": "نئی ایجاد",
+            "designed_for": "کے لیے بنایا گیا",
+            "summary_intro": "والٹس، پاس ورڈ مینیجر اور 2FA کی نئی ایجاد",
+            "features": {
+                "wallets": "والٹس",
+                "password_managers": "پاس ورڈز",
+                "two_factor": "2FA",
+                "inheritance": "وراثت"
+            },
+            "summary": {
+                "self_custodian": "خود کی تحویل",
+                "offline_feature": "آف لائن خصوصیت",
+                "human_authn": "HumanAuthn"
+            }
+        }
     },
     "settings": {
         "networks_label": "نیٹ ورکس",
@@ -696,6 +858,17 @@
             "system": "سسٹم",
             "light": "لائٹ",
             "dark": "ڈارک"
+        },
+        "notifications_label": "اطلاعات",
+        "notifications": {
+            "title": "اطلاعات",
+            "description": "منتخب کریں کہ آپ کون سی اطلاعات چاہتے ہیں۔",
+            "news": "خبریں / اپ ڈیٹس",
+            "news_description": "پروڈکٹ کی خبریں اور اعلانات۔",
+            "push": "پش اطلاعات",
+            "push_description": "اس ڈیوائس پر پش اطلاعات کی اجازت دیں۔",
+            "send_receive": "بھیجیں اور وصول کریں",
+            "send_receive_description": "اثاثے بھیجنے یا وصول کرنے پر اطلاع پائیں۔"
         }
     },
     "security": {
@@ -757,14 +930,21 @@
             "risk_3_native": "صرف مقامی {{ symbol }} بھیجیں۔ دوسرے نیٹ ورک کے ٹوکن اس پتے سے مطابقت نہیں رکھتے۔",
             "risk_4_title": "چھوٹی رقم سے ٹیسٹ کریں",
             "risk_4": "اس پتے پر پہلی بار بھیج رہے ہیں؟ زیادہ رقم سے پہلے چھوٹی {{ symbol }} ٹرانزیکشن سے شروع کریں۔"
+        },
+        "generate_substrate": {
+            "title": "{{ symbol }} پتہ ابھی تیار نہیں",
+            "line_1": "اس نیٹ ورک پر {{ fullTagName }} کا وصولی پتہ ابھی نہیں بنا۔",
+            "line_2": "اسے بنانے کے لیے ہم آپ کا والٹ ایک بار ڈکرپٹ کرتے ہیں اور نیا پتہ آپ کے عوامی پروفائل سے جوڑتے ہیں۔ یہ ایک بار کا مرحلہ تب ہی چلتا ہے جب آپ نیچے تصدیق کریں۔",
+            "line_3": "وہی ڈکرپشن عمل جس سے ایپ آپ کا والیٹ سنک کرتی ہے یہ ڈیٹا لا کر محفوظ کرے گا۔",
+            "line_4": "چہرے کی تصدیق کے بعد آپ کے تازہ پتے اس ڈیوائس پر خود بخود محفوظ ہو جاتے ہیں۔"
         }
     },
     "apps_hub": {
-        "label_wallet": "Wallet",
-        "label_keys": "Password Manager",
+        "label_wallet": "والیٹ",
+        "label_keys": "پاس ورڈ مینیجر",
         "label_auth": "2FA",
-        "label_id": "ID",
-        "label_legacy": "Legacy",
+        "label_id": "شناخت",
+        "label_legacy": "وراثت",
         "label_ai": "zAI"
     },
     "common": {
@@ -900,7 +1080,7 @@
         "unlock": "بائیو میٹرکس پر جائیں",
         "upload_qr_image": "کیو آر تصویر اپ لوڈ کریں",
         "verify": "تصدیق کریں",
-        "wallet_short": "Wallet",
+        "wallet_short": "والیٹ",
         "keys_short": "Pass",
         "website": "ویب سائٹ",
         "withdraw": "بھیجیں",
@@ -912,17 +1092,24 @@
         "zelf_chat": "zChat",
         "zelf_chat_coming_soon": "Zelf Chat جلد دستیاب ہوگا۔",
         "zelf_chats": "zChats",
-        "zelf_keys": "Password Manager",
+        "zelf_keys": "پاس ورڈ مینیجر",
         "zelf_link": "Zelf Link",
         "zelf_signals": "zSignals",
         "zelf_signals_coming_soon": "Zelf Signals جلد دستیاب ہوں گے۔",
-        "legacy": "Legacy",
+        "legacy": "وراثت",
         "legacy_coming_soon": "Legacy جلد دستیاب ہوگا۔",
-        "zelf_wallet": "Wallet",
+        "zelf_wallet": "والیٹ",
         "ton_address": "TON پتہ",
         "validity_one_year": "مدت: 1 سال",
         "validity_years": "مدت: {{years}} سال",
-        "aptos_address": "Aptos پتہ"
+        "aptos_address": "Aptos پتہ",
+        "add": "شامل کریں",
+        "done": "ہو گیا",
+        "hide_password": "پاس ورڈ چھپائیں",
+        "loading": "لوڈ ہو رہا ہے…",
+        "show_password": "پاس ورڈ دکھائیں",
+        "zelf_id": "Zelf ID",
+        "error": "خرابی"
     },
     "token": {
         "24h_performance": "24 گھنٹے کی کارکردگی",
@@ -953,7 +1140,8 @@
         "info_description": "اپنے اکاؤنٹ کی حفاظت کے لیے اپنے کیو آر کوڈ کو محفوظ رکھنا یاد رکھیں۔ اسے ڈاؤن لوڈ کریں اور محفوظ جگہ پر محفوظ کریں۔",
         "private_key": "سیڈ فریز",
         "addresses": "پتے",
-        "info": "معلومات"
+        "info": "معلومات",
+        "action_sync": "مطابقت"
     },
     "private_key": {
         "description": "اپنی سیڈ فریز دیکھنے کے لیے، سیکیورٹی تصدیق مکمل کریں۔",
@@ -1078,7 +1266,8 @@
         "face_locked": "چہرے کی تصدیق عارضی طور پر بند ہے۔ {{ time }} میں دوبارہ کوشش کریں۔",
         "face_locked_about_minutes": "تقریباً {{ minutes }} منٹ",
         "face_locked_about_hours": "تقریباً {{ hours }} گھنٹے",
-        "face_replay_detected": "یہ تصویر پہلے استعمال ہو چکی ہے۔ نئی تصویر لیں اور دوبارہ کوشش کریں۔"
+        "face_replay_detected": "یہ تصویر پہلے استعمال ہو چکی ہے۔ نئی تصویر لیں اور دوبارہ کوشش کریں۔",
+        "unknown": "نامعلوم خرابی"
     },
     "swap": {
         "automatic": "خودکار",
@@ -1167,7 +1356,9 @@
         "show_balances": "بیلنس دکھائیں",
         "recent_transactions": "حالیہ لین دین",
         "rewards_banner_title": "انعامات حاصل کریں",
-        "rewards_banner_subtitle": "ہمارے quests کے ساتھ روزانہ $ZNS کمائیں"
+        "rewards_banner_subtitle": "ہمارے quests کے ساتھ روزانہ $ZNS کمائیں",
+        "balance_retrying": "دوبارہ کوشش…",
+        "balance_unavailable": "دستیاب نہیں"
     },
     "id_scanning": {
         "camera_not_found": "کیمرا نہیں ملا",
@@ -1271,7 +1462,8 @@
             "passwords": "پاس ورڈز",
             "subscription": "سبسکرپشن",
             "add_password": "پاس ورڈ شامل کریں",
-            "add_card": "ادائیگی کارڈ شامل کریں"
+            "add_card": "ادائیگی کارڈ شامل کریں",
+            "cards": "کارڈز"
         },
         "payment_cards": {
             "title": "ادائیگی کارڈز",
@@ -1424,7 +1616,9 @@
                     "aria_label": "فولڈر اسٹوریج ٹوگل کریں"
                 },
                 "master_password": {
-                    "hint": "ہمیں آپ کے کریڈنشلز کو انکرپٹ اور اسٹور کرنے کے لیے {{ walletName }} پاس ورڈ درکار ہے۔ بائیو میٹرک توثیق ہمیشہ درکار ہوتی ہے۔"
+                    "hint": "ہمیں آپ کے کریڈنشلز کو انکرپٹ اور اسٹور کرنے کے لیے {{ walletName }} پاس ورڈ درکار ہے۔ بائیو میٹرک توثیق ہمیشہ درکار ہوتی ہے۔",
+                    "label": "ماسٹر پاس ورڈ *",
+                    "placeholder": "ماسٹر پاس ورڈ درج کریں"
                 },
                 "buttons": {
                     "cancel": "منسوخ کریں",
@@ -1601,7 +1795,10 @@
                     "hide_password": "پاس ورڈ چھپائیں",
                     "copy_website": "ویب سائٹ کاپی کریں",
                     "copy_password": "پاس ورڈ کاپی کریں"
-                }
+                },
+                "title": "پاس ورڈ کی تفصیل",
+                "folder": "فولڈر",
+                "alias": "عرف"
             },
             "form": {
                 "title": "ادائیگی کارڈ کی معلومات",
@@ -1630,7 +1827,8 @@
                 "master_password": {
                     "section_title": "اپنے Zelf ID سے دستخط کریں",
                     "label": "بینک کا نام *",
-                    "hint": "ہمیں آپ کے کریڈنشلز کو انکرپٹ اور اسٹور کرنے کے لیے {{ walletName }} پاس ورڈ درکار ہے۔ بائیو میٹرک توثیق ہمیشہ درکار ہوتی ہے۔"
+                    "hint": "ہمیں آپ کے کریڈنشلز کو انکرپٹ اور اسٹور کرنے کے لیے {{ walletName }} پاس ورڈ درکار ہے۔ بائیو میٹرک توثیق ہمیشہ درکار ہوتی ہے۔",
+                    "placeholder": "ماسٹر پاس ورڈ درج کریں"
                 },
                 "buttons": {
                     "save": "پاس ورڈ محفوظ کریں",
@@ -1870,7 +2068,8 @@
         "incorrect_password": "ماسٹر پاس ورڈ غلط ہے",
         "errors": {
             "invalid_setup_key": "سیٹ اپ کلید غلط ہے۔ A–Z اور 2–7، کم از کم 16 حروف استعمال کریں۔",
-            "invalid_totp_params": "یہ تصدیقی ترتیبات معاون نہیں۔"
+            "invalid_totp_params": "یہ تصدیقی ترتیبات معاون نہیں۔",
+            "proof_load_failed": "اس کوڈ کا مرموز ڈیٹا لوڈ نہیں ہو سکا۔ دوبارہ کوشش کریں۔"
         },
         "biometrics_failed": "بائیو میٹرک توثیق ناکام ہو گئی",
         "export": "ایکسپورٹ",
@@ -1911,7 +2110,44 @@
         "recovered_setup_key": "بازیافت شدہ سیٹ اپ کی",
         "create_zotp_from_recovery": "بازیافت سے ZOTP بنائیں",
         "recovery_successful": "بازیافت کامیاب ہو گئی!",
-        "recovery_success_description": "آپ کا ZOTP بازیافت ہو گیا ہے اور آپ کے توثیق کار میں شامل کر دیا گیا ہے۔ اب آپ اسے کوڈز تیار کرنے کے لیے استعمال کر سکتے ہیں۔"
+        "recovery_success_description": "آپ کا ZOTP بازیافت ہو گیا ہے اور آپ کے توثیق کار میں شامل کر دیا گیا ہے۔ اب آپ اسے کوڈز تیار کرنے کے لیے استعمال کر سکتے ہیں۔",
+        "protection": {
+            "label": "کھولنے کی حفاظت",
+            "face": "صرف چہرہ",
+            "face_password": "چہرہ + ماسٹر پاس ورڈ",
+            "decrypt_toggle": {
+                "title": "کھولنے کے لیے ماسٹر پاس ورڈ طلب کریں",
+                "description": "فعال ہونے پر اس ZOTP کو کھولنے کے لیے چہرے کے علاوہ والیٹ کا ماسٹر پاس ورڈ بھی مانگا جائے گا۔",
+                "aria_label": "اس ZOTP کو کھولتے وقت ماسٹر پاس ورڈ طلب کریں"
+            },
+            "face_only": {
+                "title": "صرف چہرے والا والیٹ",
+                "description": "اس Zelf ID کا ماسٹر پاس ورڈ نہیں۔ ZOTP صرف چہرے سے کھلتے ہیں۔"
+            },
+            "decrypt_prompt": {
+                "title": "ماسٹر پاس ورڈ درج کریں",
+                "description": "یہ ZOTP چہرے اور والیٹ کے ماسٹر پاس ورڈ سے محفوظ ہے۔",
+                "continue": "چہرے کے اسکین پر جاری رکھیں"
+            },
+            "errors": {
+                "password_required": "اس ZOTP کو کھولنے کے لیے ماسٹر پاس ورڈ درکار ہے۔"
+            }
+        },
+        "copy_code": "کوڈ کاپی کریں",
+        "copy_setup_key": "سیٹ اپ کلید کاپی کریں",
+        "code": {
+            "title": "آپ کا کوڈ",
+            "refreshes_in": "{{seconds}} سیکنڈ میں تازہ ہوگا"
+        },
+        "decrypt": {
+            "button": "کوڈ دکھائیں",
+            "decrypting": "کھل رہا ہے…"
+        },
+        "proof": {
+            "loading": "مرموز ڈیٹا لوڈ ہو رہا ہے…"
+        },
+        "decrypt_failed": "یہ ZOTP نہیں کھل سکا۔ دوبارہ کوشش کریں۔",
+        "warning": "انتباہ"
     },
     "rewards": {
         "title": "انعامات",
@@ -2131,8 +2367,61 @@
     "home_hub": {
         "quick_label_keys": "Pass",
         "quick_label_auth": "2FA",
-        "quick_label_legacy": "Legacy",
+        "quick_label_legacy": "وراثت",
         "quick_label_id": "ID",
-        "more_apps": "مزید"
+        "more_apps": "مزید",
+        "greeting": "خوش آمدید",
+        "header_rewards_aria": "انعامات",
+        "header_notifications_aria": "اطلاعات",
+        "subscription_title": "مفت پلان",
+        "subscription_title_free": "مفت پلان",
+        "subscription_title_premium": "پریمیم پلان",
+        "subscription_subtitle": "اپنی سبسکرپشن منظم کریں",
+        "subscription_subtitle_free": "{{ zelfId }} — $ZNS سے کسی بھی وقت بڑھائیں",
+        "subscription_subtitle_premium": "آپ کا Zelf ID: {{ zelfId }}",
+        "subscription_cta": "رسائی برقرار رکھیں",
+        "subscription_cta_free": "رسائی برقرار رکھیں",
+        "subscription_cta_premium": "Zelf ID منظم کریں",
+        "subscription_countdown_free_expired": "آپ کا مفت ڈومین ختم ہو گیا — ڈومینز کے نظم میں $ZNS سے بڑھائیں۔",
+        "subscription_countdown_free_one_day": "مفت ڈومین پر 1 دن باقی ہے — $ZNS سے کسی بھی وقت بڑھائیں۔",
+        "subscription_countdown_free_days": "مفت ڈومین پر {{ days }} دن باقی ہیں — $ZNS سے کسی بھی وقت بڑھائیں۔",
+        "subscription_countdown_premium_expired": "تجدید ضروری ہے — Zelf ID کے نظم سے سبسکرپشن اپ ڈیٹ کریں۔",
+        "subscription_countdown_premium_one_day": "آپ کے Zelf ID پر 1 دن باقی ہے۔",
+        "subscription_countdown_premium_days": "آپ کے Zelf ID پر {{ days }} دن باقی ہیں۔",
+        "subscription_countdown_unknown": "ڈومینز کے نظم میں اپنا Zelf ID منظم کریں۔",
+        "subscription_countdown_unit_days": "دن",
+        "subscription_countdown_unit_hours": "گھنٹے",
+        "enabled_networks_label": "فعال نیٹ ورکس",
+        "start_here_title": "یہاں سے شروع کریں",
+        "start_here_subtitle": "شروعاتی گائیڈ مکمل کریں اور $ZNS کمائیں",
+        "start_here_progress": "{{ current }} / {{ total }}",
+        "quick_label_signals": "zSignals",
+        "promo_placeholder_title": "پاس ورڈ مینیجر، $5.99 فی مہینہ سے۔",
+        "promo_placeholder_cta": "ابھی دیکھیں",
+        "signals_heading": "Zelf Signals",
+        "signals_explore": "دیکھیں",
+        "signals_placeholder_title": "Zelf Signals کی جھلکیاں",
+        "signals_placeholder_body": "مارکیٹ اور اثاثوں کی جھلکیاں یہاں ظاہر ہوں گی۔",
+        "ai_heading": "Zelf AI",
+        "ai_subtitle": "Zelf AI معاون جلد دستیاب ہوگا۔",
+        "ai_assistant_title": "ذہین Web3 معاون",
+        "ai_assistant_desc": "قدرتی زبان کے احکامات، کنٹریکٹ تجزیہ اور بصیرت۔",
+        "ai_security_title": "سمارٹ لین دین سمیولیشن",
+        "ai_security_desc": "عملدرآمد سے پہلے سیکیورٹی چیک اور فراڈ کی شناخت۔",
+        "header_profile_aria": "پروفائل",
+        "header_collapse_aria": "نام چھپائیں",
+        "header_expand_aria": "نام دکھائیں",
+        "add_account_aria": "اکاؤنٹ شامل کریں"
+    },
+    "welcomeZelfid": {
+        "plan_free": "مفت Zelf ID — 100 سال کے لیے آپ کا۔ بعد میں اپ گریڈ کر سکتے ہیں۔",
+        "plan_short_hold": "مفت Zelf ID — 100 سال کے لیے، مختصر نام شامل۔",
+        "plan_unlimited": "مفت Zelf ID — 100 سال کے لیے آپ کا۔",
+        "plan_label": "پلان: {{ plan }}",
+        "hold_subtitle": "آپ کا Zelf ID 100 سال کے لیے مفت ہے۔"
+    },
+    "superapp": {
+        "connecting_with": "{{appName}} سے جڑ رہے ہیں",
+        "working_with": "{{appName}} کے ساتھ محفوظ طریقے سے کام ہو رہا ہے"
     }
 }

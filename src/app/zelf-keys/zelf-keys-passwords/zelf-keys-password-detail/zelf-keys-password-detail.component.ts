@@ -165,14 +165,14 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
             const passwordData = this._passwordDataService.getCurrentPassword();
 
             if (!passwordData) {
-                this.error = this._translocoService.translate("zelf_keys.passwords.detail.error.not_found");
+                this.error = this._translocoService.translate("billing.passwords.detail.error.not_found");
 
                 return;
             }
 
             this.zelfKeyPasswordRecord = passwordData;
         } catch (error) {
-            this.error = this._translocoService.translate("zelf_keys.passwords.detail.error.load_failed");
+            this.error = this._translocoService.translate("billing.passwords.detail.error.load_failed");
         } finally {
             this.loading = false;
         }

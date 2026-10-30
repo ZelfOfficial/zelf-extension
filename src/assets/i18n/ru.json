@@ -10,7 +10,9 @@
             "back_to_payment_cards": "Вернуться к платежным картам",
             "add_another_card": "Добавить еще одну карту",
             "try_again": "Попробовать снова",
-            "image_not_available": "Изображение недоступно"
+            "image_not_available": "Изображение недоступно",
+            "proof_loading": "Загрузка зашифрованных данных…",
+            "proof_load_failed": "Не удалось загрузить зашифрованные данные элемента. Попробуйте снова."
         },
         "payment_cards": {
             "labels": {
@@ -196,6 +198,39 @@
                 "premium_plan": "Премиум план",
                 "not_available": "Н/Д",
                 "month": "месяц"
+            },
+            "stripe_checkout": {
+                "interval_year": "год",
+                "waiting": {
+                    "title": "Завершите оплату в Stripe",
+                    "message": "Stripe открыт в новой вкладке. Завершите оплату там и не закрывайте этот экран — мы обновимся автоматически."
+                },
+                "confirmed": {
+                    "title": "Оплата подтверждена",
+                    "message": "{{ planName }} теперь активен в вашем аккаунте."
+                },
+                "cancelled": {
+                    "title": "Оплата отменена",
+                    "message": "Можно выбрать другой план или снова открыть Stripe, когда будете готовы."
+                },
+                "failed": {
+                    "title": "Не удалось проверить оплату",
+                    "message": "При проверке подписки произошла ошибка. Повторите попытку или выберите другой план."
+                },
+                "expired": {
+                    "title": "Всё ещё ждём подтверждения",
+                    "message": "Подтверждение от Stripe ещё не получено.",
+                    "hint": "Если вы уже оплатили, это может занять до минуты. Нажмите «проверить снова» или откройте Stripe ещё раз."
+                },
+                "actions": {
+                    "reopen_stripe": "Открыть оплату Stripe снова",
+                    "check_now": "Я уже оплатил / проверить",
+                    "check_again": "Проверить снова",
+                    "cancel": "Отменить и выбрать другой план",
+                    "continue": "Продолжить",
+                    "choose_plan": "К планам",
+                    "try_stripe_again": "Повторить Stripe"
+                }
             }
         },
         "biometrics": {
@@ -244,7 +279,8 @@
             "zelf_name_label": "Zelf ID: {{ zelfName }}",
             "category_label": "Категория: {{ category }}",
             "type_label": "Тип: {{ type }}",
-            "secure_credential": "Защищенное учетное данные"
+            "secure_credential": "Защищенное учетное данные",
+            "secure_note": "Защищённая заметка"
         },
         "data_types": {
             "note": "Заметка",
@@ -287,7 +323,12 @@
                 "storage_failed": "Ошибка при сохранении {{ category }}, пожалуйста, попробуйте позже.",
                 "try_again_later": "Пожалуйста, попробуйте позже.",
                 "close": "Закрыть"
-            }
+            },
+            "delete_payment_card": "Подтвердите личность, чтобы удалить карту",
+            "delete_note": "Подтвердите личность, чтобы удалить заметку",
+            "delete_password": "Подтвердите личность, чтобы удалить пароль",
+            "authorize_title": "Подтвердите личность",
+            "authorize_instructions": "Поместите лицо в рамку, чтобы продолжить."
         },
         "popout_decryptor": {
             "back": "Назад",
@@ -315,7 +356,30 @@
                 "payment-card": "Платежная карта",
                 "wallet": "КОШЕЛЕК",
                 "zotp": "ZOTP"
-            }
+            },
+            "master_password_action_subtitle": "Введите пароль Zelf ID, затем подтвердите лицом, чтобы продолжить.",
+            "verified": "Подтверждено в Zelf",
+            "copy_password": "Копировать пароль",
+            "copy_card_number": "Копировать номер карты",
+            "copy_expiry": "Копировать срок",
+            "copy_cvv": "Копировать CVV",
+            "extension_only": "Этот пароль остаётся внутри расширения Zelf.",
+            "card_extension_only": "Номер карты и CVV остаются внутри расширения Zelf.",
+            "done": "Готово",
+            "create_heading": "Новый пароль",
+            "create_title": "Зашифровать новый пароль",
+            "create_processing": "Шифрование в Zelf...",
+            "create_master_password": "Мастер-пароль (если включён)",
+            "verify_create": "Подтвердить лицом",
+            "delete_title": "Удалить этот пароль?",
+            "delete_description": "Это удалит зашифрованную запись. Подтвердите лицом, чтобы продолжить.",
+            "delete_master_password": "Мастер-пароль (если включён)",
+            "verify_delete": "Подтвердить и удалить",
+            "request_expired": "Срок запроса истёк. Вернитесь в SuperApp и попробуйте снова.",
+            "missing_request": "Защищённый запрос неполный. Вернитесь в SuperApp и попробуйте снова.",
+            "insufficient_zns": "Нужно не менее {{amount}} ZNS, чтобы сохранить этот пароль.",
+            "checking_zns": "Проверка баланса ZNS...",
+            "zns_check_failed": "Не удалось подтвердить баланс ZNS. Проверьте соединение и повторите."
         },
         "password_biometrics": {
             "back_to_details": "Назад к деталям пароля",
@@ -361,9 +425,12 @@
                         "token_id": "ID токена",
                         "cost": "Стоимость",
                         "contract": "Контракт",
-                        "transaction": "Транзакция"
+                        "transaction": "Транзакция",
+                        "metadata_url": "URL метаданных"
                     },
-                    "image_alt": "NFT ZelfKey"
+                    "image_alt": "NFT ZelfKey",
+                    "metadata_link": "Открыть метаданные",
+                    "copy_hint": "Нажмите, чтобы скопировать"
                 },
                 "ipfs": {
                     "title": "Хранилище IPFS",
@@ -486,7 +553,84 @@
         "vault": {
             "reverify_title": "Подтвердите личность ещё раз, чтобы увидеть элементы",
             "reverify_description": "Эта сессия ещё не может открыть хранилище. Снова подтвердите лицо, чтобы загрузить пароли и карты.",
-            "reverify_action": "Подтвердить снова"
+            "reverify_action": "Подтвердить снова",
+            "eyebrow": "МЕНЕДЖЕР ПАРОЛЕЙ",
+            "title": "Ваше личное хранилище",
+            "subtitle": "Находите и открывайте зашифрованные элементы.",
+            "trust": "Секреты и биометрические действия остаются внутри Zelf.",
+            "stats_label": "Итоги хранилища",
+            "stat_total": "Элементы",
+            "stat_passwords": "Пароли",
+            "stat_cards": "Карты",
+            "stat_notes": "Заметки",
+            "add_password": "Добавить пароль",
+            "add_card": "Добавить карту",
+            "search": "Поиск в хранилище",
+            "filter_folder": "Фильтр по папке",
+            "all_folders": "Все папки",
+            "refresh": "Обновить хранилище",
+            "loading": "Открываем ваше хранилище…",
+            "load_error": "Не удалось открыть хранилище",
+            "retry": "Повторить",
+            "empty_title": "Хранилище готово",
+            "empty_description": "Добавьте пароль или карту и защитите их лицом.",
+            "add_first": "Добавьте первый пароль",
+            "no_results": "Ничего не найдено",
+            "no_results_description": "Попробуйте другой запрос или папку.",
+            "alias": "Псевдоним",
+            "alias_placeholder": "Личное, Работа, Основное…",
+            "delete": "Удалить элемент",
+            "delete_confirm": "Удалить этот элемент навсегда?",
+            "delete_description": "Подтвердите лицом, чтобы удалить из хранилища.",
+            "deleting": "Удаление…",
+            "delete_failed": "Не удалось удалить элемент. Попробуйте снова.",
+            "export_vault": "Экспорт хранилища",
+            "export_item": "Экспорт",
+            "import_vault": "Импорт паролей",
+            "more_options": "Ещё",
+            "master_password_label": "Мастер-пароль",
+            "master_password_placeholder": "Введите мастер-пароль",
+            "export_title": "Экспорт паролей",
+            "export_subtitle": "Экспортируйте данные, совместимые с другими менеджерами паролей.",
+            "export_single_subtitle": "Экспорт в другие менеджеры паролей.",
+            "export_biometrics_required": "Проверка лица",
+            "export_biometrics_explain": "Подтвердите лицо, чтобы расшифровать пароли: {{count}}.",
+            "export_local_only": "Расшифровка только в памяти устройства · Данные не покидают устройство",
+            "export_scan_face_btn": "Подтвердить лицом",
+            "export_face_instructions": "Поместите лицо в овал, чтобы разрешить экспорт.",
+            "export_decrypting_title": "Расшифровка учётных данных",
+            "export_ready_count": "Готово к экспорту паролей: {{count}}",
+            "export_failed_count": "Не расшифровано: {{count}}",
+            "export_format_label": "Формат",
+            "export_preview_label": "Предпросмотр",
+            "download_file": "Скачать",
+            "copy_to_clipboard": "Копировать",
+            "copied": "Скопировано!",
+            "import_title": "Импорт паролей",
+            "import_subtitle": "Выберите файл из менеджера паролей.",
+            "import_drop_title": "Перетащите файл сюда",
+            "import_drop_subtitle": "LastPass, Bitwarden, 1Password, Chrome, Apple, KeePassXC",
+            "import_browse_btn": "Выбрать файл",
+            "import_paste_label": "Или вставьте текст",
+            "import_paste_placeholder": "Вставьте экспортированный CSV или JSON...",
+            "import_parse_btn": "Предпросмотр",
+            "import_switch_file": "Загрузить файл",
+            "import_switch_paste": "Вставить текст",
+            "import_detected": "Обнаружено",
+            "select_all": "Выбрать всё",
+            "deselect_all": "Снять выбор",
+            "import_selected_count": "Выбрано {{selected}} из {{total}}",
+            "import_back": "Назад",
+            "import_now_btn": "Проверить и импортировать ({{count}})",
+            "import_face_instructions": "Отсканируйте лицо, чтобы зашифровать и сохранить пароли.",
+            "import_store_mode_label": "API хранения (dev)",
+            "import_store_mode_one_by_one": "One-by-one (/store/password)",
+            "import_store_mode_bulk": "Bulk (/store/passwords)",
+            "importing_title": "Шифрование паролей",
+            "import_success_title": "Импорт завершён",
+            "import_success_desc": "Паролей защищено в хранилище: {{count}}.",
+            "import_failed_notice": "Не импортировано элементов: {{count}}:",
+            "import_done_btn": "Готово"
         }
     },
     "cancel": "Отмена",
@@ -538,12 +682,12 @@
         "zelf_name_registered": "Zelf ID зарегистрирован",
         "from_address": "С адреса",
         "private_transaction": "Приватная транзакция",
-        "amount_inline_required": "Required",
-        "amount_inline_invalid": "Invalid amount",
-        "amount_inline_min": "Min {{amount}}",
-        "amount_inline_max": "Max {{amount}}",
-        "memo_optional": "Memo (optional)",
-        "memo_placeholder": "Exchange or note (max 28 characters)",
+        "amount_inline_required": "Обязательно",
+        "amount_inline_invalid": "Неверная сумма",
+        "amount_inline_min": "Мин. {{amount}}",
+        "amount_inline_max": "Макс. {{amount}}",
+        "memo_optional": "Заметка (необязательно)",
+        "memo_placeholder": "Биржа или заметка (макс. 28 символов)",
         "stellar": {
             "below_min": "Сумма ниже минимума ({{min}} XLM), необходимого для открытия нового аккаунта Stellar.",
             "new_account_title": "Новый аккаунт Stellar",
@@ -554,7 +698,9 @@
             "classic_fund_first": "Этот актив нельзя отправить, пока у получателя нет пополненного аккаунта Stellar. Сначала отправьте нативный XLM для создания аккаунта.",
             "classic_trustline": "Получатель должен добавить трастлайн для этого актива, прежде чем сможет его получить.",
             "invalid_amount": "Введите корректную сумму, чтобы продолжить."
-        }
+        },
+        "transaction_sent": "Транзакция отправлена",
+        "transaction_failed": "Не удалось отправить транзакцию"
     },
     "transaction": {
         "go_to_my_history": "Перейти к моей истории",
@@ -712,6 +858,17 @@
             "system": "Система",
             "light": "Светлая",
             "dark": "Тёмная"
+        },
+        "notifications_label": "Уведомления",
+        "notifications": {
+            "title": "Уведомления",
+            "description": "Выберите, какие уведомления получать.",
+            "news": "Новости / обновления",
+            "news_description": "Новости и объявления продукта.",
+            "push": "Push-уведомления",
+            "push_description": "Разрешить push-уведомления на этом устройстве.",
+            "send_receive": "Отправка и получение",
+            "send_receive_description": "Получайте оповещения при отправке или получении активов."
         }
     },
     "security": {
@@ -773,14 +930,21 @@
             "risk_3_native": "Отправляйте только нативный {{ symbol }}. Токены из других сетей несовместимы с этим адресом.",
             "risk_4_title": "Протестируйте небольшой суммой",
             "risk_4": "Первый раз на этот адрес? Начните с небольшой транзакции {{ symbol }} перед отправкой большей суммы."
+        },
+        "generate_substrate": {
+            "title": "Адрес {{ symbol }} ещё не готов",
+            "line_1": "Адрес получения для {{ fullTagName }} в этой сети ещё не создан.",
+            "line_2": "Чтобы создать его, мы один раз расшифруем хранилище и привяжем новый адрес к публичному профилю. Этот разовый шаг выполняется только после подтверждения ниже.",
+            "line_3": "Тот же процесс расшифровки, которым приложение синхронизирует кошелёк, получит и сохранит эти данные.",
+            "line_4": "После проверки лица обновлённые адреса автоматически сохраняются на этом устройстве."
         }
     },
     "apps_hub": {
-        "label_wallet": "Wallet",
-        "label_keys": "Password Manager",
+        "label_wallet": "Кошелёк",
+        "label_keys": "Менеджер паролей",
         "label_auth": "2FA",
-        "label_id": "ID",
-        "label_legacy": "Legacy",
+        "label_id": "Личность",
+        "label_legacy": "Наследие",
         "label_ai": "zAI"
     },
     "common": {
@@ -916,7 +1080,7 @@
         "unlock": "Продолжить к биометрии",
         "upload_qr_image": "Загрузить QR-изображение",
         "verify": "Проверить",
-        "wallet_short": "Wallet",
+        "wallet_short": "Кошелёк",
         "keys_short": "Pass",
         "website": "Веб-сайт",
         "withdraw": "Отправить",
@@ -928,17 +1092,24 @@
         "zelf_chat": "zChat",
         "zelf_chat_coming_soon": "Zelf Chat скоро будет доступен.",
         "zelf_chats": "zChats",
-        "zelf_keys": "Password Manager",
+        "zelf_keys": "Менеджер паролей",
         "zelf_link": "Zelf Link",
         "zelf_signals": "zSignals",
         "zelf_signals_coming_soon": "Zelf Signals скоро будут доступны.",
-        "legacy": "Legacy",
+        "legacy": "Наследие",
         "legacy_coming_soon": "Legacy скоро будет доступен.",
-        "zelf_wallet": "Wallet",
+        "zelf_wallet": "Кошелёк",
         "ton_address": "TON Адрес",
         "validity_one_year": "Срок действия: 1 год",
         "validity_years": "Срок действия (лет): {{years}}",
-        "aptos_address": "Адрес Aptos"
+        "aptos_address": "Адрес Aptos",
+        "add": "Добавить",
+        "done": "Готово",
+        "hide_password": "Скрыть пароль",
+        "loading": "Загрузка…",
+        "show_password": "Показать пароль",
+        "zelf_id": "Zelf ID",
+        "error": "Ошибка"
     },
     "token": {
         "24h_performance": "Изменение за 24ч",
@@ -969,7 +1140,8 @@
         "info_description": "Не забудьте сохранить ваш QR-код в надежном месте для защиты вашего аккаунта. Скачайте его и сохраните в безопасном месте.",
         "private_key": "Сид-фраза",
         "addresses": "Адреса",
-        "info": "Инфо"
+        "info": "Инфо",
+        "action_sync": "Синхронизировать"
     },
     "private_key": {
         "description": "Чтобы просмотреть вашу сид-фразу, пройдите проверку безопасности.",
@@ -1094,7 +1266,8 @@
         "face_locked": "Проверка лица временно заблокирована. Повторите через {{ time }}.",
         "face_locked_about_minutes": "около {{ minutes }} мин.",
         "face_locked_about_hours": "около {{ hours }} ч.",
-        "face_replay_detected": "Это фото уже использовалось. Сделайте новое фото и попробуйте снова."
+        "face_replay_detected": "Это фото уже использовалось. Сделайте новое фото и попробуйте снова.",
+        "unknown": "Неизвестная ошибка"
     },
     "swap": {
         "automatic": "Автоматический",
@@ -1183,7 +1356,9 @@
         "show_balances": "Показать балансы",
         "recent_transactions": "Последние транзакции",
         "rewards_banner_title": "Получить награды",
-        "rewards_banner_subtitle": "Зарабатывайте $ZNS ежедневно с нашими заданиями"
+        "rewards_banner_subtitle": "Зарабатывайте $ZNS ежедневно с нашими заданиями",
+        "balance_retrying": "Повтор…",
+        "balance_unavailable": "Недоступно"
     },
     "id_scanning": {
         "camera_not_found": "Камера не найдена",
@@ -1287,7 +1462,8 @@
             "passwords": "Пароли",
             "subscription": "Подписка",
             "add_password": "Добавить пароль",
-            "add_card": "Добавить платежную карту"
+            "add_card": "Добавить платежную карту",
+            "cards": "Карты"
         },
         "payment_cards": {
             "title": "Платежные карты",
@@ -1440,7 +1616,9 @@
                     "aria_label": "Переключить сохранение в папку"
                 },
                 "master_password": {
-                    "hint": "Нам нужен пароль {{ walletName }} для шифрования и хранения ваших учетных данных. Биометрическая проверка всегда требуется."
+                    "hint": "Нам нужен пароль {{ walletName }} для шифрования и хранения ваших учетных данных. Биометрическая проверка всегда требуется.",
+                    "label": "Мастер-пароль *",
+                    "placeholder": "Введите мастер-пароль"
                 },
                 "buttons": {
                     "cancel": "Отмена",
@@ -1617,7 +1795,10 @@
                     "hide_password": "Скрыть пароль",
                     "copy_website": "Копировать веб-сайт",
                     "copy_password": "Копировать пароль"
-                }
+                },
+                "title": "Сведения о пароле",
+                "folder": "Папка",
+                "alias": "Псевдоним"
             },
             "form": {
                 "title": "Добавить пароль",
@@ -1646,7 +1827,8 @@
                 "master_password": {
                     "section_title": "Подпись с вашим Zelf ID",
                     "label": "Мастер-пароль *",
-                    "hint": "Нам нужен пароль {{ walletName }} для шифрования и хранения ваших учетных данных. Биометрическая проверка всегда требуется."
+                    "hint": "Нам нужен пароль {{ walletName }} для шифрования и хранения ваших учетных данных. Биометрическая проверка всегда требуется.",
+                    "placeholder": "Введите мастер-пароль"
                 },
                 "buttons": {
                     "save": "Сохранить пароль",
@@ -1886,7 +2068,8 @@
         "incorrect_password": "Неверный мастер-пароль",
         "errors": {
             "invalid_setup_key": "Неверный ключ. Используйте A–Z и 2–7, не меньше 16 символов.",
-            "invalid_totp_params": "Эти параметры проверки не поддерживаются."
+            "invalid_totp_params": "Эти параметры проверки не поддерживаются.",
+            "proof_load_failed": "Не удалось загрузить зашифрованные данные кода. Попробуйте снова."
         },
         "biometrics_failed": "Ошибка биометрической проверки",
         "export": "Экспорт",
@@ -1927,7 +2110,44 @@
         "recovered_setup_key": "Восстановленный ключ настройки",
         "create_zotp_from_recovery": "Создать ZOTP из восстановления",
         "recovery_successful": "Восстановление успешно!",
-        "recovery_success_description": "Ваш ZOTP был восстановлен и добавлен в ваш аутентификатор. Теперь вы можете использовать его для генерации кодов."
+        "recovery_success_description": "Ваш ZOTP был восстановлен и добавлен в ваш аутентификатор. Теперь вы можете использовать его для генерации кодов.",
+        "protection": {
+            "label": "Защита при открытии",
+            "face": "Только лицо",
+            "face_password": "Лицо + мастер-пароль",
+            "decrypt_toggle": {
+                "title": "Требовать мастер-пароль для открытия",
+                "description": "Если включено, для открытия этого ZOTP потребуется мастер-пароль кошелька в дополнение к лицу.",
+                "aria_label": "Требовать мастер-пароль при открытии этого ZOTP"
+            },
+            "face_only": {
+                "title": "Кошелёк только с лицом",
+                "description": "У этого Zelf ID нет мастер-пароля. ZOTP открываются только по лицу."
+            },
+            "decrypt_prompt": {
+                "title": "Введите мастер-пароль",
+                "description": "Этот ZOTP защищён лицом и мастер-паролем кошелька.",
+                "continue": "Перейти к сканированию лица"
+            },
+            "errors": {
+                "password_required": "Для открытия этого ZOTP нужен мастер-пароль."
+            }
+        },
+        "copy_code": "Копировать код",
+        "copy_setup_key": "Копировать ключ настройки",
+        "code": {
+            "title": "Ваш код",
+            "refreshes_in": "Обновится через {{seconds}} с"
+        },
+        "decrypt": {
+            "button": "Показать код",
+            "decrypting": "Открытие…"
+        },
+        "proof": {
+            "loading": "Загрузка зашифрованных данных…"
+        },
+        "decrypt_failed": "Не удалось открыть этот ZOTP. Попробуйте снова.",
+        "warning": "Предупреждение"
     },
     "rewards": {
         "title": "Награды",
@@ -2147,8 +2367,61 @@
     "home_hub": {
         "quick_label_keys": "Pass",
         "quick_label_auth": "2FA",
-        "quick_label_legacy": "Legacy",
+        "quick_label_legacy": "Наследие",
         "quick_label_id": "ID",
-        "more_apps": "Ещё"
+        "more_apps": "Ещё",
+        "greeting": "Добро пожаловать",
+        "header_rewards_aria": "Награды",
+        "header_notifications_aria": "Уведомления",
+        "subscription_title": "Бесплатный план",
+        "subscription_title_free": "Бесплатный план",
+        "subscription_title_premium": "Премиум-план",
+        "subscription_subtitle": "Управляйте подпиской",
+        "subscription_subtitle_free": "{{ zelfId }} — продлите в любой момент за $ZNS",
+        "subscription_subtitle_premium": "Ваш Zelf ID: {{ zelfId }}",
+        "subscription_cta": "Сохранить доступ",
+        "subscription_cta_free": "Сохранить доступ",
+        "subscription_cta_premium": "Управлять Zelf ID",
+        "subscription_countdown_free_expired": "Бесплатный домен истёк — продлите его за $ZNS в разделе управления доменами.",
+        "subscription_countdown_free_one_day": "На бесплатном домене остался 1 день — продлите за $ZNS в любой момент.",
+        "subscription_countdown_free_days": "На бесплатном домене осталось {{ days }} дн. — продлите за $ZNS в любой момент.",
+        "subscription_countdown_premium_expired": "Требуется продление — обновите подписку в разделе управления Zelf ID.",
+        "subscription_countdown_premium_one_day": "На вашем Zelf ID остался 1 день.",
+        "subscription_countdown_premium_days": "На вашем Zelf ID осталось {{ days }} дн.",
+        "subscription_countdown_unknown": "Управляйте Zelf ID в разделе доменов.",
+        "subscription_countdown_unit_days": "Дни",
+        "subscription_countdown_unit_hours": "Часы",
+        "enabled_networks_label": "Активные сети",
+        "start_here_title": "Начните здесь",
+        "start_here_subtitle": "Пройдите стартовое руководство и получите $ZNS",
+        "start_here_progress": "{{ current }} / {{ total }}",
+        "quick_label_signals": "zSignals",
+        "promo_placeholder_title": "Менеджер паролей — от $5.99 в месяц.",
+        "promo_placeholder_cta": "Смотреть",
+        "signals_heading": "Zelf Signals",
+        "signals_explore": "Смотреть",
+        "signals_placeholder_title": "Главное из Zelf Signals",
+        "signals_placeholder_body": "Здесь появятся обзоры рынка и активов.",
+        "ai_heading": "Zelf AI",
+        "ai_subtitle": "Ассистент Zelf AI скоро будет доступен.",
+        "ai_assistant_title": "Интеллектуальный Web3-ассистент",
+        "ai_assistant_desc": "Команды на естественном языке, анализ контрактов и инсайты.",
+        "ai_security_title": "Умная симуляция транзакций",
+        "ai_security_desc": "Проверки безопасности до выполнения и обнаружение мошенничества.",
+        "header_profile_aria": "Профиль",
+        "header_collapse_aria": "Скрыть имя",
+        "header_expand_aria": "Показать имя",
+        "add_account_aria": "Добавить аккаунт"
+    },
+    "welcomeZelfid": {
+        "plan_free": "Бесплатный Zelf ID — ваш на 100 лет. Позже можно улучшить план.",
+        "plan_short_hold": "Бесплатный Zelf ID — ваш на 100 лет, включая короткие имена.",
+        "plan_unlimited": "Бесплатный Zelf ID — ваш на 100 лет.",
+        "plan_label": "План: {{ plan }}",
+        "hold_subtitle": "Ваш Zelf ID бесплатен 100 лет."
+    },
+    "superapp": {
+        "connecting_with": "Подключение к {{appName}}",
+        "working_with": "Безопасная работа с {{appName}}"
     }
 }

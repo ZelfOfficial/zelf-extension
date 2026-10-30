@@ -741,7 +741,7 @@ export class SendTransactionComponent implements OnDestroy {
                     const btcBalance = await this._bitcoinService.getBitcoinBalance(btcAddress);
 
                     if (btcBalance.balance < parseFloat(this.form.get("amount")?.value || "0")) {
-                        this._snackBar.open(this._translocoService.translate("INSUFFICIENT_FUNDS"), this._translocoService.translate("CLOSE"), {
+                        this._snackBar.open(this._translocoService.translate("errors.insufficient_funds"), this._translocoService.translate("common.close"), {
                             duration: 5000,
                         });
                         return;
@@ -943,7 +943,7 @@ export class SendTransactionComponent implements OnDestroy {
             }
         } catch (error) {
             console.error("Error sending transaction:", error);
-            this._snackBar.open(this._translocoService.translate("TRANSACTION_FAILED"), this._translocoService.translate("CLOSE"), {
+            this._snackBar.open(this._translocoService.translate("send.transaction_failed"), this._translocoService.translate("common.close"), {
                 duration: 5000,
             });
         } finally {
@@ -962,7 +962,7 @@ export class SendTransactionComponent implements OnDestroy {
 
         const result = await this._bitcoinService.sendTransaction(transactionParams);
 
-        this._snackBar.open(this._translocoService.translate("TRANSACTION_SENT"), this._translocoService.translate("CLOSE"), {
+        this._snackBar.open(this._translocoService.translate("send.transaction_sent"), this._translocoService.translate("common.close"), {
             duration: 5000,
         });
 

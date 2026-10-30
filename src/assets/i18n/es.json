@@ -80,7 +80,10 @@
             "import_done_btn": "Listo",
             "reverify_title": "Vuelve a verificar para ver tus elementos",
             "reverify_description": "Esta sesión aún no puede abrir tu bóveda. Verifica tu rostro de nuevo para cargar tus contraseñas y tarjetas.",
-            "reverify_action": "Verificar de nuevo"
+            "reverify_action": "Verificar de nuevo",
+            "import_store_mode_label": "API de almacenamiento (dev)",
+            "import_store_mode_one_by_one": "One-by-one (/store/password)",
+            "import_store_mode_bulk": "Bulk (/store/passwords)"
         },
         "common": {
             "qr_code": "Código QR",
@@ -89,7 +92,9 @@
             "back_to_payment_cards": "Volver a Tarjetas de Pago",
             "add_another_card": "Agregar Otra Tarjeta",
             "try_again": "Intentar de Nuevo",
-            "image_not_available": "Imagen no disponible"
+            "image_not_available": "Imagen no disponible",
+            "proof_loading": "Cargando datos cifrados…",
+            "proof_load_failed": "No se pudieron cargar los datos cifrados de este elemento. Inténtalo de nuevo."
         },
         "payment_cards": {
             "labels": {
@@ -356,7 +361,8 @@
             "zelf_name_label": "Zelf ID: {{ zelfName }}",
             "category_label": "Categoría: {{ category }}",
             "type_label": "Tipo: {{ type }}",
-            "secure_credential": "Credencial segura"
+            "secure_credential": "Credencial segura",
+            "secure_note": "Nota segura"
         },
         "data_types": {
             "note": "Nota",
@@ -399,7 +405,12 @@
                 "storage_failed": "Error al almacenar {{ category }}, por favor intente nuevamente más tarde.",
                 "try_again_later": "Por favor intente nuevamente más tarde.",
                 "close": "Cerrar"
-            }
+            },
+            "delete_payment_card": "Verifica tu identidad para eliminar la tarjeta",
+            "delete_note": "Verifica tu identidad para eliminar la nota",
+            "delete_password": "Verifica tu identidad para eliminar la contraseña",
+            "authorize_title": "Verifica tu identidad",
+            "authorize_instructions": "Coloca tu rostro en el marco para continuar."
         },
         "popout_decryptor": {
             "back": "Atrás",
@@ -496,9 +507,12 @@
                         "token_id": "ID del Token",
                         "cost": "Costo",
                         "contract": "Contrato",
-                        "transaction": "Transacción"
+                        "transaction": "Transacción",
+                        "metadata_url": "URL de metadatos"
                     },
-                    "image_alt": "NFT ZelfKey"
+                    "image_alt": "NFT ZelfKey",
+                    "metadata_link": "Ver metadatos",
+                    "copy_hint": "Clic para copiar"
                 },
                 "ipfs": {
                     "title": "Almacenamiento IPFS",
@@ -672,8 +686,8 @@
         "amount_inline_invalid": "Cantidad no válida",
         "amount_inline_min": "Mín. {{amount}}",
         "amount_inline_max": "Máx. {{amount}}",
-        "memo_optional": "Memo (optional)",
-        "memo_placeholder": "Exchange or note (max 28 characters)",
+        "memo_optional": "Memo (opcional)",
+        "memo_placeholder": "Exchange o nota (máx. 28 caracteres)",
         "stellar": {
             "below_min": "El monto es inferior al mínimo ({{min}} XLM) necesario para abrir una nueva cuenta Stellar.",
             "new_account_title": "Nueva cuenta Stellar",
@@ -684,7 +698,9 @@
             "classic_fund_first": "No se puede enviar este activo hasta que el destinatario tenga una cuenta Stellar financiada. Envía XLM nativo primero para crear su cuenta.",
             "classic_trustline": "El destinatario debe añadir una línea de confianza para este activo antes de poder recibirlo.",
             "invalid_amount": "Introduce un monto válido para continuar."
-        }
+        },
+        "transaction_sent": "Transacción enviada",
+        "transaction_failed": "No se pudo enviar la transacción"
     },
     "transaction": {
         "go_to_my_history": "Ir a mi historial",
@@ -772,7 +788,7 @@
             "features": {
                 "wallets": "Billeteras",
                 "password_managers": "Contraseñas",
-                "two_factor": "2FAs",
+                "two_factor": "2FA",
                 "inheritance": "Herencia"
             },
             "summary": {
@@ -921,14 +937,21 @@
             "risk_3_native": "Envía únicamente {{ symbol }} nativo. Los tokens de otras redes no son compatibles con esta dirección.",
             "risk_4_title": "Prueba con una cantidad pequeña",
             "risk_4": "¿Primera vez en esta dirección? Empieza con una pequeña transacción de {{ symbol }} antes de enviar cantidades mayores."
+        },
+        "generate_substrate": {
+            "title": "La dirección {{ symbol }} aún no está lista",
+            "line_1": "Todavía no se ha generado una dirección de recepción de {{ fullTagName }} en esta red.",
+            "line_2": "Para crearla, desciframos tu bóveda una vez y vinculamos la nueva dirección a tu perfil público. Este paso único solo ocurre cuando confirmas abajo.",
+            "line_3": "El mismo proceso de descifrado que la app ya usa para sincronizar tu billetera obtendrá y guardará estos datos.",
+            "line_4": "Después de la verificación facial, tus direcciones actualizadas se guardan automáticamente en este dispositivo."
         }
     },
     "apps_hub": {
-        "label_wallet": "Wallet",
-        "label_keys": "Password Manager",
+        "label_wallet": "Cartera",
+        "label_keys": "Gestor de contraseñas",
         "label_auth": "2FA",
-        "label_id": "ID",
-        "label_legacy": "Legacy",
+        "label_id": "Identidad",
+        "label_legacy": "Legado",
         "label_ai": "zAI"
     },
     "common": {
@@ -1068,7 +1091,7 @@
         "unlock": "Desbloquear",
         "upload_qr_image": "Subir imagen QR",
         "verify": "Verificar",
-        "wallet_short": "Wallet",
+        "wallet_short": "Cartera",
         "keys_short": "Pass",
         "website": "Sitio web",
         "withdraw": "Enviar",
@@ -1080,17 +1103,20 @@
         "zelf_chat": "zChat",
         "zelf_chat_coming_soon": "Zelf Chat estará disponible pronto.",
         "zelf_chats": "zChats",
-        "zelf_keys": "Password Manager",
+        "zelf_keys": "Gestor de contraseñas",
         "zelf_link": "Enlace Zelf",
         "zelf_signals": "zSignals",
         "zelf_signals_coming_soon": "Zelf Signals estará disponible pronto.",
-        "legacy": "Legacy",
+        "legacy": "Legado",
         "legacy_coming_soon": "Legacy estará disponible pronto.",
-        "zelf_wallet": "Wallet",
+        "zelf_wallet": "Cartera",
         "ton_address": "Dirección TON",
         "validity_one_year": "Vigencia: 1 año",
         "validity_years": "Vigencia: {{years}} años",
-        "aptos_address": "Dirección Aptos"
+        "aptos_address": "Dirección Aptos",
+        "add": "Añadir",
+        "zelf_id": "Zelf ID",
+        "error": "Error"
     },
     "token": {
         "24h_performance": "Rendimiento 24h",
@@ -1121,7 +1147,8 @@
         "info_description": "Recuerda mantener tu código QR seguro para proteger tu cuenta. Descárgalo y guárdalo en un lugar seguro.",
         "private_key": "Clave Privada",
         "addresses": "Direcciones",
-        "info": "Info"
+        "info": "Información",
+        "action_sync": "Sincronizar"
     },
     "private_key": {
         "description": "Para ver tu frase semilla, completa los pasos de verificación de seguridad.",
@@ -1247,7 +1274,8 @@
         "failed_to_decrypt": "No pudimos desencriptar tu Zelf ID. Comprueba tu contraseña y la verificación facial e inténtalo de nuevo.",
         "THE PROVIDED PASSWORD IS INVALID.": "La contraseña que ingresaste es incorrecta. Comprueba tu contraseña e inténtalo de nuevo.",
         "ERR_MISSING_PASSWORD": "Esta clave está protegida con tu contraseña maestra. Ingrésala e inténtalo de nuevo.",
-        "ERR_ZELF_ID_STILL_ACTIVE": "Este Zelf ID sigue activo. Inicia sesión con él en lugar de recuperarlo con otro nombre."
+        "ERR_ZELF_ID_STILL_ACTIVE": "Este Zelf ID sigue activo. Inicia sesión con él en lugar de recuperarlo con otro nombre.",
+        "unknown": "Error desconocido"
     },
     "swap": {
         "automatic": "Automático",
@@ -1368,7 +1396,7 @@
         "start_here_progress": "{{ current }} / {{ total }}",
         "quick_label_keys": "Pass",
         "quick_label_auth": "2FA",
-        "quick_label_legacy": "Legacy",
+        "quick_label_legacy": "Legado",
         "quick_label_signals": "zSignals",
         "quick_label_id": "ID",
         "promo_placeholder_title": "Password Manager, desde $5.99 al mes.",
@@ -1383,7 +1411,11 @@
         "ai_assistant_desc": "Acciones en lenguaje natural, análisis de contratos e información.",
         "ai_security_title": "Simulación Inteligente de Transacciones",
         "ai_security_desc": "Controles de seguridad previos a la ejecución y detección de fraudes.",
-        "more_apps": "Más"
+        "more_apps": "Más",
+        "header_profile_aria": "Perfil",
+        "header_collapse_aria": "Ocultar nombre",
+        "header_expand_aria": "Mostrar nombre",
+        "add_account_aria": "Añadir cuenta"
     },
     "id_scanning": {
         "camera_not_found": "Cámara no encontrada",
@@ -1487,7 +1519,8 @@
             "passwords": "Contraseñas",
             "subscription": "Suscripción",
             "add_password": "Agregar Contraseña",
-            "add_card": "Agregar Tarjeta"
+            "add_card": "Agregar Tarjeta",
+            "cards": "Tarjetas"
         },
         "payment_cards": {
             "title": "Tarjetas de Pago",
@@ -2170,7 +2203,8 @@
         "recovered_setup_key": "Clave de Configuración Recuperada",
         "create_zotp_from_recovery": "Crear ZOTP desde la Recuperación",
         "recovery_successful": "¡Recuperación Exitosa!",
-        "recovery_success_description": "Su ZOTP ha sido recuperado y agregado a su autenticador. Ahora puede usarlo para generar códigos."
+        "recovery_success_description": "Su ZOTP ha sido recuperado y agregado a su autenticador. Ahora puede usarlo para generar códigos.",
+        "decrypt_failed": "No se pudo abrir este ZOTP. Inténtalo de nuevo."
     },
     "rewards": {
         "title": "Recompensas",

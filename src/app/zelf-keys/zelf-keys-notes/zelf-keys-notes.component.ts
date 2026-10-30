@@ -140,7 +140,7 @@ export class ZelfKeysNotesComponent implements OnInit, OnDestroy {
 
     private _subscribeToErrorState(): void {
         this._zelfKeysDataService.error$.pipe(takeUntil(this.destroy$)).subscribe((error) => {
-            this.error = error ? this._translocoService.translate("zelf_keys.notes.error.load_failed") : null;
+            this.error = error ? this._translocoService.translate("billing.notes.error.load_failed") : null;
         });
     }
 
@@ -233,7 +233,9 @@ export class ZelfKeysNotesComponent implements OnInit, OnDestroy {
         if (note.publicData?.content) return note.publicData.content;
         if (note.publicData?.zelfName)
             return this._translocoService.translate("zelf_keys.data_card.zelf_name_label", { zelfName: note.publicData.zelfName });
-        if (note.publicData?.category) return `Category: ${note.publicData.category}`;
+        if (note.publicData?.category) {
+            return this._translocoService.translate("zelf_keys.data_card.category_label", { category: note.publicData.category });
+        }
 
         return this._translocoService.translate("zelf_keys.data_card.secure_note");
     }

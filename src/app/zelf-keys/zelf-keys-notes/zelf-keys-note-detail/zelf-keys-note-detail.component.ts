@@ -73,14 +73,14 @@ export class ZelfKeysNoteDetailComponent extends CopyToClipboardBase implements 
             const noteData = this._noteDataService.getCurrentNote();
 
             if (!noteData) {
-                this.error = this._translocoService.translate("zelf_keys.notes.detail.error.not_found");
+                this.error = this._translocoService.translate("billing.notes.detail.error.not_found");
                 return;
             }
 
             this.note = noteData;
         } catch (error) {
             console.error("Error loading note data:", error);
-            this.error = this._translocoService.translate("zelf_keys.notes.detail.error.load_failed");
+            this.error = this._translocoService.translate("billing.notes.detail.error.load_failed");
         } finally {
             this.loading = false;
         }
@@ -138,12 +138,12 @@ export class ZelfKeysNoteDetailComponent extends CopyToClipboardBase implements 
     handleDecryptionResult(data: any): void {
         if (!data) return;
 
-        const title = data.title || this.note?.publicData?.title || this._translocoService.translate("zelf_keys.notes.detail.no_title");
+        const title = data.title || this.note?.publicData?.title || this._translocoService.translate("billing.notes.detail.no_title");
 
-        let content = data.content || this._translocoService.translate("zelf_keys.notes.detail.no_content");
+        let content = data.content || this._translocoService.translate("billing.notes.detail.no_content");
 
         if (typeof content === "string" && content.trim().startsWith("-----BEGIN PGP MESSAGE-----")) {
-            this.error = this._translocoService.translate("zelf_keys.notes.detail.error.decrypt_failed");
+            this.error = this._translocoService.translate("billing.notes.detail.error.decrypt_failed");
 
             return;
         }

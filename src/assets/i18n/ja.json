@@ -10,7 +10,9 @@
             "back_to_payment_cards": "支払いカードに戻る",
             "add_another_card": "別のカードを追加",
             "try_again": "再試行",
-            "image_not_available": "画像は利用できません"
+            "image_not_available": "画像は利用できません",
+            "proof_loading": "暗号化データを読み込んでいます…",
+            "proof_load_failed": "この項目の暗号化データを読み込めませんでした。もう一度お試しください。"
         },
         "payment_cards": {
             "labels": {
@@ -196,6 +198,39 @@
                 "premium_plan": "プレミアムプラン",
                 "not_available": "なし",
                 "month": "月"
+            },
+            "stripe_checkout": {
+                "interval_year": "年",
+                "waiting": {
+                    "title": "Stripe で支払いを完了",
+                    "message": "新しいタブで Stripe を開きました。そこで支払いを終え、この画面は開いたままにしてください。自動で更新します。"
+                },
+                "confirmed": {
+                    "title": "支払いを確認しました",
+                    "message": "{{ planName }} がアカウントで有効になりました。"
+                },
+                "cancelled": {
+                    "title": "支払いをキャンセルしました",
+                    "message": "別のプランを選ぶか、準備ができたら Stripe を再試行できます。"
+                },
+                "failed": {
+                    "title": "支払いを確認できませんでした",
+                    "message": "サブスクリプションの確認中に問題が発生しました。再試行するか別のプランを選べます。"
+                },
+                "expired": {
+                    "title": "確認を待っています",
+                    "message": "Stripe からの確認がまだ届いていません。",
+                    "hint": "支払い済みの場合、最大1分かかることがあります。再確認するか Stripe を開き直してください。"
+                },
+                "actions": {
+                    "reopen_stripe": "Stripe の支払いを開き直す",
+                    "check_now": "支払い済み / 今すぐ確認",
+                    "check_again": "再確認",
+                    "cancel": "キャンセルして別のプランを選ぶ",
+                    "continue": "続行",
+                    "choose_plan": "プランに戻る",
+                    "try_stripe_again": "Stripe を再試行"
+                }
             }
         },
         "biometrics": {
@@ -244,7 +279,8 @@
             "zelf_name_label": "Zelf ID: {{ zelfName }}",
             "category_label": "カテゴリ: {{ category }}",
             "type_label": "タイプ: {{ type }}",
-            "secure_credential": "安全な認証情報"
+            "secure_credential": "安全な認証情報",
+            "secure_note": "セキュアメモ"
         },
         "data_types": {
             "note": "ノート",
@@ -287,7 +323,12 @@
                 "storage_failed": "{{ category }} の保存中にエラーが発生しました。後でもう一度お試しください。",
                 "try_again_later": "後でもう一度お試しください。",
                 "close": "閉じる"
-            }
+            },
+            "delete_payment_card": "本人確認してカードを削除",
+            "delete_note": "本人確認してメモを削除",
+            "delete_password": "本人確認してパスワードを削除",
+            "authorize_title": "本人確認",
+            "authorize_instructions": "続けるには枠の中に顔を合わせてください。"
         },
         "popout_decryptor": {
             "back": "戻る",
@@ -315,7 +356,30 @@
                 "payment-card": "支払いカード",
                 "wallet": "ウォレット",
                 "zotp": "ZOTP"
-            }
+            },
+            "master_password_action_subtitle": "Zelf ID のパスワードを入力し、顔認証で続行します。",
+            "verified": "Zelf で確認済み",
+            "copy_password": "パスワードをコピー",
+            "copy_card_number": "カード番号をコピー",
+            "copy_expiry": "有効期限をコピー",
+            "copy_cvv": "CVV をコピー",
+            "extension_only": "このパスワードは Zelf 拡張機能の中に留まります。",
+            "card_extension_only": "カード番号と CVV は Zelf 拡張機能の中に留まります。",
+            "done": "完了",
+            "create_heading": "新しいパスワード",
+            "create_title": "新しいパスワードを暗号化",
+            "create_processing": "Zelf で暗号化しています...",
+            "create_master_password": "マスターパスワード（有効な場合）",
+            "verify_create": "顔で確認",
+            "delete_title": "このパスワードを削除しますか？",
+            "delete_description": "暗号化された記録を削除します。続けるには顔認証が必要です。",
+            "delete_master_password": "マスターパスワード（有効な場合）",
+            "verify_delete": "確認して削除",
+            "request_expired": "このリクエストは期限切れです。SuperApp に戻って再試行してください。",
+            "missing_request": "安全なリクエストが不完全です。SuperApp に戻って再試行してください。",
+            "insufficient_zns": "このパスワードを保存するには少なくとも {{amount}} ZNS が必要です。",
+            "checking_zns": "ZNS 残高を確認しています...",
+            "zns_check_failed": "ZNS 残高を確認できませんでした。接続を確認して再試行してください。"
         },
         "password_biometrics": {
             "back_to_details": "パスワード詳細に戻る",
@@ -361,9 +425,12 @@
                         "token_id": "トークンID",
                         "cost": "コスト",
                         "contract": "コントラクト",
-                        "transaction": "トランザクション"
+                        "transaction": "トランザクション",
+                        "metadata_url": "メタデータ URL"
                     },
-                    "image_alt": "ZelfKey NFT"
+                    "image_alt": "ZelfKey NFT",
+                    "metadata_link": "メタデータを表示",
+                    "copy_hint": "クリックしてコピー"
                 },
                 "ipfs": {
                     "title": "IPFSストレージ",
@@ -486,7 +553,84 @@
         "vault": {
             "reverify_title": "アイテムを表示するには再確認してください",
             "reverify_description": "このセッションではボルトを開けません。顔を再確認して、パスワードとカードを読み込んでください。",
-            "reverify_action": "再確認"
+            "reverify_action": "再確認",
+            "eyebrow": "パスワード管理",
+            "title": "あなたのプライベート保管庫",
+            "subtitle": "暗号化した項目を見つけて開きます。",
+            "trust": "秘密と生体認証の操作は Zelf の中に留まります。",
+            "stats_label": "保管庫の合計",
+            "stat_total": "項目",
+            "stat_passwords": "パスワード",
+            "stat_cards": "カード",
+            "stat_notes": "メモ",
+            "add_password": "パスワードを追加",
+            "add_card": "カードを追加",
+            "search": "保管庫を検索",
+            "filter_folder": "フォルダで絞り込み",
+            "all_folders": "すべてのフォルダ",
+            "refresh": "保管庫を更新",
+            "loading": "プライベート保管庫を開いています…",
+            "load_error": "保管庫を開けませんでした",
+            "retry": "再試行",
+            "empty_title": "保管庫の準備ができました",
+            "empty_description": "パスワードまたはカードを追加し、顔で保護します。",
+            "add_first": "最初のパスワードを追加",
+            "no_results": "見つかりません",
+            "no_results_description": "別の検索またはフォルダを試してください。",
+            "alias": "エイリアス",
+            "alias_placeholder": "個人、仕事、メイン…",
+            "delete": "項目を削除",
+            "delete_confirm": "この項目を完全に削除しますか？",
+            "delete_description": "顔認証で保管庫から削除します。",
+            "deleting": "削除しています…",
+            "delete_failed": "この項目を削除できませんでした。もう一度お試しください。",
+            "export_vault": "保管庫を書き出す",
+            "export_item": "書き出し",
+            "import_vault": "パスワードを読み込む",
+            "more_options": "その他のオプション",
+            "master_password_label": "マスターパスワード",
+            "master_password_placeholder": "マスターパスワードを入力",
+            "export_title": "パスワードを書き出す",
+            "export_subtitle": "他のパスワード管理と互換のある資格情報を書き出します。",
+            "export_single_subtitle": "他のパスワード管理へ書き出します。",
+            "export_biometrics_required": "顔認証",
+            "export_biometrics_explain": "顔認証で {{count}} 件のパスワードを復号します。",
+            "export_local_only": "端末内のメモリでのみ復号 · デバイスの外に出ません",
+            "export_scan_face_btn": "顔で確認",
+            "export_face_instructions": "書き出しを許可するには楕円の中に顔を合わせてください。",
+            "export_decrypting_title": "資格情報を復号しています",
+            "export_ready_count": "書き出し可能なパスワード {{count}} 件",
+            "export_failed_count": "{{count}} 件の復号に失敗しました",
+            "export_format_label": "形式",
+            "export_preview_label": "プレビュー",
+            "download_file": "ダウンロード",
+            "copy_to_clipboard": "コピー",
+            "copied": "コピーしました",
+            "import_title": "パスワードを読み込む",
+            "import_subtitle": "パスワード管理のファイルを選択します。",
+            "import_drop_title": "ファイルをここにドロップ",
+            "import_drop_subtitle": "LastPass, Bitwarden, 1Password, Chrome, Apple, KeePassXC",
+            "import_browse_btn": "ファイルを参照",
+            "import_paste_label": "またはテキストを貼り付け",
+            "import_paste_placeholder": "書き出した CSV または JSON を貼り付け...",
+            "import_parse_btn": "プレビュー",
+            "import_switch_file": "代わりにファイルをアップロード",
+            "import_switch_paste": "代わりにテキストを貼り付け",
+            "import_detected": "検出",
+            "select_all": "すべて選択",
+            "deselect_all": "すべての選択を解除",
+            "import_selected_count": "{{total}} 件中 {{selected}} 件を選択",
+            "import_back": "戻る",
+            "import_now_btn": "確認して読み込む（{{count}}）",
+            "import_face_instructions": "顔をスキャンしてパスワードを暗号化して保存します。",
+            "import_store_mode_label": "保存 API（開発）",
+            "import_store_mode_one_by_one": "One-by-one (/store/password)",
+            "import_store_mode_bulk": "Bulk (/store/passwords)",
+            "importing_title": "パスワードを暗号化しています",
+            "import_success_title": "読み込み完了",
+            "import_success_desc": "{{count}} 件のパスワードを保管庫に保護しました。",
+            "import_failed_notice": "{{count}} 件を読み込めませんでした：",
+            "import_done_btn": "完了"
         }
     },
     "cancel": "キャンセル",
@@ -538,12 +682,12 @@
         "zelf_name_registered": "Zelf IDが登録されています",
         "from_address": "送信元アドレス",
         "private_transaction": "プライベート・トランザクション",
-        "amount_inline_required": "Required",
-        "amount_inline_invalid": "Invalid amount",
-        "amount_inline_min": "Min {{amount}}",
-        "amount_inline_max": "Max {{amount}}",
-        "memo_optional": "Memo (optional)",
-        "memo_placeholder": "Exchange or note (max 28 characters)",
+        "amount_inline_required": "必須",
+        "amount_inline_invalid": "無効な金額",
+        "amount_inline_min": "最小 {{amount}}",
+        "amount_inline_max": "最大 {{amount}}",
+        "memo_optional": "メモ（任意）",
+        "memo_placeholder": "取引所またはメモ（最大28文字）",
         "stellar": {
             "below_min": "金額が新しい Stellar アカウントを開設するために必要な最小額（{{min}} XLM）を下回っています。",
             "new_account_title": "新しい Stellar アカウント",
@@ -554,7 +698,9 @@
             "classic_fund_first": "受取人の Stellar アカウントに資金が入るまでこの資産は送信できません。まずネイティブ XLM を送ってアカウントを作成してください。",
             "classic_trustline": "受取人はこの資産を受け取る前にトラストラインを追加する必要があります。",
             "invalid_amount": "続行するには有効な金額を入力してください。"
-        }
+        },
+        "transaction_sent": "取引を送信しました",
+        "transaction_failed": "取引を送信できませんでした"
     },
     "transaction": {
         "go_to_my_history": "履歴に移動",
@@ -712,6 +858,17 @@
             "system": "システム",
             "light": "ライト",
             "dark": "ダーク"
+        },
+        "notifications_label": "通知",
+        "notifications": {
+            "title": "通知",
+            "description": "受け取る通知を選択します。",
+            "news": "ニュース / 更新",
+            "news_description": "製品ニュースとお知らせ。",
+            "push": "プッシュ通知",
+            "push_description": "このデバイスでプッシュ通知を許可します。",
+            "send_receive": "送受信",
+            "send_receive_description": "資産の送受信時に通知を受け取ります。"
         }
     },
     "security": {
@@ -773,14 +930,21 @@
             "risk_3_native": "ネイティブ{{ symbol }}のみ送信してください。他のネットワークのトークンはこのアドレスと互換性がありません。",
             "risk_4_title": "少額でテストする",
             "risk_4": "このアドレスへ初めて送金する際は、まず少額の{{ symbol }}取引から始めてください。"
+        },
+        "generate_substrate": {
+            "title": "{{ symbol }} アドレスはまだ準備できていません",
+            "line_1": "このネットワークでは {{ fullTagName }} の受取アドレスがまだ生成されていません。",
+            "line_2": "作成するには保管庫を一度復号し、新しいアドレスを公開プロフィールに紐づけます。この一度きりの手順は下で確認したときだけ実行されます。",
+            "line_3": "ウォレット同期ですでに使う復号処理が、このデータを取得して保存します。",
+            "line_4": "顔認証のあと、更新されたアドレスはこのデバイスに自動保存されます。"
         }
     },
     "apps_hub": {
-        "label_wallet": "Wallet",
-        "label_keys": "Password Manager",
+        "label_wallet": "ウォレット",
+        "label_keys": "パスワード管理",
         "label_auth": "2FA",
         "label_id": "ID",
-        "label_legacy": "Legacy",
+        "label_legacy": "レガシー",
         "label_ai": "zAI"
     },
     "common": {
@@ -916,7 +1080,7 @@
         "unlock": "生体認証へ進む",
         "upload_qr_image": "QR画像をアップロード",
         "verify": "確認",
-        "wallet_short": "Wallet",
+        "wallet_short": "ウォレット",
         "keys_short": "Pass",
         "website": "ウェブサイト",
         "withdraw": "送信",
@@ -928,17 +1092,24 @@
         "zelf_chat": "zChat",
         "zelf_chat_coming_soon": "Zelf Chatは近日公開予定です。",
         "zelf_chats": "zChats",
-        "zelf_keys": "Password Manager",
+        "zelf_keys": "パスワード管理",
         "zelf_link": "Zelfリンク",
         "zelf_signals": "zSignals",
         "zelf_signals_coming_soon": "Zelf Signalsは近日公開予定です。",
-        "legacy": "Legacy",
+        "legacy": "レガシー",
         "legacy_coming_soon": "Legacyは近日公開予定です。",
-        "zelf_wallet": "Wallet",
+        "zelf_wallet": "ウォレット",
         "ton_address": "TONアドレス",
         "validity_one_year": "有効期間：1年",
         "validity_years": "有効期間：{{years}}年",
-        "aptos_address": "Aptosアドレス"
+        "aptos_address": "Aptosアドレス",
+        "add": "追加",
+        "done": "完了",
+        "hide_password": "パスワードを隠す",
+        "loading": "読み込み中…",
+        "show_password": "パスワードを表示",
+        "zelf_id": "Zelf ID",
+        "error": "エラー"
     },
     "token": {
         "24h_performance": "24時間のパフォーマンス",
@@ -969,7 +1140,8 @@
         "info_description": "アカウントを保護するためにQRコードを安全に保管してください。ダウンロードして安全な場所に保存してください。",
         "private_key": "シードフレーズ",
         "addresses": "アドレス",
-        "info": "情報"
+        "info": "情報",
+        "action_sync": "同期"
     },
     "private_key": {
         "description": "シードフレーズを表示するには、セキュリティ認証の手順を完了してください。",
@@ -1094,7 +1266,8 @@
         "face_locked": "顔認証は一時的にロックされています。{{ time }}後に再試行してください。",
         "face_locked_about_minutes": "約{{ minutes }}分",
         "face_locked_about_hours": "約{{ hours }}時間",
-        "face_replay_detected": "この写真はすでに使用されています。新しい写真を撮って再度お試しください。"
+        "face_replay_detected": "この写真はすでに使用されています。新しい写真を撮って再度お試しください。",
+        "unknown": "不明なエラー"
     },
     "swap": {
         "automatic": "自動",
@@ -1183,7 +1356,9 @@
         "show_balances": "残高を表示",
         "recent_transactions": "最近の取引",
         "rewards_banner_title": "報酬を獲得",
-        "rewards_banner_subtitle": "クエストで毎日 $ZNS を獲得しよう"
+        "rewards_banner_subtitle": "クエストで毎日 $ZNS を獲得しよう",
+        "balance_retrying": "再試行しています…",
+        "balance_unavailable": "利用できません"
     },
     "id_scanning": {
         "camera_not_found": "カメラが見つかりません",
@@ -1287,7 +1462,8 @@
             "passwords": "パスワード",
             "subscription": "サブスクリプション",
             "add_password": "パスワードを追加",
-            "add_card": "支払いカードを追加"
+            "add_card": "支払いカードを追加",
+            "cards": "カード"
         },
         "payment_cards": {
             "title": "支払いカード",
@@ -1440,7 +1616,9 @@
                     "aria_label": "フォルダ保存を切り替え"
                 },
                 "master_password": {
-                    "hint": "資格情報を暗号化して保存するには {{ walletName }} のパスワードが必要です。生体認証の確認は常に必要です。"
+                    "hint": "資格情報を暗号化して保存するには {{ walletName }} のパスワードが必要です。生体認証の確認は常に必要です。",
+                    "label": "マスターパスワード *",
+                    "placeholder": "マスターパスワードを入力"
                 },
                 "buttons": {
                     "cancel": "キャンセル",
@@ -1617,7 +1795,10 @@
                     "hide_password": "パスワードを非表示",
                     "copy_website": "ウェブサイトをコピー",
                     "copy_password": "パスワードをコピー"
-                }
+                },
+                "title": "パスワードの詳細",
+                "folder": "フォルダ",
+                "alias": "エイリアス"
             },
             "form": {
                 "title": "支払いカード情報",
@@ -1646,7 +1827,8 @@
                 "master_password": {
                     "section_title": "Zelf ID で署名",
                     "label": "銀行名 *",
-                    "hint": "資格情報を暗号化して保存するには {{ walletName }} のパスワードが必要です。生体認証の確認は常に必要です。"
+                    "hint": "資格情報を暗号化して保存するには {{ walletName }} のパスワードが必要です。生体認証の確認は常に必要です。",
+                    "placeholder": "マスターパスワードを入力"
                 },
                 "buttons": {
                     "save": "パスワードを保存",
@@ -1886,7 +2068,8 @@
         "incorrect_password": "マスターパスワードが正しくありません",
         "errors": {
             "invalid_setup_key": "セットアップキーが無効です。A–Z と 2–7、16 文字以上。",
-            "invalid_totp_params": "この検証設定は使えません。"
+            "invalid_totp_params": "この検証設定は使えません。",
+            "proof_load_failed": "このコードの暗号化データを読み込めませんでした。もう一度お試しください。"
         },
         "biometrics_failed": "生体認証に失敗しました",
         "export": "エクスポート",
@@ -1927,7 +2110,44 @@
         "recovered_setup_key": "復元されたセットアップキー",
         "create_zotp_from_recovery": "復元からZOTPを作成",
         "recovery_successful": "復元に成功しました！",
-        "recovery_success_description": "ZOTPが復元され、オーセンティケーターに追加されました。これでコードの生成に使用できます。"
+        "recovery_success_description": "ZOTPが復元され、オーセンティケーターに追加されました。これでコードの生成に使用できます。",
+        "protection": {
+            "label": "開くときの保護",
+            "face": "顔のみ",
+            "face_password": "顔 + マスターパスワード",
+            "decrypt_toggle": {
+                "title": "開くときにマスターパスワードを要求",
+                "description": "有効にすると、この ZOTP を開くときに顔認証に加えてウォレットのマスターパスワードも求められます。",
+                "aria_label": "この ZOTP を開くときにマスターパスワードを要求"
+            },
+            "face_only": {
+                "title": "顔のみのウォレット",
+                "description": "この Zelf ID にマスターパスワードはありません。ZOTP は顔認証のみで開きます。"
+            },
+            "decrypt_prompt": {
+                "title": "マスターパスワードを入力",
+                "description": "この ZOTP は顔認証とウォレットのマスターパスワードで保護されています。",
+                "continue": "顔スキャンに進む"
+            },
+            "errors": {
+                "password_required": "この ZOTP を開くにはマスターパスワードが必要です。"
+            }
+        },
+        "copy_code": "コードをコピー",
+        "copy_setup_key": "セットアップキーをコピー",
+        "code": {
+            "title": "あなたのコード",
+            "refreshes_in": "{{seconds}} 秒で更新"
+        },
+        "decrypt": {
+            "button": "コードを表示",
+            "decrypting": "開いています…"
+        },
+        "proof": {
+            "loading": "暗号化データを読み込んでいます…"
+        },
+        "decrypt_failed": "この ZOTP を開けませんでした。もう一度お試しください。",
+        "warning": "警告"
     },
     "rewards": {
         "title": "報酬",
@@ -2147,8 +2367,61 @@
     "home_hub": {
         "quick_label_keys": "Pass",
         "quick_label_auth": "2FA",
-        "quick_label_legacy": "Legacy",
+        "quick_label_legacy": "レガシー",
         "quick_label_id": "ID",
-        "more_apps": "その他"
+        "more_apps": "その他",
+        "greeting": "ようこそ",
+        "header_rewards_aria": "リワード",
+        "header_notifications_aria": "通知",
+        "subscription_title": "無料プラン",
+        "subscription_title_free": "無料プラン",
+        "subscription_title_premium": "プレミアムプラン",
+        "subscription_subtitle": "サブスクリプションを管理",
+        "subscription_subtitle_free": "{{ zelfId }} — $ZNS でいつでも延長",
+        "subscription_subtitle_premium": "あなたの Zelf ID: {{ zelfId }}",
+        "subscription_cta": "アクセスを維持",
+        "subscription_cta_free": "アクセスを維持",
+        "subscription_cta_premium": "Zelf ID を管理",
+        "subscription_countdown_free_expired": "無料ドメインの期限が切れました — ドメイン管理で $ZNS を使って延長してください。",
+        "subscription_countdown_free_one_day": "無料ドメインの残りは1日です — $ZNS でいつでも延長できます。",
+        "subscription_countdown_free_days": "無料ドメインの残りは {{ days }} 日です — $ZNS でいつでも延長できます。",
+        "subscription_countdown_premium_expired": "更新が必要です — Zelf ID の管理からサブスクリプションを更新してください。",
+        "subscription_countdown_premium_one_day": "Zelf ID の残りは1日です。",
+        "subscription_countdown_premium_days": "Zelf ID の残りは {{ days }} 日です。",
+        "subscription_countdown_unknown": "ドメイン管理で Zelf ID を管理します。",
+        "subscription_countdown_unit_days": "日",
+        "subscription_countdown_unit_hours": "時間",
+        "enabled_networks_label": "有効なネットワーク",
+        "start_here_title": "ここから開始",
+        "start_here_subtitle": "スタートガイドを完了して $ZNS を獲得",
+        "start_here_progress": "{{ current }} / {{ total }}",
+        "quick_label_signals": "zSignals",
+        "promo_placeholder_title": "パスワード管理が月額 $5.99 から。",
+        "promo_placeholder_cta": "今すぐ見る",
+        "signals_heading": "Zelf Signals",
+        "signals_explore": "探索",
+        "signals_placeholder_title": "Zelf Signals のハイライト",
+        "signals_placeholder_body": "市場と資産のハイライトがここに表示されます。",
+        "ai_heading": "Zelf AI",
+        "ai_subtitle": "Zelf AI アシスタントは近日公開です。",
+        "ai_assistant_title": "インテリジェント Web3 アシスタント",
+        "ai_assistant_desc": "自然言語の操作、コントラクト分析、インサイト。",
+        "ai_security_title": "スマート取引シミュレーション",
+        "ai_security_desc": "実行前のセキュリティ確認と不正検知。",
+        "header_profile_aria": "プロフィール",
+        "header_collapse_aria": "名前を隠す",
+        "header_expand_aria": "名前を表示",
+        "add_account_aria": "アカウントを追加"
+    },
+    "welcomeZelfid": {
+        "plan_free": "無料の Zelf ID — 100年間あなたのもの。後からアップグレードできます。",
+        "plan_short_hold": "無料の Zelf ID — 100年間あなたのもの。短い名前も含みます。",
+        "plan_unlimited": "無料の Zelf ID — 100年間あなたのもの。",
+        "plan_label": "プラン: {{ plan }}",
+        "hold_subtitle": "あなたの Zelf ID は100年間無料です。"
+    },
+    "superapp": {
+        "connecting_with": "{{appName}} に接続しています",
+        "working_with": "{{appName}} と安全に連携しています"
     }
 }

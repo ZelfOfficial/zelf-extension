@@ -100,7 +100,7 @@
             class="wallet-row__buttons"
         >
             <div class="wallet-row__action-group">
-                <p class="wallet-row__action-group-label">ZelfProof</p>
+                <p class="wallet-row__action-group-label">{{ t("common.zelf_id") }}</p>
                 <div class="wallet-row__action-grid">
                     <button
                         (click)="navigateToDownloadQR(wallet)"
@@ -139,7 +139,7 @@
             </div>
 
             <div class="wallet-row__action-group">
-                <p class="wallet-row__action-group-label">Apps</p>
+                <p class="wallet-row__action-group-label">{{ t("common.apps") }}</p>
                 <div class="wallet-row__action-grid">
                     <button
                         (click)="navigateToWallet(wallet)"

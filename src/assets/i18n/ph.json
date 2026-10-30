@@ -10,7 +10,9 @@
             "back_to_payment_cards": "Bumalik sa mga Payment Card",
             "add_another_card": "Magdagdag ng Ibang Card",
             "try_again": "Subukan Muli",
-            "image_not_available": "Hindi available ang imahe"
+            "image_not_available": "Hindi available ang imahe",
+            "proof_loading": "Nilo-load ang naka-encrypt na data…",
+            "proof_load_failed": "Hindi ma-load ang naka-encrypt na data ng item. Subukan muli."
         },
         "payment_cards": {
             "labels": {
@@ -196,6 +198,39 @@
                 "premium_plan": "Premium Plan",
                 "not_available": "Hindi magagamit",
                 "month": "buwan"
+            },
+            "stripe_checkout": {
+                "interval_year": "taon",
+                "waiting": {
+                    "title": "Tapusin ang bayad sa Stripe",
+                    "message": "Binuksan namin ang Stripe sa bagong tab. Tapusin ang bayad doon at hayaang bukas ang screen na ito — mag-a-update ito nang mag-isa."
+                },
+                "confirmed": {
+                    "title": "Nakumpirma ang bayad",
+                    "message": "Aktibo na ang {{ planName }} sa account mo."
+                },
+                "cancelled": {
+                    "title": "Nakansela ang checkout",
+                    "message": "Puwede kang pumili ng ibang plano o subukan muli ang Stripe kapag handa ka na."
+                },
+                "failed": {
+                    "title": "Hindi ma-verify ang bayad",
+                    "message": "May nangyaring mali habang tinitingnan ang subscription. Subukan muli o pumili ng ibang plano."
+                },
+                "expired": {
+                    "title": "Hinihintay pa ang kumpirmasyon",
+                    "message": "Hindi pa namin natatanggap ang kumpirmasyon mula sa Stripe.",
+                    "hint": "Kung nakabayad ka na, maaaring umabot ng isang minuto. I-tap ang suriin muli o buksan ulit ang Stripe."
+                },
+                "actions": {
+                    "reopen_stripe": "Buksan muli ang Stripe checkout",
+                    "check_now": "Nabayaran ko na / suriin ngayon",
+                    "check_again": "Suriin muli",
+                    "cancel": "Kanselahin at pumili ng ibang plano",
+                    "continue": "Magpatuloy",
+                    "choose_plan": "Bumalik sa mga plano",
+                    "try_stripe_again": "Subukan muli ang Stripe"
+                }
             }
         },
         "biometrics": {
@@ -244,7 +279,8 @@
             "zelf_name_label": "Zelf ID: {{ zelfName }}",
             "category_label": "Kategorya: {{ category }}",
             "type_label": "Uri: {{ type }}",
-            "secure_credential": "Sekyuradong credential"
+            "secure_credential": "Sekyuradong credential",
+            "secure_note": "Ligtas na tala"
         },
         "data_types": {
             "note": "Mangyaring i-verify ang iyong mukha upang i-decrypt ang iyong note",
@@ -287,7 +323,12 @@
                 "storage_failed": "Error habang nag-iistore ng {{ category }}, mangyaring subukan muli mamaya.",
                 "try_again_later": "Mangyaring subukan muli mamaya.",
                 "close": "Isara"
-            }
+            },
+            "delete_payment_card": "I-verify ang pagkakakilanlan para tanggalin ang card",
+            "delete_note": "I-verify ang pagkakakilanlan para tanggalin ang tala",
+            "delete_password": "I-verify ang pagkakakilanlan para tanggalin ang password",
+            "authorize_title": "I-verify ang pagkakakilanlan",
+            "authorize_instructions": "Iposisyon ang mukha sa frame para magpatuloy."
         },
         "popout_decryptor": {
             "back": "Bumalik",
@@ -315,7 +356,30 @@
                 "payment-card": "Payment Card",
                 "wallet": "Wallet",
                 "zotp": "ZOTP"
-            }
+            },
+            "master_password_action_subtitle": "Ilagay ang password ng Zelf ID, tapos i-verify gamit ang mukha para magpatuloy.",
+            "verified": "Na-verify sa Zelf",
+            "copy_password": "Kopyahin ang password",
+            "copy_card_number": "Kopyahin ang numero ng card",
+            "copy_expiry": "Kopyahin ang expiry",
+            "copy_cvv": "Kopyahin ang CVV",
+            "extension_only": "Ang password na ito ay nananatili sa Zelf extension.",
+            "card_extension_only": "Ang numero ng card at CVV ay nananatili sa Zelf extension.",
+            "done": "Tapos na",
+            "create_heading": "Bagong password",
+            "create_title": "I-encrypt ang bagong password",
+            "create_processing": "Ini-encrypt sa Zelf...",
+            "create_master_password": "Master password (kung naka-on)",
+            "verify_create": "I-verify gamit ang mukha",
+            "delete_title": "Tanggalin ang password na ito?",
+            "delete_description": "Inaalis nito ang naka-encrypt na record. I-verify ang mukha para magpatuloy.",
+            "delete_master_password": "Master password (kung naka-on)",
+            "verify_delete": "I-verify at tanggalin",
+            "request_expired": "Nag-expire ang request. Bumalik sa SuperApp at subukan muli.",
+            "missing_request": "Hindi kumpleto ang secure request. Bumalik sa SuperApp at subukan muli.",
+            "insufficient_zns": "Kailangan ng hindi bababa sa {{amount}} ZNS para i-save ang password na ito.",
+            "checking_zns": "Tinitingnan ang balanse ng ZNS...",
+            "zns_check_failed": "Hindi makumpirma ang balanse ng ZNS. Tingnan ang koneksyon at subukan muli."
         },
         "password_biometrics": {
             "back_to_details": "Bumalik sa mga Detalye ng Password",
@@ -361,9 +425,12 @@
                         "token_id": "Token ID",
                         "cost": "Halaga",
                         "contract": "Kontrata",
-                        "transaction": "Transaksyon"
+                        "transaction": "Transaksyon",
+                        "metadata_url": "URL ng metadata"
                     },
-                    "image_alt": "ZelfKey NFT"
+                    "image_alt": "ZelfKey NFT",
+                    "metadata_link": "Tingnan ang metadata",
+                    "copy_hint": "I-click para kopyahin"
                 },
                 "ipfs": {
                     "title": "IPFS Storage",
@@ -486,7 +553,84 @@
         "vault": {
             "reverify_title": "I-verify muli para makita ang mga item",
             "reverify_description": "Hindi pa mabuksan ng session na ito ang vault. I-verify muli ang mukha mo para ma-load ang mga password at card.",
-            "reverify_action": "I-verify muli"
+            "reverify_action": "I-verify muli",
+            "eyebrow": "TAGAPAMAHALA NG PASSWORD",
+            "title": "Ang pribadong vault mo",
+            "subtitle": "Hanapin at buksan ang mga naka-encrypt na item.",
+            "trust": "Ang mga sikreto at biometric action ay nananatili sa Zelf.",
+            "stats_label": "Mga kabuuan ng vault",
+            "stat_total": "Mga item",
+            "stat_passwords": "Mga password",
+            "stat_cards": "Mga card",
+            "stat_notes": "Mga tala",
+            "add_password": "Magdagdag ng password",
+            "add_card": "Magdagdag ng card",
+            "search": "Maghanap sa vault",
+            "filter_folder": "I-filter ayon sa folder",
+            "all_folders": "Lahat ng folder",
+            "refresh": "I-refresh ang vault",
+            "loading": "Binubuksan ang pribadong vault…",
+            "load_error": "Hindi mabuksan ang vault",
+            "retry": "Subukan muli",
+            "empty_title": "Handa na ang vault",
+            "empty_description": "Magdagdag ng password o card para protektahan ito gamit ang mukha.",
+            "add_first": "Idagdag ang unang password",
+            "no_results": "Walang nahanap",
+            "no_results_description": "Subukan ang ibang paghahanap o folder.",
+            "alias": "Alias",
+            "alias_placeholder": "Personal, Trabaho, Pangunahin…",
+            "delete": "Tanggalin ang item",
+            "delete_confirm": "Tanggalin nang permanente ang item na ito?",
+            "delete_description": "I-verify gamit ang mukha para alisin ito sa vault.",
+            "deleting": "Tinatanggal…",
+            "delete_failed": "Hindi natanggal ang item. Subukan muli.",
+            "export_vault": "I-export ang vault",
+            "export_item": "I-export",
+            "import_vault": "Mag-import ng mga password",
+            "more_options": "Higit pang opsyon",
+            "master_password_label": "Master password",
+            "master_password_placeholder": "Ilagay ang master password",
+            "export_title": "I-export ang mga password",
+            "export_subtitle": "I-export ang mga kredensyal na tugma sa ibang password manager.",
+            "export_single_subtitle": "I-export sa ibang password manager.",
+            "export_biometrics_required": "Face verification",
+            "export_biometrics_explain": "I-verify ang mukha para i-decrypt ang {{count}} password.",
+            "export_local_only": "Na-decrypt sa lokal na memory · Hindi umaalis sa device",
+            "export_scan_face_btn": "I-verify gamit ang mukha",
+            "export_face_instructions": "Iposisyon ang mukha sa oval para pahintulutan ang export.",
+            "export_decrypting_title": "Dine-decrypt ang mga kredensyal",
+            "export_ready_count": "{{count}} password ang handa i-export",
+            "export_failed_count": "{{count}} ang hindi na-decrypt",
+            "export_format_label": "Format",
+            "export_preview_label": "Preview",
+            "download_file": "I-download",
+            "copy_to_clipboard": "Kopyahin",
+            "copied": "Nakopya!",
+            "import_title": "Mag-import ng mga password",
+            "import_subtitle": "Pumili ng file mula sa password manager.",
+            "import_drop_title": "I-drop ang file dito",
+            "import_drop_subtitle": "LastPass, Bitwarden, 1Password, Chrome, Apple, KeePassXC",
+            "import_browse_btn": "Mag-browse ng file",
+            "import_paste_label": "O i-paste ang raw text",
+            "import_paste_placeholder": "I-paste ang na-export na CSV o JSON...",
+            "import_parse_btn": "Preview",
+            "import_switch_file": "Mag-upload ng file",
+            "import_switch_paste": "Mag-paste ng text",
+            "import_detected": "Natukoy",
+            "select_all": "Piliin lahat",
+            "deselect_all": "Alisin ang lahat",
+            "import_selected_count": "{{selected}} sa {{total}} ang napili",
+            "import_back": "Bumalik",
+            "import_now_btn": "I-verify at i-import ({{count}})",
+            "import_face_instructions": "I-scan ang mukha para i-encrypt at i-save ang mga password.",
+            "import_store_mode_label": "Store API (dev)",
+            "import_store_mode_one_by_one": "One-by-one (/store/password)",
+            "import_store_mode_bulk": "Bulk (/store/passwords)",
+            "importing_title": "Ini-encrypt ang mga password",
+            "import_success_title": "Tapos na ang import",
+            "import_success_desc": "{{count}} password ang na-secure sa vault.",
+            "import_failed_notice": "Hindi na-import ang {{count}} item:",
+            "import_done_btn": "Tapos na"
         }
     },
     "cancel": "Kanselahin",
@@ -538,12 +682,12 @@
         "zelf_name_registered": "Nare-rehistro na ang Zelf ID",
         "from_address": "Mula sa address",
         "private_transaction": "Pribadong Transaksyon",
-        "amount_inline_required": "Required",
-        "amount_inline_invalid": "Invalid amount",
+        "amount_inline_required": "Kinakailangan",
+        "amount_inline_invalid": "Di-wastong halaga",
         "amount_inline_min": "Min {{amount}}",
         "amount_inline_max": "Max {{amount}}",
-        "memo_optional": "Memo (optional)",
-        "memo_placeholder": "Exchange or note (max 28 characters)",
+        "memo_optional": "Memo (opsyonal)",
+        "memo_placeholder": "Exchange o tala (max 28 karakter)",
         "stellar": {
             "below_min": "Ang halaga ay mas mababa sa minimum ({{min}} XLM) na kailangan upang magbukas ng bagong Stellar account.",
             "new_account_title": "Bagong Stellar account",
@@ -554,7 +698,9 @@
             "classic_fund_first": "Hindi maaaring ipadala ang asset na ito hangga't walang funded Stellar account ang tatanggap. Magpadala muna ng native XLM para lumikha ng account.",
             "classic_trustline": "Kailangan magdagdag ng trustline ang tatanggap para sa asset na ito bago matanggap ito.",
             "invalid_amount": "Maglagay ng wastong halaga upang magpatuloy."
-        }
+        },
+        "transaction_sent": "Naipadala ang transaksyon",
+        "transaction_failed": "Hindi maipadala ang transaksyon"
     },
     "transaction": {
         "go_to_my_history": "Pumunta sa aking kasaysayan",
@@ -640,9 +786,9 @@
             "designed_for": "Ginawa para sa",
             "summary_intro": "Binabago ang wallets, passwords at 2FAs",
             "features": {
-                "wallets": "Wallets",
+                "wallets": "Mga pitaka",
                 "password_managers": "Passwords",
-                "two_factor": "2FAs",
+                "two_factor": "2FA",
                 "inheritance": "Pamana"
             },
             "summary": {
@@ -712,6 +858,17 @@
             "system": "System",
             "light": "Light",
             "dark": "Dark"
+        },
+        "notifications_label": "Mga abiso",
+        "notifications": {
+            "title": "Mga abiso",
+            "description": "Piliin kung aling mga abiso ang gusto mong matanggap.",
+            "news": "Balita / Mga update",
+            "news_description": "Balita at anunsyo ng produkto.",
+            "push": "Mga push notification",
+            "push_description": "Payagan ang push notification sa device na ito.",
+            "send_receive": "Magpadala at tumanggap",
+            "send_receive_description": "Maabisuhan kapag nagpapadala o tumatanggap ng asset."
         }
     },
     "security": {
@@ -773,14 +930,21 @@
             "risk_3_native": "Magpadala lamang ng native {{ symbol }}. Ang mga token mula sa ibang network ay hindi compatible sa address na ito.",
             "risk_4_title": "Subukan sa maliit na halaga",
             "risk_4": "Bago ka ba sa address na ito? Magsimula sa maliit na {{ symbol }} na transaksyon bago magpadala ng mas malaking halaga."
+        },
+        "generate_substrate": {
+            "title": "Hindi pa handa ang address na {{ symbol }}",
+            "line_1": "Wala pang nagawang receive address para sa {{ fullTagName }} sa network na ito.",
+            "line_2": "Para gawin ito, dine-decrypt namin ang vault nang isang beses at ikinakabit ang bagong address sa pampublikong profile. Isang beses lang ito kapag kinumpirma mo sa ibaba.",
+            "line_3": "Ang parehong decrypt na ginagamit ng app para i-sync ang wallet ang kukuha at magse-save ng data na ito.",
+            "line_4": "Pagkatapos ng face verification, awtomatikong nase-save sa device na ito ang na-update na mga address."
         }
     },
     "apps_hub": {
-        "label_wallet": "Wallet",
-        "label_keys": "Password Manager",
+        "label_wallet": "Pitaka",
+        "label_keys": "Tagapamahala ng password",
         "label_auth": "2FA",
-        "label_id": "ID",
-        "label_legacy": "Legacy",
+        "label_id": "Pagkakakilanlan",
+        "label_legacy": "Pamana",
         "label_ai": "zAI"
     },
     "common": {
@@ -916,7 +1080,7 @@
         "unlock": "Magpatuloy sa Biometrics",
         "upload_qr_image": "I-upload ang QR image",
         "verify": "I-verify",
-        "wallet_short": "Wallet",
+        "wallet_short": "Pitaka",
         "keys_short": "Pass",
         "website": "Websit",
         "withdraw": "Magpadala",
@@ -928,17 +1092,24 @@
         "zelf_chat": "zChat",
         "zelf_chat_coming_soon": "Malapit nang mag-available ang Zelf Chat.",
         "zelf_chats": "zChats",
-        "zelf_keys": "Password Manager",
+        "zelf_keys": "Tagapamahala ng password",
         "zelf_link": "Zelf Link",
         "zelf_signals": "zSignals",
         "zelf_signals_coming_soon": "Malapit nang mag-available ang Zelf Signals.",
-        "legacy": "Legacy",
+        "legacy": "Pamana",
         "legacy_coming_soon": "Malapit nang mag-available ang Legacy.",
-        "zelf_wallet": "Wallet",
+        "zelf_wallet": "Pitaka",
         "ton_address": "TON Address",
         "validity_one_year": "Bisa: 1 taon",
         "validity_years": "Bisa: {{years}} taon",
-        "aptos_address": "Aptos Address"
+        "aptos_address": "Aptos Address",
+        "add": "Idagdag",
+        "done": "Tapos na",
+        "hide_password": "Itago ang password",
+        "loading": "Naglo-load…",
+        "show_password": "Ipakita ang password",
+        "zelf_id": "Zelf ID",
+        "error": "Error"
     },
     "token": {
         "24h_performance": "24h na Performance",
@@ -969,7 +1140,8 @@
         "info_description": "Tandaan na panatilihing ligtas ang iyong QR code para maprotektahan ang iyong account. I-download ito at i-save sa ligtas na lugar.",
         "private_key": "Seed Phrase",
         "addresses": "Mga Address",
-        "info": "Impormasyon"
+        "info": "Impormasyon",
+        "action_sync": "I-sync"
     },
     "private_key": {
         "description": "Para makita ang iyong seed phrase, kumpletuhin ang mga hakbang sa security verification.",
@@ -1094,7 +1266,8 @@
         "face_locked": "Pansamantalang naka-lock ang face verification. Subukan muli sa {{ time }}.",
         "face_locked_about_minutes": "mga {{ minutes }} minuto",
         "face_locked_about_hours": "mga {{ hours }} oras",
-        "face_replay_detected": "Nagamit na ang larawang ito. Kumuha ng bagong larawan at subukang muli."
+        "face_replay_detected": "Nagamit na ang larawang ito. Kumuha ng bagong larawan at subukang muli.",
+        "unknown": "Hindi alam na error"
     },
     "swap": {
         "automatic": "Awtomatiko",
@@ -1183,7 +1356,9 @@
         "show_balances": "Ipakita ang mga balanse",
         "recent_transactions": "Mga kamakailang transaksyon",
         "rewards_banner_title": "I-claim ang mga gantimpala",
-        "rewards_banner_subtitle": "Kumita ng $ZNS araw-araw sa aming mga quest"
+        "rewards_banner_subtitle": "Kumita ng $ZNS araw-araw sa aming mga quest",
+        "balance_retrying": "Sinusubukan muli…",
+        "balance_unavailable": "Hindi available"
     },
     "id_scanning": {
         "camera_not_found": "Hindi nahanap ang camera",
@@ -1287,7 +1462,8 @@
             "passwords": "Mga Password",
             "subscription": "Subscription",
             "add_password": "Magdagdag ng Password",
-            "add_card": "Magdagdag ng Payment Card"
+            "add_card": "Magdagdag ng Payment Card",
+            "cards": "Mga card"
         },
         "payment_cards": {
             "title": "Payment Cards",
@@ -1440,7 +1616,9 @@
                     "aria_label": "I-toggle ang folder storage"
                 },
                 "master_password": {
-                    "hint": "Kailangan namin ang {{ walletName }} password upang i-encrypt at i-store ang iyong mga credential. Palaging kinakailangan ang biometric verification."
+                    "hint": "Kailangan namin ang {{ walletName }} password upang i-encrypt at i-store ang iyong mga credential. Palaging kinakailangan ang biometric verification.",
+                    "label": "Master password *",
+                    "placeholder": "Ilagay ang master password"
                 },
                 "buttons": {
                     "cancel": "Kanselahin",
@@ -1617,7 +1795,10 @@
                     "hide_password": "Itago ang password",
                     "copy_website": "Kopyahin ang website",
                     "copy_password": "Kopyahin ang password"
-                }
+                },
+                "title": "Mga detalye ng password",
+                "folder": "Folder",
+                "alias": "Alias"
             },
             "form": {
                 "title": "Impormasyon ng Payment Card",
@@ -1646,7 +1827,8 @@
                 "master_password": {
                     "section_title": "Pirmahan gamit ang iyong Zelf ID",
                     "label": "Pangalan ng Bangko *",
-                    "hint": "Kailangan namin ang {{ walletName }} password upang i-encrypt at i-store ang iyong mga credential. Palaging kinakailangan ang biometric verification."
+                    "hint": "Kailangan namin ang {{ walletName }} password upang i-encrypt at i-store ang iyong mga credential. Palaging kinakailangan ang biometric verification.",
+                    "placeholder": "Ilagay ang master password"
                 },
                 "buttons": {
                     "save": "I-save ang Password",
@@ -1886,7 +2068,8 @@
         "incorrect_password": "Maling master password",
         "errors": {
             "invalid_setup_key": "Di-wastong setup key. Gamitin ang A–Z at 2–7, hindi bababa sa 16 character.",
-            "invalid_totp_params": "Hindi suportado ang mga setting na ito."
+            "invalid_totp_params": "Hindi suportado ang mga setting na ito.",
+            "proof_load_failed": "Hindi ma-load ang naka-encrypt na data ng code. Subukan muli."
         },
         "biometrics_failed": "Nabigo ang biometric verification",
         "export": "I-export",
@@ -1927,7 +2110,44 @@
         "recovered_setup_key": "Na-recover na Setup Key",
         "create_zotp_from_recovery": "Lumikha ng ZOTP mula sa Recovery",
         "recovery_successful": "Matagumpay na Recovery!",
-        "recovery_success_description": "Ang iyong ZOTP ay na-recover na at naidagdag sa iyong authenticator. Maaari mo na itong gamitin upang gumawa ng mga code."
+        "recovery_success_description": "Ang iyong ZOTP ay na-recover na at naidagdag sa iyong authenticator. Maaari mo na itong gamitin upang gumawa ng mga code.",
+        "protection": {
+            "label": "Proteksyon sa pagbukas",
+            "face": "Mukha lang",
+            "face_password": "Mukha + master password",
+            "decrypt_toggle": {
+                "title": "Humingi ng master password para buksan",
+                "description": "Kapag naka-on, ang pagbukas ng ZOTP na ito ay hihingi rin ng master password ng wallet bukod sa mukha.",
+                "aria_label": "Humingi ng master password kapag binubuksan ang ZOTP na ito"
+            },
+            "face_only": {
+                "title": "Wallet na mukha lang",
+                "description": "Walang master password ang Zelf ID na ito. Mukha lang ang kailangan para buksan ang mga ZOTP."
+            },
+            "decrypt_prompt": {
+                "title": "Ilagay ang master password",
+                "description": "Protektado ang ZOTP na ito ng mukha at ng master password ng wallet.",
+                "continue": "Magpatuloy sa face scan"
+            },
+            "errors": {
+                "password_required": "Kailangan ang master password para buksan ang ZOTP na ito."
+            }
+        },
+        "copy_code": "Kopyahin ang code",
+        "copy_setup_key": "Kopyahin ang setup key",
+        "code": {
+            "title": "Ang code mo",
+            "refreshes_in": "Magre-refresh sa {{seconds}}s"
+        },
+        "decrypt": {
+            "button": "Ipakita ang code",
+            "decrypting": "Binubuksan…"
+        },
+        "proof": {
+            "loading": "Nilo-load ang naka-encrypt na data…"
+        },
+        "decrypt_failed": "Hindi mabuksan ang ZOTP na ito. Subukan muli.",
+        "warning": "Babala"
     },
     "rewards": {
         "title": "Mga Reward",
@@ -2147,8 +2367,61 @@
     "home_hub": {
         "quick_label_keys": "Pass",
         "quick_label_auth": "2FA",
-        "quick_label_legacy": "Legacy",
+        "quick_label_legacy": "Pamana",
         "quick_label_id": "ID",
-        "more_apps": "Higit pa"
+        "more_apps": "Higit pa",
+        "greeting": "Maligayang pagdating",
+        "header_rewards_aria": "Mga reward",
+        "header_notifications_aria": "Mga abiso",
+        "subscription_title": "Libreng plano",
+        "subscription_title_free": "Libreng plano",
+        "subscription_title_premium": "Premium na plano",
+        "subscription_subtitle": "Pamahalaan ang subscription",
+        "subscription_subtitle_free": "{{ zelfId }} — pahabain anumang oras gamit ang $ZNS",
+        "subscription_subtitle_premium": "Ang Zelf ID mo: {{ zelfId }}",
+        "subscription_cta": "Panatilihin ang access",
+        "subscription_cta_free": "Panatilihin ang access",
+        "subscription_cta_premium": "Pamahalaan ang Zelf ID",
+        "subscription_countdown_free_expired": "Nag-expire na ang libreng domain — pahabain gamit ang $ZNS sa Pamahalaan ang mga domain.",
+        "subscription_countdown_free_one_day": "1 araw na lang ang libreng domain — pahabain gamit ang $ZNS anumang oras.",
+        "subscription_countdown_free_days": "{{ days }} araw na lang ang libreng domain — pahabain gamit ang $ZNS anumang oras.",
+        "subscription_countdown_premium_expired": "Kailangan ng renewal — i-update ang subscription sa Pamahalaan ang Zelf ID.",
+        "subscription_countdown_premium_one_day": "1 araw na lang ang Zelf ID mo.",
+        "subscription_countdown_premium_days": "{{ days }} araw na lang ang Zelf ID mo.",
+        "subscription_countdown_unknown": "Pamahalaan ang Zelf ID sa Pamahalaan ang mga domain.",
+        "subscription_countdown_unit_days": "Araw",
+        "subscription_countdown_unit_hours": "Oras",
+        "enabled_networks_label": "Mga aktibong network",
+        "start_here_title": "Magsimula dito",
+        "start_here_subtitle": "Tapusin ang panimulang gabay at kumita ng $ZNS",
+        "start_here_progress": "{{ current }} / {{ total }}",
+        "quick_label_signals": "zSignals",
+        "promo_placeholder_title": "Tagapamahala ng password, mula $5.99 bawat buwan.",
+        "promo_placeholder_cta": "Tuklasin ngayon",
+        "signals_heading": "Zelf Signals",
+        "signals_explore": "Tuklasin",
+        "signals_placeholder_title": "Mga highlight ng Zelf Signals",
+        "signals_placeholder_body": "Lalabas dito ang mga highlight ng market at asset.",
+        "ai_heading": "Zelf AI",
+        "ai_subtitle": "Malapit nang maging available ang Zelf AI assistant.",
+        "ai_assistant_title": "Matalinong Web3 assistant",
+        "ai_assistant_desc": "Mga utos sa natural na wika, pagsusuri ng contract, at mga insight.",
+        "ai_security_title": "Matalinong simulation ng transaksyon",
+        "ai_security_desc": "Mga security check bago ang execution at fraud detection.",
+        "header_profile_aria": "Profile",
+        "header_collapse_aria": "Itago ang pangalan",
+        "header_expand_aria": "Ipakita ang pangalan",
+        "add_account_aria": "Magdagdag ng account"
+    },
+    "welcomeZelfid": {
+        "plan_free": "Libreng Zelf ID — iyo sa loob ng 100 taon. Puwede kang mag-upgrade mamaya.",
+        "plan_short_hold": "Libreng Zelf ID — iyo sa loob ng 100 taon, kasama ang maiikling pangalan.",
+        "plan_unlimited": "Libreng Zelf ID — iyo sa loob ng 100 taon.",
+        "plan_label": "Plano: {{ plan }}",
+        "hold_subtitle": "Libre ang Zelf ID mo sa loob ng 100 taon."
+    },
+    "superapp": {
+        "connecting_with": "Kumokonekta sa {{appName}}",
+        "working_with": "Ligtas na gumagana kasama ang {{appName}}"
     }
 }

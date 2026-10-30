@@ -10,7 +10,9 @@
             "back_to_payment_cards": "العودة إلى بطاقات الدفع",
             "add_another_card": "إضافة بطاقة أخرى",
             "try_again": "حاول مرة أخرى",
-            "image_not_available": "الصورة غير متوفرة"
+            "image_not_available": "الصورة غير متوفرة",
+            "proof_loading": "جارٍ تحميل البيانات المشفرة…",
+            "proof_load_failed": "تعذر تحميل البيانات المشفرة لهذا العنصر. حاول مرة أخرى."
         },
         "payment_cards": {
             "labels": {
@@ -196,6 +198,39 @@
                 "premium_plan": "الخطة المميزة",
                 "not_available": "غير متاح",
                 "month": "شهر"
+            },
+            "stripe_checkout": {
+                "interval_year": "سنة",
+                "waiting": {
+                    "title": "أكمل الدفع في Stripe",
+                    "message": "فتحنا Stripe في علامة تبويب جديدة. أكمل الدفع هناك واترك هذه الشاشة مفتوحة — سنحدّث تلقائيًا."
+                },
+                "confirmed": {
+                    "title": "تم تأكيد الدفع",
+                    "message": "أصبح {{ planName }} نشطًا على حسابك."
+                },
+                "cancelled": {
+                    "title": "أُلغي الدفع",
+                    "message": "يمكنك اختيار خطة أخرى أو إعادة محاولة Stripe عندما تكون جاهزًا."
+                },
+                "failed": {
+                    "title": "تعذر التحقق من الدفع",
+                    "message": "حدث خطأ أثناء التحقق من اشتراكك. يمكنك المحاولة مرة أخرى أو اختيار خطة أخرى."
+                },
+                "expired": {
+                    "title": "ما زلنا بانتظار التأكيد",
+                    "message": "لم نتلقَّ بعد تأكيدًا من Stripe.",
+                    "hint": "إذا دفعت بالفعل فقد يستغرق الأمر دقيقة. اضغط تحقق مرة أخرى أو أعد فتح Stripe."
+                },
+                "actions": {
+                    "reopen_stripe": "إعادة فتح دفع Stripe",
+                    "check_now": "دفعت بالفعل / تحقق الآن",
+                    "check_again": "تحقق مرة أخرى",
+                    "cancel": "إلغاء واختيار خطة أخرى",
+                    "continue": "متابعة",
+                    "choose_plan": "العودة إلى الخطط",
+                    "try_stripe_again": "إعادة محاولة Stripe"
+                }
             }
         },
         "biometrics": {
@@ -244,7 +279,8 @@
             "zelf_name_label": "Zelf ID: {{ zelfName }}",
             "category_label": "الفئة: {{ category }}",
             "type_label": "النوع: {{ type }}",
-            "secure_credential": "بيانات اعتماد آمنة"
+            "secure_credential": "بيانات اعتماد آمنة",
+            "secure_note": "ملاحظة آمنة"
         },
         "data_types": {
             "note": "ملاحظة",
@@ -287,7 +323,12 @@
                 "storage_failed": "خطأ أثناء تخزين {{ category }}، يرجى المحاولة مرة أخرى لاحقاً.",
                 "try_again_later": "يرجى المحاولة مرة أخرى لاحقاً.",
                 "close": "إغلاق"
-            }
+            },
+            "delete_payment_card": "تحقق من هويتك لحذف البطاقة",
+            "delete_note": "تحقق من هويتك لحذف الملاحظة",
+            "delete_password": "تحقق من هويتك لحذف كلمة المرور",
+            "authorize_title": "تحقق من هويتك",
+            "authorize_instructions": "ضع وجهك داخل الإطار للمتابعة."
         },
         "popout_decryptor": {
             "back": "رجوع",
@@ -315,7 +356,30 @@
                 "payment-card": "بطاقة دفع",
                 "wallet": "المحفظة",
                 "zotp": "ZOTP"
-            }
+            },
+            "master_password_action_subtitle": "أدخل كلمة مرور Zelf ID ثم تحقق بوجهك للمتابعة.",
+            "verified": "تم التحقق في Zelf",
+            "copy_password": "نسخ كلمة المرور",
+            "copy_card_number": "نسخ رقم البطاقة",
+            "copy_expiry": "نسخ تاريخ الانتهاء",
+            "copy_cvv": "نسخ CVV",
+            "extension_only": "تبقى كلمة المرور هذه داخل إضافة Zelf.",
+            "card_extension_only": "يبقى رقم البطاقة وCVV داخل إضافة Zelf.",
+            "done": "تم",
+            "create_heading": "كلمة مرور جديدة",
+            "create_title": "تشفير كلمة مرور جديدة",
+            "create_processing": "جارٍ التشفير في Zelf...",
+            "create_master_password": "كلمة المرور الرئيسية (إذا كانت مفعّلة)",
+            "verify_create": "التحقق بالوجه",
+            "delete_title": "حذف كلمة المرور هذه؟",
+            "delete_description": "يؤدي هذا إلى إزالة السجل المشفر. تحقق من وجهك للمتابعة.",
+            "delete_master_password": "كلمة المرور الرئيسية (إذا كانت مفعّلة)",
+            "verify_delete": "تحقق واحذف",
+            "request_expired": "انتهت صلاحية هذا الطلب. ارجع إلى SuperApp وحاول مرة أخرى.",
+            "missing_request": "الطلب الآمن غير مكتمل. ارجع إلى SuperApp وحاول مرة أخرى.",
+            "insufficient_zns": "تحتاج إلى {{amount}} ZNS على الأقل لحفظ كلمة المرور هذه.",
+            "checking_zns": "جارٍ التحقق من رصيد ZNS...",
+            "zns_check_failed": "تعذر تأكيد رصيد ZNS. تحقق من الاتصال وحاول مرة أخرى."
         },
         "password_biometrics": {
             "back_to_details": "العودة إلى تفاصيل كلمة المرور",
@@ -361,9 +425,12 @@
                         "token_id": "معرف الرمز (Token ID)",
                         "cost": "التكلفة",
                         "contract": "العقد",
-                        "transaction": "المعاملة"
+                        "transaction": "المعاملة",
+                        "metadata_url": "رابط البيانات الوصفية"
                     },
-                    "image_alt": "ZelfKey NFT"
+                    "image_alt": "ZelfKey NFT",
+                    "metadata_link": "عرض البيانات الوصفية",
+                    "copy_hint": "انقر للنسخ"
                 },
                 "ipfs": {
                     "title": "تخزين IPFS",
@@ -486,7 +553,84 @@
         "vault": {
             "reverify_title": "أعد التحقق لعرض عناصرك",
             "reverify_description": "لا يمكن لهذه الجلسة فتح الخزنة بعد. تحقق من وجهك مرة أخرى لتحميل كلمات المرور والبطاقات.",
-            "reverify_action": "إعادة التحقق"
+            "reverify_action": "إعادة التحقق",
+            "eyebrow": "مدير كلمات المرور",
+            "title": "خزانتك الخاصة",
+            "subtitle": "اعثر على عناصرك المشفرة وافتحها.",
+            "trust": "تبقى الأسرار والإجراءات البيومترية داخل Zelf.",
+            "stats_label": "إجماليات الخزانة",
+            "stat_total": "العناصر",
+            "stat_passwords": "كلمات المرور",
+            "stat_cards": "البطاقات",
+            "stat_notes": "الملاحظات",
+            "add_password": "إضافة كلمة مرور",
+            "add_card": "إضافة بطاقة",
+            "search": "البحث في الخزانة",
+            "filter_folder": "تصفية حسب المجلد",
+            "all_folders": "كل المجلدات",
+            "refresh": "تحديث الخزانة",
+            "loading": "جارٍ فتح خزانتك الخاصة…",
+            "load_error": "تعذر فتح خزانتك",
+            "retry": "حاول مرة أخرى",
+            "empty_title": "خزانتك جاهزة",
+            "empty_description": "أضف كلمة مرور أو بطاقة لحمايتها بوجهك.",
+            "add_first": "أضف كلمة المرور الأولى",
+            "no_results": "لا توجد نتائج",
+            "no_results_description": "جرّب بحثًا أو مجلدًا آخر.",
+            "alias": "الاسم المستعار",
+            "alias_placeholder": "شخصي، عمل، رئيسي…",
+            "delete": "حذف العنصر",
+            "delete_confirm": "حذف هذا العنصر نهائيًا؟",
+            "delete_description": "تحقق بوجهك لإزالته من الخزانة.",
+            "deleting": "جارٍ الحذف…",
+            "delete_failed": "تعذر حذف هذا العنصر. حاول مرة أخرى.",
+            "export_vault": "تصدير الخزانة",
+            "export_item": "تصدير",
+            "import_vault": "استيراد كلمات المرور",
+            "more_options": "مزيد من الخيارات",
+            "master_password_label": "كلمة المرور الرئيسية",
+            "master_password_placeholder": "أدخل كلمة المرور الرئيسية",
+            "export_title": "تصدير كلمات المرور",
+            "export_subtitle": "صدّر بيانات اعتماد متوافقة مع مديري كلمات المرور الأخرى.",
+            "export_single_subtitle": "التصدير إلى مديري كلمات مرور أخرى.",
+            "export_biometrics_required": "التحقق من الوجه",
+            "export_biometrics_explain": "تحقق من وجهك لفك تشفير {{count}} كلمة مرور.",
+            "export_local_only": "يُفك التشفير محليًا في الذاكرة · لا يغادر جهازك",
+            "export_scan_face_btn": "التحقق بالوجه",
+            "export_face_instructions": "ضع وجهك داخل الشكل البيضاوي للسماح بالتصدير.",
+            "export_decrypting_title": "جارٍ فك تشفير بيانات الاعتماد",
+            "export_ready_count": "{{count}} كلمة مرور جاهزة للتصدير",
+            "export_failed_count": "فشل فك تشفير {{count}}",
+            "export_format_label": "التنسيق",
+            "export_preview_label": "معاينة",
+            "download_file": "تنزيل",
+            "copy_to_clipboard": "نسخ",
+            "copied": "تم النسخ!",
+            "import_title": "استيراد كلمات المرور",
+            "import_subtitle": "اختر ملفًا من مدير كلمات المرور.",
+            "import_drop_title": "أفلت الملف هنا",
+            "import_drop_subtitle": "LastPass, Bitwarden, 1Password, Chrome, Apple, KeePassXC",
+            "import_browse_btn": "استعراض ملف",
+            "import_paste_label": "أو الصق النص الخام",
+            "import_paste_placeholder": "الصق CSV أو JSON المصدّر...",
+            "import_parse_btn": "معاينة",
+            "import_switch_file": "ارفع ملفًا بدلًا من ذلك",
+            "import_switch_paste": "الصق النص بدلًا من ذلك",
+            "import_detected": "تم الاكتشاف",
+            "select_all": "تحديد الكل",
+            "deselect_all": "إلغاء تحديد الكل",
+            "import_selected_count": "تم تحديد {{selected}} من {{total}}",
+            "import_back": "رجوع",
+            "import_now_btn": "تحقق واستورد ({{count}})",
+            "import_face_instructions": "امسح وجهك لتشفير كلمات المرور وحفظها.",
+            "import_store_mode_label": "واجهة التخزين (تطوير)",
+            "import_store_mode_one_by_one": "One-by-one (/store/password)",
+            "import_store_mode_bulk": "Bulk (/store/passwords)",
+            "importing_title": "جارٍ تشفير كلمات المرور",
+            "import_success_title": "اكتمل الاستيراد",
+            "import_success_desc": "تم تأمين {{count}} كلمة مرور في خزانتك.",
+            "import_failed_notice": "تعذر استيراد {{count}} عنصر:",
+            "import_done_btn": "تم"
         }
     },
     "cancel": "إلغاء",
@@ -538,12 +682,12 @@
         "zelf_name_registered": "Zelf ID مسجل",
         "from_address": "من العنوان",
         "private_transaction": "معاملة خاصة",
-        "amount_inline_required": "Required",
-        "amount_inline_invalid": "Invalid amount",
-        "amount_inline_min": "Min {{amount}}",
-        "amount_inline_max": "Max {{amount}}",
-        "memo_optional": "Memo (optional)",
-        "memo_placeholder": "Exchange or note (max 28 characters)",
+        "amount_inline_required": "مطلوب",
+        "amount_inline_invalid": "مبلغ غير صالح",
+        "amount_inline_min": "الأدنى {{amount}}",
+        "amount_inline_max": "الأقصى {{amount}}",
+        "memo_optional": "مذكرة (اختياري)",
+        "memo_placeholder": "منصة أو ملاحظة (28 حرفًا كحد أقصى)",
         "stellar": {
             "below_min": "المبلغ أقل من الحد الأدنى ({{min}} XLM) المطلوب لفتح حساب Stellar جديد.",
             "new_account_title": "حساب Stellar جديد",
@@ -554,7 +698,9 @@
             "classic_fund_first": "لا يمكن إرسال هذا الأصل حتى يكون لدى المستلم حساب Stellar ممول. أرسل XLM الأصلية أولاً لإنشاء حسابه.",
             "classic_trustline": "يجب على المستلم إضافة خط ثقة لهذا الأصل قبل أن يتمكن من استلامه.",
             "invalid_amount": "أدخل مبلغاً صالحاً للمتابعة."
-        }
+        },
+        "transaction_sent": "تم إرسال المعاملة",
+        "transaction_failed": "تعذر إرسال المعاملة"
     },
     "transaction": {
         "go_to_my_history": "اذهب إلى سجلي",
@@ -712,6 +858,17 @@
             "system": "النظام",
             "light": "فاتح",
             "dark": "داكن"
+        },
+        "notifications_label": "الإشعارات",
+        "notifications": {
+            "title": "الإشعارات",
+            "description": "اختر الإشعارات التي تريد استلامها.",
+            "news": "الأخبار / التحديثات",
+            "news_description": "أخبار المنتج والإعلانات.",
+            "push": "إشعارات الدفع",
+            "push_description": "السماح بإشعارات الدفع على هذا الجهاز.",
+            "send_receive": "إرسال واستلام",
+            "send_receive_description": "تنبيه عند إرسال الأصول أو استلامها."
         }
     },
     "security": {
@@ -773,14 +930,21 @@
             "risk_3_native": "أرسل {{ symbol }} الأصلي فقط. الرموز من شبكات أخرى غير متوافقة مع هذا العنوان.",
             "risk_4_title": "اختبر بمبلغ صغير",
             "risk_4": "جديد في هذا العنوان؟ ابدأ بمعاملة {{ symbol }} صغيرة قبل إرسال مبلغ أكبر."
+        },
+        "generate_substrate": {
+            "title": "عنوان {{ symbol }} غير جاهز بعد",
+            "line_1": "لم يُنشأ بعد عنوان استلام لـ {{ fullTagName }} على هذه الشبكة.",
+            "line_2": "لإنشائه نفك تشفير خزانتك مرة واحدة ونربط العنوان الجديد بملفك العام. لا تُنفَّذ هذه الخطوة إلا عند التأكيد أدناه.",
+            "line_3": "نفس عملية فك التشفير التي يستخدمها التطبيق لمزامنة محفظتك ستجلب هذه البيانات وتحفظها.",
+            "line_4": "بعد التحقق من الوجه تُحفظ عناوينك المحدّثة تلقائيًا على هذا الجهاز."
         }
     },
     "apps_hub": {
-        "label_wallet": "Wallet",
-        "label_keys": "Password Manager",
+        "label_wallet": "المحفظة",
+        "label_keys": "مدير كلمات المرور",
         "label_auth": "2FA",
-        "label_id": "ID",
-        "label_legacy": "Legacy",
+        "label_id": "الهوية",
+        "label_legacy": "الإرث",
         "label_ai": "zAI"
     },
     "common": {
@@ -916,7 +1080,7 @@
         "unlock": "المتابعة إلى البيانات الحيوية",
         "upload_qr_image": "تحميل صورة QR",
         "verify": "تحقق",
-        "wallet_short": "Wallet",
+        "wallet_short": "المحفظة",
         "keys_short": "Pass",
         "website": "الموقع الإلكتروني",
         "withdraw": "إرسال",
@@ -928,17 +1092,24 @@
         "zelf_chat": "zChat",
         "zelf_chat_coming_soon": "سيتوفر Zelf Chat قريباً.",
         "zelf_chats": "zChats",
-        "zelf_keys": "Password Manager",
+        "zelf_keys": "مدير كلمات المرور",
         "zelf_link": "Zelf Link",
         "zelf_signals": "zSignals",
         "zelf_signals_coming_soon": "ستتوفر Zelf Signals قريباً.",
-        "legacy": "Legacy",
+        "legacy": "الإرث",
         "legacy_coming_soon": "سيتوفر Legacy قريباً.",
-        "zelf_wallet": "Wallet",
+        "zelf_wallet": "المحفظة",
         "ton_address": "عنوان TON",
         "validity_one_year": "الصلاحية: سنة واحدة",
         "validity_years": "الصلاحية: {{years}} سنة",
-        "aptos_address": "عنوان Aptos"
+        "aptos_address": "عنوان Aptos",
+        "add": "إضافة",
+        "done": "تم",
+        "hide_password": "إخفاء كلمة المرور",
+        "loading": "جارٍ التحميل…",
+        "show_password": "إظهار كلمة المرور",
+        "zelf_id": "Zelf ID",
+        "error": "خطأ"
     },
     "token": {
         "24h_performance": "أداء 24 ساعة",
@@ -969,7 +1140,8 @@
         "info_description": "تذكر أن تحتفظ برمز QR الخاص بك بشكل آمن لحماية حسابك. قم بتنزيله واحفظه في مكان آمن.",
         "private_key": "المفتاح الخاص",
         "addresses": "العناوين",
-        "info": "معلومات"
+        "info": "معلومات",
+        "action_sync": "مزامنة"
     },
     "private_key": {
         "description": "لعرض عبارة الاسترداد الخاصة بك، يرجى إكمال خطوات التحقق من الأمان.",
@@ -1094,7 +1266,8 @@
         "face_locked": "تم قفل التحقق بالوجه مؤقتاً. أعد المحاولة خلال {{ time }}.",
         "face_locked_about_minutes": "حوالي {{ minutes }} دقيقة",
         "face_locked_about_hours": "حوالي {{ hours }} ساعة",
-        "face_replay_detected": "تم استخدام هذه الصورة مسبقاً. التقط صورة جديدة وحاول مرة أخرى."
+        "face_replay_detected": "تم استخدام هذه الصورة مسبقاً. التقط صورة جديدة وحاول مرة أخرى.",
+        "unknown": "خطأ غير معروف"
     },
     "swap": {
         "automatic": "تلقائي",
@@ -1183,7 +1356,9 @@
         "show_balances": "إظهار الأرصدة",
         "recent_transactions": "المعاملات الأخيرة",
         "rewards_banner_title": "احصل على المكافآت",
-        "rewards_banner_subtitle": "احصل على $ZNS يوميًا مع مهامنا"
+        "rewards_banner_subtitle": "احصل على $ZNS يوميًا مع مهامنا",
+        "balance_retrying": "إعادة المحاولة…",
+        "balance_unavailable": "غير متاح"
     },
     "id_scanning": {
         "camera_not_found": "لم يتم العثور على الكاميرا",
@@ -1287,7 +1462,8 @@
             "passwords": "كلمات المرور",
             "subscription": "الاشتراك",
             "add_password": "إضافة كلمة مرور",
-            "add_card": "إضافة بطاقة دفع"
+            "add_card": "إضافة بطاقة دفع",
+            "cards": "البطاقات"
         },
         "payment_cards": {
             "title": "بطاقات الدفع",
@@ -1440,7 +1616,9 @@
                     "aria_label": "تبديل تخزين المجلد"
                 },
                 "master_password": {
-                    "hint": "نطلب كلمة مرور {{ walletName }} لتشفير وتخزين بيانات الاعتماد الخاصة بك. التحقق الحيوي مطلوب دائماً."
+                    "hint": "نطلب كلمة مرور {{ walletName }} لتشفير وتخزين بيانات الاعتماد الخاصة بك. التحقق الحيوي مطلوب دائماً.",
+                    "label": "كلمة المرور الرئيسية *",
+                    "placeholder": "أدخل كلمة المرور الرئيسية"
                 },
                 "buttons": {
                     "cancel": "إلغاء",
@@ -1617,7 +1795,10 @@
                     "hide_password": "إخفاء كلمة المرور",
                     "copy_website": "نسخ الموقع",
                     "copy_password": "نسخ كلمة المرور"
-                }
+                },
+                "title": "تفاصيل كلمة المرور",
+                "folder": "مجلد",
+                "alias": "الاسم المستعار"
             },
             "form": {
                 "title": "إضافة كلمة مرور",
@@ -1646,7 +1827,8 @@
                 "master_password": {
                     "section_title": "التوقيع باستخدام Zelf ID",
                     "label": "كلمة المرور الرئيسية *",
-                    "hint": "نطلب كلمة مرور {{ walletName }} لتشفير وتخزين بيانات الاعتماد الخاصة بك. التحقق الحيوي مطلوب دائماً."
+                    "hint": "نطلب كلمة مرور {{ walletName }} لتشفير وتخزين بيانات الاعتماد الخاصة بك. التحقق الحيوي مطلوب دائماً.",
+                    "placeholder": "أدخل كلمة المرور الرئيسية"
                 },
                 "buttons": {
                     "save": "حفظ كلمة المرور",
@@ -1886,7 +2068,8 @@
         "incorrect_password": "كلمة المرور الرئيسية غير صحيحة",
         "errors": {
             "invalid_setup_key": "مفتاح الإعداد غير صالح. استخدم A–Z و2–7، 16 حرفاً على الأقل.",
-            "invalid_totp_params": "إعدادات التحقق هذه غير مدعومة."
+            "invalid_totp_params": "إعدادات التحقق هذه غير مدعومة.",
+            "proof_load_failed": "تعذر تحميل البيانات المشفرة لهذا الرمز. حاول مرة أخرى."
         },
         "biometrics_failed": "فشل التحقق الحيوي",
         "export": "تصدير",
@@ -1927,7 +2110,44 @@
         "recovered_setup_key": "مفتاح الإعداد المستعاد",
         "create_zotp_from_recovery": "إنشاء ZOTP من الاستعادة",
         "recovery_successful": "تمت الاستعادة بنجاح!",
-        "recovery_success_description": " Your ZOTP has been recovered and added to your authenticator. You can now use it to generate codes. "
+        "recovery_success_description": " Your ZOTP has been recovered and added to your authenticator. You can now use it to generate codes. ",
+        "protection": {
+            "label": "حماية الفتح",
+            "face": "الوجه فقط",
+            "face_password": "الوجه + كلمة المرور الرئيسية",
+            "decrypt_toggle": {
+                "title": "طلب كلمة المرور الرئيسية للفتح",
+                "description": "عند التفعيل، يتطلب فتح ZOTP كلمة مرور المحفظة الرئيسية بالإضافة إلى الوجه.",
+                "aria_label": "طلب كلمة المرور الرئيسية عند فتح ZOTP"
+            },
+            "face_only": {
+                "title": "محفظة بالوجه فقط",
+                "description": "لا يملك Zelf ID هذا كلمة مرور رئيسية. تُفتح رموز ZOTP بالوجه فقط."
+            },
+            "decrypt_prompt": {
+                "title": "أدخل كلمة المرور الرئيسية",
+                "description": "ZOTP هذا محمي بالوجه وكلمة مرور المحفظة الرئيسية.",
+                "continue": "المتابعة إلى مسح الوجه"
+            },
+            "errors": {
+                "password_required": "يلزم إدخال كلمة المرور الرئيسية لفتح ZOTP هذا."
+            }
+        },
+        "copy_code": "نسخ الرمز",
+        "copy_setup_key": "نسخ مفتاح الإعداد",
+        "code": {
+            "title": "رمزك",
+            "refreshes_in": "يتجدد خلال {{seconds}} ث"
+        },
+        "decrypt": {
+            "button": "إظهار الرمز",
+            "decrypting": "جارٍ الفتح…"
+        },
+        "proof": {
+            "loading": "جارٍ تحميل البيانات المشفرة…"
+        },
+        "decrypt_failed": "تعذر فتح ZOTP هذا. حاول مرة أخرى.",
+        "warning": "تحذير"
     },
     "rewards": {
         "title": "المكافآت",
@@ -2147,8 +2367,61 @@
     "home_hub": {
         "quick_label_keys": "Pass",
         "quick_label_auth": "2FA",
-        "quick_label_legacy": "Legacy",
+        "quick_label_legacy": "الإرث",
         "quick_label_id": "ID",
-        "more_apps": "المزيد"
+        "more_apps": "المزيد",
+        "greeting": "مرحبًا",
+        "header_rewards_aria": "المكافآت",
+        "header_notifications_aria": "الإشعارات",
+        "subscription_title": "الخطة المجانية",
+        "subscription_title_free": "الخطة المجانية",
+        "subscription_title_premium": "الخطة المميزة",
+        "subscription_subtitle": "إدارة اشتراكك",
+        "subscription_subtitle_free": "{{ zelfId }} — مدّد في أي وقت باستخدام $ZNS",
+        "subscription_subtitle_premium": "معرّف Zelf ID: {{ zelfId }}",
+        "subscription_cta": "حافظ على الوصول",
+        "subscription_cta_free": "حافظ على الوصول",
+        "subscription_cta_premium": "إدارة Zelf ID",
+        "subscription_countdown_free_expired": "انتهت صلاحية نطاقك المجاني — استخدم $ZNS للتمديد من إدارة النطاقات.",
+        "subscription_countdown_free_one_day": "تبقّى يوم واحد على نطاقك المجاني — مدّده باستخدام $ZNS في أي وقت.",
+        "subscription_countdown_free_days": "تبقّى {{ days }} أيام على نطاقك المجاني — مدّده باستخدام $ZNS في أي وقت.",
+        "subscription_countdown_premium_expired": "التجديد مطلوب — استخدم إدارة Zelf ID لتحديث اشتراكك.",
+        "subscription_countdown_premium_one_day": "تبقّى يوم واحد على Zelf ID.",
+        "subscription_countdown_premium_days": "تبقّى {{ days }} أيام على Zelf ID.",
+        "subscription_countdown_unknown": "أدِر Zelf ID من إدارة النطاقات.",
+        "subscription_countdown_unit_days": "أيام",
+        "subscription_countdown_unit_hours": "ساعات",
+        "enabled_networks_label": "الشبكات النشطة",
+        "start_here_title": "ابدأ من هنا",
+        "start_here_subtitle": "أكمل دليل البداية واكسب $ZNS",
+        "start_here_progress": "{{ current }} / {{ total }}",
+        "quick_label_signals": "zSignals",
+        "promo_placeholder_title": "مدير كلمات المرور، ابتداءً من 5.99 دولار شهريًا.",
+        "promo_placeholder_cta": "استكشف الآن",
+        "signals_heading": "Zelf Signals",
+        "signals_explore": "استكشف",
+        "signals_placeholder_title": "أبرز ما في Zelf Signals",
+        "signals_placeholder_body": "ستظهر هنا أبرز أخبار السوق والأصول.",
+        "ai_heading": "Zelf AI",
+        "ai_subtitle": "سيتوفر مساعد Zelf AI قريبًا.",
+        "ai_assistant_title": "مساعد Web3 ذكي",
+        "ai_assistant_desc": "أوامر باللغة الطبيعية وتحليل العقود ورؤى.",
+        "ai_security_title": "محاكاة ذكية للمعاملات",
+        "ai_security_desc": "فحوصات أمان قبل التنفيذ واكتشاف الاحتيال.",
+        "header_profile_aria": "الملف الشخصي",
+        "header_collapse_aria": "إخفاء الاسم",
+        "header_expand_aria": "إظهار الاسم",
+        "add_account_aria": "إضافة حساب"
+    },
+    "welcomeZelfid": {
+        "plan_free": "Zelf ID مجاني — لك لمدة 100 عام. يمكنك الترقية لاحقًا.",
+        "plan_short_hold": "Zelf ID مجاني — لك لمدة 100 عام، بما في ذلك الأسماء القصيرة.",
+        "plan_unlimited": "Zelf ID مجاني — لك لمدة 100 عام.",
+        "plan_label": "الخطة: {{ plan }}",
+        "hold_subtitle": "Zelf ID مجاني لمدة 100 عام."
+    },
+    "superapp": {
+        "connecting_with": "جارٍ الاتصال بـ {{appName}}",
+        "working_with": "العمل بأمان مع {{appName}}"
     }
 }
