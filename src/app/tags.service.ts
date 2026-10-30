@@ -1,6 +1,7 @@
 import { inject, Injectable } from "@angular/core";
 
 import {
+    readPublicDataAptosAddress,
     readPublicDataDotAddress,
     readPublicDataKsmAddress,
     TagModel,
@@ -624,8 +625,10 @@ export class TagsService {
         if (!tag) return;
         void (async () => {
             const pd = tag.publicData as unknown as Record<string, unknown> | null | undefined;
-            const hasSubstrateInStorage =
-                Boolean(readPublicDataDotAddress(pd)) || Boolean(readPublicDataKsmAddress(pd));
+            const hasOverflowAddressesInStorage =
+                Boolean(readPublicDataDotAddress(pd)) &&
+                Boolean(readPublicDataKsmAddress(pd)) &&
+                Boolean(readPublicDataAptosAddress(pd));
 
             const refreshBySessionTtl = await this._shouldRefreshWallets();
 
@@ -638,7 +641,7 @@ export class TagsService {
                 return;
             }
 
-            if (hasSubstrateInStorage) {
+            if (hasOverflowAddressesInStorage) {
                 return;
             }
 
@@ -698,10 +701,34 @@ export class TagsService {
 
         if (!tagObject?.publicData || !tag) return null;
 
+        const existingPd = (tag.publicData || {}) as Partial<TagPublicData>;
+        const incomingPd = (tagObject.publicData || {}) as Partial<TagPublicData>;
+        const preservedAddresses: Partial<TagPublicData> = {};
+        const addressKeys: Array<keyof TagPublicData> = [
+            "ethAddress",
+            "btcAddress",
+            "solanaAddress",
+            "suiAddress",
+            "xlmAddress",
+            "tonAddress",
+            "aptosAddress",
+            "dotAddress",
+            "ksmAddress",
+        ];
+
+        for (const key of addressKeys) {
+            const incomingVal = incomingPd[key];
+            const existingVal = existingPd[key];
+            if ((!incomingVal || String(incomingVal).trim() === "") && existingVal && String(existingVal).trim() !== "") {
+                (preservedAddresses as Record<string, unknown>)[key] = existingVal;
+            }
+        }
+
         const existingHasPassword = tag.publicData?.hasPassword;
 
         tag.updatePublicData({
-            ...(tagObject?.publicData as Partial<TagPublicData>),
+            ...incomingPd,
+            ...preservedAddresses,
             ...(existingHasPassword === "true" ? { hasPassword: "true" } : {}),
         });
 

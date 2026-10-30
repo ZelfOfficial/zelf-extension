@@ -83,7 +83,7 @@ const NATIVE_SYMBOL_ALIASES: Record<string, readonly string[]> = {
     bitcoin: ["BTC", "BITCOIN"],
     sui: ["SUI"],
     ton: ["TON", "TONCOIN"],
-    aptos: ["APT", "APTOS"],
+    aptos: ["APT", "APTOS", "APTOS COIN"],
     stellar: ["XLM", "STELLAR"],
     polkadot: ["DOT", "POLKADOT"],
     kusama: ["KSM", "KUSAMA"],

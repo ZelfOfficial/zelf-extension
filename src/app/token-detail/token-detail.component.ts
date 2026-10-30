@@ -7,16 +7,20 @@ import { AssetService, NetworkPermissions } from "app/asset.service";
 import { AssetChart, AssetDetails, AssetIntervalOptions, AssetRange } from "app/models/asset.model";
 import { SafeHtmlPipe } from "app/pipes/safe-html.pipe";
 import { TruncateNumberPipe } from "app/pipes/truncate-number.pipe";
+import { BlockchainTransactionsService } from "app/services/blockchain-transactions.service";
 import { NetworkName, NetworkService } from "app/services/network.service";
+import { TagModel, TagsService } from "app/tags.service";
 import { TransactionService } from "app/transaction.service";
 import { TokenData, TransactionData } from "@shared/types/wallet.types";
 import { WalletService } from "app/wallet.service";
 import { ZelfHistoryComponent } from "app/zelf-history/zelf-history.component";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { AreaData, AreaSeries, AreaSeriesOptions, ChartOptionsBase, ColorType, createChart, IChartApi, ISeriesApi } from "lightweight-charts";
-import { Subject, takeUntil } from "rxjs";
+import { firstValueFrom, Subject, takeUntil } from "rxjs";
 import { DisplayAmountPipe, DisplayFiatPipe } from "../pipes/display-number.pipe";
 import { formatDisplayAmount } from "../core/utils/display-number.util";
+import { isNativeChainToken } from "../core/utils/token-balance.util";
+import { tokenNetworkToLicenseId } from "../core/utils/token-network-id.util";
 
 @Component({
     imports: [DisplayAmountPipe, DisplayFiatPipe, 
@@ -52,6 +56,7 @@ export class TokenDetailComponent implements AfterViewInit, OnDestroy {
     details: AssetDetails = new AssetDetails({} as AssetDetails);
     intervals: AssetIntervalOptions = [];
     loading: boolean = true;
+    loadingBalance: boolean = false;
     loadingChart: boolean = true;
     loadingDetails: boolean = true;
     readMore: boolean = false;
@@ -60,10 +65,12 @@ export class TokenDetailComponent implements AfterViewInit, OnDestroy {
 
     constructor(
         private _assetService: AssetService,
+        private _blockchainTransactionsService: BlockchainTransactionsService,
         private _changeDetectorRef: ChangeDetectorRef,
         private _networkService: NetworkService,
         private _renderer: Renderer2,
         private _router: Router,
+        private _tagsService: TagsService,
         private _transactionService: TransactionService,
         private _walletService: WalletService
     ) {
@@ -80,9 +87,12 @@ export class TokenDetailComponent implements AfterViewInit, OnDestroy {
         if (!this.loading) {
             this._changeDetectorRef.detectChanges();
             setTimeout(() => this._setChart(), 100);
+        } else {
+            void this._assetService.reloadSourceAssetFromStorage();
         }
 
         this._assetService.sourceAsset$.pipe(takeUntil(this.unsubscriber$)).subscribe((asset) => {
+            if (!asset || !Object.keys(asset).length) return;
             this.asset = asset;
             this._ensureAssetIcon();
 
@@ -135,7 +145,14 @@ export class TokenDetailComponent implements AfterViewInit, OnDestroy {
     }
 
     get formattedBalance(): string {
-        return formatDisplayAmount(this.asset.amount ?? 0) || "0";
+        if (this.asset.amount == null && this.asset.balance == null) {
+            return this.loadingBalance ? "..." : "0";
+        }
+        return formatDisplayAmount(this.asset.amount ?? this.asset.balance ?? 0) || "0";
+    }
+
+    get displayPrice(): number | string | null {
+        return this.asset.price ?? this.details?.price?.price ?? null;
     }
 
     get networkSymbol(): string {
@@ -212,8 +229,95 @@ export class TokenDetailComponent implements AfterViewInit, OnDestroy {
         }
     }
 
+    private _findMatchingToken(tokens: any[]): any | null {
+        if (!Array.isArray(tokens) || !tokens.length) return null;
+
+        const targetContract = String(
+            (this.asset as any)?.address_token || (this.asset as any)?.tokenAddress || (this.asset as any)?.contractAddress || ""
+        )
+            .trim()
+            .toLowerCase();
+
+        if (targetContract && targetContract !== "apt" && !isNativeChainToken(this.asset)) {
+            const byContract = tokens.find((token) => {
+                const candidate = String(token?.address_token || token?.tokenAddress || token?.contractAddress || "")
+                    .trim()
+                    .toLowerCase();
+                return candidate && candidate === targetContract;
+            });
+            if (byContract) return byContract;
+        }
+
+        const targetSymbol = String(this.asset?.symbol || "")
+            .trim()
+            .toUpperCase();
+        const bySymbol = tokens.find(
+            (token) =>
+                String(token?.symbol || "")
+                    .trim()
+                    .toUpperCase() === targetSymbol
+        );
+        if (bySymbol) return bySymbol;
+
+        if (isNativeChainToken(this.asset)) {
+            return tokens.find((token) => isNativeChainToken(token)) || null;
+        }
+
+        return null;
+    }
+
+    private async _refreshAssetBalance(): Promise<void> {
+        const networkId = tokenNetworkToLicenseId(this.asset?.network || this.asset?.symbol);
+        if (!networkId) return;
+
+        this.loadingBalance = true;
+        this._changeDetectorRef.markForCheck();
+
+        try {
+            let wallet = await this._walletService.getCurrentWallet();
+            if (!wallet) return;
+
+            if (
+                (networkId === "aptos" && !wallet.publicData?.aptosAddress) ||
+                (networkId === "polkadot" && !wallet.publicData?.dotAddress) ||
+                (networkId === "kusama" && !wallet.publicData?.ksmAddress)
+            ) {
+                try {
+                    const refreshed = await this._tagsService.refreshTagPublicData(new TagModel(wallet));
+                    if (refreshed) wallet = refreshed;
+                } catch {
+                    /* ignore refresh failure and proceed with current wallet */
+                }
+            }
+
+            const response = await firstValueFrom(this._blockchainTransactionsService.getAddressData(wallet, [networkId]));
+            if (!response || typeof response !== "object") return;
+
+            const { tokens } = await this._assetService.processTokensFromResponse(response);
+            const matched = this._findMatchingToken(tokens);
+            if (!matched) return;
+
+            this.asset = {
+                ...this.asset,
+                amount: matched.amount ?? matched.balance ?? this.asset.amount,
+                balance: matched.balance ?? matched.amount ?? this.asset.balance,
+                fiatBalance: matched.fiatBalance ?? this.asset.fiatBalance,
+                price: matched.price || this.asset.price || this.details?.price?.price || undefined,
+                image: this.asset.image || matched.image,
+            };
+            this._ensureAssetIcon();
+            await this._assetService.setSourceAsset(this.asset);
+            this._changeDetectorRef.markForCheck();
+        } catch (error) {
+            console.error(` TokenDetailComponent ~ _refreshAssetBalance ~ error:`, error);
+        } finally {
+            this.loadingBalance = false;
+            this._changeDetectorRef.markForCheck();
+        }
+    }
+
     async _requestData(): Promise<void> {
-        await Promise.all([this._fetchAssetDetails(), this._fetchAssetChart()]);
+        await Promise.all([this._fetchAssetDetails(), this._fetchAssetChart(), this._refreshAssetBalance()]);
 
         this._setChartData();
     }

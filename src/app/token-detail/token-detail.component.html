@@ -32,7 +32,7 @@
 
             <h3 class="token-detail__amount">{{ formattedBalance }} {{ asset.symbol }}</h3>
 
-            <p class="token-detail__price">{{ asset.price | displayFiat }}</p>
+            <p class="token-detail__price">{{ displayPrice | displayFiat }}</p>
 
             <div class="token-detail__intervals" *ngIf="hasValidChartData || loadingChart">
                 <p class="token-detail__interval-label">{{ t("token.price_detail") }}</p>

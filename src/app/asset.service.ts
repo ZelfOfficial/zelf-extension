@@ -321,6 +321,16 @@ export class AssetService {
         this._sourceAsset$.next(asset);
     }
 
+    async reloadSourceAssetFromStorage(): Promise<Partial<TokenData>> {
+        const asset = (await this._chromeService.getItem("sourceAsset")) as Partial<TokenData> | null;
+        if (asset && Object.keys(asset).length) {
+            this._sourceAsset = asset;
+            this._sourceAsset$.next(asset);
+            return asset;
+        }
+        return this._sourceAsset;
+    }
+
     async setTargetAsset(asset: Partial<TokenData>) {
         await this._chromeService.setItem("targetAsset", asset);
 
