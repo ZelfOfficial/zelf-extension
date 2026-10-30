@@ -10,7 +10,9 @@
             "back_to_payment_cards": "กลับไปยังบัตรชำระเงิน",
             "add_another_card": "เพิ่มบัตรอีกใบ",
             "try_again": "ลองอีกครั้ง",
-            "image_not_available": "ไม่มีรูปภาพ"
+            "image_not_available": "ไม่มีรูปภาพ",
+            "proof_loading": "กำลังโหลดข้อมูลที่เข้ารหัส…",
+            "proof_load_failed": "โหลดข้อมูลที่เข้ารหัสของรายการนี้ไม่ได้ ลองอีกครั้ง"
         },
         "payment_cards": {
             "labels": {
@@ -196,6 +198,39 @@
                 "premium_plan": "แผนพรีเมียม",
                 "not_available": "ไม่มี",
                 "month": "เดือน"
+            },
+            "stripe_checkout": {
+                "interval_year": "ปี",
+                "waiting": {
+                    "title": "ชำระเงินใน Stripe ให้เสร็จ",
+                    "message": "เราเปิด Stripe ในแท็บใหม่ ชำระเงินที่นั่นและเปิดหน้านี้ไว้ เราจะอัปเดตให้อัตโนมัติ"
+                },
+                "confirmed": {
+                    "title": "ยืนยันการชำระเงินแล้ว",
+                    "message": "{{ planName }} ใช้งานอยู่บนบัญชีของคุณแล้ว"
+                },
+                "cancelled": {
+                    "title": "ยกเลิกการชำระเงินแล้ว",
+                    "message": "คุณเลือกแพ็กเกจอื่นหรือลอง Stripe อีกครั้งได้เมื่อพร้อม"
+                },
+                "failed": {
+                    "title": "ยืนยันการชำระเงินไม่ได้",
+                    "message": "เกิดข้อผิดพลาดขณะตรวจสอบการสมัคร ลองอีกครั้งหรือเลือกแพ็กเกจอื่น"
+                },
+                "expired": {
+                    "title": "ยังรอการยืนยัน",
+                    "message": "เรายังไม่ได้รับการยืนยันจาก Stripe",
+                    "hint": "ถ้าชำระแล้วอาจใช้เวลาถึงหนึ่งนาที แตะตรวจสอบอีกครั้งหรือเปิด Stripe ใหม่"
+                },
+                "actions": {
+                    "reopen_stripe": "เปิดการชำระ Stripe อีกครั้ง",
+                    "check_now": "ชำระแล้ว / ตรวจสอบตอนนี้",
+                    "check_again": "ตรวจสอบอีกครั้ง",
+                    "cancel": "ยกเลิกและเลือกแพ็กเกจอื่น",
+                    "continue": "ดำเนินการต่อ",
+                    "choose_plan": "กลับไปที่แพ็กเกจ",
+                    "try_stripe_again": "ลอง Stripe อีกครั้ง"
+                }
             }
         },
         "biometrics": {
@@ -244,7 +279,8 @@
             "zelf_name_label": "Zelf ID: {{ zelfName }}",
             "category_label": "หมวดหมู่: {{ category }}",
             "type_label": "ประเภท: {{ type }}",
-            "secure_credential": "ข้อมูลรับรองที่ปลอดภัย"
+            "secure_credential": "ข้อมูลรับรองที่ปลอดภัย",
+            "secure_note": "บันทึกที่ปลอดภัย"
         },
         "data_types": {
             "note": "บันทึก",
@@ -287,7 +323,12 @@
                 "storage_failed": "เกิดข้อผิดพลาดขณะจัดเก็บ {{ category }} กรุณาลองใหม่ภายหลัง",
                 "try_again_later": "กรุณาลองใหม่ภายหลัง",
                 "close": "ปิด"
-            }
+            },
+            "delete_payment_card": "ยืนยันตัวตนเพื่อลบบัตร",
+            "delete_note": "ยืนยันตัวตนเพื่อลบบันทึก",
+            "delete_password": "ยืนยันตัวตนเพื่อลบรหัสผ่าน",
+            "authorize_title": "ยืนยันตัวตนของคุณ",
+            "authorize_instructions": "วางใบหน้าในกรอบเพื่อดำเนินการต่อ"
         },
         "popout_decryptor": {
             "back": "ย้อนกลับ",
@@ -315,7 +356,30 @@
                 "payment-card": "บัตรชำระเงิน",
                 "wallet": "กระเป๋าเงิน",
                 "zotp": "ZOTP"
-            }
+            },
+            "master_password_action_subtitle": "ใส่รหัสผ่าน Zelf ID แล้วยืนยันด้วยใบหน้าเพื่อดำเนินการต่อ",
+            "verified": "ยืนยันใน Zelf แล้ว",
+            "copy_password": "คัดลอกรหัสผ่าน",
+            "copy_card_number": "คัดลอกหมายเลขบัตร",
+            "copy_expiry": "คัดลอกวันหมดอายุ",
+            "copy_cvv": "คัดลอก CVV",
+            "extension_only": "รหัสผ่านนี้อยู่ภายในส่วนขยาย Zelf",
+            "card_extension_only": "หมายเลขบัตรและ CVV อยู่ภายในส่วนขยาย Zelf",
+            "done": "เสร็จสิ้น",
+            "create_heading": "รหัสผ่านใหม่",
+            "create_title": "เข้ารหัสผ่านใหม่",
+            "create_processing": "กำลังเข้ารหัสใน Zelf...",
+            "create_master_password": "รหัสผ่านหลัก (ถ้าเปิดใช้)",
+            "verify_create": "ยืนยันด้วยใบหน้า",
+            "delete_title": "ลบรหัสผ่านนี้?",
+            "delete_description": "การดำเนินการนี้ลบระเบียนที่เข้ารหัส ยืนยันใบหน้าเพื่อดำเนินการต่อ",
+            "delete_master_password": "รหัสผ่านหลัก (ถ้าเปิดใช้)",
+            "verify_delete": "ยืนยันและลบ",
+            "request_expired": "คำขอนี้หมดอายุแล้ว กลับไปที่ SuperApp แล้วลองอีกครั้ง",
+            "missing_request": "คำขอที่ปลอดภัยไม่สมบูรณ์ กลับไปที่ SuperApp แล้วลองอีกครั้ง",
+            "insufficient_zns": "ต้องมีอย่างน้อย {{amount}} ZNS เพื่อบันทึกรหัสผ่านนี้",
+            "checking_zns": "กำลังตรวจสอบยอด ZNS...",
+            "zns_check_failed": "ยืนยันยอด ZNS ไม่ได้ ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง"
         },
         "password_biometrics": {
             "back_to_details": "กลับไปยังรายละเอียดรหัสผ่าน",
@@ -361,9 +425,12 @@
                         "token_id": "รหัสโทเค็น",
                         "cost": "ค่าใช้จ่าย",
                         "contract": "สัญญา",
-                        "transaction": "ธุรกรรม"
+                        "transaction": "ธุรกรรม",
+                        "metadata_url": "URL เมตาดาต้า"
                     },
-                    "image_alt": "NFT ZelfKey"
+                    "image_alt": "NFT ZelfKey",
+                    "metadata_link": "ดูเมตาดาต้า",
+                    "copy_hint": "คลิกเพื่อคัดลอก"
                 },
                 "ipfs": {
                     "title": "ข้อมูลบัตรชำระเงิน",
@@ -486,7 +553,84 @@
         "vault": {
             "reverify_title": "ยืนยันอีกครั้งเพื่อดูรายการของคุณ",
             "reverify_description": "เซสชันนี้ยังเปิดตู้เซฟไม่ได้ ยืนยันใบหน้าอีกครั้งเพื่อโหลดรหัสผ่านและบัตร",
-            "reverify_action": "ยืนยันอีกครั้ง"
+            "reverify_action": "ยืนยันอีกครั้ง",
+            "eyebrow": "ตัวจัดการรหัสผ่าน",
+            "title": "ห้องนิรภัยส่วนตัวของคุณ",
+            "subtitle": "ค้นหาและเปิดรายการที่เข้ารหัส",
+            "trust": "ความลับและการยืนยันตัวตนอยู่ภายใน Zelf",
+            "stats_label": "ยอดรวมห้องนิรภัย",
+            "stat_total": "รายการ",
+            "stat_passwords": "รหัสผ่าน",
+            "stat_cards": "บัตร",
+            "stat_notes": "บันทึก",
+            "add_password": "เพิ่มรหัสผ่าน",
+            "add_card": "เพิ่มบัตร",
+            "search": "ค้นหาในห้องนิรภัย",
+            "filter_folder": "กรองตามโฟลเดอร์",
+            "all_folders": "ทุกโฟลเดอร์",
+            "refresh": "รีเฟรชห้องนิรภัย",
+            "loading": "กำลังเปิดห้องนิรภัยส่วนตัว…",
+            "load_error": "เปิดห้องนิรภัยไม่ได้",
+            "retry": "ลองอีกครั้ง",
+            "empty_title": "ห้องนิรภัยพร้อมแล้ว",
+            "empty_description": "เพิ่มรหัสผ่านหรือบัตรเพื่อปกป้องด้วยใบหน้า",
+            "add_first": "เพิ่มรหัสผ่านแรก",
+            "no_results": "ไม่พบรายการ",
+            "no_results_description": "ลองค้นหาหรือโฟลเดอร์อื่น",
+            "alias": "ชื่อแทน",
+            "alias_placeholder": "ส่วนตัว, ที่ทำงาน, หลัก…",
+            "delete": "ลบรายการ",
+            "delete_confirm": "ลบรายการนี้อย่างถาวร?",
+            "delete_description": "ยืนยันด้วยใบหน้าเพื่อนำออกจากห้องนิรภัย",
+            "deleting": "กำลังลบ…",
+            "delete_failed": "ลบรายการนี้ไม่ได้ ลองอีกครั้ง",
+            "export_vault": "ส่งออกห้องนิรภัย",
+            "export_item": "ส่งออก",
+            "import_vault": "นำเข้ารหัสผ่าน",
+            "more_options": "ตัวเลือกเพิ่มเติม",
+            "master_password_label": "รหัสผ่านหลัก",
+            "master_password_placeholder": "ใส่รหัสผ่านหลัก",
+            "export_title": "ส่งออกรหัสผ่าน",
+            "export_subtitle": "ส่งออกข้อมูลรับรองที่เข้ากันกับตัวจัดการรหัสผ่านอื่น",
+            "export_single_subtitle": "ส่งออกไปยังตัวจัดการรหัสผ่านอื่น",
+            "export_biometrics_required": "การยืนยันใบหน้า",
+            "export_biometrics_explain": "ยืนยันใบหน้าเพื่อถอดรหัสผ่าน {{count}} รายการ",
+            "export_local_only": "ถอดรหัสในหน่วยความจำของเครื่อง · ไม่ออกจากอุปกรณ์",
+            "export_scan_face_btn": "ยืนยันด้วยใบหน้า",
+            "export_face_instructions": "วางใบหน้าในวงรีเพื่ออนุญาตการส่งออก",
+            "export_decrypting_title": "กำลังถอดรหัสข้อมูลรับรอง",
+            "export_ready_count": "รหัสผ่าน {{count}} รายการพร้อมส่งออก",
+            "export_failed_count": "ถอดรหัสไม่สำเร็จ {{count}} รายการ",
+            "export_format_label": "รูปแบบ",
+            "export_preview_label": "ตัวอย่าง",
+            "download_file": "ดาวน์โหลด",
+            "copy_to_clipboard": "คัดลอก",
+            "copied": "คัดลอกแล้ว!",
+            "import_title": "นำเข้ารหัสผ่าน",
+            "import_subtitle": "เลือกไฟล์จากตัวจัดการรหัสผ่าน",
+            "import_drop_title": "วางไฟล์ที่นี่",
+            "import_drop_subtitle": "LastPass, Bitwarden, 1Password, Chrome, Apple, KeePassXC",
+            "import_browse_btn": "เรียกดูไฟล์",
+            "import_paste_label": "หรือวางข้อความ",
+            "import_paste_placeholder": "วาง CSV หรือ JSON ที่ส่งออก...",
+            "import_parse_btn": "ตัวอย่าง",
+            "import_switch_file": "อัปโหลดไฟล์แทน",
+            "import_switch_paste": "วางข้อความแทน",
+            "import_detected": "ตรวจพบ",
+            "select_all": "เลือกทั้งหมด",
+            "deselect_all": "ยกเลิกการเลือกทั้งหมด",
+            "import_selected_count": "เลือก {{selected}} จาก {{total}}",
+            "import_back": "กลับ",
+            "import_now_btn": "ยืนยันและนำเข้า ({{count}})",
+            "import_face_instructions": "สแกนใบหน้าเพื่อเข้ารหัสและบันทึกรหัสผ่าน",
+            "import_store_mode_label": "API ที่เก็บ (dev)",
+            "import_store_mode_one_by_one": "One-by-one (/store/password)",
+            "import_store_mode_bulk": "Bulk (/store/passwords)",
+            "importing_title": "กำลังเข้ารหัสผ่าน",
+            "import_success_title": "นำเข้าเสร็จสิ้น",
+            "import_success_desc": "ป้องกันรหัสผ่าน {{count}} รายการในห้องนิรภัยแล้ว",
+            "import_failed_notice": "นำเข้าไม่ได้ {{count}} รายการ:",
+            "import_done_btn": "เสร็จสิ้น"
         }
     },
     "cancel": "ยกเลิก",
@@ -538,12 +682,12 @@
         "zelf_name_registered": "Zelf ID ลงทะเบียนแล้ว",
         "from_address": "จากที่อยู่",
         "private_transaction": "ธุรกรรมส่วนตัว",
-        "amount_inline_required": "Required",
-        "amount_inline_invalid": "Invalid amount",
-        "amount_inline_min": "Min {{amount}}",
-        "amount_inline_max": "Max {{amount}}",
-        "memo_optional": "Memo (optional)",
-        "memo_placeholder": "Exchange or note (max 28 characters)",
+        "amount_inline_required": "จำเป็น",
+        "amount_inline_invalid": "จำนวนไม่ถูกต้อง",
+        "amount_inline_min": "ขั้นต่ำ {{amount}}",
+        "amount_inline_max": "สูงสุด {{amount}}",
+        "memo_optional": "บันทึก (ไม่บังคับ)",
+        "memo_placeholder": "กระดานเทรดหรือบันทึก (สูงสุด 28 อักขระ)",
         "stellar": {
             "below_min": "จำนวนเงินต่ำกว่าขั้นต่ำ ({{min}} XLM) ที่จำเป็นในการเปิดบัญชี Stellar ใหม่",
             "new_account_title": "บัญชี Stellar ใหม่",
@@ -554,7 +698,9 @@
             "classic_fund_first": "ไม่สามารถส่งสินทรัพย์นี้ได้จนกว่าผู้รับจะมีบัญชี Stellar ที่มีเงิน ส่ง XLM ดั้งเดิมก่อนเพื่อสร้างบัญชี",
             "classic_trustline": "ผู้รับต้องเพิ่มทรัสต์ไลน์สำหรับสินทรัพย์นี้ก่อนจึงจะรับได้",
             "invalid_amount": "ป้อนจำนวนเงินที่ถูกต้องเพื่อดำเนินการต่อ"
-        }
+        },
+        "transaction_sent": "ส่งธุรกรรมแล้ว",
+        "transaction_failed": "ไม่สามารถส่งธุรกรรมได้"
     },
     "transaction": {
         "go_to_my_history": "ไปที่ประวัติของฉัน",
@@ -634,7 +780,23 @@
         "enter_tag_name_subtitle": "ใส่ Zelf ID ที่มีอยู่เพื่อเข้าสู่ระบบ",
         "enter_with_recovery_phrase": "เข้าสู่ระบบด้วยวลีกู้คืน",
         "found": "พบแล้ว",
-        "login_to_this_domain": "พบ Zelf ID นี้ — ดำเนินการต่อด้วยวลีกู้คืนของคุณ"
+        "login_to_this_domain": "พบ Zelf ID นี้ — ดำเนินการต่อด้วยวลีกู้คืนของคุณ",
+        "onboarding": {
+            "reinventing": "นิยามใหม่",
+            "designed_for": "ออกแบบสำหรับ",
+            "summary_intro": "นิยามใหม่ของกระเป๋าเงิน ตัวจัดการรหัสผ่าน และ 2FA",
+            "features": {
+                "wallets": "กระเป๋าเงิน",
+                "password_managers": "รหัสผ่าน",
+                "two_factor": "2FA",
+                "inheritance": "มรดก"
+            },
+            "summary": {
+                "self_custodian": "ดูแลเอง",
+                "offline_feature": "ฟีเจอร์ออฟไลน์",
+                "human_authn": "HumanAuthn"
+            }
+        }
     },
     "settings": {
         "networks_label": "เครือข่าย",
@@ -696,6 +858,17 @@
             "system": "ระบบ",
             "light": "สว่าง",
             "dark": "มืด"
+        },
+        "notifications_label": "การแจ้งเตือน",
+        "notifications": {
+            "title": "การแจ้งเตือน",
+            "description": "เลือกการแจ้งเตือนที่ต้องการรับ",
+            "news": "ข่าว / อัปเดต",
+            "news_description": "ข่าวสารและประกาศของผลิตภัณฑ์",
+            "push": "การแจ้งเตือนแบบพุช",
+            "push_description": "อนุญาตการแจ้งเตือนแบบพุชบนอุปกรณ์นี้",
+            "send_receive": "ส่งและรับ",
+            "send_receive_description": "รับการแจ้งเตือนเมื่อส่งหรือรับสินทรัพย์"
         }
     },
     "security": {
@@ -757,14 +930,21 @@
             "risk_3_native": "ส่งเฉพาะ {{ symbol }} ดั้งเดิมเท่านั้น โทเคนจากเครือข่ายอื่นไม่เข้ากันกับที่อยู่นี้",
             "risk_4_title": "ทดสอบด้วยจำนวนเล็กน้อย",
             "risk_4": "ส่งครั้งแรกไปยังที่อยู่นี้? เริ่มด้วยธุรกรรม {{ symbol }} จำนวนน้อยก่อนส่งจำนวนมาก"
+        },
+        "generate_substrate": {
+            "title": "ที่อยู่ {{ symbol }} ยังไม่พร้อม",
+            "line_1": "ยังไม่ได้สร้างที่อยู่รับสำหรับ {{ fullTagName }} บนเครือข่ายนี้",
+            "line_2": "ในการสร้าง เราจะถอดรหัสห้องนิรภัยครั้งเดียวและผูกที่อยู่ใหม่กับโปรไฟล์สาธารณะ ขั้นตอนนี้ทำครั้งเดียวเมื่อคุณยืนยันด้านล่าง",
+            "line_3": "กระบวนการถอดรหัสเดียวกับที่แอปใช้ซิงก์กระเป๋าจะดึงและบันทึกข้อมูลนี้",
+            "line_4": "หลังยืนยันใบหน้า ที่อยู่ที่อัปเดตจะถูกบันทึกในอุปกรณ์นี้อัตโนมัติ"
         }
     },
     "apps_hub": {
-        "label_wallet": "Wallet",
-        "label_keys": "Password Manager",
+        "label_wallet": "กระเป๋าเงิน",
+        "label_keys": "ตัวจัดการรหัสผ่าน",
         "label_auth": "2FA",
-        "label_id": "ID",
-        "label_legacy": "Legacy",
+        "label_id": "ตัวตน",
+        "label_legacy": "มรดก",
         "label_ai": "zAI"
     },
     "common": {
@@ -900,10 +1080,10 @@
         "unlock": "ดำเนินการยืนยันตัวตนด้วยชีวภาพ",
         "upload_qr_image": "อัปโหลดรูปภาพ QR",
         "verify": "ตรวจสอบ",
-        "wallet_short": "Wallet",
+        "wallet_short": "กระเป๋าเงิน",
         "keys_short": "Pass",
         "website": "เว็บไซต์",
-        "withdraw": "ถอน",
+        "withdraw": "ส่ง",
         "withdrawal_network": "เครือข่ายการถอน",
         "yes": "ใช่",
         "your_token": "{{ symbol }} ของคุณ",
@@ -912,17 +1092,24 @@
         "zelf_chat": "zChat",
         "zelf_chat_coming_soon": "Zelf Chat จะเปิดใช้งานเร็วๆ นี้",
         "zelf_chats": "zChats",
-        "zelf_keys": "Password Manager",
+        "zelf_keys": "ตัวจัดการรหัสผ่าน",
         "zelf_link": "Zelf Link",
         "zelf_signals": "zSignals",
         "zelf_signals_coming_soon": "Zelf Signals จะเปิดใช้งานเร็วๆ นี้",
-        "legacy": "Legacy",
+        "legacy": "มรดก",
         "legacy_coming_soon": "Legacy จะเปิดใช้งานเร็วๆ นี้",
-        "zelf_wallet": "Wallet",
+        "zelf_wallet": "กระเป๋าเงิน",
         "ton_address": "ที่อยู่ TON",
         "validity_one_year": "อายุการใช้งาน: 1 ปี",
         "validity_years": "อายุการใช้งาน: {{years}} ปี",
-        "aptos_address": "ที่อยู่ Aptos"
+        "aptos_address": "ที่อยู่ Aptos",
+        "add": "เพิ่ม",
+        "done": "เสร็จสิ้น",
+        "hide_password": "ซ่อนรหัสผ่าน",
+        "loading": "กำลังโหลด…",
+        "show_password": "แสดงรหัสผ่าน",
+        "zelf_id": "Zelf ID",
+        "error": "ข้อผิดพลาด"
     },
     "token": {
         "24h_performance": "ประสิทธิภาพ 24 ชั่วโมง",
@@ -953,7 +1140,8 @@
         "info_description": "อย่าลืมเก็บรหัส QR ของคุณให้ปลอดภัยเพื่อปกป้องบัญชีของคุณ ดาวน์โหลดและบันทึกไว้ในที่ปลอดภัย",
         "private_key": "วลีเริ่มต้น",
         "addresses": "ที่อยู่",
-        "info": "ข้อมูล"
+        "info": "ข้อมูล",
+        "action_sync": "ซิงก์"
     },
     "private_key": {
         "description": "เพื่อดูวลีเริ่มต้นของคุณ กรุณาทำการยืนยันตัวตนด้านความปลอดภัยให้ครบถ้วน",
@@ -1078,7 +1266,8 @@
         "face_locked": "การยืนยันใบหน้าถูกล็อกชั่วคราว ลองอีกครั้งใน {{ time }}",
         "face_locked_about_minutes": "ประมาณ {{ minutes }} นาที",
         "face_locked_about_hours": "ประมาณ {{ hours }} ชั่วโมง",
-        "face_replay_detected": "ใช้รูปนี้ไปแล้ว กรุณาถ่ายรูปใหม่แล้วลองอีกครั้ง"
+        "face_replay_detected": "ใช้รูปนี้ไปแล้ว กรุณาถ่ายรูปใหม่แล้วลองอีกครั้ง",
+        "unknown": "ข้อผิดพลาดที่ไม่ทราบสาเหตุ"
     },
     "swap": {
         "automatic": "อัตโนมัติ",
@@ -1167,7 +1356,9 @@
         "show_balances": "แสดงยอดคงเหลือ",
         "recent_transactions": "รายการล่าสุด",
         "rewards_banner_title": "รับรางวัล",
-        "rewards_banner_subtitle": "รับ $ZNS รายวันด้วยภารกิจของเรา"
+        "rewards_banner_subtitle": "รับ $ZNS รายวันด้วยภารกิจของเรา",
+        "balance_retrying": "กำลังลองอีกครั้ง…",
+        "balance_unavailable": "ไม่พร้อมใช้งาน"
     },
     "id_scanning": {
         "camera_not_found": "ไม่พบกล้อง",
@@ -1271,7 +1462,8 @@
             "passwords": "รหัสผ่าน",
             "subscription": "สมาชิก",
             "add_password": "เพิ่มรหัสผ่าน",
-            "add_card": "เพิ่มบัตรชำระเงิน"
+            "add_card": "เพิ่มบัตรชำระเงิน",
+            "cards": "บัตร"
         },
         "payment_cards": {
             "title": "บัตรชำระเงิน",
@@ -1424,7 +1616,9 @@
                     "aria_label": "สลับการจัดเก็บข้อมูลในโฟลเดอร์"
                 },
                 "master_password": {
-                    "hint": "เราต้องการรหัสผ่าน {{ walletName }} เพื่อเข้ารหัสและจัดเก็บข้อมูลประจำตัวของคุณ การยืนยันด้วยข้อมูลไบโอเมตริกเป็นสิ่งที่จำเป็นเสมอ"
+                    "hint": "เราต้องการรหัสผ่าน {{ walletName }} เพื่อเข้ารหัสและจัดเก็บข้อมูลประจำตัวของคุณ การยืนยันด้วยข้อมูลไบโอเมตริกเป็นสิ่งที่จำเป็นเสมอ",
+                    "label": "รหัสผ่านหลัก *",
+                    "placeholder": "ใส่รหัสผ่านหลัก"
                 },
                 "buttons": {
                     "cancel": "ยกเลิก",
@@ -1601,7 +1795,10 @@
                     "hide_password": "ซ่อนรหัสผ่าน",
                     "copy_website": "คัดลอกเว็บไซต์",
                     "copy_password": "คัดลอกรหัสผ่าน"
-                }
+                },
+                "title": "รายละเอียดรหัสผ่าน",
+                "folder": "โฟลเดอร์",
+                "alias": "ชื่อแทน"
             },
             "form": {
                 "title": "เพิ่มรหัสผ่าน",
@@ -1630,7 +1827,8 @@
                 "master_password": {
                     "section_title": "ลงนามด้วย Zelf ID ของคุณ",
                     "label": "รหัสผ่านหลัก *",
-                    "hint": "เราต้องการรหัสผ่าน {{ walletName }} เพื่อเข้ารหัสและจัดเก็บข้อมูลประจำตัวของคุณ การยืนยันด้วยข้อมูลไบโอเมตริกเป็นสิ่งที่จำเป็นเสมอ"
+                    "hint": "เราต้องการรหัสผ่าน {{ walletName }} เพื่อเข้ารหัสและจัดเก็บข้อมูลประจำตัวของคุณ การยืนยันด้วยข้อมูลไบโอเมตริกเป็นสิ่งที่จำเป็นเสมอ",
+                    "placeholder": "ใส่รหัสผ่านหลัก"
                 },
                 "buttons": {
                     "save": "บันทึกรหัสผ่าน",
@@ -1870,7 +2068,8 @@
         "incorrect_password": "รหัสผ่านหลักไม่ถูกต้อง",
         "errors": {
             "invalid_setup_key": "คีย์ไม่ถูกต้อง ใช้ A–Z และ 2–7 อย่างน้อย 16 ตัว",
-            "invalid_totp_params": "ไม่รองรับการตั้งค่าการยืนยันนี้"
+            "invalid_totp_params": "ไม่รองรับการตั้งค่าการยืนยันนี้",
+            "proof_load_failed": "โหลดข้อมูลที่เข้ารหัสของรหัสนี้ไม่ได้ ลองอีกครั้ง"
         },
         "biometrics_failed": "การยืนยันทางไบโอเมตริกล้มเหลว",
         "export": "ส่งออก",
@@ -1911,7 +2110,44 @@
         "recovered_setup_key": "คีย์ตั้งค่าที่กู้คืนได้",
         "create_zotp_from_recovery": "สร้าง ZOTP จากการกู้คืน",
         "recovery_successful": "กู้คืนสำเร็จ!",
-        "recovery_success_description": "ZOTP ของคุณได้รับการกู้คืนและเพิ่มลงในตัวยืนยันตัวตนของคุณแล้ว ตอนนี้คุณสามารถใช้เพื่อสร้างรหัสได้"
+        "recovery_success_description": "ZOTP ของคุณได้รับการกู้คืนและเพิ่มลงในตัวยืนยันตัวตนของคุณแล้ว ตอนนี้คุณสามารถใช้เพื่อสร้างรหัสได้",
+        "protection": {
+            "label": "การป้องกันเมื่อเปิด",
+            "face": "ใบหน้าเท่านั้น",
+            "face_password": "ใบหน้า + รหัสผ่านหลัก",
+            "decrypt_toggle": {
+                "title": "ต้องใช้รหัสผ่านหลักเพื่อเปิด",
+                "description": "เมื่อเปิดใช้ การเปิด ZOTP นี้จะขอรหัสผ่านหลักของกระเป๋านอกจากใบหน้า",
+                "aria_label": "ขอรหัสผ่านหลักเมื่อเปิด ZOTP นี้"
+            },
+            "face_only": {
+                "title": "กระเป๋าที่ใช้ใบหน้าเท่านั้น",
+                "description": "Zelf ID นี้ไม่มีรหัสผ่านหลัก ZOTP เปิดด้วยใบหน้าเท่านั้น"
+            },
+            "decrypt_prompt": {
+                "title": "ใส่รหัสผ่านหลัก",
+                "description": "ZOTP นี้ป้องกันด้วยใบหน้าและรหัสผ่านหลักของกระเป๋า",
+                "continue": "ไปที่การสแกนใบหน้า"
+            },
+            "errors": {
+                "password_required": "ต้องใช้รหัสผ่านหลักเพื่อเปิด ZOTP นี้"
+            }
+        },
+        "copy_code": "คัดลอกรหัส",
+        "copy_setup_key": "คัดลอกคีย์ตั้งค่า",
+        "code": {
+            "title": "รหัสของคุณ",
+            "refreshes_in": "รีเฟรชใน {{seconds}} วินาที"
+        },
+        "decrypt": {
+            "button": "แสดงรหัส",
+            "decrypting": "กำลังเปิด…"
+        },
+        "proof": {
+            "loading": "กำลังโหลดข้อมูลที่เข้ารหัส…"
+        },
+        "decrypt_failed": "เปิด ZOTP นี้ไม่ได้ ลองอีกครั้ง",
+        "warning": "คำเตือน"
     },
     "rewards": {
         "title": "รางวัล",
@@ -2131,8 +2367,61 @@
     "home_hub": {
         "quick_label_keys": "Pass",
         "quick_label_auth": "2FA",
-        "quick_label_legacy": "Legacy",
+        "quick_label_legacy": "มรดก",
         "quick_label_id": "ID",
-        "more_apps": "เพิ่มเติม"
+        "more_apps": "เพิ่มเติม",
+        "greeting": "ยินดีต้อนรับ",
+        "header_rewards_aria": "รางวัล",
+        "header_notifications_aria": "การแจ้งเตือน",
+        "subscription_title": "แพ็กเกจฟรี",
+        "subscription_title_free": "แพ็กเกจฟรี",
+        "subscription_title_premium": "แพ็กเกจพรีเมียม",
+        "subscription_subtitle": "จัดการการสมัครของคุณ",
+        "subscription_subtitle_free": "{{ zelfId }} — ขยายได้ทุกเมื่อด้วย $ZNS",
+        "subscription_subtitle_premium": "Zelf ID ของคุณ: {{ zelfId }}",
+        "subscription_cta": "คงการเข้าถึง",
+        "subscription_cta_free": "คงการเข้าถึง",
+        "subscription_cta_premium": "จัดการ Zelf ID",
+        "subscription_countdown_free_expired": "โดเมนฟรีหมดอายุแล้ว — ใช้ $ZNS เพื่อขยายในจัดการโดเมน",
+        "subscription_countdown_free_one_day": "โดเมนฟรีเหลือ 1 วัน — ขยายด้วย $ZNS ได้ทุกเมื่อ",
+        "subscription_countdown_free_days": "โดเมนฟรีเหลือ {{ days }} วัน — ขยายด้วย $ZNS ได้ทุกเมื่อ",
+        "subscription_countdown_premium_expired": "ต้องต่ออายุ — อัปเดตการสมัครในจัดการ Zelf ID",
+        "subscription_countdown_premium_one_day": "Zelf ID ของคุณเหลือ 1 วัน",
+        "subscription_countdown_premium_days": "Zelf ID ของคุณเหลือ {{ days }} วัน",
+        "subscription_countdown_unknown": "จัดการ Zelf ID ในจัดการโดเมน",
+        "subscription_countdown_unit_days": "วัน",
+        "subscription_countdown_unit_hours": "ชั่วโมง",
+        "enabled_networks_label": "เครือข่ายที่ใช้งาน",
+        "start_here_title": "เริ่มที่นี่",
+        "start_here_subtitle": "ทำคู่มือเริ่มต้นให้เสร็จและรับ $ZNS",
+        "start_here_progress": "{{ current }} / {{ total }}",
+        "quick_label_signals": "zSignals",
+        "promo_placeholder_title": "ตัวจัดการรหัสผ่าน เริ่มต้นที่ $5.99 ต่อเดือน",
+        "promo_placeholder_cta": "สำรวจเลย",
+        "signals_heading": "Zelf Signals",
+        "signals_explore": "สำรวจ",
+        "signals_placeholder_title": "ไฮไลต์จาก Zelf Signals",
+        "signals_placeholder_body": "ไฮไลต์ตลาดและสินทรัพย์จะแสดงที่นี่",
+        "ai_heading": "Zelf AI",
+        "ai_subtitle": "ผู้ช่วย Zelf AI จะพร้อมใช้งานเร็วๆ นี้",
+        "ai_assistant_title": "ผู้ช่วย Web3 อัจฉริยะ",
+        "ai_assistant_desc": "คำสั่งภาษาธรรมชาติ การวิเคราะห์สัญญา และข้อมูลเชิงลึก",
+        "ai_security_title": "การจำลองธุรกรรมอัจฉริยะ",
+        "ai_security_desc": "การตรวจสอบความปลอดภัยก่อนดำเนินการและการตรวจจับการฉ้อโกง",
+        "header_profile_aria": "โปรไฟล์",
+        "header_collapse_aria": "ซ่อนชื่อ",
+        "header_expand_aria": "แสดงชื่อ",
+        "add_account_aria": "เพิ่มบัญชี"
+    },
+    "welcomeZelfid": {
+        "plan_free": "Zelf ID ฟรี — เป็นของคุณ 100 ปี อัปเกรดได้ภายหลัง",
+        "plan_short_hold": "Zelf ID ฟรี — เป็นของคุณ 100 ปี รวมชื่อสั้น",
+        "plan_unlimited": "Zelf ID ฟรี — เป็นของคุณ 100 ปี",
+        "plan_label": "แพ็กเกจ: {{ plan }}",
+        "hold_subtitle": "Zelf ID ของคุณฟรี 100 ปี"
+    },
+    "superapp": {
+        "connecting_with": "กำลังเชื่อมต่อกับ {{appName}}",
+        "working_with": "ทำงานอย่างปลอดภัยกับ {{appName}}"
     }
 }

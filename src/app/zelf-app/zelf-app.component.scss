@@ -43,8 +43,11 @@
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    min-height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
+    min-height: 0;
     min-width: 100%;
+    overflow: hidden;
 }
 
 :host-context(html.zns-theme-dark),
@@ -207,7 +210,9 @@
         overflow: auto;
         display: flex;
         flex-direction: column;
-        height: 100vh;
+        height: 100dvh;
+        max-height: 100dvh;
+        min-height: 0;
         padding: 0;
     }
 

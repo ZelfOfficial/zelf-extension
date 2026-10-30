@@ -8,9 +8,12 @@
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    justify-content: center;
+    justify-content: safe center;
     max-width: 100%;
+    height: 100%;
+    min-height: 0;
     overflow-x: hidden;
+    overflow-y: auto;
     @include device-scale.welcome-device-tokens;
 }
 
@@ -29,7 +32,9 @@
         align-items: center;
         display: flex;
         justify-content: center;
-        min-height: calc(var(--welcome-onboarding-height) * var(--welcome-onboarding-scale));
+        height: min(calc(var(--welcome-onboarding-height) * var(--welcome-onboarding-scale)), calc(100dvh - 16px));
+        max-height: calc(100dvh - 16px);
+        min-height: 0;
         position: relative;
         width: calc(var(--welcome-onboarding-width) * var(--welcome-onboarding-scale));
     }
@@ -39,9 +44,10 @@
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    height: var(--welcome-onboarding-height);
+    height: min(var(--welcome-onboarding-height), calc((100dvh - 16px) / var(--welcome-onboarding-scale, 1)));
     left: 50%;
-    min-height: var(--welcome-onboarding-height);
+    max-height: calc((100dvh - 16px) / var(--welcome-onboarding-scale, 1));
+    min-height: 0;
     overflow: hidden;
     position: absolute;
     top: 50%;
@@ -56,11 +62,16 @@
     }
 
     .qr-code {
-        flex-shrink: 0;
+        flex-shrink: 1;
         max-height: 168px;
         max-width: 168px;
-        min-height: 168px;
-        min-width: 168px;
+        min-height: 96px;
+        min-width: 96px;
+
+        @media (max-height: 800px) {
+            max-height: 120px;
+            max-width: 120px;
+        }
     }
 
     .zelf-card__actions {
@@ -88,7 +99,8 @@
         flex: 1 1 auto;
         gap: calc(12px * var(--zns-space-scale, 1));
         min-height: 0;
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: auto;
     }
 
     &__details {
@@ -99,7 +111,8 @@
         gap: calc(8px * var(--zns-space-scale, 1));
         flex: 1 1 auto;
         min-height: 0;
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: auto;
         width: 100%;
     }
 

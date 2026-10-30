@@ -222,7 +222,7 @@ export class ZelfKeysVaultComponent implements OnInit, OnDestroy {
 
     private _subscribeToErrorState(): void {
         this._zelfKeysDataService.error$.pipe(takeUntil(this.destroy$)).subscribe((error) => {
-            this.error = error ? this._translocoService.translate("zelf_keys.passwords.error.load_failed") : null;
+            this.error = error ? this._translocoService.translate("zelf_keys.vault.load_error") : null;
         });
     }
 

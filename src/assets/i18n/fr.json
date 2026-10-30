@@ -10,7 +10,9 @@
             "back_to_payment_cards": "Retour aux Cartes de Paiement",
             "add_another_card": "Ajouter une Autre Carte",
             "try_again": "Réessayer",
-            "image_not_available": "Image non disponible"
+            "image_not_available": "Image non disponible",
+            "proof_loading": "Chargement des données chiffrées…",
+            "proof_load_failed": "Impossible de charger les données chiffrées de cet élément. Réessayez."
         },
         "payment_cards": {
             "labels": {
@@ -196,6 +198,39 @@
                 "premium_plan": "Plan Premium",
                 "not_available": "N/D",
                 "month": "mois"
+            },
+            "stripe_checkout": {
+                "interval_year": "an",
+                "waiting": {
+                    "title": "Terminez le paiement dans Stripe",
+                    "message": "Stripe s'est ouvert dans un nouvel onglet. Terminez le paiement là-bas et laissez cet écran ouvert : il se mettra à jour automatiquement."
+                },
+                "confirmed": {
+                    "title": "Paiement confirmé",
+                    "message": "{{ planName }} est maintenant actif sur votre compte."
+                },
+                "cancelled": {
+                    "title": "Paiement annulé",
+                    "message": "Vous pouvez choisir une autre offre ou réessayer Stripe quand vous voulez."
+                },
+                "failed": {
+                    "title": "Impossible de vérifier le paiement",
+                    "message": "Un problème est survenu lors de la vérification de l'abonnement. Vous pouvez réessayer ou choisir une autre offre."
+                },
+                "expired": {
+                    "title": "Toujours en attente de confirmation",
+                    "message": "Nous n'avons pas encore reçu la confirmation de Stripe.",
+                    "hint": "Si vous avez déjà payé, cela peut prendre jusqu'à une minute. Appuyez sur vérifier à nouveau ou rouvrez Stripe."
+                },
+                "actions": {
+                    "reopen_stripe": "Rouvrir Stripe",
+                    "check_now": "J'ai déjà payé / vérifier",
+                    "check_again": "Vérifier à nouveau",
+                    "cancel": "Annuler et choisir une autre offre",
+                    "continue": "Continuer",
+                    "choose_plan": "Retour aux offres",
+                    "try_stripe_again": "Réessayer Stripe"
+                }
             }
         },
         "biometrics": {
@@ -244,7 +279,8 @@
             "zelf_name_label": "Zelf ID : {{ zelfName }}",
             "category_label": "Catégorie : {{ category }}",
             "type_label": "Type : {{ type }}",
-            "secure_credential": "Identifiant sécurisé"
+            "secure_credential": "Identifiant sécurisé",
+            "secure_note": "Note sécurisée"
         },
         "data_types": {
             "note": "Veuillez vérifier votre visage pour déchiffrer votre note",
@@ -287,7 +323,12 @@
                 "storage_failed": "Erreur lors du stockage de {{ category }}, veuillez réessayer plus tard.",
                 "try_again_later": "Veuillez réessayer plus tard.",
                 "close": "Fermer"
-            }
+            },
+            "delete_payment_card": "Vérifiez votre identité pour supprimer la carte",
+            "delete_note": "Vérifiez votre identité pour supprimer la note",
+            "delete_password": "Vérifiez votre identité pour supprimer le mot de passe",
+            "authorize_title": "Vérifiez votre identité",
+            "authorize_instructions": "Placez votre visage dans le cadre pour continuer."
         },
         "popout_decryptor": {
             "back": "Retour",
@@ -315,7 +356,30 @@
                 "payment-card": "Carte de paiement",
                 "wallet": "PORTEFEUILLE",
                 "zotp": "ZOTP"
-            }
+            },
+            "master_password_action_subtitle": "Saisissez le mot de passe de votre Zelf ID, puis vérifiez avec votre visage pour continuer.",
+            "verified": "Vérifié dans Zelf",
+            "copy_password": "Copier le mot de passe",
+            "copy_card_number": "Copier le numéro de carte",
+            "copy_expiry": "Copier l'expiration",
+            "copy_cvv": "Copier le CVV",
+            "extension_only": "Ce mot de passe reste dans l'extension Zelf.",
+            "card_extension_only": "Le numéro de carte et le CVV restent dans l'extension Zelf.",
+            "done": "Terminé",
+            "create_heading": "Nouveau mot de passe",
+            "create_title": "Chiffrer un nouveau mot de passe",
+            "create_processing": "Chiffrement dans Zelf...",
+            "create_master_password": "Mot de passe principal (si activé)",
+            "verify_create": "Vérifier avec le visage",
+            "delete_title": "Supprimer ce mot de passe ?",
+            "delete_description": "Cela supprime l'enregistrement chiffré. Vérifiez votre visage pour continuer.",
+            "delete_master_password": "Mot de passe principal (si activé)",
+            "verify_delete": "Vérifier et supprimer",
+            "request_expired": "Cette demande a expiré. Revenez à SuperApp et réessayez.",
+            "missing_request": "La demande sécurisée est incomplète. Revenez à SuperApp et réessayez.",
+            "insufficient_zns": "Il vous faut au moins {{amount}} ZNS pour enregistrer ce mot de passe.",
+            "checking_zns": "Vérification du solde ZNS...",
+            "zns_check_failed": "Impossible de confirmer votre solde ZNS. Vérifiez la connexion et réessayez."
         },
         "password_biometrics": {
             "back_to_details": "Retour aux Détails du Mot de Passe",
@@ -361,9 +425,12 @@
                         "token_id": "ID du Token",
                         "cost": "Coût",
                         "contract": "Contrat",
-                        "transaction": "Transaction :"
+                        "transaction": "Transaction :",
+                        "metadata_url": "URL des métadonnées"
                     },
-                    "image_alt": "NFT ZelfKey"
+                    "image_alt": "NFT ZelfKey",
+                    "metadata_link": "Voir les métadonnées",
+                    "copy_hint": "Cliquer pour copier"
                 },
                 "ipfs": {
                     "title": "Stockage IPFS",
@@ -486,7 +553,84 @@
         "vault": {
             "reverify_title": "Vérifiez à nouveau pour voir vos éléments",
             "reverify_description": "Cette session ne peut pas encore ouvrir votre coffre. Vérifiez votre visage à nouveau pour charger vos mots de passe et cartes.",
-            "reverify_action": "Vérifier à nouveau"
+            "reverify_action": "Vérifier à nouveau",
+            "eyebrow": "GESTIONNAIRE DE MOTS DE PASSE",
+            "title": "Votre coffre privé",
+            "subtitle": "Retrouvez et ouvrez vos éléments chiffrés.",
+            "trust": "Les secrets et les actions biométriques restent dans Zelf.",
+            "stats_label": "Totaux du coffre",
+            "stat_total": "Éléments",
+            "stat_passwords": "Mots de passe",
+            "stat_cards": "Cartes",
+            "stat_notes": "Notes",
+            "add_password": "Ajouter un mot de passe",
+            "add_card": "Ajouter une carte",
+            "search": "Rechercher dans le coffre",
+            "filter_folder": "Filtrer par dossier",
+            "all_folders": "Tous les dossiers",
+            "refresh": "Actualiser le coffre",
+            "loading": "Ouverture de votre coffre privé…",
+            "load_error": "Impossible d'ouvrir votre coffre",
+            "retry": "Réessayer",
+            "empty_title": "Votre coffre est prêt",
+            "empty_description": "Ajoutez un mot de passe ou une carte pour le protéger avec votre visage.",
+            "add_first": "Ajoutez votre premier mot de passe",
+            "no_results": "Aucun résultat",
+            "no_results_description": "Essayez une autre recherche ou un autre dossier.",
+            "alias": "Alias",
+            "alias_placeholder": "Personnel, Travail, Principal…",
+            "delete": "Supprimer l'élément",
+            "delete_confirm": "Supprimer définitivement cet élément ?",
+            "delete_description": "Vérifiez avec votre visage pour le retirer du coffre.",
+            "deleting": "Suppression…",
+            "delete_failed": "Impossible de supprimer cet élément. Réessayez.",
+            "export_vault": "Exporter le coffre",
+            "export_item": "Exporter",
+            "import_vault": "Importer des mots de passe",
+            "more_options": "Plus d'options",
+            "master_password_label": "Mot de passe principal",
+            "master_password_placeholder": "Saisissez le mot de passe principal",
+            "export_title": "Exporter les mots de passe",
+            "export_subtitle": "Exportez des identifiants compatibles avec d'autres gestionnaires.",
+            "export_single_subtitle": "Exporter vers d'autres gestionnaires.",
+            "export_biometrics_required": "Vérification du visage",
+            "export_biometrics_explain": "Vérifiez votre visage pour déchiffrer {{count}} mot(s) de passe.",
+            "export_local_only": "Déchiffré localement en mémoire · Ne quitte jamais votre appareil",
+            "export_scan_face_btn": "Vérifier avec le visage",
+            "export_face_instructions": "Placez votre visage dans l'ovale pour autoriser l'export.",
+            "export_decrypting_title": "Déchiffrement des identifiants",
+            "export_ready_count": "{{count}} mot(s) de passe prêts à exporter",
+            "export_failed_count": "{{count}} échec(s) de déchiffrement",
+            "export_format_label": "Format",
+            "export_preview_label": "Aperçu",
+            "download_file": "Télécharger",
+            "copy_to_clipboard": "Copier",
+            "copied": "Copié !",
+            "import_title": "Importer des mots de passe",
+            "import_subtitle": "Sélectionnez un fichier de votre gestionnaire.",
+            "import_drop_title": "Déposez le fichier ici",
+            "import_drop_subtitle": "LastPass, Bitwarden, 1Password, Chrome, Apple, KeePassXC",
+            "import_browse_btn": "Parcourir",
+            "import_paste_label": "Ou collez le texte brut",
+            "import_paste_placeholder": "Collez le CSV ou JSON exporté...",
+            "import_parse_btn": "Aperçu",
+            "import_switch_file": "Importer un fichier à la place",
+            "import_switch_paste": "Coller le texte à la place",
+            "import_detected": "Détecté",
+            "select_all": "Tout sélectionner",
+            "deselect_all": "Tout désélectionner",
+            "import_selected_count": "{{selected}} sur {{total}} sélectionnés",
+            "import_back": "Retour",
+            "import_now_btn": "Vérifier et importer ({{count}})",
+            "import_face_instructions": "Scannez votre visage pour chiffrer et enregistrer les mots de passe.",
+            "import_store_mode_label": "API de stockage (dev)",
+            "import_store_mode_one_by_one": "One-by-one (/store/password)",
+            "import_store_mode_bulk": "Bulk (/store/passwords)",
+            "importing_title": "Chiffrement des mots de passe",
+            "import_success_title": "Importation terminée",
+            "import_success_desc": "{{count}} mot(s) de passe sécurisé(s) dans votre coffre.",
+            "import_failed_notice": "{{count}} élément(s) n'ont pas pu être importés :",
+            "import_done_btn": "Terminé"
         }
     },
     "cancel": "Annuler",
@@ -542,8 +686,8 @@
         "amount_inline_invalid": "Montant invalide",
         "amount_inline_min": "Min. {{amount}}",
         "amount_inline_max": "Max. {{amount}}",
-        "memo_optional": "Memo (optional)",
-        "memo_placeholder": "Exchange or note (max 28 characters)",
+        "memo_optional": "Mémo (facultatif)",
+        "memo_placeholder": "Plateforme ou note (28 caractères max.)",
         "stellar": {
             "below_min": "Le montant est inférieur au minimum ({{min}} XLM) requis pour ouvrir un nouveau compte Stellar.",
             "new_account_title": "Nouveau compte Stellar",
@@ -554,7 +698,9 @@
             "classic_fund_first": "Cet actif ne peut pas être envoyé tant que le destinataire n'a pas un compte Stellar financé. Envoyez d'abord des XLM natifs pour créer son compte.",
             "classic_trustline": "Le destinataire doit ajouter une ligne de confiance pour cet actif avant de pouvoir le recevoir.",
             "invalid_amount": "Saisissez un montant valide pour continuer."
-        }
+        },
+        "transaction_sent": "Transaction envoyée",
+        "transaction_failed": "Impossible d'envoyer la transaction"
     },
     "transaction": {
         "go_to_my_history": "Aller à mon historique",
@@ -642,7 +788,7 @@
             "features": {
                 "wallets": "Portefeuilles",
                 "password_managers": "Mots de passe",
-                "two_factor": "2FAs",
+                "two_factor": "2FA",
                 "inheritance": "Héritage"
             },
             "summary": {
@@ -712,6 +858,17 @@
             "system": "Système",
             "light": "Clair",
             "dark": "Sombre"
+        },
+        "notifications_label": "Notifications",
+        "notifications": {
+            "title": "Notifications",
+            "description": "Choisissez les notifications que vous souhaitez recevoir.",
+            "news": "Actualités / Mises à jour",
+            "news_description": "Actualités et annonces du produit.",
+            "push": "Notifications push",
+            "push_description": "Autoriser les notifications push sur cet appareil.",
+            "send_receive": "Envoyer et recevoir",
+            "send_receive_description": "Soyez alerté lorsque vous envoyez ou recevez des actifs."
         }
     },
     "security": {
@@ -773,14 +930,21 @@
             "risk_3_native": "N'envoyez que du {{ symbol }} natif. Les tokens d'autres réseaux ne sont pas compatibles avec cette adresse.",
             "risk_4_title": "Testez avec un petit montant",
             "risk_4": "Nouvelle adresse ? Commencez par une petite transaction {{ symbol }} avant d'envoyer un montant plus important."
+        },
+        "generate_substrate": {
+            "title": "Adresse {{ symbol }} pas encore prête",
+            "line_1": "Une adresse de réception pour {{ fullTagName }} n'a pas encore été générée sur ce réseau.",
+            "line_2": "Pour la créer, nous déchiffrons votre coffre une fois et associons la nouvelle adresse à votre profil public. Cette étape unique ne s'exécute que lorsque vous confirmez ci-dessous.",
+            "line_3": "Le même processus de déchiffrement déjà utilisé pour synchroniser votre portefeuille récupérera et enregistrera ces données.",
+            "line_4": "Après la vérification du visage, vos adresses mises à jour sont enregistrées automatiquement sur cet appareil."
         }
     },
     "apps_hub": {
-        "label_wallet": "Wallet",
-        "label_keys": "Password Manager",
+        "label_wallet": "Portefeuille",
+        "label_keys": "Gestionnaire de mots de passe",
         "label_auth": "2FA",
-        "label_id": "ID",
-        "label_legacy": "Legacy",
+        "label_id": "Identité",
+        "label_legacy": "Héritage",
         "label_ai": "zAI"
     },
     "common": {
@@ -916,10 +1080,10 @@
         "unlock": "Déverrouiller",
         "upload_qr_image": "Télécharger l'image QR",
         "verify": "Vérifier",
-        "wallet_short": "Wallet",
+        "wallet_short": "Portefeuille",
         "keys_short": "Pass",
         "website": "Site web",
-        "withdraw": "Retirer",
+        "withdraw": "Envoyer",
         "withdrawal_network": "Réseau de retrait",
         "yes": "Oui",
         "your_token": "Votre {{ symbol }}",
@@ -928,17 +1092,24 @@
         "zelf_chat": "zChat",
         "zelf_chat_coming_soon": "Zelf Chat sera bientôt disponible.",
         "zelf_chats": "zChats",
-        "zelf_keys": "Password Manager",
+        "zelf_keys": "Gestionnaire de mots de passe",
         "zelf_link": "Lien Zelf",
         "zelf_signals": "zSignals",
         "zelf_signals_coming_soon": "Zelf Signals sera bientôt disponible.",
-        "legacy": "Legacy",
+        "legacy": "Héritage",
         "legacy_coming_soon": "Legacy sera bientôt disponible.",
-        "zelf_wallet": "Wallet",
+        "zelf_wallet": "Portefeuille",
         "ton_address": "Adresse TON",
         "validity_one_year": "Validité : 1 an",
         "validity_years": "Validité : {{years}} ans",
-        "aptos_address": "Adresse Aptos"
+        "aptos_address": "Adresse Aptos",
+        "add": "Ajouter",
+        "done": "Terminé",
+        "hide_password": "Masquer le mot de passe",
+        "loading": "Chargement…",
+        "show_password": "Afficher le mot de passe",
+        "zelf_id": "Zelf ID",
+        "error": "Erreur"
     },
     "token": {
         "24h_performance": "Performance 24h",
@@ -969,7 +1140,8 @@
         "info_description": "N'oubliez pas de garder votre code QR en sécurité pour protéger votre compte. Téléchargez-le et sauvegardez-le dans un endroit sûr.",
         "private_key": "Clé Privée",
         "addresses": "Adresses",
-        "info": "Info"
+        "info": "Infos",
+        "action_sync": "Synchroniser"
     },
     "private_key": {
         "description": "Pour voir votre phrase de récupération, veuillez compléter les étapes de vérification de sécurité.",
@@ -1094,7 +1266,8 @@
         "face_locked": "La vérification faciale est temporairement verrouillée. Réessayez dans {{ time }}.",
         "face_locked_about_minutes": "environ {{ minutes }} minutes",
         "face_locked_about_hours": "environ {{ hours }} heures",
-        "face_replay_detected": "Cette photo a déjà été utilisée. Prenez une nouvelle photo et réessayez."
+        "face_replay_detected": "Cette photo a déjà été utilisée. Prenez une nouvelle photo et réessayez.",
+        "unknown": "Erreur inconnue"
     },
     "swap": {
         "automatic": "Automatique",
@@ -1183,7 +1356,9 @@
         "show_balances": "Afficher les soldes",
         "recent_transactions": "Transactions récentes",
         "rewards_banner_title": "Réclamer des récompenses",
-        "rewards_banner_subtitle": "Gagnez des $ZNS quotidiennement avec nos quêtes"
+        "rewards_banner_subtitle": "Gagnez des $ZNS quotidiennement avec nos quêtes",
+        "balance_retrying": "Nouvelle tentative…",
+        "balance_unavailable": "Indisponible"
     },
     "id_scanning": {
         "camera_not_found": "Caméra non trouvée",
@@ -1287,7 +1462,8 @@
             "passwords": "Mots de passe",
             "subscription": "Abonnement",
             "add_password": "Ajouter un Mot de Passe",
-            "add_card": "Ajouter une Carte"
+            "add_card": "Ajouter une Carte",
+            "cards": "Cartes"
         },
         "payment_cards": {
             "title": "Cartes de Paiement",
@@ -1440,7 +1616,9 @@
                     "aria_label": "Basculer l'enregistrement en dossier"
                 },
                 "master_password": {
-                    "hint": "Nous exigeons le mot de passe {{ walletName }} pour chiffrer et stocker vos identifiants. Une vérification biométrique est toujours requise."
+                    "hint": "Nous exigeons le mot de passe {{ walletName }} pour chiffrer et stocker vos identifiants. Une vérification biométrique est toujours requise.",
+                    "label": "Mot de passe principal *",
+                    "placeholder": "Saisissez le mot de passe principal"
                 },
                 "buttons": {
                     "cancel": "Annuler",
@@ -1617,7 +1795,10 @@
                     "hide_password": "Masquer le mot de passe",
                     "copy_website": "Copier le site",
                     "copy_password": "Copier le mot de passe"
-                }
+                },
+                "title": "Détails du mot de passe",
+                "folder": "Dossier",
+                "alias": "Alias"
             },
             "form": {
                 "title": "Ajouter un mot de passe",
@@ -1646,7 +1827,8 @@
                 "master_password": {
                     "section_title": "Signer avec votre Zelf ID",
                     "label": "Nom de la Banque *",
-                    "hint": "Nous exigeons le mot de passe {{ walletName }} pour chiffrer et stocker vos identifiants. Une vérification biométrique est toujours requise."
+                    "hint": "Nous exigeons le mot de passe {{ walletName }} pour chiffrer et stocker vos identifiants. Une vérification biométrique est toujours requise.",
+                    "placeholder": "Saisissez le mot de passe principal"
                 },
                 "buttons": {
                     "save": "Enregistrer le mot de passe",
@@ -1886,7 +2068,8 @@
         "incorrect_password": "Mot de passe maître incorrect",
         "errors": {
             "invalid_setup_key": "Clé invalide. Utilisez A–Z et 2–7, au moins 16 caractères.",
-            "invalid_totp_params": "Ces paramètres de vérification ne sont pas pris en charge."
+            "invalid_totp_params": "Ces paramètres de vérification ne sont pas pris en charge.",
+            "proof_load_failed": "Impossible de charger les données chiffrées de ce code. Réessayez."
         },
         "biometrics_failed": "Échec de la vérification biométrique",
         "export": "Exporter",
@@ -1927,7 +2110,44 @@
         "recovered_setup_key": "Clé de Configuration Récupérée",
         "create_zotp_from_recovery": "Créer ZOTP à partir de la Récupération",
         "recovery_successful": "Récupération Réussie !",
-        "recovery_success_description": "Votre ZOTP a été récupéré et ajouté à votre authentificateur. Vous pouvez maintenant l'utiliser pour générer des codes."
+        "recovery_success_description": "Votre ZOTP a été récupéré et ajouté à votre authentificateur. Vous pouvez maintenant l'utiliser pour générer des codes.",
+        "protection": {
+            "label": "Protection à l'ouverture",
+            "face": "Visage uniquement",
+            "face_password": "Visage + mot de passe principal",
+            "decrypt_toggle": {
+                "title": "Exiger le mot de passe principal pour ouvrir",
+                "description": "Si cette option est activée, l'ouverture de ce ZOTP demandera aussi le mot de passe principal en plus du visage.",
+                "aria_label": "Exiger le mot de passe principal pour ouvrir ce ZOTP"
+            },
+            "face_only": {
+                "title": "Portefeuille avec visage uniquement",
+                "description": "Ce Zelf ID n'a pas de mot de passe principal. Les ZOTP s'ouvrent uniquement avec le visage."
+            },
+            "decrypt_prompt": {
+                "title": "Saisissez le mot de passe principal",
+                "description": "Ce ZOTP est protégé par le visage et le mot de passe principal du portefeuille.",
+                "continue": "Continuer vers le scan du visage"
+            },
+            "errors": {
+                "password_required": "Un mot de passe principal est requis pour ouvrir ce ZOTP."
+            }
+        },
+        "copy_code": "Copier le code",
+        "copy_setup_key": "Copier la clé de configuration",
+        "code": {
+            "title": "Votre code",
+            "refreshes_in": "Actualisation dans {{seconds}} s"
+        },
+        "decrypt": {
+            "button": "Afficher le code",
+            "decrypting": "Ouverture…"
+        },
+        "proof": {
+            "loading": "Chargement des données chiffrées…"
+        },
+        "decrypt_failed": "Impossible d'ouvrir ce ZOTP. Réessayez.",
+        "warning": "Avertissement"
     },
     "rewards": {
         "title": "Récompenses",
@@ -2147,8 +2367,61 @@
     "home_hub": {
         "quick_label_keys": "Pass",
         "quick_label_auth": "2FA",
-        "quick_label_legacy": "Legacy",
+        "quick_label_legacy": "Héritage",
         "quick_label_id": "ID",
-        "more_apps": "Plus"
+        "more_apps": "Plus",
+        "greeting": "Bienvenue",
+        "header_rewards_aria": "Récompenses",
+        "header_notifications_aria": "Notifications",
+        "subscription_title": "Offre gratuite",
+        "subscription_title_free": "Offre gratuite",
+        "subscription_title_premium": "Offre Premium",
+        "subscription_subtitle": "Gérez votre abonnement",
+        "subscription_subtitle_free": "{{ zelfId }} — prolongez à tout moment avec $ZNS",
+        "subscription_subtitle_premium": "Votre Zelf ID : {{ zelfId }}",
+        "subscription_cta": "Garder l'accès",
+        "subscription_cta_free": "Garder l'accès",
+        "subscription_cta_premium": "Gérer le Zelf ID",
+        "subscription_countdown_free_expired": "Votre domaine gratuit a expiré — utilisez $ZNS pour le prolonger dans Gérer les domaines.",
+        "subscription_countdown_free_one_day": "Il reste 1 jour sur votre domaine gratuit — prolongez avec $ZNS à tout moment.",
+        "subscription_countdown_free_days": "Il reste {{ days }} jours sur votre domaine gratuit — prolongez avec $ZNS à tout moment.",
+        "subscription_countdown_premium_expired": "Renouvellement requis — utilisez Gérer le Zelf ID pour mettre à jour l'abonnement.",
+        "subscription_countdown_premium_one_day": "Il reste 1 jour sur votre Zelf ID.",
+        "subscription_countdown_premium_days": "Il reste {{ days }} jours sur votre Zelf ID.",
+        "subscription_countdown_unknown": "Gérez votre Zelf ID dans Gérer les domaines.",
+        "subscription_countdown_unit_days": "Jours",
+        "subscription_countdown_unit_hours": "Heures",
+        "enabled_networks_label": "Réseaux actifs",
+        "start_here_title": "Commencez ici",
+        "start_here_subtitle": "Terminez le guide de démarrage et gagnez $ZNS",
+        "start_here_progress": "{{ current }} / {{ total }}",
+        "quick_label_signals": "zSignals",
+        "promo_placeholder_title": "Gestionnaire de mots de passe, à partir de 5,99 $ par mois.",
+        "promo_placeholder_cta": "Explorer",
+        "signals_heading": "Zelf Signals",
+        "signals_explore": "Explorer",
+        "signals_placeholder_title": "À la une de Zelf Signals",
+        "signals_placeholder_body": "Les points marché et actifs apparaîtront ici.",
+        "ai_heading": "Zelf AI",
+        "ai_subtitle": "L'assistant Zelf AI sera bientôt disponible.",
+        "ai_assistant_title": "Assistant Web3 intelligent",
+        "ai_assistant_desc": "Commandes en langage naturel, analyse de contrats et informations.",
+        "ai_security_title": "Simulation intelligente des transactions",
+        "ai_security_desc": "Contrôles de sécurité avant exécution et détection de fraude.",
+        "header_profile_aria": "Profil",
+        "header_collapse_aria": "Masquer le nom",
+        "header_expand_aria": "Afficher le nom",
+        "add_account_aria": "Ajouter un compte"
+    },
+    "welcomeZelfid": {
+        "plan_free": "Zelf ID gratuit — à vous pendant 100 ans. Vous pourrez passer à une offre supérieure plus tard.",
+        "plan_short_hold": "Zelf ID gratuit — à vous pendant 100 ans, noms courts inclus.",
+        "plan_unlimited": "Zelf ID gratuit — à vous pendant 100 ans.",
+        "plan_label": "Offre : {{ plan }}",
+        "hold_subtitle": "Votre Zelf ID est gratuit pendant 100 ans."
+    },
+    "superapp": {
+        "connecting_with": "Connexion à {{appName}}",
+        "working_with": "Travail sécurisé avec {{appName}}"
     }
 }

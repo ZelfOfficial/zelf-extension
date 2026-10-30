@@ -361,7 +361,8 @@
             "zelf_name_label": "Zelf ID: {{ zelfName }}",
             "category_label": "Category: {{ category }}",
             "type_label": "Type: {{ type }}",
-            "secure_credential": "Secure credential"
+            "secure_credential": "Secure credential",
+            "secure_note": "Secure note"
         },
         "data_types": {
             "note": "Note",
@@ -407,7 +408,9 @@
                 "storage_failed": "Error during storage of {{ category }}, please try again later.",
                 "try_again_later": "Please try again later.",
                 "close": "Close"
-            }
+            },
+            "authorize_title": "Verify your identity",
+            "authorize_instructions": "Position your face in the frame to continue."
         },
         "popout_decryptor": {
             "back": "Back",
@@ -504,9 +507,12 @@
                         "token_id": "Token ID",
                         "cost": "Cost",
                         "contract": "Contract",
-                        "transaction": "Transaction"
+                        "transaction": "Transaction",
+                        "metadata_url": "Metadata URL"
                     },
-                    "image_alt": "ZelfKey NFT"
+                    "image_alt": "ZelfKey NFT",
+                    "metadata_link": "View metadata",
+                    "copy_hint": "Click to copy"
                 },
                 "ipfs": {
                     "title": "IPFS Storage",
@@ -692,7 +698,9 @@
             "classic_fund_first": "This asset cannot be sent until the recipient has a funded Stellar account. Send native XLM first to create their account.",
             "classic_trustline": "The recipient must add a trustline for this asset before they can receive it.",
             "invalid_amount": "Enter a valid amount to continue."
-        }
+        },
+        "transaction_sent": "Transaction sent",
+        "transaction_failed": "Could not send the transaction"
     },
     "transaction": {
         "go_to_my_history": "Go to my history",
@@ -1088,7 +1096,7 @@
         "upload_qr_image": "Upload QR image",
         "verify": "Verify",
         "website": "Website",
-        "withdraw": "Withdraw",
+        "withdraw": "Send",
         "withdrawal_network": "Withdrawal network",
         "yes": "Yes",
         "your_token": "Your {{ symbol }}",
@@ -1107,7 +1115,8 @@
         "ton_address": "TON Address",
         "validity_one_year": "Validity: 1 year",
         "validity_years": "Validity: {{years}} years",
-        "aptos_address": "Aptos Address"
+        "aptos_address": "Aptos Address",
+        "error": "Error"
     },
     "token": {
         "24h_performance": "24h Performance",
@@ -1260,7 +1269,8 @@
         "encryption_key_didnt_match": "Your session encryption key is out of date. Reload the extension and try again.",
         "failed_to_decrypt": "We could not decrypt your Zelf ID. Check your password and face verification, then try again.",
         "ERR_MISSING_PASSWORD": "This key is protected with your master password. Enter it and try again.",
-        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name."
+        "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name.",
+        "unknown": "Unknown error"
     },
     "swap": {
         "all_networks": "All networks",
@@ -1396,7 +1406,11 @@
         "ai_assistant_desc": "Natural language commands, contract analysis & insights.",
         "ai_security_title": "Smart Transaction Simulation",
         "ai_security_desc": "Pre-execution security checks and automated fraud detection.",
-        "more_apps": "More"
+        "more_apps": "More",
+        "header_profile_aria": "Profile",
+        "header_collapse_aria": "Hide wallet name",
+        "header_expand_aria": "Show wallet name",
+        "add_account_aria": "Add account"
     },
     "id_scanning": {
         "camera_not_found": "Camera not found",

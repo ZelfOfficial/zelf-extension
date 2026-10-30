@@ -10,7 +10,9 @@
             "back_to_payment_cards": "결제 카드 목록으로 돌아가기",
             "add_another_card": "다른 카드 추가",
             "try_again": "다시 시도",
-            "image_not_available": "이미지를 사용할 수 없음"
+            "image_not_available": "이미지를 사용할 수 없음",
+            "proof_loading": "암호화된 데이터 로드 중…",
+            "proof_load_failed": "이 항목의 암호화된 데이터를 불러오지 못했습니다. 다시 시도하세요."
         },
         "payment_cards": {
             "labels": {
@@ -196,6 +198,39 @@
                 "premium_plan": "프리미엄 플랜",
                 "not_available": "해당 없음",
                 "month": "월"
+            },
+            "stripe_checkout": {
+                "interval_year": "년",
+                "waiting": {
+                    "title": "Stripe에서 결제 완료",
+                    "message": "새 탭에서 Stripe를 열었습니다. 그곳에서 결제를 마치고 이 화면은 열어 두세요. 자동으로 업데이트됩니다."
+                },
+                "confirmed": {
+                    "title": "결제 확인됨",
+                    "message": "{{ planName }}이(가) 계정에서 활성화되었습니다."
+                },
+                "cancelled": {
+                    "title": "결제가 취소되었습니다",
+                    "message": "다른 플랜을 고르거나 준비가 되면 Stripe를 다시 시도할 수 있습니다."
+                },
+                "failed": {
+                    "title": "결제를 확인하지 못했습니다",
+                    "message": "구독을 확인하는 중 문제가 발생했습니다. 다시 시도하거나 다른 플랜을 선택하세요."
+                },
+                "expired": {
+                    "title": "확인을 기다리는 중",
+                    "message": "아직 Stripe 확인을 받지 못했습니다.",
+                    "hint": "이미 결제했다면 최대 1분이 걸릴 수 있습니다. 다시 확인하거나 Stripe를 다시 여세요."
+                },
+                "actions": {
+                    "reopen_stripe": "Stripe 결제 다시 열기",
+                    "check_now": "이미 결제함 / 지금 확인",
+                    "check_again": "다시 확인",
+                    "cancel": "취소하고 다른 플랜 선택",
+                    "continue": "계속",
+                    "choose_plan": "플랜으로 돌아가기",
+                    "try_stripe_again": "Stripe 다시 시도"
+                }
             }
         },
         "biometrics": {
@@ -244,7 +279,8 @@
             "zelf_name_label": "Zelf ID: {{ zelfName }}",
             "category_label": "카테고리: {{ category }}",
             "type_label": "유형: {{ type }}",
-            "secure_credential": "보안 자격 증명"
+            "secure_credential": "보안 자격 증명",
+            "secure_note": "보안 메모"
         },
         "data_types": {
             "note": "노트",
@@ -287,7 +323,12 @@
                 "storage_failed": "{{ category }} 저장 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.",
                 "try_again_later": "나중에 다시 시도해 주세요.",
                 "close": "닫기"
-            }
+            },
+            "delete_payment_card": "신원 확인 후 카드 삭제",
+            "delete_note": "신원 확인 후 메모 삭제",
+            "delete_password": "신원 확인 후 비밀번호 삭제",
+            "authorize_title": "신원 확인",
+            "authorize_instructions": "계속하려면 프레임 안에 얼굴을 맞추세요."
         },
         "popout_decryptor": {
             "back": "뒤로",
@@ -315,7 +356,30 @@
                 "payment-card": "결제 카드",
                 "wallet": "지갑",
                 "zotp": "ZOTP"
-            }
+            },
+            "master_password_action_subtitle": "Zelf ID 비밀번호를 입력한 뒤 얼굴 인증으로 계속하세요.",
+            "verified": "Zelf에서 확인됨",
+            "copy_password": "비밀번호 복사",
+            "copy_card_number": "카드 번호 복사",
+            "copy_expiry": "만료일 복사",
+            "copy_cvv": "CVV 복사",
+            "extension_only": "이 비밀번호는 Zelf 확장 프로그램 안에 남습니다.",
+            "card_extension_only": "카드 번호와 CVV는 Zelf 확장 프로그램 안에 남습니다.",
+            "done": "완료",
+            "create_heading": "새 비밀번호",
+            "create_title": "새 비밀번호 암호화",
+            "create_processing": "Zelf에서 암호화 중...",
+            "create_master_password": "마스터 비밀번호(사용 시)",
+            "verify_create": "얼굴로 확인",
+            "delete_title": "이 비밀번호를 삭제할까요?",
+            "delete_description": "암호화된 기록을 삭제합니다. 계속하려면 얼굴을 확인하세요.",
+            "delete_master_password": "마스터 비밀번호(사용 시)",
+            "verify_delete": "확인 후 삭제",
+            "request_expired": "이 요청이 만료되었습니다. SuperApp으로 돌아가 다시 시도하세요.",
+            "missing_request": "보안 요청이 불완전합니다. SuperApp으로 돌아가 다시 시도하세요.",
+            "insufficient_zns": "이 비밀번호를 저장하려면 최소 {{amount}} ZNS가 필요합니다.",
+            "checking_zns": "ZNS 잔액 확인 중...",
+            "zns_check_failed": "ZNS 잔액을 확인하지 못했습니다. 연결을 확인하고 다시 시도하세요."
         },
         "password_biometrics": {
             "back_to_details": "비밀번호 상세로 돌아가기",
@@ -361,9 +425,12 @@
                         "token_id": "토큰 ID",
                         "cost": "비용",
                         "contract": "컨트랙트",
-                        "transaction": "트랜잭션"
+                        "transaction": "트랜잭션",
+                        "metadata_url": "메타데이터 URL"
                     },
-                    "image_alt": "ZelfKey NFT"
+                    "image_alt": "ZelfKey NFT",
+                    "metadata_link": "메타데이터 보기",
+                    "copy_hint": "클릭하여 복사"
                 },
                 "ipfs": {
                     "title": "결제 카드 정보",
@@ -486,7 +553,84 @@
         "vault": {
             "reverify_title": "항목을 보려면 다시 확인하세요",
             "reverify_description": "이 세션으로는 금고를 열 수 없습니다. 얼굴을 다시 확인해 비밀번호와 카드를 불러오세요.",
-            "reverify_action": "다시 확인"
+            "reverify_action": "다시 확인",
+            "eyebrow": "비밀번호 관리자",
+            "title": "내 개인 금고",
+            "subtitle": "암호화된 항목을 찾아 엽니다.",
+            "trust": "비밀과 생체 인증 동작은 Zelf 안에 머뭅니다.",
+            "stats_label": "금고 합계",
+            "stat_total": "항목",
+            "stat_passwords": "비밀번호",
+            "stat_cards": "카드",
+            "stat_notes": "메모",
+            "add_password": "비밀번호 추가",
+            "add_card": "카드 추가",
+            "search": "금고 검색",
+            "filter_folder": "폴더로 필터",
+            "all_folders": "모든 폴더",
+            "refresh": "금고 새로고침",
+            "loading": "개인 금고를 여는 중…",
+            "load_error": "금고를 열 수 없습니다",
+            "retry": "다시 시도",
+            "empty_title": "금고가 준비되었습니다",
+            "empty_description": "비밀번호나 카드를 추가해 얼굴로 보호하세요.",
+            "add_first": "첫 비밀번호 추가",
+            "no_results": "결과 없음",
+            "no_results_description": "다른 검색어나 폴더를 시도하세요.",
+            "alias": "별칭",
+            "alias_placeholder": "개인, 업무, 기본…",
+            "delete": "항목 삭제",
+            "delete_confirm": "이 항목을 영구 삭제할까요?",
+            "delete_description": "얼굴 인증으로 금고에서 제거합니다.",
+            "deleting": "삭제 중…",
+            "delete_failed": "이 항목을 삭제하지 못했습니다. 다시 시도하세요.",
+            "export_vault": "금고 내보내기",
+            "export_item": "내보내기",
+            "import_vault": "비밀번호 가져오기",
+            "more_options": "추가 옵션",
+            "master_password_label": "마스터 비밀번호",
+            "master_password_placeholder": "마스터 비밀번호 입력",
+            "export_title": "비밀번호 내보내기",
+            "export_subtitle": "다른 비밀번호 관리자와 호환되는 자격 증명을 내보냅니다.",
+            "export_single_subtitle": "다른 비밀번호 관리자로 내보내기.",
+            "export_biometrics_required": "얼굴 인증",
+            "export_biometrics_explain": "얼굴 인증으로 비밀번호 {{count}}개를 복호화합니다.",
+            "export_local_only": "기기 메모리에서만 복호화 · 기기를 떠나지 않습니다",
+            "export_scan_face_btn": "얼굴로 확인",
+            "export_face_instructions": "내보내기를 허용하려면 타원 안에 얼굴을 맞추세요.",
+            "export_decrypting_title": "자격 증명 복호화 중",
+            "export_ready_count": "내보낼 비밀번호 {{count}}개",
+            "export_failed_count": "{{count}}개 복호화 실패",
+            "export_format_label": "형식",
+            "export_preview_label": "미리보기",
+            "download_file": "다운로드",
+            "copy_to_clipboard": "복사",
+            "copied": "복사됨",
+            "import_title": "비밀번호 가져오기",
+            "import_subtitle": "비밀번호 관리자의 파일을 선택하세요.",
+            "import_drop_title": "파일을 여기에 놓기",
+            "import_drop_subtitle": "LastPass, Bitwarden, 1Password, Chrome, Apple, KeePassXC",
+            "import_browse_btn": "파일 찾아보기",
+            "import_paste_label": "또는 원문 붙여넣기",
+            "import_paste_placeholder": "내보낸 CSV 또는 JSON 붙여넣기...",
+            "import_parse_btn": "미리보기",
+            "import_switch_file": "대신 파일 업로드",
+            "import_switch_paste": "대신 텍스트 붙여넣기",
+            "import_detected": "감지됨",
+            "select_all": "모두 선택",
+            "deselect_all": "모두 선택 해제",
+            "import_selected_count": "{{total}}개 중 {{selected}}개 선택",
+            "import_back": "뒤로",
+            "import_now_btn": "확인 후 가져오기 ({{count}})",
+            "import_face_instructions": "얼굴을 스캔해 비밀번호를 암호화하고 저장합니다.",
+            "import_store_mode_label": "저장 API (개발)",
+            "import_store_mode_one_by_one": "One-by-one (/store/password)",
+            "import_store_mode_bulk": "Bulk (/store/passwords)",
+            "importing_title": "비밀번호 암호화 중",
+            "import_success_title": "가져오기 완료",
+            "import_success_desc": "비밀번호 {{count}}개가 금고에 보호되었습니다.",
+            "import_failed_notice": "{{count}}개 항목을 가져오지 못했습니다:",
+            "import_done_btn": "완료"
         }
     },
     "cancel": "취소",
@@ -538,12 +682,12 @@
         "zelf_name_registered": "Zelf ID가 등록됨",
         "from_address": "보내는 주소",
         "private_transaction": "프라이빗 트랜잭션",
-        "amount_inline_required": "Required",
-        "amount_inline_invalid": "Invalid amount",
-        "amount_inline_min": "Min {{amount}}",
-        "amount_inline_max": "Max {{amount}}",
-        "memo_optional": "Memo (optional)",
-        "memo_placeholder": "Exchange or note (max 28 characters)",
+        "amount_inline_required": "필수",
+        "amount_inline_invalid": "잘못된 금액",
+        "amount_inline_min": "최소 {{amount}}",
+        "amount_inline_max": "최대 {{amount}}",
+        "memo_optional": "메모 (선택)",
+        "memo_placeholder": "거래소 또는 메모 (최대 28자)",
         "stellar": {
             "below_min": "금액이 새 Stellar 계정을 여는 데 필요한 최소치({{min}} XLM)보다 작습니다.",
             "new_account_title": "새 Stellar 계정",
@@ -554,7 +698,9 @@
             "classic_fund_first": "수신자의 Stellar 계정에 자금이 들어가기 전에는 이 자산을 보낼 수 없습니다. 먼저 기본 XLM을 보내 계정을 만드세요.",
             "classic_trustline": "수신자는 받기 전에 이 자산에 대한 트러스트라인을 추가해야 합니다.",
             "invalid_amount": "계속하려면 유효한 금액을 입력하세요."
-        }
+        },
+        "transaction_sent": "거래를 보냈습니다",
+        "transaction_failed": "거래를 보내지 못했습니다"
     },
     "transaction": {
         "go_to_my_history": "내 내역으로 이동",
@@ -712,6 +858,17 @@
             "system": "시스템",
             "light": "라이트",
             "dark": "다크"
+        },
+        "notifications_label": "알림",
+        "notifications": {
+            "title": "알림",
+            "description": "받을 알림을 선택하세요.",
+            "news": "뉴스 / 업데이트",
+            "news_description": "제품 뉴스와 공지.",
+            "push": "푸시 알림",
+            "push_description": "이 기기에서 푸시 알림을 허용합니다.",
+            "send_receive": "보내기 및 받기",
+            "send_receive_description": "자산을 보내거나 받을 때 알림을 받습니다."
         }
     },
     "security": {
@@ -773,14 +930,21 @@
             "risk_3_native": "네이티브 {{ symbol }}만 보내세요. 다른 네트워크의 토큰은 이 주소와 호환되지 않습니다.",
             "risk_4_title": "소액으로 테스트",
             "risk_4": "이 주소로 처음 보내시나요? 큰 금액 전에 소액 {{ symbol }} 거래부터 시작하세요."
+        },
+        "generate_substrate": {
+            "title": "{{ symbol }} 주소가 아직 준비되지 않았습니다",
+            "line_1": "이 네트워크에서 {{ fullTagName }}의 수신 주소가 아직 생성되지 않았습니다.",
+            "line_2": "만들려면 금고를 한 번 복호화하고 새 주소를 공개 프로필에 연결합니다. 이 일회성 단계는 아래에서 확인할 때만 실행됩니다.",
+            "line_3": "지갑을 동기화할 때 이미 쓰는 복호화 과정이 이 데이터를 가져와 저장합니다.",
+            "line_4": "얼굴 인증 후 업데이트된 주소가 이 기기에 자동으로 저장됩니다."
         }
     },
     "apps_hub": {
-        "label_wallet": "Wallet",
-        "label_keys": "Password Manager",
+        "label_wallet": "지갑",
+        "label_keys": "비밀번호 관리자",
         "label_auth": "2FA",
-        "label_id": "ID",
-        "label_legacy": "Legacy",
+        "label_id": "신원",
+        "label_legacy": "상속",
         "label_ai": "zAI"
     },
     "common": {
@@ -916,10 +1080,10 @@
         "unlock": "본인 인증 계속하기",
         "upload_qr_image": "QR 이미지 업로드",
         "verify": "확인",
-        "wallet_short": "Wallet",
+        "wallet_short": "지갑",
         "keys_short": "Pass",
         "website": "웹사이트",
-        "withdraw": "출금",
+        "withdraw": "보내기",
         "withdrawal_network": "출금 네트워크",
         "yes": "예",
         "your_token": "귀하의 {{ symbol }}",
@@ -928,17 +1092,24 @@
         "zelf_chat": "zChat",
         "zelf_chat_coming_soon": "Zelf Chat이 곧 제공됩니다.",
         "zelf_chats": "zChats",
-        "zelf_keys": "Password Manager",
+        "zelf_keys": "비밀번호 관리자",
         "zelf_link": "Zelf 링크",
         "zelf_signals": "zSignals",
         "zelf_signals_coming_soon": "Zelf Signals가 곧 제공됩니다.",
-        "legacy": "Legacy",
+        "legacy": "상속",
         "legacy_coming_soon": "Legacy가 곧 제공됩니다.",
-        "zelf_wallet": "Wallet",
+        "zelf_wallet": "지갑",
         "ton_address": "TON 주소",
         "validity_one_year": "유효 기간: 1년",
         "validity_years": "유효 기간: {{years}}년",
-        "aptos_address": "Aptos 주소"
+        "aptos_address": "Aptos 주소",
+        "add": "추가",
+        "done": "완료",
+        "hide_password": "비밀번호 숨기기",
+        "loading": "로드 중…",
+        "show_password": "비밀번호 표시",
+        "zelf_id": "Zelf ID",
+        "error": "오류"
     },
     "token": {
         "24h_performance": "24시간 성과",
@@ -969,7 +1140,8 @@
         "info_description": "계정을 보호하기 위해 QR 코드를 안전하게 보관하세요. 다운로드하여 안전한 곳에 저장하세요.",
         "private_key": "시드 구문",
         "addresses": "주소",
-        "info": "정보"
+        "info": "정보",
+        "action_sync": "동기화"
     },
     "private_key": {
         "description": "시드 구문을 보려면 보안 인증 단계를 완료하세요.",
@@ -1094,7 +1266,8 @@
         "face_locked": "얼굴 인증이 일시적으로 잠겼습니다. {{ time }} 후에 다시 시도하세요.",
         "face_locked_about_minutes": "약 {{ minutes }}분",
         "face_locked_about_hours": "약 {{ hours }}시간",
-        "face_replay_detected": "이 사진은 이미 사용되었습니다. 새 사진을 찍고 다시 시도하세요."
+        "face_replay_detected": "이 사진은 이미 사용되었습니다. 새 사진을 찍고 다시 시도하세요.",
+        "unknown": "알 수 없는 오류"
     },
     "swap": {
         "automatic": "자동",
@@ -1183,7 +1356,9 @@
         "show_balances": "잔액 보기",
         "recent_transactions": "최근 거래",
         "rewards_banner_title": "보상 받기",
-        "rewards_banner_subtitle": "퀘스트로 매일 $ZNS 받기"
+        "rewards_banner_subtitle": "퀘스트로 매일 $ZNS 받기",
+        "balance_retrying": "다시 시도 중…",
+        "balance_unavailable": "사용할 수 없음"
     },
     "id_scanning": {
         "camera_not_found": "카메라를 찾을 수 없습니다",
@@ -1287,7 +1462,8 @@
             "passwords": "비밀번호",
             "subscription": "구독",
             "add_password": "비밀번호 추가",
-            "add_card": "결제 카드 추가"
+            "add_card": "결제 카드 추가",
+            "cards": "카드"
         },
         "payment_cards": {
             "title": "결제 카드",
@@ -1440,7 +1616,9 @@
                     "aria_label": "폴더 저장 토글"
                 },
                 "master_password": {
-                    "hint": "자격 증명을 암호화하여 저장하려면 {{ walletName }} 비밀번호가 필요합니다. 생체 인증은 항상 요구됩니다."
+                    "hint": "자격 증명을 암호화하여 저장하려면 {{ walletName }} 비밀번호가 필요합니다. 생체 인증은 항상 요구됩니다.",
+                    "label": "마스터 비밀번호 *",
+                    "placeholder": "마스터 비밀번호 입력"
                 },
                 "buttons": {
                     "cancel": "취소",
@@ -1617,7 +1795,10 @@
                     "hide_password": "비밀번호 숨기기",
                     "copy_website": "웹사이트 복사",
                     "copy_password": "비밀번호 복사"
-                }
+                },
+                "title": "비밀번호 세부정보",
+                "folder": "폴더",
+                "alias": "별칭"
             },
             "form": {
                 "title": "결제 카드 정보",
@@ -1646,7 +1827,8 @@
                 "master_password": {
                     "section_title": "Zelf ID로 서명",
                     "label": "은행명 *",
-                    "hint": "자격 증명을 암호화하여 저장하려면 {{ walletName }} 비밀번호가 필요합니다. 생체 인증은 항상 요구됩니다."
+                    "hint": "자격 증명을 암호화하여 저장하려면 {{ walletName }} 비밀번호가 필요합니다. 생체 인증은 항상 요구됩니다.",
+                    "placeholder": "마스터 비밀번호 입력"
                 },
                 "buttons": {
                     "save": "비밀번호 저장",
@@ -1886,7 +2068,8 @@
         "incorrect_password": "마스터 비밀번호가 올바르지 않습니다",
         "errors": {
             "invalid_setup_key": "설정 키가 올바르지 않습니다. A–Z와 2–7, 16자 이상.",
-            "invalid_totp_params": "이 인증 설정은 지원되지 않습니다."
+            "invalid_totp_params": "이 인증 설정은 지원되지 않습니다.",
+            "proof_load_failed": "이 코드의 암호화된 데이터를 불러오지 못했습니다. 다시 시도하세요."
         },
         "biometrics_failed": "생체 인증 실패",
         "export": "내보내기",
@@ -1927,7 +2110,44 @@
         "recovered_setup_key": "복구된 설정 키",
         "create_zotp_from_recovery": "복구된 키로 ZOTP 생성",
         "recovery_successful": "복구 성공!",
-        "recovery_success_description": "ZOTP가 성공적으로 복구되어 인증기에 추가되었습니다. 이제 인증 코드를 생성하는 데 사용할 수 있습니다."
+        "recovery_success_description": "ZOTP가 성공적으로 복구되어 인증기에 추가되었습니다. 이제 인증 코드를 생성하는 데 사용할 수 있습니다.",
+        "protection": {
+            "label": "열기 보호",
+            "face": "얼굴만",
+            "face_password": "얼굴 + 마스터 비밀번호",
+            "decrypt_toggle": {
+                "title": "열 때 마스터 비밀번호 요구",
+                "description": "켜면 이 ZOTP를 열 때 얼굴 인증과 함께 지갑 마스터 비밀번호도 요청합니다.",
+                "aria_label": "이 ZOTP를 열 때 마스터 비밀번호 요구"
+            },
+            "face_only": {
+                "title": "얼굴 전용 지갑",
+                "description": "이 Zelf ID에는 마스터 비밀번호가 없습니다. ZOTP는 얼굴 인증으로만 열립니다."
+            },
+            "decrypt_prompt": {
+                "title": "마스터 비밀번호 입력",
+                "description": "이 ZOTP는 얼굴과 지갑 마스터 비밀번호로 보호됩니다.",
+                "continue": "얼굴 스캔으로 계속"
+            },
+            "errors": {
+                "password_required": "이 ZOTP를 열려면 마스터 비밀번호가 필요합니다."
+            }
+        },
+        "copy_code": "코드 복사",
+        "copy_setup_key": "설정 키 복사",
+        "code": {
+            "title": "내 코드",
+            "refreshes_in": "{{seconds}}초 후 새로고침"
+        },
+        "decrypt": {
+            "button": "코드 표시",
+            "decrypting": "여는 중…"
+        },
+        "proof": {
+            "loading": "암호화된 데이터 로드 중…"
+        },
+        "decrypt_failed": "이 ZOTP를 열 수 없습니다. 다시 시도하세요.",
+        "warning": "경고"
     },
     "rewards": {
         "title": "보상",
@@ -2147,8 +2367,61 @@
     "home_hub": {
         "quick_label_keys": "Pass",
         "quick_label_auth": "2FA",
-        "quick_label_legacy": "Legacy",
+        "quick_label_legacy": "상속",
         "quick_label_id": "ID",
-        "more_apps": "더보기"
+        "more_apps": "더보기",
+        "greeting": "환영합니다",
+        "header_rewards_aria": "리워드",
+        "header_notifications_aria": "알림",
+        "subscription_title": "무료 플랜",
+        "subscription_title_free": "무료 플랜",
+        "subscription_title_premium": "프리미엄 플랜",
+        "subscription_subtitle": "구독 관리",
+        "subscription_subtitle_free": "{{ zelfId }} — $ZNS로 언제든 연장",
+        "subscription_subtitle_premium": "내 Zelf ID: {{ zelfId }}",
+        "subscription_cta": "액세스 유지",
+        "subscription_cta_free": "액세스 유지",
+        "subscription_cta_premium": "Zelf ID 관리",
+        "subscription_countdown_free_expired": "무료 도메인이 만료되었습니다 — 도메인 관리에서 $ZNS로 연장하세요.",
+        "subscription_countdown_free_one_day": "무료 도메인이 1일 남았습니다 — $ZNS로 언제든 연장하세요.",
+        "subscription_countdown_free_days": "무료 도메인이 {{ days }}일 남았습니다 — $ZNS로 언제든 연장하세요.",
+        "subscription_countdown_premium_expired": "갱신이 필요합니다 — Zelf ID 관리에서 구독을 업데이트하세요.",
+        "subscription_countdown_premium_one_day": "Zelf ID가 1일 남았습니다.",
+        "subscription_countdown_premium_days": "Zelf ID가 {{ days }}일 남았습니다.",
+        "subscription_countdown_unknown": "도메인 관리에서 Zelf ID를 관리하세요.",
+        "subscription_countdown_unit_days": "일",
+        "subscription_countdown_unit_hours": "시간",
+        "enabled_networks_label": "활성 네트워크",
+        "start_here_title": "여기서 시작",
+        "start_here_subtitle": "시작 가이드를 완료하고 $ZNS를 받으세요",
+        "start_here_progress": "{{ current }} / {{ total }}",
+        "quick_label_signals": "zSignals",
+        "promo_placeholder_title": "비밀번호 관리자, 월 $5.99부터.",
+        "promo_placeholder_cta": "지금 살펴보기",
+        "signals_heading": "Zelf Signals",
+        "signals_explore": "살펴보기",
+        "signals_placeholder_title": "Zelf Signals 하이라이트",
+        "signals_placeholder_body": "시장과 자산 하이라이트가 여기에 표시됩니다.",
+        "ai_heading": "Zelf AI",
+        "ai_subtitle": "Zelf AI 어시스턴트가 곧 제공됩니다.",
+        "ai_assistant_title": "지능형 Web3 어시스턴트",
+        "ai_assistant_desc": "자연어 명령, 컨트랙트 분석 및 인사이트.",
+        "ai_security_title": "스마트 거래 시뮬레이션",
+        "ai_security_desc": "실행 전 보안 검사와 사기 탐지.",
+        "header_profile_aria": "프로필",
+        "header_collapse_aria": "이름 숨기기",
+        "header_expand_aria": "이름 표시",
+        "add_account_aria": "계정 추가"
+    },
+    "welcomeZelfid": {
+        "plan_free": "무료 Zelf ID — 100년 동안 내 것. 나중에 업그레이드할 수 있습니다.",
+        "plan_short_hold": "무료 Zelf ID — 100년 동안 내 것, 짧은 이름 포함.",
+        "plan_unlimited": "무료 Zelf ID — 100년 동안 내 것.",
+        "plan_label": "플랜: {{ plan }}",
+        "hold_subtitle": "Zelf ID는 100년 동안 무료입니다."
+    },
+    "superapp": {
+        "connecting_with": "{{appName}}에 연결 중",
+        "working_with": "{{appName}}와 안전하게 작업 중"
     }
 }

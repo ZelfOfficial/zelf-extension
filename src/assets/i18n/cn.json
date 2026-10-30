@@ -10,7 +10,9 @@
             "back_to_payment_cards": "返回支付卡",
             "add_another_card": "添加另一张卡",
             "try_again": "重试",
-            "image_not_available": "图片不可用"
+            "image_not_available": "图片不可用",
+            "proof_loading": "正在加载加密数据…",
+            "proof_load_failed": "无法加载此项目的加密数据。请重试。"
         },
         "payment_cards": {
             "labels": {
@@ -196,6 +198,39 @@
                 "premium_plan": "高级计划",
                 "not_available": "不适用",
                 "month": "月"
+            },
+            "stripe_checkout": {
+                "interval_year": "年",
+                "waiting": {
+                    "title": "在 Stripe 完成付款",
+                    "message": "我们在新标签页打开了 Stripe。请在那里完成付款并保持此页面打开，我们会自动更新。"
+                },
+                "confirmed": {
+                    "title": "付款已确认",
+                    "message": "{{ planName }} 已在你的账户上生效。"
+                },
+                "cancelled": {
+                    "title": "已取消结账",
+                    "message": "你可以选择其他方案，或随时再次尝试 Stripe。"
+                },
+                "failed": {
+                    "title": "无法验证付款",
+                    "message": "检查订阅时出错。你可以重试或选择其他方案。"
+                },
+                "expired": {
+                    "title": "仍在等待确认",
+                    "message": "我们尚未收到 Stripe 的确认。",
+                    "hint": "如果已经付款，可能需要最多一分钟。请再次检查或重新打开 Stripe。"
+                },
+                "actions": {
+                    "reopen_stripe": "重新打开 Stripe 结账",
+                    "check_now": "我已付款 / 立即检查",
+                    "check_again": "再次检查",
+                    "cancel": "取消并选择其他方案",
+                    "continue": "继续",
+                    "choose_plan": "返回方案",
+                    "try_stripe_again": "再次尝试 Stripe"
+                }
             }
         },
         "biometrics": {
@@ -244,7 +279,8 @@
             "zelf_name_label": "Zelf ID: {{ zelfName }}",
             "category_label": "类别: {{ category }}",
             "type_label": "类型: {{ type }}",
-            "secure_credential": "安全凭证"
+            "secure_credential": "安全凭证",
+            "secure_note": "安全笔记"
         },
         "data_types": {
             "note": "笔记",
@@ -287,7 +323,12 @@
                 "storage_failed": "存储 {{ category }} 时出错，请稍后重试。",
                 "try_again_later": "请稍后重试。",
                 "close": "关闭"
-            }
+            },
+            "delete_payment_card": "验证身份以删除支付卡",
+            "delete_note": "验证身份以删除笔记",
+            "delete_password": "验证身份以删除密码",
+            "authorize_title": "验证你的身份",
+            "authorize_instructions": "将面部置于框内以继续。"
         },
         "popout_decryptor": {
             "back": "返回",
@@ -315,7 +356,30 @@
                 "payment-card": "支付卡",
                 "wallet": "钱包",
                 "zotp": "ZOTP"
-            }
+            },
+            "master_password_action_subtitle": "输入 Zelf ID 密码，然后用人脸验证以继续。",
+            "verified": "已在 Zelf 验证",
+            "copy_password": "复制密码",
+            "copy_card_number": "复制卡号",
+            "copy_expiry": "复制有效期",
+            "copy_cvv": "复制 CVV",
+            "extension_only": "此密码只保留在 Zelf 扩展中。",
+            "card_extension_only": "卡号和 CVV 只保留在 Zelf 扩展中。",
+            "done": "完成",
+            "create_heading": "新密码",
+            "create_title": "加密新密码",
+            "create_processing": "正在 Zelf 中加密...",
+            "create_master_password": "主密码（如已启用）",
+            "verify_create": "用人脸验证",
+            "delete_title": "删除此密码？",
+            "delete_description": "这将删除加密记录。验证面部以继续。",
+            "delete_master_password": "主密码（如已启用）",
+            "verify_delete": "验证并删除",
+            "request_expired": "此请求已过期。请返回 SuperApp 重试。",
+            "missing_request": "安全请求不完整。请返回 SuperApp 重试。",
+            "insufficient_zns": "保存此密码至少需要 {{amount}} ZNS。",
+            "checking_zns": "正在检查 ZNS 余额...",
+            "zns_check_failed": "无法确认你的 ZNS 余额。请检查网络后重试。"
         },
         "password_biometrics": {
             "back_to_details": "返回密码详情",
@@ -361,9 +425,12 @@
                         "token_id": "代币 ID",
                         "cost": "费用",
                         "contract": "合约",
-                        "transaction": "交易"
+                        "transaction": "交易",
+                        "metadata_url": "元数据 URL"
                     },
-                    "image_alt": "ZelfKey NFT"
+                    "image_alt": "ZelfKey NFT",
+                    "metadata_link": "查看元数据",
+                    "copy_hint": "点击复制"
                 },
                 "ipfs": {
                     "title": "IPFS 存储",
@@ -486,7 +553,84 @@
         "vault": {
             "reverify_title": "重新验证以查看你的项目",
             "reverify_description": "当前会话还不能打开保险库。请再次验证面容以加载密码和银行卡。",
-            "reverify_action": "重新验证"
+            "reverify_action": "重新验证",
+            "eyebrow": "密码管理器",
+            "title": "你的私人保险箱",
+            "subtitle": "查找并打开你的加密项目。",
+            "trust": "机密和生物识别操作都留在 Zelf 内。",
+            "stats_label": "保险箱统计",
+            "stat_total": "项目",
+            "stat_passwords": "密码",
+            "stat_cards": "卡片",
+            "stat_notes": "笔记",
+            "add_password": "添加密码",
+            "add_card": "添加卡片",
+            "search": "搜索保险箱",
+            "filter_folder": "按文件夹筛选",
+            "all_folders": "所有文件夹",
+            "refresh": "刷新保险箱",
+            "loading": "正在打开你的私人保险箱…",
+            "load_error": "无法打开你的保险箱",
+            "retry": "重试",
+            "empty_title": "保险箱已就绪",
+            "empty_description": "添加密码或卡片，用面部加以保护。",
+            "add_first": "添加第一个密码",
+            "no_results": "未找到内容",
+            "no_results_description": "试试其他搜索或文件夹。",
+            "alias": "别名",
+            "alias_placeholder": "个人、工作、主要…",
+            "delete": "删除项目",
+            "delete_confirm": "永久删除此项目？",
+            "delete_description": "用面部验证以将其从保险箱移除。",
+            "deleting": "正在删除…",
+            "delete_failed": "无法删除此项目。请重试。",
+            "export_vault": "导出保险箱",
+            "export_item": "导出",
+            "import_vault": "导入密码",
+            "more_options": "更多选项",
+            "master_password_label": "主密码",
+            "master_password_placeholder": "输入主密码",
+            "export_title": "导出密码",
+            "export_subtitle": "导出可与其他密码管理器兼容的凭据。",
+            "export_single_subtitle": "导出到其他密码管理器。",
+            "export_biometrics_required": "人脸验证",
+            "export_biometrics_explain": "验证面部以解密 {{count}} 个密码。",
+            "export_local_only": "仅在本地内存解密 · 不会离开你的设备",
+            "export_scan_face_btn": "用人脸验证",
+            "export_face_instructions": "将面部置于椭圆内以授权导出。",
+            "export_decrypting_title": "正在解密凭据",
+            "export_ready_count": "{{count}} 个密码可以导出",
+            "export_failed_count": "{{count}} 个解密失败",
+            "export_format_label": "格式",
+            "export_preview_label": "预览",
+            "download_file": "下载",
+            "copy_to_clipboard": "复制",
+            "copied": "已复制！",
+            "import_title": "导入密码",
+            "import_subtitle": "从你的密码管理器选择一个文件。",
+            "import_drop_title": "将文件拖到这里",
+            "import_drop_subtitle": "LastPass, Bitwarden, 1Password, Chrome, Apple, KeePassXC",
+            "import_browse_btn": "浏览文件",
+            "import_paste_label": "或粘贴原始文本",
+            "import_paste_placeholder": "粘贴导出的 CSV 或 JSON...",
+            "import_parse_btn": "预览",
+            "import_switch_file": "改为上传文件",
+            "import_switch_paste": "改为粘贴文本",
+            "import_detected": "已识别",
+            "select_all": "全选",
+            "deselect_all": "取消全选",
+            "import_selected_count": "已选 {{selected}} / {{total}}",
+            "import_back": "返回",
+            "import_now_btn": "验证并导入（{{count}}）",
+            "import_face_instructions": "扫描面部以加密并保存密码。",
+            "import_store_mode_label": "存储 API（开发）",
+            "import_store_mode_one_by_one": "One-by-one (/store/password)",
+            "import_store_mode_bulk": "Bulk (/store/passwords)",
+            "importing_title": "正在加密密码",
+            "import_success_title": "导入完成",
+            "import_success_desc": "已有 {{count}} 个密码保存在保险箱中。",
+            "import_failed_notice": "有 {{count}} 个项目无法导入：",
+            "import_done_btn": "完成"
         }
     },
     "cancel": "取消",
@@ -538,12 +682,12 @@
         "zelf_name_registered": "Zelf ID已注册",
         "from_address": "发件人地址",
         "private_transaction": "私人交易",
-        "amount_inline_required": "Required",
-        "amount_inline_invalid": "Invalid amount",
-        "amount_inline_min": "Min {{amount}}",
-        "amount_inline_max": "Max {{amount}}",
-        "memo_optional": "Memo (optional)",
-        "memo_placeholder": "Exchange or note (max 28 characters)",
+        "amount_inline_required": "必填",
+        "amount_inline_invalid": "金额无效",
+        "amount_inline_min": "最小 {{amount}}",
+        "amount_inline_max": "最大 {{amount}}",
+        "memo_optional": "备注（可选）",
+        "memo_placeholder": "交易所或备注（最多 28 个字符）",
         "stellar": {
             "below_min": "金额低于开通新 Stellar 账户所需的最低限额（{{min}} XLM）。",
             "new_account_title": "新建 Stellar 账户",
@@ -554,7 +698,9 @@
             "classic_fund_first": "在收款人的 Stellar 账户获得充值之前，无法发送此资产。请先发送原生 XLM 为其创建账户。",
             "classic_trustline": "收款人必须先为此资产添加信任线才能接收。",
             "invalid_amount": "请输入有效金额以继续。"
-        }
+        },
+        "transaction_sent": "交易已发送",
+        "transaction_failed": "无法发送交易"
     },
     "transaction": {
         "go_to_my_history": "查看我的历史记录",
@@ -712,6 +858,17 @@
             "system": "系统",
             "light": "浅色",
             "dark": "深色"
+        },
+        "notifications_label": "通知",
+        "notifications": {
+            "title": "通知",
+            "description": "选择你想接收的通知。",
+            "news": "新闻 / 更新",
+            "news_description": "产品新闻和公告。",
+            "push": "推送通知",
+            "push_description": "允许此设备接收推送通知。",
+            "send_receive": "发送和接收",
+            "send_receive_description": "发送或接收资产时收到提醒。"
         }
     },
     "security": {
@@ -773,14 +930,21 @@
             "risk_3_native": "只能发送原生 {{ symbol }}。其他网络的代币与此地址不兼容。",
             "risk_4_title": "先用小额测试",
             "risk_4": "首次向此地址转账时，请先发送少量 {{ symbol }} 进行测试。"
+        },
+        "generate_substrate": {
+            "title": "{{ symbol }} 地址尚未就绪",
+            "line_1": "尚未为 {{ fullTagName }} 在此网络生成收款地址。",
+            "line_2": "创建时，我们会解密一次你的保险箱，并把新地址关联到你的公开资料。只有在你于下方确认后才会执行这一次。",
+            "line_3": "应用同步钱包时使用的同一解密流程会获取并保存这些数据。",
+            "line_4": "完成人脸验证后，更新后的地址会自动保存到此设备。"
         }
     },
     "apps_hub": {
-        "label_wallet": "Wallet",
-        "label_keys": "Password Manager",
+        "label_wallet": "钱包",
+        "label_keys": "密码管理器",
         "label_auth": "2FA",
-        "label_id": "ID",
-        "label_legacy": "Legacy",
+        "label_id": "身份",
+        "label_legacy": "传承",
         "label_ai": "zAI"
     },
     "common": {
@@ -916,10 +1080,10 @@
         "unlock": "继续进行生物识别",
         "upload_qr_image": "上传二维码图片",
         "verify": "验证",
-        "wallet_short": "Wallet",
+        "wallet_short": "钱包",
         "keys_short": "Pass",
         "website": "网站",
-        "withdraw": "提现",
+        "withdraw": "发送",
         "withdrawal_network": "提现网络",
         "yes": "是",
         "your_token": "您的{{ symbol }}",
@@ -928,17 +1092,24 @@
         "zelf_chat": "zChat",
         "zelf_chat_coming_soon": "Zelf Chat 即将推出。",
         "zelf_chats": "z 聊天",
-        "zelf_keys": "Password Manager",
+        "zelf_keys": "密码管理器",
         "zelf_link": "Zelf 链接",
         "zelf_signals": "zSignals",
         "zelf_signals_coming_soon": "Zelf Signals 即将推出。",
-        "legacy": "Legacy",
+        "legacy": "传承",
         "legacy_coming_soon": "Legacy 即将推出。",
-        "zelf_wallet": "Wallet",
+        "zelf_wallet": "钱包",
         "ton_address": "TON地址",
         "validity_one_year": "有效期：1 年",
         "validity_years": "有效期：{{years}} 年",
-        "aptos_address": "Aptos地址"
+        "aptos_address": "Aptos地址",
+        "add": "添加",
+        "done": "完成",
+        "hide_password": "隐藏密码",
+        "loading": "加载中…",
+        "show_password": "显示密码",
+        "zelf_id": "Zelf ID",
+        "error": "错误"
     },
     "token": {
         "24h_performance": "24小时表现",
@@ -969,7 +1140,8 @@
         "info_description": "请记住保护您的二维码安全以保护您的账户。下载并保存在安全的地方。",
         "private_key": "种子短语",
         "addresses": "地址",
-        "info": "信息"
+        "info": "信息",
+        "action_sync": "同步"
     },
     "private_key": {
         "description": "要查看您的种子短语，请完成安全验证步骤。",
@@ -1094,7 +1266,8 @@
         "face_locked": "人脸验证已暂时锁定。请在 {{ time }} 后重试。",
         "face_locked_about_minutes": "约 {{ minutes }} 分钟",
         "face_locked_about_hours": "约 {{ hours }} 小时",
-        "face_replay_detected": "此照片已被使用。请重新拍摄后再试。"
+        "face_replay_detected": "此照片已被使用。请重新拍摄后再试。",
+        "unknown": "未知错误"
     },
     "swap": {
         "automatic": "自动",
@@ -1183,7 +1356,9 @@
         "show_balances": "显示余额",
         "recent_transactions": "最近交易",
         "rewards_banner_title": "领取奖励",
-        "rewards_banner_subtitle": "每天通过我们的任务获得 $ZNS"
+        "rewards_banner_subtitle": "每天通过我们的任务获得 $ZNS",
+        "balance_retrying": "正在重试…",
+        "balance_unavailable": "不可用"
     },
     "id_scanning": {
         "camera_not_found": "未找到相机",
@@ -1287,7 +1462,8 @@
             "passwords": "密码",
             "subscription": "订阅",
             "add_password": "添加密码",
-            "add_card": "添加支付卡"
+            "add_card": "添加支付卡",
+            "cards": "卡片"
         },
         "payment_cards": {
             "title": "支付卡",
@@ -1440,7 +1616,9 @@
                     "aria_label": "切换文件夹存储"
                 },
                 "master_password": {
-                    "hint": "我们需要 {{ walletName }} 密码来加密并存储您的凭据。生物识别验证始终是必需的。"
+                    "hint": "我们需要 {{ walletName }} 密码来加密并存储您的凭据。生物识别验证始终是必需的。",
+                    "label": "主密码 *",
+                    "placeholder": "输入主密码"
                 },
                 "buttons": {
                     "cancel": "取消",
@@ -1617,7 +1795,10 @@
                     "hide_password": "隐藏密码",
                     "copy_website": "复制网站",
                     "copy_password": "复制密码"
-                }
+                },
+                "title": "密码详情",
+                "folder": "文件夹",
+                "alias": "别名"
             },
             "form": {
                 "title": "密码表单",
@@ -1646,7 +1827,8 @@
                 "master_password": {
                     "section_title": "使用 Zelf ID 签名",
                     "label": "主密码 *",
-                    "hint": "我们需要 {{ walletName }} 密码来加密并存储您的凭据。生物识别验证始终是必需的。"
+                    "hint": "我们需要 {{ walletName }} 密码来加密并存储您的凭据。生物识别验证始终是必需的。",
+                    "placeholder": "输入主密码"
                 },
                 "buttons": {
                     "save": "保存密码",
@@ -1886,7 +2068,8 @@
         "incorrect_password": "主密码错误",
         "errors": {
             "invalid_setup_key": "设置密钥无效。请使用 A–Z 和 2–7，至少 16 个字符。",
-            "invalid_totp_params": "不支持这些验证设置。"
+            "invalid_totp_params": "不支持这些验证设置。",
+            "proof_load_failed": "无法加载此验证码的加密数据。请重试。"
         },
         "biometrics_failed": "生物识别验证失败",
         "export": "导出",
@@ -1927,7 +2110,44 @@
         "recovered_setup_key": "恢复的设置密钥",
         "create_zotp_from_recovery": "从恢复中创建 ZOTP",
         "recovery_successful": "恢复成功！",
-        "recovery_success_description": "您的 ZOTP 已恢复并添加到您的身份验证器中。您现在可以使用它来生成验证码。"
+        "recovery_success_description": "您的 ZOTP 已恢复并添加到您的身份验证器中。您现在可以使用它来生成验证码。",
+        "protection": {
+            "label": "打开保护",
+            "face": "仅人脸",
+            "face_password": "人脸 + 主密码",
+            "decrypt_toggle": {
+                "title": "打开时需要主密码",
+                "description": "启用后，打开此 ZOTP 时除人脸外还会要求钱包主密码。",
+                "aria_label": "打开此 ZOTP 时需要主密码"
+            },
+            "face_only": {
+                "title": "仅人脸的钱包",
+                "description": "此 Zelf ID 没有主密码。ZOTP 仅用人脸打开。"
+            },
+            "decrypt_prompt": {
+                "title": "输入主密码",
+                "description": "此 ZOTP 受人脸和钱包主密码保护。",
+                "continue": "继续进行人脸扫描"
+            },
+            "errors": {
+                "password_required": "打开此 ZOTP 需要主密码。"
+            }
+        },
+        "copy_code": "复制验证码",
+        "copy_setup_key": "复制设置密钥",
+        "code": {
+            "title": "你的验证码",
+            "refreshes_in": "{{seconds}} 秒后刷新"
+        },
+        "decrypt": {
+            "button": "显示验证码",
+            "decrypting": "正在打开…"
+        },
+        "proof": {
+            "loading": "正在加载加密数据…"
+        },
+        "decrypt_failed": "无法打开此 ZOTP。请重试。",
+        "warning": "警告"
     },
     "rewards": {
         "title": "奖励",
@@ -2147,8 +2367,61 @@
     "home_hub": {
         "quick_label_keys": "Pass",
         "quick_label_auth": "2FA",
-        "quick_label_legacy": "Legacy",
+        "quick_label_legacy": "传承",
         "quick_label_id": "ID",
-        "more_apps": "更多"
+        "more_apps": "更多",
+        "greeting": "欢迎",
+        "header_rewards_aria": "奖励",
+        "header_notifications_aria": "通知",
+        "subscription_title": "免费方案",
+        "subscription_title_free": "免费方案",
+        "subscription_title_premium": "高级方案",
+        "subscription_subtitle": "管理你的订阅",
+        "subscription_subtitle_free": "{{ zelfId }} — 随时用 $ZNS 延长",
+        "subscription_subtitle_premium": "你的 Zelf ID：{{ zelfId }}",
+        "subscription_cta": "保持访问",
+        "subscription_cta_free": "保持访问",
+        "subscription_cta_premium": "管理 Zelf ID",
+        "subscription_countdown_free_expired": "你的免费域名已过期 — 请在管理域名中使用 $ZNS 延长。",
+        "subscription_countdown_free_one_day": "免费域名还剩 1 天 — 可随时用 $ZNS 延长。",
+        "subscription_countdown_free_days": "免费域名还剩 {{ days }} 天 — 可随时用 $ZNS 延长。",
+        "subscription_countdown_premium_expired": "需要续订 — 请通过管理 Zelf ID 更新订阅。",
+        "subscription_countdown_premium_one_day": "你的 Zelf ID 还剩 1 天。",
+        "subscription_countdown_premium_days": "你的 Zelf ID 还剩 {{ days }} 天。",
+        "subscription_countdown_unknown": "在管理域名中管理你的 Zelf ID。",
+        "subscription_countdown_unit_days": "天",
+        "subscription_countdown_unit_hours": "小时",
+        "enabled_networks_label": "已启用网络",
+        "start_here_title": "从这里开始",
+        "start_here_subtitle": "完成入门指南并赚取 $ZNS",
+        "start_here_progress": "{{ current }} / {{ total }}",
+        "quick_label_signals": "zSignals",
+        "promo_placeholder_title": "密码管理器，每月低至 $5.99。",
+        "promo_placeholder_cta": "立即了解",
+        "signals_heading": "Zelf Signals",
+        "signals_explore": "探索",
+        "signals_placeholder_title": "Zelf Signals 精选",
+        "signals_placeholder_body": "市场与资产精选将显示在这里。",
+        "ai_heading": "Zelf AI",
+        "ai_subtitle": "Zelf AI 助手即将推出。",
+        "ai_assistant_title": "智能 Web3 助手",
+        "ai_assistant_desc": "自然语言操作、合约分析与洞察。",
+        "ai_security_title": "智能交易模拟",
+        "ai_security_desc": "执行前安全检查与欺诈检测。",
+        "header_profile_aria": "个人资料",
+        "header_collapse_aria": "隐藏名称",
+        "header_expand_aria": "显示名称",
+        "add_account_aria": "添加账户"
+    },
+    "welcomeZelfid": {
+        "plan_free": "免费 Zelf ID — 归你 100 年。之后可以升级。",
+        "plan_short_hold": "免费 Zelf ID — 归你 100 年，包含短名称。",
+        "plan_unlimited": "免费 Zelf ID — 归你 100 年。",
+        "plan_label": "方案：{{ plan }}",
+        "hold_subtitle": "你的 Zelf ID 免费使用 100 年。"
+    },
+    "superapp": {
+        "connecting_with": "正在连接 {{appName}}",
+        "working_with": "正在与 {{appName}} 安全协作"
     }
 }

@@ -10,7 +10,9 @@
             "back_to_payment_cards": "भुगतान कार्ड पर वापस जाएँ",
             "add_another_card": "एक और कार्ड जोड़ें",
             "try_again": "पुनः प्रयास करें",
-            "image_not_available": "छवि उपलब्ध नहीं है"
+            "image_not_available": "छवि उपलब्ध नहीं है",
+            "proof_loading": "एन्क्रिप्टेड डेटा लोड हो रहा है…",
+            "proof_load_failed": "इस आइटम का एन्क्रिप्टेड डेटा लोड नहीं हो सका। फिर कोशिश करें।"
         },
         "payment_cards": {
             "labels": {
@@ -196,6 +198,39 @@
                 "premium_plan": "प्रीमियम योजना",
                 "not_available": "उपलब्ध नहीं",
                 "month": "माह"
+            },
+            "stripe_checkout": {
+                "interval_year": "वर्ष",
+                "waiting": {
+                    "title": "Stripe में भुगतान पूरा करें",
+                    "message": "Stripe नई टैब में खुला है। वहाँ भुगतान पूरा करें और यह स्क्रीन खुली रखें — हम अपने आप अपडेट करेंगे।"
+                },
+                "confirmed": {
+                    "title": "भुगतान की पुष्टि हुई",
+                    "message": "{{ planName }} अब आपके खाते पर सक्रिय है।"
+                },
+                "cancelled": {
+                    "title": "भुगतान रद्द हुआ",
+                    "message": "आप कोई और प्लान चुन सकते हैं या तैयार होने पर Stripe फिर आज़मा सकते हैं।"
+                },
+                "failed": {
+                    "title": "भुगतान सत्यापित नहीं हो सका",
+                    "message": "सदस्यता जाँचते समय कुछ गड़बड़ हुई। फिर कोशिश करें या कोई और प्लान चुनें।"
+                },
+                "expired": {
+                    "title": "पुष्टि का इंतज़ार है",
+                    "message": "Stripe से पुष्टि अभी नहीं मिली।",
+                    "hint": "यदि आप भुगतान कर चुके हैं तो एक मिनट लग सकता है। फिर जाँचें या Stripe फिर खोलें।"
+                },
+                "actions": {
+                    "reopen_stripe": "Stripe चेकआउट फिर खोलें",
+                    "check_now": "मैं भुगतान कर चुका हूँ / अभी जाँचें",
+                    "check_again": "फिर जाँचें",
+                    "cancel": "रद्द करें और कोई और प्लान चुनें",
+                    "continue": "जारी रखें",
+                    "choose_plan": "प्लान पर वापस",
+                    "try_stripe_again": "Stripe फिर आज़माएँ"
+                }
             }
         },
         "biometrics": {
@@ -244,7 +279,8 @@
             "zelf_name_label": "Zelf ID: {{ zelfName }}",
             "category_label": "श्रेणी: {{ category }}",
             "type_label": "प्रकार: {{ type }}",
-            "secure_credential": "सुरक्षित क्रेडेंशियल"
+            "secure_credential": "सुरक्षित क्रेडेंशियल",
+            "secure_note": "सुरक्षित नोट"
         },
         "data_types": {
             "note": "नोट",
@@ -287,7 +323,12 @@
                 "storage_failed": "{{ category }} के भंडारण के दौरान त्रुटि, कृपया बाद में पुनः प्रयास करें।",
                 "try_again_later": "कृपया बाद में पुनः प्रयास करें।",
                 "close": "बंद करें"
-            }
+            },
+            "delete_payment_card": "कार्ड हटाने के लिए पहचान सत्यापित करें",
+            "delete_note": "नोट हटाने के लिए पहचान सत्यापित करें",
+            "delete_password": "पासवर्ड हटाने के लिए पहचान सत्यापित करें",
+            "authorize_title": "अपनी पहचान सत्यापित करें",
+            "authorize_instructions": "जारी रखने के लिए अपना चेहरा फ्रेम में रखें।"
         },
         "popout_decryptor": {
             "back": "पीछे",
@@ -315,7 +356,30 @@
                 "payment-card": "भुगतान कार्ड",
                 "wallet": "वॉलेट",
                 "zotp": "ZOTP"
-            }
+            },
+            "master_password_action_subtitle": "जारी रखने के लिए Zelf ID पासवर्ड दर्ज करें और चेहरा सत्यापित करें।",
+            "verified": "Zelf में सत्यापित",
+            "copy_password": "पासवर्ड कॉपी करें",
+            "copy_card_number": "कार्ड नंबर कॉपी करें",
+            "copy_expiry": "समाप्ति कॉपी करें",
+            "copy_cvv": "CVV कॉपी करें",
+            "extension_only": "यह पासवर्ड Zelf एक्सटेंशन के अंदर रहता है।",
+            "card_extension_only": "कार्ड नंबर और CVV Zelf एक्सटेंशन के अंदर रहते हैं।",
+            "done": "हो गया",
+            "create_heading": "नया पासवर्ड",
+            "create_title": "नया पासवर्ड एन्क्रिप्ट करें",
+            "create_processing": "Zelf में एन्क्रिप्ट हो रहा है...",
+            "create_master_password": "मास्टर पासवर्ड (यदि सक्षम हो)",
+            "verify_create": "चेहरे से सत्यापित करें",
+            "delete_title": "यह पासवर्ड हटाएँ?",
+            "delete_description": "यह एन्क्रिप्टेड रिकॉर्ड हटाता है। जारी रखने के लिए चेहरा सत्यापित करें।",
+            "delete_master_password": "मास्टर पासवर्ड (यदि सक्षम हो)",
+            "verify_delete": "सत्यापित करें और हटाएँ",
+            "request_expired": "यह अनुरोध समाप्त हो गया। SuperApp पर लौटकर फिर कोशिश करें।",
+            "missing_request": "सुरक्षित अनुरोध अधूरा है। SuperApp पर लौटकर फिर कोशिश करें।",
+            "insufficient_zns": "यह पासवर्ड सहेजने के लिए कम से कम {{amount}} ZNS चाहिए।",
+            "checking_zns": "ZNS शेष जाँचा जा रहा है...",
+            "zns_check_failed": "ZNS शेष की पुष्टि नहीं हो सकी। कनेक्शन जाँचकर फिर कोशिश करें।"
         },
         "password_biometrics": {
             "back_to_details": "पासवर्ड विवरण पर वापस जाएं",
@@ -361,9 +425,12 @@
                         "token_id": "टोकन ID",
                         "cost": "लागत",
                         "contract": "अनुबंध",
-                        "transaction": "लेन-देन"
+                        "transaction": "लेन-देन",
+                        "metadata_url": "मेटाडेटा URL"
                     },
-                    "image_alt": "ZelfKey NFT"
+                    "image_alt": "ZelfKey NFT",
+                    "metadata_link": "मेटाडेटा देखें",
+                    "copy_hint": "कॉपी करने के लिए क्लिक करें"
                 },
                 "ipfs": {
                     "title": "भुगतान कार्ड की जानकारी",
@@ -486,7 +553,84 @@
         "vault": {
             "reverify_title": "अपनी चीज़ें देखने के लिए फिर से सत्यापित करें",
             "reverify_description": "यह सत्र अभी तिजोरी नहीं खोल सकता। पासवर्ड और कार्ड लोड करने के लिए अपना चेहरा फिर से सत्यापित करें।",
-            "reverify_action": "फिर से सत्यापित करें"
+            "reverify_action": "फिर से सत्यापित करें",
+            "eyebrow": "पासवर्ड प्रबंधक",
+            "title": "आपकी निजी तिजोरी",
+            "subtitle": "अपने एन्क्रिप्टेड आइटम खोजें और खोलें।",
+            "trust": "रहस्य और बायोमेट्रिक क्रियाएँ Zelf के अंदर रहती हैं।",
+            "stats_label": "तिजोरी के योग",
+            "stat_total": "आइटम",
+            "stat_passwords": "पासवर्ड",
+            "stat_cards": "कार्ड",
+            "stat_notes": "नोट",
+            "add_password": "पासवर्ड जोड़ें",
+            "add_card": "कार्ड जोड़ें",
+            "search": "तिजोरी में खोजें",
+            "filter_folder": "फ़ोल्डर से फ़िल्टर करें",
+            "all_folders": "सभी फ़ोल्डर",
+            "refresh": "तिजोरी रीफ़्रेश करें",
+            "loading": "आपकी निजी तिजोरी खुल रही है…",
+            "load_error": "आपकी तिजोरी नहीं खुल सकी",
+            "retry": "फिर कोशिश करें",
+            "empty_title": "आपकी तिजोरी तैयार है",
+            "empty_description": "पासवर्ड या कार्ड जोड़कर चेहरे से सुरक्षित करें।",
+            "add_first": "अपना पहला पासवर्ड जोड़ें",
+            "no_results": "कुछ नहीं मिला",
+            "no_results_description": "कोई और खोज या फ़ोल्डर आज़माएँ।",
+            "alias": "उपनाम",
+            "alias_placeholder": "निजी, काम, मुख्य…",
+            "delete": "आइटम हटाएँ",
+            "delete_confirm": "इस आइटम को स्थायी रूप से हटाएँ?",
+            "delete_description": "चेहरे से सत्यापित करके तिजोरी से हटाएँ।",
+            "deleting": "हटाया जा रहा है…",
+            "delete_failed": "यह आइटम नहीं हटाया जा सका। फिर कोशिश करें।",
+            "export_vault": "तिजोरी निर्यात करें",
+            "export_item": "निर्यात",
+            "import_vault": "पासवर्ड आयात करें",
+            "more_options": "और विकल्प",
+            "master_password_label": "मास्टर पासवर्ड",
+            "master_password_placeholder": "मास्टर पासवर्ड दर्ज करें",
+            "export_title": "पासवर्ड निर्यात करें",
+            "export_subtitle": "अन्य पासवर्ड प्रबंधकों के अनुकूल क्रेडेंशियल निर्यात करें।",
+            "export_single_subtitle": "अन्य पासवर्ड प्रबंधकों में निर्यात करें।",
+            "export_biometrics_required": "चेहरा सत्यापन",
+            "export_biometrics_explain": "चेहरा सत्यापित करके {{count}} पासवर्ड डिक्रिप्ट करें।",
+            "export_local_only": "केवल स्थानीय मेमोरी में डिक्रिप्ट · डिवाइस से बाहर नहीं जाता",
+            "export_scan_face_btn": "चेहरे से सत्यापित करें",
+            "export_face_instructions": "निर्यात की अनुमति के लिए चेहरा अंडाकार में रखें।",
+            "export_decrypting_title": "क्रेडेंशियल डिक्रिप्ट हो रहे हैं",
+            "export_ready_count": "निर्यात के लिए {{count}} पासवर्ड तैयार",
+            "export_failed_count": "{{count}} डिक्रिप्ट नहीं हो सके",
+            "export_format_label": "प्रारूप",
+            "export_preview_label": "पूर्वावलोकन",
+            "download_file": "डाउनलोड",
+            "copy_to_clipboard": "कॉपी",
+            "copied": "कॉपी हो गया!",
+            "import_title": "पासवर्ड आयात करें",
+            "import_subtitle": "अपने पासवर्ड प्रबंधक से फ़ाइल चुनें।",
+            "import_drop_title": "फ़ाइल यहाँ छोड़ें",
+            "import_drop_subtitle": "LastPass, Bitwarden, 1Password, Chrome, Apple, KeePassXC",
+            "import_browse_btn": "फ़ाइल चुनें",
+            "import_paste_label": "या कच्चा टेक्स्ट पेस्ट करें",
+            "import_paste_placeholder": "निर्यातित CSV या JSON पेस्ट करें...",
+            "import_parse_btn": "पूर्वावलोकन",
+            "import_switch_file": "इसके बजाय फ़ाइल अपलोड करें",
+            "import_switch_paste": "इसके बजाय टेक्स्ट पेस्ट करें",
+            "import_detected": "पता चला",
+            "select_all": "सभी चुनें",
+            "deselect_all": "सभी हटाएँ",
+            "import_selected_count": "{{total}} में से {{selected}} चुने गए",
+            "import_back": "वापस",
+            "import_now_btn": "सत्यापित करें और आयात करें ({{count}})",
+            "import_face_instructions": "चेहरा स्कैन करके पासवर्ड एन्क्रिप्ट और सहेजें।",
+            "import_store_mode_label": "स्टोर API (dev)",
+            "import_store_mode_one_by_one": "One-by-one (/store/password)",
+            "import_store_mode_bulk": "Bulk (/store/passwords)",
+            "importing_title": "पासवर्ड एन्क्रिप्ट हो रहे हैं",
+            "import_success_title": "आयात पूरा हुआ",
+            "import_success_desc": "{{count}} पासवर्ड आपकी तिजोरी में सुरक्षित हैं।",
+            "import_failed_notice": "{{count}} आइटम आयात नहीं हो सके:",
+            "import_done_btn": "हो गया"
         }
     },
     "cancel": "रद्द करें",
@@ -538,12 +682,12 @@
         "zelf_name_registered": "Zelf ID पंजीकृत है",
         "from_address": "प्रेषक पता",
         "private_transaction": "निजी लेन-देन",
-        "amount_inline_required": "Required",
-        "amount_inline_invalid": "Invalid amount",
-        "amount_inline_min": "Min {{amount}}",
-        "amount_inline_max": "Max {{amount}}",
-        "memo_optional": "Memo (optional)",
-        "memo_placeholder": "Exchange or note (max 28 characters)",
+        "amount_inline_required": "आवश्यक",
+        "amount_inline_invalid": "अमान्य राशि",
+        "amount_inline_min": "न्यून. {{amount}}",
+        "amount_inline_max": "अधिकतम {{amount}}",
+        "memo_optional": "मेमो (वैकल्पिक)",
+        "memo_placeholder": "एक्सचेंज या नोट (अधिकतम 28 अक्षर)",
         "stellar": {
             "below_min": "Jumlah di bawah minimum ({{min}} XLM) yang diperlukan untuk membuka akun Stellar baru.",
             "new_account_title": "Akun Stellar baru",
@@ -554,7 +698,9 @@
             "classic_fund_first": "Aset ini tidak dapat dikirim sampai penerima memiliki akun Stellar yang terdanai. Kirim XLM asli terlebih dahulu untuk membuat akun mereka.",
             "classic_trustline": "Penerima harus menambahkan trustline untuk aset ini sebelum dapat menerimanya.",
             "invalid_amount": "Masukkan jumlah yang valid untuk melanjutkan."
-        }
+        },
+        "transaction_sent": "लेनदेन भेजा गया",
+        "transaction_failed": "लेनदेन नहीं भेजा जा सका"
     },
     "transaction": {
         "go_to_my_history": "मेरे इतिहास पर जाएं",
@@ -712,6 +858,17 @@
             "system": "सिस्टम",
             "light": "लाइट",
             "dark": "डार्क"
+        },
+        "notifications_label": "सूचनाएँ",
+        "notifications": {
+            "title": "सूचनाएँ",
+            "description": "चुनें कि आपको कौन-सी सूचनाएँ चाहिए।",
+            "news": "समाचार / अपडेट",
+            "news_description": "उत्पाद समाचार और घोषणाएँ।",
+            "push": "पुश सूचनाएँ",
+            "push_description": "इस डिवाइस पर पुश सूचनाओं की अनुमति दें।",
+            "send_receive": "भेजें और प्राप्त करें",
+            "send_receive_description": "संपत्ति भेजने या पाने पर सूचना पाएँ।"
         }
     },
     "security": {
@@ -773,14 +930,21 @@
             "risk_3_native": "केवल मूल {{ symbol }} भेजें। अन्य नेटवर्क के टोकन इस पते के अनुकूल नहीं हैं।",
             "risk_4_title": "छोटी राशि से परीक्षण करें",
             "risk_4": "इस पते पर पहली बार भेज रहे हैं? अधिक राशि से पहले एक छोटा {{ symbol }} लेनदेन आज़माएं।"
+        },
+        "generate_substrate": {
+            "title": "{{ symbol }} पता अभी तैयार नहीं है",
+            "line_1": "इस नेटवर्क पर {{ fullTagName }} का प्राप्त पता अभी नहीं बना है।",
+            "line_2": "इसे बनाने के लिए हम आपकी तिजोरी एक बार डिक्रिप्ट करते हैं और नया पता आपकी सार्वजनिक प्रोफ़ाइल से जोड़ते हैं। यह एक बार का चरण तभी चलता है जब आप नीचे पुष्टि करते हैं।",
+            "line_3": "वही डिक्रिप्शन प्रक्रिया जिससे ऐप वॉलेट सिंक करता है, यह डेटा लाकर सहेजेगी।",
+            "line_4": "चेहरा सत्यापन के बाद अपडेट पते इस डिवाइस पर अपने आप सहेजे जाते हैं।"
         }
     },
     "apps_hub": {
-        "label_wallet": "Wallet",
-        "label_keys": "Password Manager",
+        "label_wallet": "वॉलेट",
+        "label_keys": "पासवर्ड प्रबंधक",
         "label_auth": "2FA",
-        "label_id": "ID",
-        "label_legacy": "Legacy",
+        "label_id": "पहचान",
+        "label_legacy": "विरासत",
         "label_ai": "zAI"
     },
     "common": {
@@ -916,10 +1080,10 @@
         "unlock": "बायोमेट्रिक्स पर जारी रखें",
         "upload_qr_image": "QR छवि अपलोड करें",
         "verify": "सत्यापित करें",
-        "wallet_short": "Wallet",
+        "wallet_short": "वॉलेट",
         "keys_short": "Pass",
         "website": "वेबसाइट",
-        "withdraw": "निकालें",
+        "withdraw": "भेजें",
         "withdrawal_network": "निकासी नेटवर्क",
         "yes": "हाँ",
         "your_token": "आपका {{ symbol }}",
@@ -928,17 +1092,24 @@
         "zelf_chat": "zChat",
         "zelf_chat_coming_soon": "Zelf Chat जल्द उपलब्ध होगा।",
         "zelf_chats": "zChats",
-        "zelf_keys": "Password Manager",
+        "zelf_keys": "पासवर्ड प्रबंधक",
         "zelf_link": "Zelf Link",
         "zelf_signals": "zSignals",
         "zelf_signals_coming_soon": "Zelf Signals जल्द उपलब्ध होंगे।",
-        "legacy": "Legacy",
+        "legacy": "विरासत",
         "legacy_coming_soon": "Legacy जल्द उपलब्ध होगा।",
-        "zelf_wallet": "Wallet",
+        "zelf_wallet": "वॉलेट",
         "ton_address": "TON पता",
         "validity_one_year": "Masa berlaku: 1 tahun",
         "validity_years": "Masa berlaku: {{years}} tahun",
-        "aptos_address": "Aptos पता"
+        "aptos_address": "Aptos पता",
+        "add": "जोड़ें",
+        "done": "हो गया",
+        "hide_password": "पासवर्ड छिपाएँ",
+        "loading": "लोड हो रहा है…",
+        "show_password": "पासवर्ड दिखाएँ",
+        "zelf_id": "Zelf ID",
+        "error": "त्रुटि"
     },
     "token": {
         "24h_performance": "24 घंटे का प्रदर्शन",
@@ -969,7 +1140,8 @@
         "info_description": "अपने खाते की सुरक्षा के लिए अपने QR कोड को सुरक्षित रखना याद रखें। इसे डाउनलोड करें और सुरक्षित स्थान पर सहेजें।",
         "private_key": "सीड फ्रेज़",
         "addresses": "पते",
-        "info": "जानकारी"
+        "info": "जानकारी",
+        "action_sync": "सिंक"
     },
     "private_key": {
         "description": "अपना सीड फ्रेज़ देखने के लिए, कृपया सुरक्षा सत्यापन चरण पूरे करें।",
@@ -1094,7 +1266,8 @@
         "face_locked": "चेहरा सत्यापन अस्थायी रूप से लॉक है। {{ time }} में पुनः प्रयास करें।",
         "face_locked_about_minutes": "लगभग {{ minutes }} मिनट",
         "face_locked_about_hours": "लगभग {{ hours }} घंटे",
-        "face_replay_detected": "यह फ़ोटो पहले ही उपयोग की गई थी। कृपया नई फ़ोटो लें और पुनः प्रयास करें।"
+        "face_replay_detected": "यह फ़ोटो पहले ही उपयोग की गई थी। कृपया नई फ़ोटो लें और पुनः प्रयास करें।",
+        "unknown": "अज्ञात त्रुटि"
     },
     "swap": {
         "automatic": "स्वचालित",
@@ -1142,7 +1315,7 @@
     "home": {
         "manage_networks": "नेटवर्क प्रबंधित करें",
         "assets": "एसेट्स",
-        "keys": "Keys",
+        "keys": "कुंजियाँ",
         "NFTs": "NFTs",
         "collectibles_loading": "कलेक्टिबल्स लोड हो रहे हैं…",
         "collectibles_empty": "इस वॉलेट में अभी कोई NFT नहीं है।",
@@ -1183,7 +1356,9 @@
         "show_balances": "शेष दिखाएं",
         "recent_transactions": "हाल के लेनदेन",
         "rewards_banner_title": "पुरस्कार प्राप्त करें",
-        "rewards_banner_subtitle": "हमारे quests के साथ प्रतिदिन $ZNS पाएं"
+        "rewards_banner_subtitle": "हमारे quests के साथ प्रतिदिन $ZNS पाएं",
+        "balance_retrying": "फिर कोशिश हो रही है…",
+        "balance_unavailable": "उपलब्ध नहीं"
     },
     "id_scanning": {
         "camera_not_found": "कैमरा नहीं मिला",
@@ -1287,7 +1462,8 @@
             "passwords": "पासवर्ड",
             "subscription": "सदस्यता",
             "add_password": "पासवर्ड जोड़ें",
-            "add_card": "भुगतान कार्ड जोड़ें"
+            "add_card": "भुगतान कार्ड जोड़ें",
+            "cards": "कार्ड"
         },
         "payment_cards": {
             "title": "भुगतान कार्ड",
@@ -1440,7 +1616,9 @@
                     "aria_label": "फ़ोल्डर स्टोरेज स्विच करें"
                 },
                 "master_password": {
-                    "hint": "आपके क्रेडेंशियल्स को एन्क्रिप्ट और संग्रहीत करने के लिए हमें {{ walletName }} पासवर्ड की आवश्यकता है। बायोमेट्रिक सत्यापन हमेशा आवश्यक है।"
+                    "hint": "आपके क्रेडेंशियल्स को एन्क्रिप्ट और संग्रहीत करने के लिए हमें {{ walletName }} पासवर्ड की आवश्यकता है। बायोमेट्रिक सत्यापन हमेशा आवश्यक है।",
+                    "label": "मास्टर पासवर्ड *",
+                    "placeholder": "मास्टर पासवर्ड दर्ज करें"
                 },
                 "buttons": {
                     "cancel": "रद्द करें",
@@ -1617,7 +1795,10 @@
                     "hide_password": "पासवर्ड छिपाएं",
                     "copy_website": "वेबसाइट कॉपी करें",
                     "copy_password": "पासवर्ड कॉपी करें"
-                }
+                },
+                "title": "पासवर्ड विवरण",
+                "folder": "फ़ोल्डर",
+                "alias": "उपनाम"
             },
             "form": {
                 "title": "भुगतान कार्ड की जानकारी",
@@ -1646,7 +1827,8 @@
                 "master_password": {
                     "section_title": "अपने Zelf ID से हस्ताक्षर करें",
                     "label": "बैंक का नाम *",
-                    "hint": "आपके क्रेडेंशियल्स को एन्क्रिप्ट और संग्रहीत करने के लिए हमें {{ walletName }} पासवर्ड की आवश्यकता है। बायोमेट्रिक सत्यापन हमेशा आवश्यक है।"
+                    "hint": "आपके क्रेडेंशियल्स को एन्क्रिप्ट और संग्रहीत करने के लिए हमें {{ walletName }} पासवर्ड की आवश्यकता है। बायोमेट्रिक सत्यापन हमेशा आवश्यक है।",
+                    "placeholder": "मास्टर पासवर्ड दर्ज करें"
                 },
                 "buttons": {
                     "save": "पासवर्ड सुरक्षित करें",
@@ -1886,7 +2068,8 @@
         "incorrect_password": "गलत मास्टर पासवर्ड",
         "errors": {
             "invalid_setup_key": "सेटअप कुंजी अमान्य है। A–Z और 2–7, कम से कम 16 वर्ण।",
-            "invalid_totp_params": "ये सत्यापन सेटिंग्स समर्थित नहीं हैं।"
+            "invalid_totp_params": "ये सत्यापन सेटिंग्स समर्थित नहीं हैं।",
+            "proof_load_failed": "इस कोड का एन्क्रिप्टेड डेटा लोड नहीं हो सका। फिर कोशिश करें।"
         },
         "biometrics_failed": "बायोमेट्रिक सत्यापन विफल रहा",
         "export": "निर्यात",
@@ -1927,7 +2110,44 @@
         "recovered_setup_key": "पुनः प्राप्त सेटअप कुंजी",
         "create_zotp_from_recovery": "रिकवरी से ZOTP बनाएँ",
         "recovery_successful": "रिकवरी सफल!",
-        "recovery_success_description": "आपका ZOTP वापस पा लिया गया है और आपके ऑथेंटिकेटर में जोड़ दिया गया है। अब आप कोड उत्पन्न करने के लिए इसका उपयोग कर सकते हैं।"
+        "recovery_success_description": "आपका ZOTP वापस पा लिया गया है और आपके ऑथेंटिकेटर में जोड़ दिया गया है। अब आप कोड उत्पन्न करने के लिए इसका उपयोग कर सकते हैं।",
+        "protection": {
+            "label": "खोलने की सुरक्षा",
+            "face": "केवल चेहरा",
+            "face_password": "चेहरा + मास्टर पासवर्ड",
+            "decrypt_toggle": {
+                "title": "खोलने के लिए मास्टर पासवर्ड माँगें",
+                "description": "सक्षम होने पर इस ZOTP को खोलने पर चेहरे के साथ वॉलेट का मास्टर पासवर्ड भी माँगा जाएगा।",
+                "aria_label": "इस ZOTP को खोलते समय मास्टर पासवर्ड माँगें"
+            },
+            "face_only": {
+                "title": "केवल चेहरे वाला वॉलेट",
+                "description": "इस Zelf ID का मास्टर पासवर्ड नहीं है। ZOTP केवल चेहरे से खुलते हैं।"
+            },
+            "decrypt_prompt": {
+                "title": "मास्टर पासवर्ड दर्ज करें",
+                "description": "यह ZOTP चेहरे और वॉलेट मास्टर पासवर्ड से सुरक्षित है।",
+                "continue": "चेहरा स्कैन पर जारी रखें"
+            },
+            "errors": {
+                "password_required": "इस ZOTP को खोलने के लिए मास्टर पासवर्ड आवश्यक है।"
+            }
+        },
+        "copy_code": "कोड कॉपी करें",
+        "copy_setup_key": "सेटअप कुंजी कॉपी करें",
+        "code": {
+            "title": "आपका कोड",
+            "refreshes_in": "{{seconds}} सेकंड में रीफ़्रेश"
+        },
+        "decrypt": {
+            "button": "कोड दिखाएँ",
+            "decrypting": "खुल रहा है…"
+        },
+        "proof": {
+            "loading": "एन्क्रिप्टेड डेटा लोड हो रहा है…"
+        },
+        "decrypt_failed": "यह ZOTP नहीं खुल सका। फिर कोशिश करें।",
+        "warning": "चेतावनी"
     },
     "rewards": {
         "title": "पुरस्कार",
@@ -2147,8 +2367,61 @@
     "home_hub": {
         "quick_label_keys": "Pass",
         "quick_label_auth": "2FA",
-        "quick_label_legacy": "Legacy",
+        "quick_label_legacy": "विरासत",
         "quick_label_id": "ID",
-        "more_apps": "और"
+        "more_apps": "और",
+        "greeting": "स्वागत है",
+        "header_rewards_aria": "पुरस्कार",
+        "header_notifications_aria": "सूचनाएँ",
+        "subscription_title": "मुफ़्त प्लान",
+        "subscription_title_free": "मुफ़्त प्लान",
+        "subscription_title_premium": "प्रीमियम प्लान",
+        "subscription_subtitle": "अपनी सदस्यता प्रबंधित करें",
+        "subscription_subtitle_free": "{{ zelfId }} — $ZNS से कभी भी बढ़ाएँ",
+        "subscription_subtitle_premium": "आपका Zelf ID: {{ zelfId }}",
+        "subscription_cta": "पहुँच बनाए रखें",
+        "subscription_cta_free": "पहुँच बनाए रखें",
+        "subscription_cta_premium": "Zelf ID प्रबंधित करें",
+        "subscription_countdown_free_expired": "आपका मुफ़्त डोमेन समाप्त हो गया — डोमेन प्रबंधन में $ZNS से बढ़ाएँ।",
+        "subscription_countdown_free_one_day": "मुफ़्त डोमेन पर 1 दिन बचा है — $ZNS से कभी भी बढ़ाएँ।",
+        "subscription_countdown_free_days": "मुफ़्त डोमेन पर {{ days }} दिन बचे हैं — $ZNS से कभी भी बढ़ाएँ।",
+        "subscription_countdown_premium_expired": "नवीनीकरण आवश्यक — Zelf ID प्रबंधन से सदस्यता अपडेट करें।",
+        "subscription_countdown_premium_one_day": "आपके Zelf ID पर 1 दिन बचा है।",
+        "subscription_countdown_premium_days": "आपके Zelf ID पर {{ days }} दिन बचे हैं।",
+        "subscription_countdown_unknown": "डोमेन प्रबंधन में अपना Zelf ID प्रबंधित करें।",
+        "subscription_countdown_unit_days": "दिन",
+        "subscription_countdown_unit_hours": "घंटे",
+        "enabled_networks_label": "सक्रिय नेटवर्क",
+        "start_here_title": "यहाँ से शुरू करें",
+        "start_here_subtitle": "शुरुआती गाइड पूरी करें और $ZNS कमाएँ",
+        "start_here_progress": "{{ current }} / {{ total }}",
+        "quick_label_signals": "zSignals",
+        "promo_placeholder_title": "पासवर्ड प्रबंधक, $5.99 प्रति माह से।",
+        "promo_placeholder_cta": "अभी देखें",
+        "signals_heading": "Zelf Signals",
+        "signals_explore": "देखें",
+        "signals_placeholder_title": "Zelf Signals की झलकियाँ",
+        "signals_placeholder_body": "बाज़ार और परिसंपत्ति की झलकियाँ यहाँ दिखेंगी।",
+        "ai_heading": "Zelf AI",
+        "ai_subtitle": "Zelf AI सहायक जल्द उपलब्ध होगा।",
+        "ai_assistant_title": "बुद्धिमान Web3 सहायक",
+        "ai_assistant_desc": "प्राकृतिक भाषा के आदेश, कॉन्ट्रैक्ट विश्लेषण और इनसाइट्स।",
+        "ai_security_title": "स्मार्ट लेनदेन सिमुलेशन",
+        "ai_security_desc": "निष्पादन से पहले सुरक्षा जाँच और धोखाधड़ी पहचान।",
+        "header_profile_aria": "प्रोफ़ाइल",
+        "header_collapse_aria": "नाम छिपाएँ",
+        "header_expand_aria": "नाम दिखाएँ",
+        "add_account_aria": "खाता जोड़ें"
+    },
+    "welcomeZelfid": {
+        "plan_free": "मुफ़्त Zelf ID — 100 साल के लिए आपका। बाद में अपग्रेड कर सकते हैं।",
+        "plan_short_hold": "मुफ़्त Zelf ID — 100 साल के लिए, छोटे नाम शामिल।",
+        "plan_unlimited": "मुफ़्त Zelf ID — 100 साल के लिए आपका।",
+        "plan_label": "प्लान: {{ plan }}",
+        "hold_subtitle": "आपका Zelf ID 100 साल तक मुफ़्त है।"
+    },
+    "superapp": {
+        "connecting_with": "{{appName}} से कनेक्ट हो रहे हैं",
+        "working_with": "{{appName}} के साथ सुरक्षित रूप से काम हो रहा है"
     }
 }
