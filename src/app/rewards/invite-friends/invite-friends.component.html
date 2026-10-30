@@ -198,8 +198,16 @@
                                 </svg>
                             </button>
 
+                            <!-- Reward Limit Reached (History only, > maxInvites) -->
+                            <div *ngIf="isRewardLimitReached(friend)" class="invite-friends__limit-badge">
+                                <span class="invite-friends__limit-label">{{ t("referrals.status.limit_reached") }}</span>
+                            </div>
+
                             <!-- Pending State (Optional fallback if not yet redeemable) -->
-                            <div *ngIf="!friend.claimed && !isRewardRedeemable(friend)" class="invite-friends__pending-badge">
+                            <div
+                                *ngIf="!friend.claimed && !isRewardRedeemable(friend) && !isRewardLimitReached(friend)"
+                                class="invite-friends__pending-badge"
+                            >
                                 <span>{{ friend.rewardZNS }} ZNS</span>
                                 <span class="invite-friends__pending-label">{{ t("referrals.status.pending") }}</span>
                             </div>

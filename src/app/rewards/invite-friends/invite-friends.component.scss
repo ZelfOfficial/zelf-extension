@@ -694,6 +694,22 @@
         letter-spacing: 0.5px;
     }
 
+    &__limit-badge {
+        display: flex;
+        align-items: center;
+        padding: calc(8px * var(--zns-space-scale, 1)) calc(12px * var(--zns-space-scale, 1));
+        background: variables.$themeBorder;
+        border-radius: calc(12px * var(--zns-space-scale, 1));
+    }
+
+    &__limit-label {
+        font-family: variables.$themeBodyFamily;
+        font-size: calc(12px * var(--zns-font-scale, 1));
+        font-weight: 600;
+        color: variables.$themeTextMuted;
+        white-space: nowrap;
+    }
+
     &__loader-tiny {
         width: calc(14px * var(--zns-space-scale, 1));
         height: calc(14px * var(--zns-space-scale, 1));

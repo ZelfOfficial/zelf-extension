@@ -2031,8 +2031,9 @@
         "start_earning_desc": "コードを共有して報酬を獲得しましょう！",
         "status": {
             "purchased": "購入済み",
-            "registered": "{{ date }}からZelf IDが登録されています",
-            "pending": "保留中"
+            "registered": "登録済み",
+            "pending": "保留中",
+            "limit_reached": "上限に達しました"
         },
         "claim": "{{ amount }} $ZNSを受け取る"
     },
@@ -2056,6 +2057,9 @@
             "go_back": "戻る",
             "messages": {
                 "reward_already_claimed": "この報酬はすでに受け取り済みです",
+                "referral_limit_reached": "紹介報酬の上限（10人）に達しました",
+                "reward_claim_in_progress": "この報酬の請求は現在処理中です",
+                "reward_not_eligible": "この紹介は報酬の対象外です",
                 "generic": "申し訳ありませんが、リクエストの処理中に問題が発生しました。もう一度お試しください。"
             }
         }

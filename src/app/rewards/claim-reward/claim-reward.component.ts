@@ -96,17 +96,29 @@ export class ClaimRewardComponent implements OnInit, OnDestroy {
         } catch (error: any) {
             console.error("Error claiming reward:", error);
 
-            // Extract error message from backend response
+            // Extract error code or message from backend response
+            const rawBackendError = error?.error?.code || error?.error?.message || error?.message || "";
+            const normalizedCode = String(rawBackendError).trim().toLowerCase().replace(/\s+/g, "_");
             const backendMessage = error?.error?.message || error?.message;
 
             // Map specific backend errors to translation keys
             const errorMappings: Record<string, string> = {
                 reward_already_claimed: "claim_reward.error.messages.reward_already_claimed",
+                referral_limit_reached: "claim_reward.error.messages.referral_limit_reached",
+                reward_claim_in_progress: "claim_reward.error.messages.reward_claim_in_progress",
+                reward_not_eligible: "claim_reward.error.messages.reward_not_eligible",
             };
 
-            this.errorKey = errorMappings[backendMessage] || "";
+            const nonRetryableCodes = new Set([
+                "reward_already_claimed",
+                "referral_limit_reached",
+                "reward_claim_in_progress",
+                "reward_not_eligible",
+            ]);
+
+            this.errorKey = errorMappings[normalizedCode] || "";
             this.fallbackErrorMessage = backendMessage || "Failed to claim reward";
-            this.isAlreadyClaimed = backendMessage === "reward_already_claimed";
+            this.isAlreadyClaimed = nonRetryableCodes.has(normalizedCode);
 
             this.state = "error";
         }

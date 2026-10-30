@@ -2031,8 +2031,9 @@
         "start_earning_desc": "Ibahagi ang iyong code at simulan ang pagkuha ng mga reward!",
         "status": {
             "purchased": "Nabili na",
-            "registered": "Na-rehistro ang Zelf ID mula noong {{ date }}",
-            "pending": "Naghihintay"
+            "registered": "Nakarehistro",
+            "pending": "Naghihintay",
+            "limit_reached": "Naabot na ang limitasyon"
         },
         "claim": "I-claim ang {{ amount }} $ZNS"
     },
@@ -2056,6 +2057,9 @@
             "go_back": "Bumalik",
             "messages": {
                 "reward_already_claimed": "Ang reward na ito ay na-claim na",
+                "referral_limit_reached": "Naabot mo na ang maximum na limitasyon sa referral reward (10 kaibigan)",
+                "reward_claim_in_progress": "Pinoproseso na ang pag-claim sa reward na ito",
+                "reward_not_eligible": "Hindi kwalipikado sa reward ang referral na ito",
                 "generic": "Paumanhin, may problema sa pagproseso ng kahilingang ito. Pakisubukan muli."
             }
         }

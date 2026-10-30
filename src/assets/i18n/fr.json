@@ -2031,8 +2031,9 @@
         "start_earning_desc": "Partagez votre code et commencez à gagner des récompenses !",
         "status": {
             "purchased": "Acheté",
-            "registered": "Zelf ID enregistré depuis {{ date }}",
-            "pending": "En attente"
+            "registered": "Enregistré",
+            "pending": "En attente",
+            "limit_reached": "Limite atteinte"
         },
         "claim": "Réclamer {{ amount }} $ZNS"
     },
@@ -2056,6 +2057,9 @@
             "go_back": "Retour",
             "messages": {
                 "reward_already_claimed": "Cette récompense a déjà été réclamée",
+                "referral_limit_reached": "Vous avez atteint la limite maximale de récompenses de parrainage (10 amis)",
+                "reward_claim_in_progress": "Cette demande de récompense est déjà en cours de traitement",
+                "reward_not_eligible": "Ce parrainage n'est pas éligible à une récompense",
                 "generic": "Désolé, il y a eu un problème lors du traitement de cette demande. Veuillez réessayer."
             }
         }

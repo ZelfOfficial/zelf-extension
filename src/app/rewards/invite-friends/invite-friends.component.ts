@@ -21,6 +21,7 @@ export interface InvitedFriend {
     rewardAmount: number;
     tagObject: TagModel;
     rewardType?: string;
+    countsForReward?: boolean;
 }
 
 const MAX_INVITES = 10;
@@ -99,21 +100,26 @@ export class InviteFriendsComponent implements OnInit, OnDestroy {
         try {
             const response = await this._tagsService.getMyReferrals(this.referralTagName, this.referralDomain);
             const data = response.data || {};
+            const referrals = Array.isArray(data.referrals) ? data.referrals : [];
+            if (typeof data.limit === "number" && data.limit > 0) {
+                this.maxInvites = data.limit;
+            }
             this.friends = [];
 
-            for (let index = 0; index < data.referrals.length; index++) {
-                const friend = data.referrals[index];
+            for (let index = 0; index < referrals.length; index++) {
+                const friend = referrals[index];
 
                 this.friends.push({
                     id: friend.id,
                     name: friend.name,
                     status: friend.status,
                     rewardZNS: friend.rewardZNS,
-                    claimed: friend.claimed,
-                    claimStatus: friend.claimStatus,
+                    claimed: Boolean(friend.claimed),
+                    claimStatus: friend.claimStatus || "none",
                     rewardAmount: friend.rewardAmount,
                     tagObject: new TagModel(friend),
                     rewardType: friend.rewardType,
+                    countsForReward: friend.countsForReward !== false,
                 });
             }
 
@@ -143,13 +149,21 @@ export class InviteFriendsComponent implements OnInit, OnDestroy {
         return status === "tag_name_purchased" ? "Zelf ID purchased" : "Zelf ID created";
     }
 
+    isRewardLimitReached(friend: InvitedFriend): boolean {
+        return !friend.claimed && friend.countsForReward === false;
+    }
+
+    isRewardPending(friend: InvitedFriend): boolean {
+        return !friend.claimed && (friend.claimStatus === "processing" || friend.claimStatus === "pending");
+    }
+
     isRewardRedeemable(friend: InvitedFriend): boolean {
-        return !friend.claimed;
+        return !friend.claimed && !this.isRewardLimitReached(friend) && !this.isRewardPending(friend);
     }
 
     /** Navigate to claim-reward component to handle the claim flow */
     claimReward(friend: InvitedFriend): void {
-        if (friend.claimed) return;
+        if (!this.isRewardRedeemable(friend)) return;
 
         // Navigate to claim-reward component with all necessary params.
         // Use rewardZNS when rewardAmount is 0 (backend only sets rewardAmount after claim).

@@ -2031,8 +2031,9 @@
         "start_earning_desc": "شارك رمزك وابدأ في ربح المكافآت!",
         "status": {
             "purchased": "تم الشراء",
-            "registered": "Zelf ID مسجل منذ {{ date }}",
-            "pending": "قيد الانتظار"
+            "registered": "مسجل",
+            "pending": "قيد الانتظار",
+            "limit_reached": "تم الوصول إلى الحد الأقصى"
         },
         "claim": "المطالبة بـ {{ amount }} $ZNS"
     },
@@ -2056,6 +2057,9 @@
             "go_back": "العودة",
             "messages": {
                 "reward_already_claimed": "لقد تمت المطالبة بهذه المكافأة بالفعل",
+                "referral_limit_reached": "لقد وصلت إلى الحد الأقصى لمكافآت الإحالة (10 أصدقاء)",
+                "reward_claim_in_progress": "تتم معالجة طلب هذه المكافأة بالفعل",
+                "reward_not_eligible": "هذه الإحالة غير مؤهلة للحصول على مكافأة",
                 "generic": "عذراً، حدثت مشكلة في معالجة هذا الطلب. يرجى المحاولة مرة أخرى."
             }
         }

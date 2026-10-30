@@ -2274,8 +2274,9 @@
         "start_earning_desc": "¡Comparte tu código y comienza a ganar recompensas!",
         "status": {
             "purchased": "Comprado",
-            "registered": "Zelf ID registrado desde {{ date }}",
-            "pending": "Pendiente"
+            "registered": "Registrado",
+            "pending": "Pendiente",
+            "limit_reached": "Límite alcanzado"
         },
         "claim": "Reclamar {{ amount }} $ZNS"
     },
@@ -2299,6 +2300,9 @@
             "go_back": "Volver",
             "messages": {
                 "reward_already_claimed": "Esta recompensa ya ha sido reclamada",
+                "referral_limit_reached": "Has alcanzado el límite máximo de recompensas por referidos (10 amigos)",
+                "reward_claim_in_progress": "El reclamo de esta recompensa ya se está procesando",
+                "reward_not_eligible": "Este referido no es elegible para recibir recompensa",
                 "generic": "Lo sentimos, hubo un problema al procesar esta solicitud. Por favor, inténtalo de nuevo."
             }
         }

@@ -2031,8 +2031,9 @@
         "start_earning_desc": "分享您的邀请码，开始赚取奖励！",
         "status": {
             "purchased": "已购买",
-            "registered": "Zelf ID自 {{ date }} 起注册",
-            "pending": "待处理"
+            "registered": "已注册",
+            "pending": "待处理",
+            "limit_reached": "已达上限"
         },
         "claim": "领取 {{ amount }} $ZNS"
     },
@@ -2056,6 +2057,9 @@
             "go_back": "返回",
             "messages": {
                 "reward_already_claimed": "此奖励已被领取",
+                "referral_limit_reached": "您已达到推荐奖励上限（10位好友）",
+                "reward_claim_in_progress": "该奖励领取请求正在处理中",
+                "reward_not_eligible": "此推荐不符合奖励条件",
                 "generic": "抱歉，处理此请求时出现问题。请重试。"
             }
         }

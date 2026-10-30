@@ -2290,7 +2290,8 @@
         "status": {
             "purchased": "Purchased",
             "registered": "Registered",
-            "pending": "pending"
+            "pending": "pending",
+            "limit_reached": "Limit reached"
         },
         "claim": "Claim {{ amount }} $ZNS"
     },
@@ -2314,6 +2315,9 @@
             "go_back": "Go Back",
             "messages": {
                 "reward_already_claimed": "This reward has already been claimed",
+                "referral_limit_reached": "You have reached the maximum referral reward limit (10 friends)",
+                "reward_claim_in_progress": "This reward claim is already being processed",
+                "reward_not_eligible": "This referral is not eligible for a reward",
                 "generic": "Failed to claim reward. Please try again later."
             }
         }

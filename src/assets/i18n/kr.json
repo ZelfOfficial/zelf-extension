@@ -2031,8 +2031,9 @@
         "start_earning_desc": "코드를 공유하고 보상을 받기 시작하세요!",
         "status": {
             "purchased": "구매 완료",
-            "registered": "{{ date }}부터 등록된 Zelf ID",
-            "pending": "대기 중"
+            "registered": "등록됨",
+            "pending": "대기 중",
+            "limit_reached": "한도 도달"
         },
         "claim": "{{ amount }} $ZNS 받기"
     },
@@ -2056,6 +2057,9 @@
             "go_back": "돌아가기",
             "messages": {
                 "reward_already_claimed": "이미 수령한 보상입니다",
+                "referral_limit_reached": "추천 보상 최대 한도(친구 10명)에 도달했습니다",
+                "reward_claim_in_progress": "이 보상 청구는 이미 처리 중입니다",
+                "reward_not_eligible": "이 추천은 보상 대상이 아닙니다",
                 "generic": "죄송합니다. 요청을 처리하는 중에 문제가 발생했습니다. 다시 시도해주세요."
             }
         }
