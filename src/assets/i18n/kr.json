@@ -919,7 +919,7 @@
         "wallet_short": "Wallet",
         "keys_short": "Pass",
         "website": "웹사이트",
-        "withdraw": "출금",
+        "withdraw": "보내기",
         "withdrawal_network": "출금 네트워크",
         "yes": "예",
         "your_token": "귀하의 {{ symbol }}",

@@ -1088,7 +1088,7 @@
         "upload_qr_image": "Upload QR image",
         "verify": "Verify",
         "website": "Website",
-        "withdraw": "Withdraw",
+        "withdraw": "Send",
         "withdrawal_network": "Withdrawal network",
         "yes": "Yes",
         "your_token": "Your {{ symbol }}",

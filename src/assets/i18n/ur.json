@@ -903,7 +903,7 @@
         "wallet_short": "Wallet",
         "keys_short": "Pass",
         "website": "ویب سائٹ",
-        "withdraw": "نکالیں",
+        "withdraw": "بھیجیں",
         "withdrawal_network": "نکالنے کا نیٹ ورک",
         "yes": "ہاں",
         "your_token": "آپ کا {{ symbol }}",

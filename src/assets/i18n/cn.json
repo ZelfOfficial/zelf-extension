@@ -919,7 +919,7 @@
         "wallet_short": "Wallet",
         "keys_short": "Pass",
         "website": "网站",
-        "withdraw": "提现",
+        "withdraw": "发送",
         "withdrawal_network": "提现网络",
         "yes": "是",
         "your_token": "您的{{ symbol }}",

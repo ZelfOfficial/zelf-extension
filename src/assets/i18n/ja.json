@@ -919,7 +919,7 @@
         "wallet_short": "Wallet",
         "keys_short": "Pass",
         "website": "ウェブサイト",
-        "withdraw": "出金",
+        "withdraw": "送信",
         "withdrawal_network": "出金ネットワーク",
         "yes": "はい",
         "your_token": "あなたの{{ symbol }}",

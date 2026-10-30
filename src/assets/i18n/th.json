@@ -903,7 +903,7 @@
         "wallet_short": "Wallet",
         "keys_short": "Pass",
         "website": "เว็บไซต์",
-        "withdraw": "ถอน",
+        "withdraw": "ส่ง",
         "withdrawal_network": "เครือข่ายการถอน",
         "yes": "ใช่",
         "your_token": "{{ symbol }} ของคุณ",

@@ -1071,7 +1071,7 @@
         "wallet_short": "Wallet",
         "keys_short": "Pass",
         "website": "Sitio web",
-        "withdraw": "Retirar",
+        "withdraw": "Enviar",
         "withdrawal_network": "Red de retiro",
         "yes": "Sí",
         "your_token": "Tu {{ symbol }}",

@@ -919,7 +919,7 @@
         "wallet_short": "Wallet",
         "keys_short": "Pass",
         "website": "वेबसाइट",
-        "withdraw": "निकालें",
+        "withdraw": "भेजें",
         "withdrawal_network": "निकासी नेटवर्क",
         "yes": "हाँ",
         "your_token": "आपका {{ symbol }}",

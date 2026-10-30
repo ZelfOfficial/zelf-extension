@@ -919,7 +919,7 @@
         "wallet_short": "Wallet",
         "keys_short": "Pass",
         "website": "Веб-сайт",
-        "withdraw": "Вывести",
+        "withdraw": "Отправить",
         "withdrawal_network": "Сеть вывода",
         "yes": "Да",
         "your_token": "Ваш {{ symbol }}",

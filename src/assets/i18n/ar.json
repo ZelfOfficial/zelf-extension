@@ -919,7 +919,7 @@
         "wallet_short": "Wallet",
         "keys_short": "Pass",
         "website": "الموقع الإلكتروني",
-        "withdraw": "سحب",
+        "withdraw": "إرسال",
         "withdrawal_network": "شبكة السحب",
         "yes": "نعم",
         "your_token": "{{ symbol }} الخاص بك",

@@ -926,7 +926,7 @@
         "wallet_short": "Wallet",
         "keys_short": "Pass",
         "website": "Site",
-        "withdraw": "Sacar",
+        "withdraw": "Enviar",
         "withdrawal_network": "Rede de saque",
         "yes": "Sim",
         "your_token": "Seu {{ symbol }}",
