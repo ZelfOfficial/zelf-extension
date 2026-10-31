@@ -217,6 +217,7 @@
 
         &--active {
             color: var(--welcome-onboarding-text);
+            font-weight: 700;
             transform: translateX(0);
         }
 
@@ -259,7 +260,7 @@
         display: inline-flex;
         font-family: var(--welcome-onboarding-font);
         font-size: 32px;
-        font-weight: 500;
+        font-weight: 700;
         gap: 12px;
         letter-spacing: 0;
         line-height: 44px;

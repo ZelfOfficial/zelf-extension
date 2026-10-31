@@ -787,15 +787,18 @@
             "summary_intro": "Binabago ang wallets, passwords at 2FAs",
             "features": {
                 "wallets": "Mga pitaka",
-                "password_managers": "Passwords",
+                "password_managers": "Mga password",
                 "two_factor": "2FA",
                 "inheritance": "Pamana"
             },
             "summary": {
                 "self_custodian": "Self-Custodian",
                 "offline_feature": "Offline Feature",
-                "human_authn": "HumanAuthn"
-            }
+                "human_authn": "HumanAuthn",
+                "human_bound": "Nakatali sa tao",
+                "device_agnostic": "Hindi nakadepende sa device"
+            },
+            "zelf_secur_is": "Ang Zelf Secur ay"
         }
     },
     "settings": {
@@ -2147,7 +2150,8 @@
             "loading": "Nilo-load ang naka-encrypt na data…"
         },
         "decrypt_failed": "Hindi mabuksan ang ZOTP na ito. Subukan muli.",
-        "warning": "Babala"
+        "warning": "Babala",
+        "loading_list": "Nilo-load ang iyong mga 2FA…"
     },
     "rewards": {
         "title": "Mga Reward",
@@ -2235,6 +2239,16 @@
             "password_subtitle": "Gumagamit ng password ang Zelf ID na ito. Ilagay ito para matapos ang reward ngayong araw.",
             "pin_title": "Ilagay ang PIN",
             "pin_subtitle": "Gumagamit ng PIN ang Zelf ID na ito. Ilagay ito para matapos ang reward ngayong araw."
+        },
+        "redeem": {
+            "title": "I-redeem ang $ZNS",
+            "you_have": "Mayroon ka",
+            "option_1m": "Kumuha ng isang buwan para sa iyong Zelf ID",
+            "option_2m": "Kumuha ng dalawang buwan para sa iyong Zelf ID",
+            "option_5m": "Kumuha ng limang buwan para sa iyong Zelf ID",
+            "option_3y": "Bumili ng Zelf ID (3 taon) na 6–15 karakter",
+            "option_1y": "Bumili ng Zelf ID (1 taon) na 6–15 karakter",
+            "option_2y": "Bumili ng Zelf ID (2 taon) na 6–15 karakter"
         }
     },
     "referrals": {
@@ -2336,7 +2350,68 @@
         "biometric_required": "Kailangan ng biometric verification para mag-sign",
         "estimated_gas_fee": "Tinantyang gas fee",
         "estimating": "Tinatantya...",
-        "unable_to_estimate": "Hindi ma-estimate"
+        "unable_to_estimate": "Hindi ma-estimate",
+        "from_token": "Token na pinagmulan",
+        "to_token": "Token na patutunguhan",
+        "approve_step": "Hakbang 1: Payagan ang kontrata na gumastos ng iyong mga token para sa swap o paglilipat.",
+        "amount_wei": "{{amount}} WEI",
+        "min_amount_wei": "Min: {{amount}} WEI",
+        "verify_valid": "Na-verify",
+        "verify_invalid": "Hindi tugma ang domain",
+        "verify_threat": "Mapanganib",
+        "verify_unknown": "Hindi na-verify",
+        "enter_pin": "Ilagay ang iyong PIN",
+        "enter_password": "Ilagay ang iyong password",
+        "decrypt_failed": "Hindi na-decrypt ang wallet",
+        "signing_failed": "Nabigo ang pagpirma",
+        "tx": {
+            "failed": "Nabigo ang transaksyon. Subukan muli.",
+            "insufficient": "Kulang ang {{symbol}} para sa gas. Magdagdag ng pondo at subukan muli.",
+            "slippage": "Nabigo ang swap: masyadong gumalaw ang presyo. Lakihan ang slippage tolerance.",
+            "reverted": "Na-revert ang transaksyon sa chain. Maaaring nag-expire ang swap. Subukan muli.",
+            "nonce": "Salungatan sa transaksyon. Maghintay sandali at subukan muli.",
+            "gas": "Masyadong mababa ang gas limit. Lakihan ang slippage o gas.",
+            "cancelled": "Kinansela ang transaksyon.",
+            "bad_password": "Maling password. Subukan muli.",
+            "network": "Error sa network. Suriin ang koneksyon at subukan muli.",
+            "send": "Ipadala ang {{amount}} sa {{address}}",
+            "transfer_tokens": "Ilipat ang mga token sa {{address}}",
+            "approve_unlimited": "Aprubahan ang walang limitasyong paggastos ng {{symbol}}",
+            "approve_spending": "Aprubahan ang paggastos ng token na {{symbol}}",
+            "transfer_nft": "Ilipat ang NFT #{{tokenId}} sa {{address}}",
+            "approve_all": "Payagan ang {{address}} na pamahalaan ang lahat ng NFT mo",
+            "revoke_all": "Bawiin ang pamamahala ng NFT para sa {{address}}",
+            "mint_nft": "Mag-mint ng NFT para sa {{address}}",
+            "list_nft": "Ilista ang NFT #{{tokenId}} para ibenta",
+            "buy_nft": "Bilhin ang NFT #{{tokenId}}",
+            "offer_nft": "Mag-alok sa NFT #{{tokenId}}",
+            "accept_offer": "Tanggapin ang alok sa NFT #{{tokenId}}",
+            "cancel_listing": "Kanselahin ang listing ng NFT #{{tokenId}}",
+            "create_collection": "Gumawa ng koleksyon na \"{{name}}\" ({{symbol}})",
+            "token_swap": "Pagpapalit ng token",
+            "token_swap_via": "Pagpapalit ng token sa pamamagitan ng {{protocol}}",
+            "swap_bundled": "Pagpapalit ng token (pinagsamang transaksyon)",
+            "call": "Tawagin ang {{name}}() sa {{address}}",
+            "contract": "Interaksyon sa kontrata na {{address}}",
+            "nft_interaction": "Interaksyon sa NFT: {{name}}",
+            "via": "{{action}} sa pamamagitan ng {{protocol}}",
+            "swap_exact_tokens": "Ipagpalit ang eksaktong dami ng token sa token",
+            "swap_eth_for_exact": "Ipagpalit ang ETH sa eksaktong dami ng token",
+            "swap_exact_for_eth": "Ipagpalit ang eksaktong dami ng token sa ETH",
+            "swap_tokens_for_exact": "Ipagpalit ang token sa eksaktong dami ng token",
+            "swap_tokens_for_exact_eth": "Ipagpalit ang token sa eksaktong dami ng ETH",
+            "swap_eth_for_tokens": "Ipagpalit ang ETH sa token",
+            "swap_exact_in_single": "Swap (eksaktong input, isang hop)",
+            "swap_exact_in_multi": "Swap (eksaktong input, maraming hop)",
+            "swap_exact_out_single": "Swap (eksaktong output, isang hop)",
+            "swap_exact_out_multi": "Swap (eksaktong output, maraming hop)",
+            "swap_multicall": "Pagpapalit ng token (multicall)",
+            "swap_aggregated": "Pagpapalit ng token (pinagsama-sama)",
+            "swap_via_uniswap_v3": "Pagpapalit ng token sa pamamagitan ng Uniswap V3",
+            "swap_via_uniswap": "Pagpapalit ng token sa pamamagitan ng Uniswap",
+            "wrap_eth": "I-wrap ang ETH",
+            "unwrap_eth": "I-unwrap sa ETH"
+        }
     },
     "zai": {
         "signed_in_as": "Signed in as {{name}}",
@@ -2411,7 +2486,14 @@
         "header_profile_aria": "Profile",
         "header_collapse_aria": "Itago ang pangalan",
         "header_expand_aria": "Ipakita ang pangalan",
-        "add_account_aria": "Magdagdag ng account"
+        "add_account_aria": "Magdagdag ng account",
+        "promo_change_logo_title": "Palitan ang logo",
+        "promo_change_logo_cta": "I-customize",
+        "promo_claim_reward_title": "Kunin ang gantimpala",
+        "promo_claim_reward_cta": "Kunin",
+        "promo_carousel_label": "Mga promo",
+        "promo_previous": "Nakaraang promo",
+        "promo_next": "Susunod na promo"
     },
     "welcomeZelfid": {
         "plan_free": "Libreng Zelf ID — iyo sa loob ng 100 taon. Puwede kang mag-upgrade mamaya.",

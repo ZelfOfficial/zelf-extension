@@ -787,15 +787,18 @@
             "summary_intro": "Reinventing Wallets, Password Managers and 2FAs",
             "features": {
                 "wallets": "Wallets",
-                "password_managers": "PWD Mgrs",
+                "password_managers": "Passwords",
                 "two_factor": "2FAs",
                 "inheritance": "Inheritance"
             },
             "summary": {
                 "self_custodian": "Self-Custodian",
                 "offline_feature": "Offline Feature",
-                "human_authn": "HumanAuthn"
-            }
+                "human_authn": "HumanAuthn",
+                "human_bound": "Human Bound",
+                "device_agnostic": "Device Agnostic"
+            },
+            "zelf_secur_is": "Zelf Secur is"
         }
     },
     "welcomeZelfid": {
@@ -1410,7 +1413,14 @@
         "header_profile_aria": "Profile",
         "header_collapse_aria": "Hide wallet name",
         "header_expand_aria": "Show wallet name",
-        "add_account_aria": "Add account"
+        "add_account_aria": "Add account",
+        "promo_change_logo_title": "Change logo",
+        "promo_change_logo_cta": "Customize",
+        "promo_claim_reward_title": "Claim reward",
+        "promo_claim_reward_cta": "Claim",
+        "promo_carousel_label": "Promotions",
+        "promo_previous": "Previous promotion",
+        "promo_next": "Next promotion"
     },
     "id_scanning": {
         "camera_not_found": "Camera not found",
@@ -2199,7 +2209,8 @@
         "recovered_setup_key": "Recovered Setup Key",
         "create_zotp_from_recovery": "Create ZOTP from Recovery",
         "recovery_successful": "Recovery Successful!",
-        "recovery_success_description": "Your ZOTP has been recovered and added to your authenticator. You can now use it to generate codes."
+        "recovery_success_description": "Your ZOTP has been recovered and added to your authenticator. You can now use it to generate codes.",
+        "loading_list": "Loading your 2FAs…"
     },
     "rewards": {
         "title": "Rewards",
@@ -2287,6 +2298,16 @@
             "password_subtitle": "This Zelf ID uses a password. Enter it to finish claiming today's reward.",
             "pin_title": "Enter your PIN",
             "pin_subtitle": "This Zelf ID uses a PIN. Enter it to finish claiming today's reward."
+        },
+        "redeem": {
+            "title": "Redeem $ZNS",
+            "you_have": "You have",
+            "option_1m": "Get one month for your Zelf ID",
+            "option_2m": "Get two months for your Zelf ID",
+            "option_5m": "Get five months for your Zelf ID",
+            "option_3y": "Buy a Zelf ID (3 years) of 6–15 characters",
+            "option_1y": "Buy a Zelf ID (1 year) of 6–15 characters",
+            "option_2y": "Buy a Zelf ID (2 years) of 6–15 characters"
         }
     },
     "referrals": {
@@ -2388,7 +2409,68 @@
         "estimating": "Estimating...",
         "unable_to_estimate": "Unable to estimate",
         "data": "Data",
-        "biometric_required": "Biometric verification required to sign"
+        "biometric_required": "Biometric verification required to sign",
+        "from_token": "From token",
+        "to_token": "To token",
+        "approve_step": "Step 1: Permit the contract to spend your tokens to execute a swap or transfer.",
+        "amount_wei": "{{amount}} WEI",
+        "min_amount_wei": "Min: {{amount}} WEI",
+        "verify_valid": "Verified",
+        "verify_invalid": "Domain mismatch",
+        "verify_threat": "Malicious",
+        "verify_unknown": "Unverified",
+        "enter_pin": "Enter your PIN",
+        "enter_password": "Enter your password",
+        "decrypt_failed": "Failed to decrypt wallet",
+        "signing_failed": "Signing failed",
+        "tx": {
+            "failed": "Transaction failed. Please try again.",
+            "insufficient": "Not enough {{symbol}} to cover gas fees. Add funds and try again.",
+            "slippage": "Swap failed: the price moved too much. Try increasing slippage tolerance.",
+            "reverted": "Transaction reverted on-chain. The swap may have expired — please try again.",
+            "nonce": "Transaction conflict. Please wait a moment and try again.",
+            "gas": "Gas limit too low. Try increasing slippage or gas settings.",
+            "cancelled": "Transaction cancelled.",
+            "bad_password": "Incorrect password. Please try again.",
+            "network": "Network error. Check your connection and try again.",
+            "send": "Send {{amount}} to {{address}}",
+            "transfer_tokens": "Transfer tokens to {{address}}",
+            "approve_unlimited": "Approve unlimited spending of {{symbol}}",
+            "approve_spending": "Approve token spending of {{symbol}}",
+            "transfer_nft": "Transfer NFT #{{tokenId}} to {{address}}",
+            "approve_all": "Approve {{address}} to manage all your NFTs",
+            "revoke_all": "Revoke NFT management for {{address}}",
+            "mint_nft": "Mint NFT to {{address}}",
+            "list_nft": "List NFT #{{tokenId}} for sale",
+            "buy_nft": "Buy NFT #{{tokenId}}",
+            "offer_nft": "Make an offer on NFT #{{tokenId}}",
+            "accept_offer": "Accept the offer on NFT #{{tokenId}}",
+            "cancel_listing": "Cancel the listing for NFT #{{tokenId}}",
+            "create_collection": "Create collection \"{{name}}\" ({{symbol}})",
+            "token_swap": "Token swap",
+            "token_swap_via": "Token swap via {{protocol}}",
+            "swap_bundled": "Token swap (bundled transaction)",
+            "call": "Call {{name}}() on {{address}}",
+            "contract": "Contract interaction with {{address}}",
+            "nft_interaction": "NFT interaction: {{name}}",
+            "via": "{{action}} via {{protocol}}",
+            "swap_exact_tokens": "Swap exact tokens for tokens",
+            "swap_eth_for_exact": "Swap ETH for exact tokens",
+            "swap_exact_for_eth": "Swap exact tokens for ETH",
+            "swap_tokens_for_exact": "Swap tokens for exact tokens",
+            "swap_tokens_for_exact_eth": "Swap tokens for exact ETH",
+            "swap_eth_for_tokens": "Swap ETH for tokens",
+            "swap_exact_in_single": "Swap (exact input, single hop)",
+            "swap_exact_in_multi": "Swap (exact input, multi-hop)",
+            "swap_exact_out_single": "Swap (exact output, single hop)",
+            "swap_exact_out_multi": "Swap (exact output, multi-hop)",
+            "swap_multicall": "Token swap (multicall)",
+            "swap_aggregated": "Token swap (aggregated)",
+            "swap_via_uniswap_v3": "Token swap via Uniswap V3",
+            "swap_via_uniswap": "Token swap via Uniswap",
+            "wrap_eth": "Wrap ETH",
+            "unwrap_eth": "Unwrap to ETH"
+        }
     },
     "superapp": {
         "connecting_with": "Connecting with {{appName}}",

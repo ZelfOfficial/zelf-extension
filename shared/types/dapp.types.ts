@@ -130,6 +130,9 @@ export interface DecodedTransaction {
         | "swap"
         | "unknown";
     description: string;
+    /** Transloco key for `description`. Params may include `actionKey`, translated by the sign screen. */
+    descriptionKey?: string;
+    descriptionParams?: Record<string, string>;
     to?: string;
     amount?: string;
     tokenSymbol?: string;

@@ -794,8 +794,11 @@
             "summary": {
                 "self_custodian": "Auto-garde",
                 "offline_feature": "Fonction hors ligne",
-                "human_authn": "HumanAuthn"
-            }
+                "human_authn": "HumanAuthn",
+                "human_bound": "Lié à une personne",
+                "device_agnostic": "Indépendant de l'appareil"
+            },
+            "zelf_secur_is": "Zelf Secur est"
         }
     },
     "settings": {
@@ -2147,7 +2150,8 @@
             "loading": "Chargement des données chiffrées…"
         },
         "decrypt_failed": "Impossible d'ouvrir ce ZOTP. Réessayez.",
-        "warning": "Avertissement"
+        "warning": "Avertissement",
+        "loading_list": "Chargement de vos 2FA…"
     },
     "rewards": {
         "title": "Récompenses",
@@ -2235,6 +2239,16 @@
             "password_subtitle": "Ce Zelf ID utilise un mot de passe. Saisissez-le pour terminer la réclamation du jour.",
             "pin_title": "Saisissez votre code PIN",
             "pin_subtitle": "Ce Zelf ID utilise un code PIN. Saisissez-le pour terminer la réclamation du jour."
+        },
+        "redeem": {
+            "title": "Échanger des $ZNS",
+            "you_have": "Vous avez",
+            "option_1m": "Obtenez un mois pour votre Zelf ID",
+            "option_2m": "Obtenez deux mois pour votre Zelf ID",
+            "option_5m": "Obtenez cinq mois pour votre Zelf ID",
+            "option_3y": "Acheter un Zelf ID (3 ans) de 6 à 15 caractères",
+            "option_1y": "Acheter un Zelf ID (1 an) de 6 à 15 caractères",
+            "option_2y": "Acheter un Zelf ID (2 ans) de 6 à 15 caractères"
         }
     },
     "referrals": {
@@ -2336,7 +2350,68 @@
         "biometric_required": "Vérification biométrique requise pour signer",
         "estimated_gas_fee": "Frais de gas estimés",
         "estimating": "Estimation...",
-        "unable_to_estimate": "Impossible d'estimer"
+        "unable_to_estimate": "Impossible d'estimer",
+        "from_token": "Jeton source",
+        "to_token": "Jeton de destination",
+        "approve_step": "Étape 1 : autorisez le contrat à dépenser vos jetons pour un échange ou un transfert.",
+        "amount_wei": "{{amount}} WEI",
+        "min_amount_wei": "Min : {{amount}} WEI",
+        "verify_valid": "Vérifié",
+        "verify_invalid": "Le domaine ne correspond pas",
+        "verify_threat": "Malveillant",
+        "verify_unknown": "Non vérifié",
+        "enter_pin": "Saisissez votre PIN",
+        "enter_password": "Saisissez votre mot de passe",
+        "decrypt_failed": "Impossible de déchiffrer le portefeuille",
+        "signing_failed": "La signature a échoué",
+        "tx": {
+            "failed": "La transaction a échoué. Veuillez réessayer.",
+            "insufficient": "Pas assez de {{symbol}} pour le gaz. Ajoutez des fonds et réessayez.",
+            "slippage": "L'échange a échoué : le prix a trop bougé. Augmentez la tolérance de glissement.",
+            "reverted": "La transaction a été annulée sur la chaîne. L'échange a peut-être expiré. Réessayez.",
+            "nonce": "Conflit de transaction. Patientez un instant et réessayez.",
+            "gas": "Limite de gaz trop basse. Augmentez le glissement ou le gaz.",
+            "cancelled": "Transaction annulée.",
+            "bad_password": "Mot de passe incorrect. Veuillez réessayer.",
+            "network": "Erreur réseau. Vérifiez votre connexion et réessayez.",
+            "send": "Envoyer {{amount}} à {{address}}",
+            "transfer_tokens": "Transférer des jetons à {{address}}",
+            "approve_unlimited": "Approuver une dépense illimitée de {{symbol}}",
+            "approve_spending": "Approuver la dépense de jetons {{symbol}}",
+            "transfer_nft": "Transférer le NFT #{{tokenId}} à {{address}}",
+            "approve_all": "Autoriser {{address}} à gérer tous vos NFT",
+            "revoke_all": "Révoquer la gestion des NFT pour {{address}}",
+            "mint_nft": "Émettre un NFT pour {{address}}",
+            "list_nft": "Mettre en vente le NFT #{{tokenId}}",
+            "buy_nft": "Acheter le NFT #{{tokenId}}",
+            "offer_nft": "Faire une offre sur le NFT #{{tokenId}}",
+            "accept_offer": "Accepter l'offre sur le NFT #{{tokenId}}",
+            "cancel_listing": "Annuler la vente du NFT #{{tokenId}}",
+            "create_collection": "Créer la collection « {{name}} » ({{symbol}})",
+            "token_swap": "Échange de jetons",
+            "token_swap_via": "Échange de jetons via {{protocol}}",
+            "swap_bundled": "Échange de jetons (transaction groupée)",
+            "call": "Appeler {{name}}() sur {{address}}",
+            "contract": "Interaction avec le contrat {{address}}",
+            "nft_interaction": "Interaction NFT : {{name}}",
+            "via": "{{action}} via {{protocol}}",
+            "swap_exact_tokens": "Échanger un montant exact de jetons contre des jetons",
+            "swap_eth_for_exact": "Échanger de l'ETH contre un montant exact de jetons",
+            "swap_exact_for_eth": "Échanger un montant exact de jetons contre de l'ETH",
+            "swap_tokens_for_exact": "Échanger des jetons contre un montant exact de jetons",
+            "swap_tokens_for_exact_eth": "Échanger des jetons contre un montant exact d'ETH",
+            "swap_eth_for_tokens": "Échanger de l'ETH contre des jetons",
+            "swap_exact_in_single": "Échange (entrée exacte, un saut)",
+            "swap_exact_in_multi": "Échange (entrée exacte, plusieurs sauts)",
+            "swap_exact_out_single": "Échange (sortie exacte, un saut)",
+            "swap_exact_out_multi": "Échange (sortie exacte, plusieurs sauts)",
+            "swap_multicall": "Échange de jetons (multicall)",
+            "swap_aggregated": "Échange de jetons (agrégé)",
+            "swap_via_uniswap_v3": "Échange de jetons via Uniswap V3",
+            "swap_via_uniswap": "Échange de jetons via Uniswap",
+            "wrap_eth": "Envelopper l'ETH",
+            "unwrap_eth": "Développer en ETH"
+        }
     },
     "zai": {
         "signed_in_as": "Signed in as {{name}}",
@@ -2411,7 +2486,14 @@
         "header_profile_aria": "Profil",
         "header_collapse_aria": "Masquer le nom",
         "header_expand_aria": "Afficher le nom",
-        "add_account_aria": "Ajouter un compte"
+        "add_account_aria": "Ajouter un compte",
+        "promo_change_logo_title": "Changer le logo",
+        "promo_change_logo_cta": "Personnaliser",
+        "promo_claim_reward_title": "Réclamer la récompense",
+        "promo_claim_reward_cta": "Réclamer",
+        "promo_carousel_label": "Promotions",
+        "promo_previous": "Promotion précédente",
+        "promo_next": "Promotion suivante"
     },
     "welcomeZelfid": {
         "plan_free": "Zelf ID gratuit — à vous pendant 100 ans. Vous pourrez passer à une offre supérieure plus tard.",

@@ -1,9 +1,4 @@
 <div class="vault" *transloco="let t">
-    <div *ngIf="loading" class="vault__state vault__state--loading">
-        <div class="vault__spinner"></div>
-        <p class="vault__state-text">{{ t("zelf_keys.vault.loading") }}</p>
-    </div>
-
     <div *ngIf="error && !loading" class="vault__state vault__state--error">
         <span class="material-symbols-outlined vault__state-symbol">cloud_off</span>
         <strong>{{ t("zelf_keys.vault.load_error") }}</strong>
@@ -13,7 +8,7 @@
         </button>
     </div>
 
-    <div *ngIf="!loading && !error" class="vault__content">
+    <div *ngIf="!error || zotps.length > 0" class="vault__content">
         <header class="vault__header">
             <p class="vault__eyebrow">{{ t("zotp.vault_eyebrow") }}</p>
             <h1>{{ t("common.zelf_authenticator") }}</h1>
@@ -28,7 +23,7 @@
 
         <div class="vault__stats" role="list" [attr.aria-label]="t('zelf_keys.vault.stats_label')">
             <div class="vault__stat vault__stat--total" role="listitem">
-                <strong>{{ zotpCount }}</strong>
+                <strong>{{ showLoadingState ? "–" : zotpCount }}</strong>
                 <span>{{ t("zelf_keys.vault.stat_total") }}</span>
             </div>
         </div>
@@ -63,7 +58,18 @@
                 </button>
             </div>
 
-            <div class="vault__list" *ngIf="filteredZotps.length > 0">
+            <div class="vault__skeletons" *ngIf="showLoadingState" role="status" [attr.aria-label]="t('zotp.loading_list')">
+                <p class="vault__state-text">{{ t("zotp.loading_list") }}</p>
+                <div class="vault__skeleton" *ngFor="let row of skeletonRows">
+                    <span class="vault__skeleton-mark"></span>
+                    <span class="vault__skeleton-lines">
+                        <span class="vault__skeleton-line vault__skeleton-line--title"></span>
+                        <span class="vault__skeleton-line"></span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="vault__list" *ngIf="filteredZotps.length > 0 && !showLoadingState">
                 <button
                     type="button"
                     class="vault__row"
@@ -79,7 +85,7 @@
                 </button>
             </div>
 
-            <div class="vault__empty" *ngIf="zotps.length === 0">
+            <div class="vault__empty" *ngIf="showEmptyState">
                 <span class="material-symbols-outlined vault__empty-icon">phonelink_lock</span>
                 <strong>{{ t("zotp.no_zotps_added") }}</strong>
                 <p>{{ t("zotp.empty_add_hint") }}</p>

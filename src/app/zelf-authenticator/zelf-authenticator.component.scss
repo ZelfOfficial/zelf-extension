@@ -251,6 +251,59 @@
         }
     }
 
+    &__skeletons {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    &__skeleton {
+        display: flex;
+        align-items: center;
+        gap: calc(14px * var(--zns-space-scale, 1));
+        padding: calc(12px * var(--zns-space-scale, 1)) calc(16px * var(--zns-space-scale, 1));
+        min-height: calc(58px * var(--zns-space-scale, 1));
+    }
+
+    &__skeleton-mark,
+    &__skeleton-line {
+        background: linear-gradient(
+            90deg,
+            variables.$themeBackgroundSecondary 0%,
+            variables.$themeBorder 50%,
+            variables.$themeBackgroundSecondary 100%
+        );
+        background-size: 200% 100%;
+        animation: zotp-skeleton 1.2s ease-in-out infinite;
+    }
+
+    &__skeleton-mark {
+        width: calc(40px * var(--zns-space-scale, 1));
+        height: calc(40px * var(--zns-space-scale, 1));
+        border-radius: 12px;
+        flex: 0 0 auto;
+    }
+
+    &__skeleton-lines {
+        display: flex;
+        flex-direction: column;
+        gap: calc(8px * var(--zns-space-scale, 1));
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    &__skeleton-line {
+        display: block;
+        height: calc(10px * var(--zns-font-scale, 1));
+        width: 46%;
+        border-radius: 999px;
+
+        &--title {
+            height: calc(14px * var(--zns-font-scale, 1));
+            width: 68%;
+        }
+    }
+
     &__empty {
         text-align: center;
         padding: calc(48px * var(--zns-space-scale, 1)) calc(24px * var(--zns-space-scale, 1));
@@ -265,6 +318,16 @@
             font-family: variables.$themeBodyFamily;
             font-size: calc(14px * var(--zns-font-scale, 1));
         }
+    }
+}
+
+@keyframes zotp-skeleton {
+    0% {
+        background-position: 100% 0;
+    }
+
+    100% {
+        background-position: -100% 0;
     }
 }
 

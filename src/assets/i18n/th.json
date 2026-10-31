@@ -794,8 +794,11 @@
             "summary": {
                 "self_custodian": "ดูแลเอง",
                 "offline_feature": "ฟีเจอร์ออฟไลน์",
-                "human_authn": "HumanAuthn"
-            }
+                "human_authn": "HumanAuthn",
+                "human_bound": "ผูกกับบุคคล",
+                "device_agnostic": "ไม่ขึ้นกับอุปกรณ์"
+            },
+            "zelf_secur_is": "Zelf Secur คือ"
         }
     },
     "settings": {
@@ -2147,7 +2150,8 @@
             "loading": "กำลังโหลดข้อมูลที่เข้ารหัส…"
         },
         "decrypt_failed": "เปิด ZOTP นี้ไม่ได้ ลองอีกครั้ง",
-        "warning": "คำเตือน"
+        "warning": "คำเตือน",
+        "loading_list": "กำลังโหลด 2FA ของคุณ…"
     },
     "rewards": {
         "title": "รางวัล",
@@ -2235,6 +2239,16 @@
             "password_subtitle": "Zelf ID นี้ใช้รหัสผ่าน ป้อนรหัสเพื่อรับรางวัลวันนี้ให้เสร็จ",
             "pin_title": "ป้อน PIN",
             "pin_subtitle": "Zelf ID นี้ใช้ PIN ป้อน PIN เพื่อรับรางวัลวันนี้ให้เสร็จ"
+        },
+        "redeem": {
+            "title": "แลก $ZNS",
+            "you_have": "คุณมี",
+            "option_1m": "รับหนึ่งเดือนสำหรับ Zelf ID ของคุณ",
+            "option_2m": "รับสองเดือนสำหรับ Zelf ID ของคุณ",
+            "option_5m": "รับห้าเดือนสำหรับ Zelf ID ของคุณ",
+            "option_3y": "ซื้อ Zelf ID (3 ปี) ความยาว 6–15 ตัวอักษร",
+            "option_1y": "ซื้อ Zelf ID (1 ปี) ความยาว 6–15 ตัวอักษร",
+            "option_2y": "ซื้อ Zelf ID (2 ปี) ความยาว 6–15 ตัวอักษร"
         }
     },
     "referrals": {
@@ -2336,7 +2350,68 @@
         "biometric_required": "ต้องยืนยันตัวตนด้วยไบโอเมตริกเพื่อลงนาม",
         "estimated_gas_fee": "ค่าแก๊สโดยประมาณ",
         "estimating": "กำลังประมาณการ...",
-        "unable_to_estimate": "ประมาณการไม่ได้"
+        "unable_to_estimate": "ประมาณการไม่ได้",
+        "from_token": "โทเค็นต้นทาง",
+        "to_token": "โทเค็นปลายทาง",
+        "approve_step": "ขั้นตอนที่ 1: อนุญาตให้สัญญาใช้โทเค็นของคุณเพื่อสลับหรือโอน",
+        "amount_wei": "{{amount}} WEI",
+        "min_amount_wei": "ขั้นต่ำ: {{amount}} WEI",
+        "verify_valid": "ตรวจสอบแล้ว",
+        "verify_invalid": "โดเมนไม่ตรงกัน",
+        "verify_threat": "เป็นอันตราย",
+        "verify_unknown": "ยังไม่ตรวจสอบ",
+        "enter_pin": "ป้อน PIN",
+        "enter_password": "ป้อนรหัสผ่าน",
+        "decrypt_failed": "ถอดรหัสกระเป๋าไม่สำเร็จ",
+        "signing_failed": "ลงนามไม่สำเร็จ",
+        "tx": {
+            "failed": "ธุรกรรมล้มเหลว โปรดลองอีกครั้ง",
+            "insufficient": "{{symbol}} ไม่พอสำหรับค่าแก๊ส เติมเงินแล้วลองอีกครั้ง",
+            "slippage": "สลับไม่สำเร็จ: ราคาขยับมากเกินไป ลองเพิ่มค่าเผื่อ slippage",
+            "reverted": "ธุรกรรมถูกยกเลิกบนเชน การสลับอาจหมดอายุ โปรดลองอีกครั้ง",
+            "nonce": "ธุรกรรมขัดแย้ง รอสักครู่แล้วลองอีกครั้ง",
+            "gas": "ขีดจำกัดแก๊สต่ำเกินไป ลองเพิ่ม slippage หรือแก๊ส",
+            "cancelled": "ยกเลิกธุรกรรมแล้ว",
+            "bad_password": "รหัสผ่านไม่ถูกต้อง โปรดลองอีกครั้ง",
+            "network": "เครือข่ายผิดพลาด ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง",
+            "send": "ส่ง {{amount}} ไปที่ {{address}}",
+            "transfer_tokens": "โอนโทเค็นไปที่ {{address}}",
+            "approve_unlimited": "อนุมัติการใช้ {{symbol}} ไม่จำกัด",
+            "approve_spending": "อนุมัติการใช้โทเค็น {{symbol}}",
+            "transfer_nft": "โอน NFT #{{tokenId}} ไปที่ {{address}}",
+            "approve_all": "อนุญาตให้ {{address}} จัดการ NFT ทั้งหมดของคุณ",
+            "revoke_all": "เพิกถอนการจัดการ NFT ของ {{address}}",
+            "mint_nft": "มินต์ NFT ให้ {{address}}",
+            "list_nft": "วางขาย NFT #{{tokenId}}",
+            "buy_nft": "ซื้อ NFT #{{tokenId}}",
+            "offer_nft": "เสนอราคา NFT #{{tokenId}}",
+            "accept_offer": "ยอมรับข้อเสนอของ NFT #{{tokenId}}",
+            "cancel_listing": "ยกเลิกการขาย NFT #{{tokenId}}",
+            "create_collection": "สร้างคอลเลกชัน \"{{name}}\" ({{symbol}})",
+            "token_swap": "สลับโทเค็น",
+            "token_swap_via": "สลับโทเค็นผ่าน {{protocol}}",
+            "swap_bundled": "สลับโทเค็น (ธุรกรรมรวม)",
+            "call": "เรียก {{name}}() ที่ {{address}}",
+            "contract": "โต้ตอบกับสัญญา {{address}}",
+            "nft_interaction": "การโต้ตอบ NFT: {{name}}",
+            "via": "{{action}} ผ่าน {{protocol}}",
+            "swap_exact_tokens": "สลับโทเค็นจำนวนตรงเป็นโทเค็น",
+            "swap_eth_for_exact": "สลับ ETH เป็นโทเค็นจำนวนตรง",
+            "swap_exact_for_eth": "สลับโทเค็นจำนวนตรงเป็น ETH",
+            "swap_tokens_for_exact": "สลับโทเค็นเป็นโทเค็นจำนวนตรง",
+            "swap_tokens_for_exact_eth": "สลับโทเค็นเป็น ETH จำนวนตรง",
+            "swap_eth_for_tokens": "สลับ ETH เป็นโทเค็น",
+            "swap_exact_in_single": "สลับ (อินพุตตรง หนึ่งฮอป)",
+            "swap_exact_in_multi": "สลับ (อินพุตตรง หลายฮอป)",
+            "swap_exact_out_single": "สลับ (เอาต์พุตตรง หนึ่งฮอป)",
+            "swap_exact_out_multi": "สลับ (เอาต์พุตตรง หลายฮอป)",
+            "swap_multicall": "สลับโทเค็น (multicall)",
+            "swap_aggregated": "สลับโทเค็น (รวม)",
+            "swap_via_uniswap_v3": "สลับโทเค็นผ่าน Uniswap V3",
+            "swap_via_uniswap": "สลับโทเค็นผ่าน Uniswap",
+            "wrap_eth": "ห่อ ETH",
+            "unwrap_eth": "แกะเป็น ETH"
+        }
     },
     "zai": {
         "signed_in_as": "Signed in as {{name}}",
@@ -2411,7 +2486,14 @@
         "header_profile_aria": "โปรไฟล์",
         "header_collapse_aria": "ซ่อนชื่อ",
         "header_expand_aria": "แสดงชื่อ",
-        "add_account_aria": "เพิ่มบัญชี"
+        "add_account_aria": "เพิ่มบัญชี",
+        "promo_change_logo_title": "เปลี่ยนโลโก้",
+        "promo_change_logo_cta": "ปรับแต่ง",
+        "promo_claim_reward_title": "รับรางวัล",
+        "promo_claim_reward_cta": "รับ",
+        "promo_carousel_label": "โปรโมชัน",
+        "promo_previous": "โปรโมชันก่อนหน้า",
+        "promo_next": "โปรโมชันถัดไป"
     },
     "welcomeZelfid": {
         "plan_free": "Zelf ID ฟรี — เป็นของคุณ 100 ปี อัปเกรดได้ภายหลัง",

@@ -78,12 +78,7 @@
 
                         <ng-template #summarySlide>
                             <div class="carousel__summary" [class.carousel__content--hidden]="isTransitioning">
-                                <div class="carousel__intro">
-                                    <div class="carousel__intro-line" *ngFor="let line of currentSlide.introLineKeys; let first = first">
-                                        <span class="carousel__intro-dot" *ngIf="first"></span>
-                                        <span>{{ t(line) }}</span>
-                                    </div>
-                                </div>
+                                <div class="carousel__eyebrow">{{ t(currentSlide.eyebrowKey) }}</div>
 
                                 <div class="carousel__feature-bullets">
                                     <div class="carousel__feature-bullet" *ngFor="let bullet of currentSlide.featureBulletKeys">

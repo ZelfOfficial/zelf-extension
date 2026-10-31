@@ -2,6 +2,7 @@ import { CommonModule } from "@angular/common";
 import { Component, OnInit } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { RouterModule } from "@angular/router";
+import { TranslocoModule } from "@jsverse/transloco";
 
 import { WalletService } from "../../wallet.service";
 import { SolanaService } from "../../solana.service";
@@ -10,13 +11,13 @@ const ZNS_TOKEN_SYMBOL = "ZNS";
 
 export interface RedeemOption {
     id: string;
-    title: string;
+    titleKey: string;
     costZns: number;
     disabled?: boolean;
 }
 
 @Component({
-    imports: [CommonModule, MatButtonModule, RouterModule],
+    imports: [CommonModule, MatButtonModule, RouterModule, TranslocoModule],
     selector: "app-redeem-zns",
     styleUrls: ["./redeem-zns.component.scss", "../../main.scss"],
     templateUrl: "./redeem-zns.component.html",
@@ -27,13 +28,13 @@ export class RedeemZnsComponent implements OnInit {
     useRpcForZnsBalance: boolean = false;
 
     readonly options: RedeemOption[] = [
-        { id: "zelfname-1m", title: "Get one month for your Zelf ID", costZns: 100 },
-        { id: "zelfname-2m", title: "Get two months for your Zelf ID", costZns: 200 },
-        { id: "zelfname-5m", title: "Get five months for your Zelf ID", costZns: 500 },
-        { id: "zns-3y-6-15", title: "Buy a Zelf ID (3 years) of 6 - 15 length", costZns: 3000 },
-        { id: "zns-1y-6-15", title: "Buy a Zelf ID (1 year) of 6 - 15 length", costZns: 1000 },
-        { id: "zns-2y-6-15", title: "Buy a Zelf ID (2 years) of 6 - 15 length", costZns: 2000 },
-        { id: "zns-3y-6-15-b", title: "Buy a Zelf ID (3 years) of 6 - 15 length", costZns: 3000 },
+        { id: "zelfname-1m", titleKey: "rewards.redeem.option_1m", costZns: 100 },
+        { id: "zelfname-2m", titleKey: "rewards.redeem.option_2m", costZns: 200 },
+        { id: "zelfname-5m", titleKey: "rewards.redeem.option_5m", costZns: 500 },
+        { id: "zns-3y-6-15", titleKey: "rewards.redeem.option_3y", costZns: 3000 },
+        { id: "zns-1y-6-15", titleKey: "rewards.redeem.option_1y", costZns: 1000 },
+        { id: "zns-2y-6-15", titleKey: "rewards.redeem.option_2y", costZns: 2000 },
+        { id: "zns-3y-6-15-b", titleKey: "rewards.redeem.option_3y", costZns: 3000 },
     ];
 
     constructor(

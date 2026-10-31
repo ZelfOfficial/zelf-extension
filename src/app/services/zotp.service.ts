@@ -1,4 +1,6 @@
 import { Injectable } from "@angular/core";
+import { BehaviorSubject } from "rxjs";
+
 import { ChromeService } from "../chrome.service";
 import { VaultService } from "../vault.service";
 import {
@@ -27,7 +29,22 @@ export class ZOTPService {
     private readonly LEGACY_CACHE_TIMESTAMP_KEY = "zotps_cache_timestamp";
     private readonly CACHE_TTL = 5 * 60 * 1000; // Cache TTL: 5 minutes
     private _cache: ZOTP[] | null = null;
+    private _cacheOwner: string | null = null;
     private _legacyCacheMigrated = false;
+    /** One in-flight GET /list?category=zotp shared by prefetch and the vault screen. */
+    private _inflight: Promise<ZOTP[]> | null = null;
+    private _inflightOwner: string | null = null;
+    private _background: Promise<void> = Promise.resolve();
+    /** When true, per-item cache sync updates memory and the caller writes storage once. */
+    private _deferCacheWrite = false;
+    private readonly _zotps$ = new BehaviorSubject<ZOTP[] | null>(null);
+    private readonly _listLoading$ = new BehaviorSubject<boolean>(false);
+
+    /**
+     * Last list paint. `network` is a cold GET /api/zelf-keys/list?category=zotp.
+     * That handler walks owner prefixes one after another (each an IPFS search) before it responds.
+     */
+    lastListLoad: { source: "memory" | "cache" | "stale" | "network"; ms: number; count: number } | null = null;
 
     constructor(
         private _chromeService: ChromeService,
@@ -36,6 +53,37 @@ export class ZOTPService {
         private _zelfKeysProofService: ZelfKeysProofService,
         private _zelfKeysService: ZelfKeysService
     ) {}
+
+    get zotps$() {
+        return this._zotps$.asObservable();
+    }
+
+    get listLoading$() {
+        return this._listLoading$.asObservable();
+    }
+
+    get currentList(): ZOTP[] | null {
+        return this._zotps$.value;
+    }
+
+    get listLoading(): boolean {
+        return this._listLoading$.value;
+    }
+
+    /** Start the list fetch without blocking navigation (authenticated shell). */
+    prefetch(): void {
+        void this.loadZOTPsFromBackend(false).catch((error) => {
+            console.error("Error prefetching ZOTPs:", error);
+        });
+    }
+
+    /** Resolves when a background refresh or cache write started by the last load finishes. */
+    async whenListSettled(): Promise<void> {
+        await this._background;
+        if (this._inflight) {
+            await this._inflight.catch(() => undefined);
+        }
+    }
 
     private _walletTagForCache(wallet: Partial<TagModel> | null): string {
         const raw = wallet?.fullTagName || wallet?.publicData?.tagName || "";
@@ -69,125 +117,200 @@ export class ZOTPService {
     }
 
     /**
-     * Load ZOTPs from ZelfKeys API using the new /list endpoint with category "zotp"
-     * This method uses caching to optimize performance
+     * Load ZOTPs from ZelfKeys API using GET /list?category=zotp.
+     *
+     * The API searches each owner prefix one after another (canonical tag, legacy concat,
+     * legacy double-domain). Each search is an IPFS listing, so a cold response is slow
+     * even for a handful of 2FAs. The vault does not need proofs or QR images for the list,
+     * so this method:
+     * - paints a fresh or stale cache immediately
+     * - shares one in-flight list call (prefetch + screen)
+     * - writes storage after the list is already returned to the UI
+     *
      * @param forceRefresh - If true, bypass cache and fetch from backend
-     * @returns Promise with the list of ZOTPs
      */
     async loadZOTPsFromBackend(forceRefresh: boolean = false): Promise<ZOTP[]> {
-        await this._removeLegacyGlobalCacheOnce();
-
+        const started = performance.now();
         const keys = await this._getCacheKeys();
+        void this._removeLegacyGlobalCacheOnce();
 
-        // Check cache first (unless force refresh)
-        if (!forceRefresh) {
-            const cachedZotps = await this._getCachedZOTPs(keys);
-            if (cachedZotps !== null) {
-                this._cache = cachedZotps;
-                return cachedZotps;
-            }
+        if (!forceRefresh && this._cache && this._cacheOwner === keys.ownerTag) {
+            this._publishList(this._cache, "memory", started);
+            void this._revalidateIfStale(keys, started);
+            return this._cache;
         }
 
+        const stored = await this._readStoredList(keys);
+
+        if (!forceRefresh && stored.fresh && stored.items) {
+            this._publishList(stored.items, "cache", started, keys);
+            return stored.items;
+        }
+
+        if (!forceRefresh && stored.items && stored.items.length > 0) {
+            this._publishList(stored.items, "stale", started, keys);
+            this._background = this._refreshFromNetwork(keys, started);
+            return stored.items;
+        }
+
+        this._listLoading$.next(true);
+
         try {
-            // Fetch from backend using the new /list endpoint
-            const response = await this._zelfKeysService.list("zotp");
-            const zotps: ZOTP[] = [];
-
-            // Response structure: { data: { success, data: [...], ... } }
-            const responseData = response?.data;
-            const items = responseData?.data || [];
-
-            if (Array.isArray(items)) {
-                // Map backend response to ZOTP format
-                for (const item of items) {
-                    const publicData = item.publicData || {};
-                    const zotp: ZOTP = {
-                        id: item.id || item.cid || this.generateId(),
-                        name: publicData.username || "",
-                        // DO NOT store secret - it's encrypted in ZelfKeys and must be retrieved via retrieve endpoint
-                        issuer: publicData.issuer || undefined,
-                        createdAt: item.createdAt ? new Date(item.createdAt).getTime() : Date.now(),
-                        updatedAt: item.updatedAt ? new Date(item.updatedAt).getTime() : Date.now(),
-                        isDecrypted: false,
-                        zelfProof: item.zelfProof || undefined,
-                        zelfKeysId: item.id || item.cid,
-                        zelfProofQRCode: item.zelfProofQRCode || undefined,
-                        ipfs: {
-                            id: item.id,
-                            cid: item.cid,
-                            url: item.url,
-                            publicData: publicData,
-                        },
-                    };
-
-                    // Extract walrus data from publicData if available
-                    if (publicData.walrus) {
-                        const walrusId = typeof publicData.walrus === "string" ? publicData.walrus : publicData.walrus.blobId;
-                        if (walrusId) {
-                            zotp.walrus = {
-                                success: true,
-                                blobId: walrusId,
-                                publicUrl: `https://walrus-mainnet.mystenlabs.com/${walrusId}`,
-                                explorerUrl: `https://walruscan.com/mainnet/blob/${walrusId}`,
-                            };
-                        }
-                    }
-
-                    // Parse additional metadata from publicData if available
-                    if (publicData.algorithm) zotp.algorithm = String(publicData.algorithm).toUpperCase();
-                    if (publicData.digits != null && publicData.digits !== "") {
-                        const digits = Number(publicData.digits);
-                        if (Number.isFinite(digits)) zotp.digits = digits;
-                    }
-                    if (publicData.period != null && publicData.period !== "") {
-                        const period = Number(publicData.period);
-                        if (Number.isFinite(period) && period > 0) zotp.period = period;
-                    }
-                    zotp.protection = parseZelfKeysProtection(publicData.protection);
-
-                    zotps.push(zotp);
-                }
-            }
-
-            // Update cache with timestamp (scoped to current wallet)
-            this._cache = zotps;
-            await this._chromeService.setItem(keys.storageKey, zotps);
-            await this._chromeService.setItem(keys.timestampKey, Date.now());
-
+            const zotps = await this._fetchShared(keys);
+            this._publishList(zotps, "network", started, keys);
             return zotps;
         } catch (error) {
             console.error("Error loading ZOTPs from backend:", error);
-            // Fallback to local cache if API fails
-            const cachedZotps = await this.getAllZOTPs();
+            const cachedZotps = stored.items ?? (await this.getAllZOTPs());
+            this._publishList(cachedZotps, "cache", started, keys);
             return cachedZotps;
         }
     }
 
-    /**
-     * Get cached ZOTPs if cache is still valid
-     * @returns Cached ZOTPs or null if cache is expired/invalid
-     */
-    private async _getCachedZOTPs(keys: {
+    private async _revalidateIfStale(
+        keys: { storageKey: string; timestampKey: string; ownerTag: string },
+        started: number
+    ): Promise<void> {
+        const cacheTimestamp = await this._chromeService.getItem<number>(keys.timestampKey);
+        if (typeof cacheTimestamp === "number" && Date.now() - cacheTimestamp < this.CACHE_TTL) return;
+
+        this._background = this._refreshFromNetwork(keys, started);
+    }
+
+    private _refreshFromNetwork(
+        keys: { storageKey: string; timestampKey: string; ownerTag: string },
+        started: number
+    ): Promise<void> {
+        return this._fetchShared(keys)
+            .then((zotps) => {
+                this._publishList(zotps, "network", started, keys);
+            })
+            .catch((error) => {
+                console.error("Error refreshing ZOTPs:", error);
+            });
+    }
+
+    private _publishList(
+        zotps: ZOTP[],
+        source: "memory" | "cache" | "stale" | "network",
+        started: number,
+        keys?: { storageKey: string; timestampKey: string; ownerTag: string }
+    ): void {
+        this._cache = zotps;
+        if (keys) this._cacheOwner = keys.ownerTag;
+        this._zotps$.next(zotps);
+        this._listLoading$.next(false);
+        this.lastListLoad = {
+            source,
+            ms: Math.round(performance.now() - started),
+            count: zotps.length,
+        };
+
+        if (source !== "network" || !keys) return;
+
+        this._background = this._persistList(keys, zotps);
+    }
+
+    private _persistList(
+        keys: { storageKey: string; timestampKey: string },
+        zotps: ZOTP[]
+    ): Promise<void> {
+        return Promise.all([
+            this._chromeService.setItem(keys.storageKey, zotps),
+            this._chromeService.setItem(keys.timestampKey, Date.now()),
+        ]).then(() => undefined);
+    }
+
+    private async _readStoredList(keys: {
         storageKey: string;
         timestampKey: string;
-        ownerTag: string;
-    }): Promise<ZOTP[] | null> {
+    }): Promise<{ items: ZOTP[] | null; fresh: boolean }> {
         try {
             const cacheTimestamp = await this._chromeService.getItem<number>(keys.timestampKey);
-            const now = Date.now();
+            const cachedZotps = await this._chromeService.getItem<ZOTP[]>(keys.storageKey);
+            if (!Array.isArray(cachedZotps)) return { items: null, fresh: false };
 
-            // Check if cache exists and is still valid
-            if (cacheTimestamp && now - cacheTimestamp < this.CACHE_TTL) {
-                const cachedZotps = await this._chromeService.getItem<ZOTP[]>(keys.storageKey);
-                if (cachedZotps && Array.isArray(cachedZotps) && cachedZotps.length >= 0) {
-                    return cachedZotps;
-                }
-            }
+            const fresh = typeof cacheTimestamp === "number" && Date.now() - cacheTimestamp < this.CACHE_TTL;
+            return { items: cachedZotps, fresh };
         } catch (error) {
             console.error("Error reading cache:", error);
+            return { items: null, fresh: false };
+        }
+    }
+
+    private _fetchShared(keys: { ownerTag: string }): Promise<ZOTP[]> {
+        if (this._inflight && this._inflightOwner === keys.ownerTag) return this._inflight;
+
+        this._inflightOwner = keys.ownerTag;
+        const run = this._fetchZotpList().finally(() => {
+            if (this._inflight === run) {
+                this._inflight = null;
+                this._inflightOwner = null;
+            }
+        });
+        this._inflight = run;
+        return run;
+    }
+
+    /**
+     * One category list. Metadata only — QR images and per-item decrypt stay off this path.
+     */
+    private async _fetchZotpList(): Promise<ZOTP[]> {
+        const response = await this._zelfKeysService.list("zotp");
+        const responseData = response?.data;
+        const items = Array.isArray(responseData?.data)
+            ? responseData.data
+            : Array.isArray(responseData)
+              ? responseData
+              : [];
+        const zotps: ZOTP[] = [];
+
+        for (const item of items) {
+            const publicData = item.publicData || {};
+            const zotp: ZOTP = {
+                id: item.id || item.cid || this.generateId(),
+                name: publicData.username || "",
+                issuer: publicData.issuer || undefined,
+                createdAt: item.createdAt ? new Date(item.createdAt).getTime() : Date.now(),
+                updatedAt: item.updatedAt ? new Date(item.updatedAt).getTime() : Date.now(),
+                isDecrypted: false,
+                zelfProof: typeof item.zelfProof === "string" ? item.zelfProof : undefined,
+                zelfKeysId: item.id || item.cid,
+                ipfs: {
+                    id: item.id,
+                    cid: item.cid,
+                    url: item.url,
+                    publicData: publicData,
+                },
+            };
+
+            if (publicData.walrus) {
+                const walrusId = typeof publicData.walrus === "string" ? publicData.walrus : publicData.walrus.blobId;
+                if (walrusId) {
+                    zotp.walrus = {
+                        success: true,
+                        blobId: walrusId,
+                        publicUrl: `https://walrus-mainnet.mystenlabs.com/${walrusId}`,
+                        explorerUrl: `https://walruscan.com/mainnet/blob/${walrusId}`,
+                    };
+                }
+            }
+
+            if (publicData.algorithm) zotp.algorithm = String(publicData.algorithm).toUpperCase();
+            if (publicData.digits != null && publicData.digits !== "") {
+                const digits = Number(publicData.digits);
+                if (Number.isFinite(digits)) zotp.digits = digits;
+            }
+            if (publicData.period != null && publicData.period !== "") {
+                const period = Number(publicData.period);
+                if (Number.isFinite(period) && period > 0) zotp.period = period;
+            }
+            zotp.protection = parseZelfKeysProtection(publicData.protection);
+
+            zotps.push(zotp);
         }
 
-        return null;
+        return zotps;
     }
 
     /**
@@ -440,13 +563,17 @@ export class ZOTPService {
         const keys = await this._getCacheKeys();
         const zotps = await this._chromeService.getItem<ZOTP[]>(keys.storageKey);
         this._cache = zotps && Array.isArray(zotps) ? zotps : [];
+        this._cacheOwner = keys.ownerTag;
 
-        // Sync ZOTPs with stored response data (zelfProof, ipfs, Walrus)
-        for (const zotp of this._cache) {
-            if (zotp.id) {
-                await this._syncZotpFromStoredResponse(zotp);
-            }
+        // One storage write after every row is synced. A per-item await rewrote the whole cache N times.
+        this._deferCacheWrite = true;
+        try {
+            await Promise.all(this._cache.filter((zotp) => !!zotp.id).map((zotp) => this._syncZotpFromStoredResponse(zotp)));
+        } finally {
+            this._deferCacheWrite = false;
         }
+
+        await this._persistCache(keys, this._cache);
 
         return this._cache;
     }
@@ -540,7 +667,13 @@ export class ZOTPService {
             });
         }
 
+        this._cache = zotps;
+        this._zotps$.next(zotps);
+
+        if (this._deferCacheWrite) return;
+
         const keys = await this._getCacheKeys();
+        this._cacheOwner = keys.ownerTag;
         await this._persistCache(keys, zotps);
     }
 
@@ -640,6 +773,9 @@ export class ZOTPService {
      */
     clearCache(): void {
         this._cache = null;
+        this._cacheOwner = null;
+        this._zotps$.next(null);
+        this._listLoading$.next(false);
     }
 
     /**

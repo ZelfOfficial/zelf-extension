@@ -794,8 +794,11 @@
             "summary": {
                 "self_custodian": "Самохранение",
                 "offline_feature": "Офлайн-функция",
-                "human_authn": "HumanAuthn"
-            }
+                "human_authn": "HumanAuthn",
+                "human_bound": "Привязан к человеку",
+                "device_agnostic": "Не зависит от устройства"
+            },
+            "zelf_secur_is": "Zelf Secur — это"
         }
     },
     "settings": {
@@ -2147,7 +2150,8 @@
             "loading": "Загрузка зашифрованных данных…"
         },
         "decrypt_failed": "Не удалось открыть этот ZOTP. Попробуйте снова.",
-        "warning": "Предупреждение"
+        "warning": "Предупреждение",
+        "loading_list": "Загрузка ваших 2FA…"
     },
     "rewards": {
         "title": "Награды",
@@ -2235,6 +2239,16 @@
             "password_subtitle": "Этому Zelf ID нужен пароль. Введите его, чтобы завершить получение награды за сегодня.",
             "pin_title": "Введите PIN",
             "pin_subtitle": "Этому Zelf ID нужен PIN. Введите его, чтобы завершить получение награды за сегодня."
+        },
+        "redeem": {
+            "title": "Обменять $ZNS",
+            "you_have": "У вас",
+            "option_1m": "Получите один месяц для вашего Zelf ID",
+            "option_2m": "Получите два месяца для вашего Zelf ID",
+            "option_5m": "Получите пять месяцев для вашего Zelf ID",
+            "option_3y": "Купить Zelf ID (3 года) длиной 6–15 символов",
+            "option_1y": "Купить Zelf ID (1 год) длиной 6–15 символов",
+            "option_2y": "Купить Zelf ID (2 года) длиной 6–15 символов"
         }
     },
     "referrals": {
@@ -2336,7 +2350,68 @@
         "biometric_required": "Для подписи требуется биометрическая проверка",
         "estimated_gas_fee": "Ориентировочная комиссия газа",
         "estimating": "Оценка...",
-        "unable_to_estimate": "Не удалось оценить"
+        "unable_to_estimate": "Не удалось оценить",
+        "from_token": "Исходный токен",
+        "to_token": "Токен назначения",
+        "approve_step": "Шаг 1: разрешите контракту тратить ваши токены для обмена или перевода.",
+        "amount_wei": "{{amount}} WEI",
+        "min_amount_wei": "Мин: {{amount}} WEI",
+        "verify_valid": "Проверено",
+        "verify_invalid": "Домен не совпадает",
+        "verify_threat": "Вредоносный",
+        "verify_unknown": "Не проверено",
+        "enter_pin": "Введите PIN",
+        "enter_password": "Введите пароль",
+        "decrypt_failed": "Не удалось расшифровать кошелёк",
+        "signing_failed": "Не удалось подписать",
+        "tx": {
+            "failed": "Транзакция не прошла. Попробуйте ещё раз.",
+            "insufficient": "Недостаточно {{symbol}} для газа. Пополните баланс и попробуйте снова.",
+            "slippage": "Обмен не удался: цена слишком изменилась. Увеличьте допуск проскальзывания.",
+            "reverted": "Транзакция отменена в сети. Обмен мог истечь. Попробуйте снова.",
+            "nonce": "Конфликт транзакции. Подождите немного и попробуйте снова.",
+            "gas": "Лимит газа слишком низкий. Увеличьте проскальзывание или газ.",
+            "cancelled": "Транзакция отменена.",
+            "bad_password": "Неверный пароль. Попробуйте ещё раз.",
+            "network": "Ошибка сети. Проверьте подключение и попробуйте снова.",
+            "send": "Отправить {{amount}} на {{address}}",
+            "transfer_tokens": "Перевести токены на {{address}}",
+            "approve_unlimited": "Разрешить неограниченный расход {{symbol}}",
+            "approve_spending": "Разрешить расход токенов {{symbol}}",
+            "transfer_nft": "Перевести NFT #{{tokenId}} на {{address}}",
+            "approve_all": "Разрешить {{address}} управлять всеми вашими NFT",
+            "revoke_all": "Отозвать управление NFT для {{address}}",
+            "mint_nft": "Выпустить NFT для {{address}}",
+            "list_nft": "Выставить NFT #{{tokenId}} на продажу",
+            "buy_nft": "Купить NFT #{{tokenId}}",
+            "offer_nft": "Сделать предложение на NFT #{{tokenId}}",
+            "accept_offer": "Принять предложение на NFT #{{tokenId}}",
+            "cancel_listing": "Отменить продажу NFT #{{tokenId}}",
+            "create_collection": "Создать коллекцию «{{name}}» ({{symbol}})",
+            "token_swap": "Обмен токенов",
+            "token_swap_via": "Обмен токенов через {{protocol}}",
+            "swap_bundled": "Обмен токенов (пакетная транзакция)",
+            "call": "Вызвать {{name}}() на {{address}}",
+            "contract": "Взаимодействие с контрактом {{address}}",
+            "nft_interaction": "Взаимодействие NFT: {{name}}",
+            "via": "{{action}} через {{protocol}}",
+            "swap_exact_tokens": "Обменять точное количество токенов на токены",
+            "swap_eth_for_exact": "Обменять ETH на точное количество токенов",
+            "swap_exact_for_eth": "Обменять точное количество токенов на ETH",
+            "swap_tokens_for_exact": "Обменять токены на точное количество токенов",
+            "swap_tokens_for_exact_eth": "Обменять токены на точное количество ETH",
+            "swap_eth_for_tokens": "Обменять ETH на токены",
+            "swap_exact_in_single": "Обмен (точный вход, один переход)",
+            "swap_exact_in_multi": "Обмен (точный вход, несколько переходов)",
+            "swap_exact_out_single": "Обмен (точный выход, один переход)",
+            "swap_exact_out_multi": "Обмен (точный выход, несколько переходов)",
+            "swap_multicall": "Обмен токенов (multicall)",
+            "swap_aggregated": "Обмен токенов (агрегированный)",
+            "swap_via_uniswap_v3": "Обмен токенов через Uniswap V3",
+            "swap_via_uniswap": "Обмен токенов через Uniswap",
+            "wrap_eth": "Обернуть ETH",
+            "unwrap_eth": "Развернуть в ETH"
+        }
     },
     "zai": {
         "signed_in_as": "Signed in as {{name}}",
@@ -2411,7 +2486,14 @@
         "header_profile_aria": "Профиль",
         "header_collapse_aria": "Скрыть имя",
         "header_expand_aria": "Показать имя",
-        "add_account_aria": "Добавить аккаунт"
+        "add_account_aria": "Добавить аккаунт",
+        "promo_change_logo_title": "Сменить логотип",
+        "promo_change_logo_cta": "Настроить",
+        "promo_claim_reward_title": "Получить награду",
+        "promo_claim_reward_cta": "Получить",
+        "promo_carousel_label": "Акции",
+        "promo_previous": "Предыдущая акция",
+        "promo_next": "Следующая акция"
     },
     "welcomeZelfid": {
         "plan_free": "Бесплатный Zelf ID — ваш на 100 лет. Позже можно улучшить план.",

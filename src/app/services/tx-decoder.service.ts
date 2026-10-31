@@ -18,6 +18,26 @@ const ERC721_SIGNATURES: Record<string, { name: string; inputs: string[] }> = {
 
 // Known DEX swap selectors -- when we can't decode full args we still show
 // a meaningful protocol name and action rather than raw hex
+const DEX_ACTION_KEYS: Record<string, string> = {
+    "Swap exact tokens for tokens": "dapp.tx.swap_exact_tokens",
+    "Swap ETH for exact tokens": "dapp.tx.swap_eth_for_exact",
+    "Swap exact tokens for ETH": "dapp.tx.swap_exact_for_eth",
+    "Swap tokens for exact tokens": "dapp.tx.swap_tokens_for_exact",
+    "Swap tokens for exact ETH": "dapp.tx.swap_tokens_for_exact_eth",
+    "Swap ETH for tokens": "dapp.tx.swap_eth_for_tokens",
+    "Swap (exact input single hop)": "dapp.tx.swap_exact_in_single",
+    "Swap (exact input multi-hop)": "dapp.tx.swap_exact_in_multi",
+    "Swap (exact output single hop)": "dapp.tx.swap_exact_out_single",
+    "Swap (exact output multi-hop)": "dapp.tx.swap_exact_out_multi",
+    "Token swap (multicall)": "dapp.tx.swap_multicall",
+    "Token swap": "dapp.tx.token_swap",
+    "Token swap (aggregated)": "dapp.tx.swap_aggregated",
+    "Token swap via Uniswap V3": "dapp.tx.swap_via_uniswap_v3",
+    "Token swap via Uniswap": "dapp.tx.swap_via_uniswap",
+    "Wrap ETH": "dapp.tx.wrap_eth",
+    "Unwrap to ETH": "dapp.tx.unwrap_eth",
+};
+
 const DEX_SWAP_SELECTORS: Record<string, { protocol: string; action: string; srcOffset?: number; dstOffset?: number }> = {
     // Uniswap V2 / forks (Pangolin, Trader Joe V1, Sushi)
     "0x38ed1739": { protocol: "Uniswap V2", action: "Swap exact tokens for tokens" },
@@ -147,9 +167,12 @@ export class TxDecoderService {
     private _decodeNativeTransfer(to: string, value: string | undefined): DecodedTransaction {
         const amount = value ? this._formatEther(value) : "0";
 
+        const address = this._shortAddr(to);
         return {
             type: "native_transfer",
-            description: `Send ${amount} to ${this._shortAddr(to)}`,
+            description: `Send ${amount} to ${address}`,
+            descriptionKey: "dapp.tx.send",
+            descriptionParams: { amount, address },
             to,
             amount,
         };
@@ -160,9 +183,12 @@ export class TxDecoderService {
 
         switch (name) {
             case "transfer":
+                const address = this._shortAddr(String(parsed.args[0]));
                 return {
                     type: "erc20_transfer",
-                    description: `Transfer tokens to ${this._shortAddr(String(parsed.args[0]))}`,
+                    description: `Transfer tokens to ${address}`,
+                    descriptionKey: "dapp.tx.transfer_tokens",
+                    descriptionParams: { address },
                     to: String(parsed.args[0]),
                     amount: String(parsed.args[1]),
                     tokenAddress: to,
@@ -181,6 +207,8 @@ export class TxDecoderService {
                 return {
                     type: "erc20_approve",
                     description: desc,
+                    descriptionKey: isUnlimited ? "dapp.tx.approve_unlimited" : "dapp.tx.approve_spending",
+                    descriptionParams: { symbol },
                     spender,
                     amount: String(amount),
                     tokenAddress: to,
@@ -190,15 +218,20 @@ export class TxDecoderService {
             }
 
             case "transferFrom":
-            case "safeTransferFrom":
+            case "safeTransferFrom": {
+                const tokenId = String(parsed.args[2]);
+                const address = this._shortAddr(String(parsed.args[1]));
                 return {
                     type: "erc721_transfer",
-                    description: `Transfer NFT #${String(parsed.args[2])} to ${this._shortAddr(String(parsed.args[1]))}`,
+                    description: `Transfer NFT #${tokenId} to ${address}`,
+                    descriptionKey: "dapp.tx.transfer_nft",
+                    descriptionParams: { tokenId, address },
                     to: String(parsed.args[1]),
-                    tokenId: String(parsed.args[2]),
+                    tokenId,
                     tokenAddress: to,
                     functionName: name,
                 };
+            }
 
             case "setApprovalForAll": {
                 const operator = String(parsed.args[0]);
@@ -208,6 +241,8 @@ export class TxDecoderService {
                     description: approved
                         ? `Approve ${this._shortAddr(operator)} to manage all your NFTs`
                         : `Revoke NFT management for ${this._shortAddr(operator)}`,
+                    descriptionKey: approved ? "dapp.tx.approve_all" : "dapp.tx.revoke_all",
+                    descriptionParams: { address: this._shortAddr(operator) },
                     spender: operator,
                     functionName: name,
                 };
@@ -217,6 +252,8 @@ export class TxDecoderService {
                 return {
                     type: "contract_interaction",
                     description: `Mint NFT to ${this._shortAddr(String(parsed.args[0]))}`,
+                    descriptionKey: "dapp.tx.mint_nft",
+                    descriptionParams: { address: this._shortAddr(String(parsed.args[0])) },
                     to: String(parsed.args[0]),
                     functionName: name,
                 };
@@ -225,6 +262,8 @@ export class TxDecoderService {
                 return {
                     type: "contract_interaction",
                     description: `List NFT #${String(parsed.args[1])} for sale`,
+                    descriptionKey: "dapp.tx.list_nft",
+                    descriptionParams: { tokenId: String(parsed.args[1]) },
                     tokenId: String(parsed.args[1]),
                     tokenAddress: String(parsed.args[0]),
                     functionName: name,
@@ -234,6 +273,8 @@ export class TxDecoderService {
                 return {
                     type: "contract_interaction",
                     description: `Buy NFT #${String(parsed.args[1])}`,
+                    descriptionKey: "dapp.tx.buy_nft",
+                    descriptionParams: { tokenId: String(parsed.args[1]) },
                     tokenId: String(parsed.args[1]),
                     tokenAddress: String(parsed.args[0]),
                     amount: value ? this._formatEther(value) : undefined,
@@ -244,6 +285,8 @@ export class TxDecoderService {
                 return {
                     type: "contract_interaction",
                     description: `Make offer on NFT #${String(parsed.args[1])}`,
+                    descriptionKey: "dapp.tx.offer_nft",
+                    descriptionParams: { tokenId: String(parsed.args[1]) },
                     tokenId: String(parsed.args[1]),
                     tokenAddress: String(parsed.args[0]),
                     amount: value ? this._formatEther(value) : undefined,
@@ -254,6 +297,8 @@ export class TxDecoderService {
                 return {
                     type: "contract_interaction",
                     description: `Accept offer on NFT #${String(parsed.args[1])}`,
+                    descriptionKey: "dapp.tx.accept_offer",
+                    descriptionParams: { tokenId: String(parsed.args[1]) },
                     tokenId: String(parsed.args[1]),
                     tokenAddress: String(parsed.args[0]),
                     functionName: name,
@@ -263,6 +308,8 @@ export class TxDecoderService {
                 return {
                     type: "contract_interaction",
                     description: `Cancel listing for NFT #${String(parsed.args[1])}`,
+                    descriptionKey: "dapp.tx.cancel_listing",
+                    descriptionParams: { tokenId: String(parsed.args[1]) },
                     tokenId: String(parsed.args[1]),
                     tokenAddress: String(parsed.args[0]),
                     functionName: name,
@@ -272,6 +319,8 @@ export class TxDecoderService {
                 return {
                     type: "contract_interaction",
                     description: `Create collection "${String(parsed.args[0])}" (${String(parsed.args[1])})`,
+                    descriptionKey: "dapp.tx.create_collection",
+                    descriptionParams: { name: String(parsed.args[0]), symbol: String(parsed.args[1]) },
                     functionName: name,
                 };
 
@@ -283,6 +332,8 @@ export class TxDecoderService {
                 return {
                     type: "swap",
                     description: `Token swap via Uniswap V3`,
+                    descriptionKey: "dapp.tx.token_swap_via",
+                    descriptionParams: { protocol: "Uniswap V3" },
                     to,
                     functionName: name,
                     srcToken: params?.tokenIn,
@@ -308,6 +359,7 @@ export class TxDecoderService {
                 return {
                     type: "swap",
                     description: `Token swap`,
+                    descriptionKey: "dapp.tx.token_swap",
                     to,
                     functionName: name,
                     srcToken,
@@ -336,6 +388,7 @@ export class TxDecoderService {
                 return {
                     type: "swap",
                     description: `Token swap`,
+                    descriptionKey: "dapp.tx.token_swap",
                     to,
                     functionName: name,
                     srcToken,
@@ -351,6 +404,7 @@ export class TxDecoderService {
                 return {
                     type: "swap",
                     description: `Token swap (bundled transaction)`,
+                    descriptionKey: "dapp.tx.swap_bundled",
                     to,
                     functionName: name,
                 };
@@ -359,6 +413,8 @@ export class TxDecoderService {
                 return {
                     type: "contract_interaction",
                     description: `Call ${name}() on ${this._shortAddr(to)}`,
+                    descriptionKey: "dapp.tx.call",
+                    descriptionParams: { name, address: this._shortAddr(to) },
                     to,
                     functionName: name,
                 };
@@ -387,6 +443,11 @@ export class TxDecoderService {
             return {
                 type: "swap",
                 description: `${dexEntry.action} via ${dexEntry.protocol}`,
+                descriptionKey: "dapp.tx.via",
+                descriptionParams: {
+                    actionKey: DEX_ACTION_KEYS[dexEntry.action] || "dapp.tx.token_swap",
+                    protocol: dexEntry.protocol,
+                },
                 to,
                 functionName: selector,
                 srcToken: srcToken,
@@ -405,6 +466,8 @@ export class TxDecoderService {
                     return {
                         type: "erc20_transfer",
                         description: `Transfer tokens to ${this._shortAddr(String(decoded[0]))}`,
+                        descriptionKey: "dapp.tx.transfer_tokens",
+                        descriptionParams: { address: this._shortAddr(String(decoded[0])) },
                         to: String(decoded[0]),
                         amount: String(decoded[1]),
                         tokenAddress: to,
@@ -417,6 +480,8 @@ export class TxDecoderService {
                     return {
                         type: "erc20_approve",
                         description: `Approve token spending of ${symbol}`,
+                        descriptionKey: "dapp.tx.approve_spending",
+                        descriptionParams: { symbol },
                         spender: String(decoded[0]),
                         amount: String(decoded[1]),
                         tokenAddress: to,
@@ -434,6 +499,8 @@ export class TxDecoderService {
             return {
                 type: "erc721_transfer",
                 description: `NFT interaction: ${sig.name}`,
+                descriptionKey: "dapp.tx.nft_interaction",
+                descriptionParams: { name: sig.name },
                 to,
                 functionName: sig.name,
             };
@@ -442,6 +509,8 @@ export class TxDecoderService {
         return {
             type: "unknown",
             description: `Contract interaction with ${this._shortAddr(to)}`,
+            descriptionKey: "dapp.tx.contract",
+            descriptionParams: { address: this._shortAddr(to) },
             to,
             functionName: selector,
         };

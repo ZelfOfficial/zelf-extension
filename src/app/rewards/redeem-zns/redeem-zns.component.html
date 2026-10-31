@@ -1,4 +1,4 @@
-<div class="zelf-card redeem-zns">
+<div class="zelf-card redeem-zns" *transloco="let t">
     <!-- Header -->
     <div class="redeem-zns__header">
         <div class="redeem-zns__col1">
@@ -12,7 +12,7 @@
         </div>
 
         <div class="redeem-zns__col2">
-            <p class="redeem-zns__title">Redeem $ZNS</p>
+            <p class="redeem-zns__title">{{ t("rewards.redeem.title") }}</p>
         </div>
 
         <div class="redeem-zns__col3"></div>
@@ -23,7 +23,7 @@
         <div class="redeem-zns__container">
             <!-- Balance -->
             <div class="redeem-zns__balance-section">
-                <div class="redeem-zns__balance-label">You have</div>
+                <div class="redeem-zns__balance-label">{{ t("rewards.redeem.you_have") }}</div>
                 <div class="redeem-zns__balance-amount">{{ znsBalanceLoading ? "..." : (znsBalance | number: "1.2-4") }} $ZNS</div>
             </div>
 
@@ -38,7 +38,7 @@
                     (click)="onOptionClick(opt)"
                 >
                     <div class="redeem-zns__option-text">
-                        <span class="redeem-zns__option-title">{{ opt.title }}</span>
+                        <span class="redeem-zns__option-title">{{ t(opt.titleKey) }}</span>
                         <span class="redeem-zns__option-cost">{{ opt.costZns | number }} ZNS</span>
                     </div>
                     <div class="redeem-zns__option-arrow">
