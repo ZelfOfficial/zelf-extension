@@ -794,8 +794,11 @@
             "summary": {
                 "self_custodian": "Autocustodia",
                 "offline_feature": "Función offline",
-                "human_authn": "HumanAuthn"
-            }
+                "human_authn": "HumanAuthn",
+                "human_bound": "Vinculado a una persona",
+                "device_agnostic": "Independiente del dispositivo"
+            },
+            "zelf_secur_is": "Zelf Secur es"
         }
     },
     "welcomeZelfid": {
@@ -1415,7 +1418,14 @@
         "header_profile_aria": "Perfil",
         "header_collapse_aria": "Ocultar nombre",
         "header_expand_aria": "Mostrar nombre",
-        "add_account_aria": "Añadir cuenta"
+        "add_account_aria": "Añadir cuenta",
+        "promo_change_logo_title": "Cambiar logo",
+        "promo_change_logo_cta": "Personalizar",
+        "promo_claim_reward_title": "Reclamar recompensa",
+        "promo_claim_reward_cta": "Reclamar",
+        "promo_carousel_label": "Promociones",
+        "promo_previous": "Promoción anterior",
+        "promo_next": "Promoción siguiente"
     },
     "id_scanning": {
         "camera_not_found": "Cámara no encontrada",
@@ -2204,7 +2214,8 @@
         "create_zotp_from_recovery": "Crear ZOTP desde la Recuperación",
         "recovery_successful": "¡Recuperación Exitosa!",
         "recovery_success_description": "Su ZOTP ha sido recuperado y agregado a su autenticador. Ahora puede usarlo para generar códigos.",
-        "decrypt_failed": "No se pudo abrir este ZOTP. Inténtalo de nuevo."
+        "decrypt_failed": "No se pudo abrir este ZOTP. Inténtalo de nuevo.",
+        "loading_list": "Cargando tus 2FA…"
     },
     "rewards": {
         "title": "Recompensas",
@@ -2292,6 +2303,16 @@
             "password_subtitle": "Este Zelf ID usa una contraseña. Escríbela para terminar de reclamar la recompensa de hoy.",
             "pin_title": "Ingresa tu PIN",
             "pin_subtitle": "Este Zelf ID usa un PIN. Escríbelo para terminar de reclamar la recompensa de hoy."
+        },
+        "redeem": {
+            "title": "Canjear $ZNS",
+            "you_have": "Tienes",
+            "option_1m": "Obtén un mes para tu Zelf ID",
+            "option_2m": "Obtén dos meses para tu Zelf ID",
+            "option_5m": "Obtén cinco meses para tu Zelf ID",
+            "option_3y": "Compra un Zelf ID (3 años) de 6 a 15 caracteres",
+            "option_1y": "Compra un Zelf ID (1 año) de 6 a 15 caracteres",
+            "option_2y": "Compra un Zelf ID (2 años) de 6 a 15 caracteres"
         }
     },
     "referrals": {
@@ -2393,7 +2414,68 @@
         "biometric_required": "Se requiere verificación biométrica para firmar",
         "estimated_gas_fee": "Tarifa de gas estimada",
         "estimating": "Estimando...",
-        "unable_to_estimate": "No se puede estimar"
+        "unable_to_estimate": "No se puede estimar",
+        "from_token": "Token de origen",
+        "to_token": "Token de destino",
+        "approve_step": "Paso 1: permite que el contrato use tus tokens para un intercambio o una transferencia.",
+        "amount_wei": "{{amount}} WEI",
+        "min_amount_wei": "Mín: {{amount}} WEI",
+        "verify_valid": "Verificado",
+        "verify_invalid": "El dominio no coincide",
+        "verify_threat": "Malicioso",
+        "verify_unknown": "Sin verificar",
+        "enter_pin": "Ingresa tu PIN",
+        "enter_password": "Ingresa tu contraseña",
+        "decrypt_failed": "No se pudo descifrar la billetera",
+        "signing_failed": "No se pudo firmar",
+        "tx": {
+            "failed": "La transacción falló. Inténtalo de nuevo.",
+            "insufficient": "No hay suficiente {{symbol}} para el gas. Agrega fondos e inténtalo de nuevo.",
+            "slippage": "El intercambio falló: el precio se movió demasiado. Aumenta la tolerancia de deslizamiento.",
+            "reverted": "La transacción se revirtió en la cadena. El intercambio puede haber expirado. Inténtalo de nuevo.",
+            "nonce": "Conflicto de transacción. Espera un momento e inténtalo de nuevo.",
+            "gas": "El límite de gas es demasiado bajo. Aumenta el deslizamiento o el gas.",
+            "cancelled": "Transacción cancelada.",
+            "bad_password": "Contraseña incorrecta. Inténtalo de nuevo.",
+            "network": "Error de red. Revisa tu conexión e inténtalo de nuevo.",
+            "send": "Enviar {{amount}} a {{address}}",
+            "transfer_tokens": "Transferir tokens a {{address}}",
+            "approve_unlimited": "Aprobar gasto ilimitado de {{symbol}}",
+            "approve_spending": "Aprobar el gasto de tokens {{symbol}}",
+            "transfer_nft": "Transferir NFT #{{tokenId}} a {{address}}",
+            "approve_all": "Aprobar a {{address}} para gestionar todos tus NFT",
+            "revoke_all": "Revocar la gestión de NFT para {{address}}",
+            "mint_nft": "Acuñar NFT para {{address}}",
+            "list_nft": "Poner en venta el NFT #{{tokenId}}",
+            "buy_nft": "Comprar NFT #{{tokenId}}",
+            "offer_nft": "Hacer una oferta por el NFT #{{tokenId}}",
+            "accept_offer": "Aceptar la oferta del NFT #{{tokenId}}",
+            "cancel_listing": "Cancelar la venta del NFT #{{tokenId}}",
+            "create_collection": "Crear la colección \"{{name}}\" ({{symbol}})",
+            "token_swap": "Intercambio de tokens",
+            "token_swap_via": "Intercambio de tokens mediante {{protocol}}",
+            "swap_bundled": "Intercambio de tokens (transacción agrupada)",
+            "call": "Llamar a {{name}}() en {{address}}",
+            "contract": "Interacción con el contrato {{address}}",
+            "nft_interaction": "Interacción NFT: {{name}}",
+            "via": "{{action}} mediante {{protocol}}",
+            "swap_exact_tokens": "Intercambiar una cantidad exacta de tokens por tokens",
+            "swap_eth_for_exact": "Intercambiar ETH por una cantidad exacta de tokens",
+            "swap_exact_for_eth": "Intercambiar una cantidad exacta de tokens por ETH",
+            "swap_tokens_for_exact": "Intercambiar tokens por una cantidad exacta de tokens",
+            "swap_tokens_for_exact_eth": "Intercambiar tokens por una cantidad exacta de ETH",
+            "swap_eth_for_tokens": "Intercambiar ETH por tokens",
+            "swap_exact_in_single": "Intercambio (entrada exacta, un salto)",
+            "swap_exact_in_multi": "Intercambio (entrada exacta, varios saltos)",
+            "swap_exact_out_single": "Intercambio (salida exacta, un salto)",
+            "swap_exact_out_multi": "Intercambio (salida exacta, varios saltos)",
+            "swap_multicall": "Intercambio de tokens (multicall)",
+            "swap_aggregated": "Intercambio de tokens (agregado)",
+            "swap_via_uniswap_v3": "Intercambio de tokens mediante Uniswap V3",
+            "swap_via_uniswap": "Intercambio de tokens mediante Uniswap",
+            "wrap_eth": "Envolver ETH",
+            "unwrap_eth": "Desenvolver a ETH"
+        }
     },
     "superapp": {
         "connecting_with": "Conectando con {{appName}}",

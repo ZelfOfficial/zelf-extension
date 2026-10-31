@@ -114,16 +114,16 @@ export class DappConnectComponent implements OnInit, OnDestroy {
         return this.accounts.filter((a) => a.selected).map((a) => a.address);
     }
 
-    get verifyLabel(): string {
+    get verifyLabelKey(): string {
         switch (this.verifyStatus) {
             case "VALID":
-                return "Verified";
+                return "dapp.verify_valid";
             case "INVALID":
-                return "Domain mismatch";
+                return "dapp.verify_invalid";
             case "THREAT":
-                return "Malicious";
+                return "dapp.verify_threat";
             default:
-                return "Unverified";
+                return "dapp.verify_unknown";
         }
     }
 

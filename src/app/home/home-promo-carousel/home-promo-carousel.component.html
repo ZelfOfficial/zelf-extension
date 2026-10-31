@@ -1,0 +1,53 @@
+<section class="home-promo" (keydown)="onKeydown($event)">
+    <div
+        #viewport
+        class="home-promo__viewport"
+        [attr.aria-label]="label('home_hub.promo_carousel_label')"
+        [attr.aria-roledescription]="'carousel'"
+        (scroll)="onScroll()"
+        (pointerdown)="onPointerDown($event)"
+        (pointermove)="onPointerMove($event)"
+    >
+        <a
+            *ngFor="let card of cards; let i = index; trackBy: trackById"
+            class="home-promo__card"
+            [routerLink]="card.route"
+            [queryParams]="card.queryParams"
+            [attr.aria-label]="label(card.titleKey)"
+            [attr.aria-hidden]="i === activeIndex ? null : true"
+            (click)="onCardClick($event)"
+        >
+            <div class="home-promo__copy">
+                <p class="home-promo__title">{{ label(card.titleKey) }}</p>
+                <span class="home-promo__cta zelf-button zelf-button--thin home-hub__cta-accent home-hub__cta-compact">
+                    {{ label(card.ctaKey) }}
+                </span>
+            </div>
+            <div class="home-promo__visual" aria-hidden="true">
+                <img *ngIf="card.imageUrl" [src]="card.imageUrl" alt="" class="home-promo__image" />
+                <span *ngIf="!card.imageUrl && card.icon" class="material-symbols-outlined home-promo__icon">{{ card.icon }}</span>
+            </div>
+        </a>
+    </div>
+
+    <div class="home-promo__controls" *ngIf="hasMany">
+        <button type="button" class="home-promo__arrow" (click)="previous()" [attr.aria-label]="label('home_hub.promo_previous')">
+            <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+        </button>
+        <div class="home-promo__dots" role="tablist" [attr.aria-label]="label('home_hub.promo_carousel_label')">
+            <button
+                type="button"
+                class="home-promo__dot"
+                *ngFor="let card of cards; let i = index; trackBy: trackById"
+                role="tab"
+                [class.home-promo__dot--active]="i === activeIndex"
+                [attr.aria-selected]="i === activeIndex"
+                [attr.aria-label]="label(card.titleKey)"
+                (click)="goTo(i)"
+            ></button>
+        </div>
+        <button type="button" class="home-promo__arrow" (click)="next()" [attr.aria-label]="label('home_hub.promo_next')">
+            <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+        </button>
+    </div>
+</section>

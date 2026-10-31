@@ -31,6 +31,7 @@ import { projectHomeNetworkTokens, uniqueChainIds } from "app/core/utils/home-ne
 import { nextAccountToLoad, walletAccountIdentity } from "app/core/utils/wallet-session.util";
 import { WalletBalanceCacheService } from "app/services/wallet-balance-cache.service";
 import { HomeEnabledNetworksComponent } from "./home-enabled-networks/home-enabled-networks.component";
+import { HomePromoCarouselComponent } from "./home-promo-carousel/home-promo-carousel.component";
 
 /** Home quick-access row (#29): Pass, 2FA, Legacy, ID, then "More". */
 const QUICK_HUB_IDS = ["zelf-keys", "zelf-authenticator", "legacy", "manage-domains"] as const;
@@ -50,6 +51,7 @@ const QUICK_HUB_IDS = ["zelf-keys", "zelf-authenticator", "legacy", "manage-doma
         TranslocoModule,
         WalletBalanceTopCardComponent,
         HomeEnabledNetworksComponent,
+        HomePromoCarouselComponent,
         ZelfFooterComponent,
     ],
     selector: "home",

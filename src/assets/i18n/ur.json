@@ -794,8 +794,11 @@
             "summary": {
                 "self_custodian": "خود کی تحویل",
                 "offline_feature": "آف لائن خصوصیت",
-                "human_authn": "HumanAuthn"
-            }
+                "human_authn": "HumanAuthn",
+                "human_bound": "انسان سے منسلک",
+                "device_agnostic": "ڈیوائس سے آزاد"
+            },
+            "zelf_secur_is": "Zelf Secur ہے"
         }
     },
     "settings": {
@@ -2147,7 +2150,8 @@
             "loading": "مرموز ڈیٹا لوڈ ہو رہا ہے…"
         },
         "decrypt_failed": "یہ ZOTP نہیں کھل سکا۔ دوبارہ کوشش کریں۔",
-        "warning": "انتباہ"
+        "warning": "انتباہ",
+        "loading_list": "آپ کے 2FA لوڈ ہو رہے ہیں…"
     },
     "rewards": {
         "title": "انعامات",
@@ -2235,6 +2239,16 @@
             "password_subtitle": "یہ Zelf ID پاس ورڈ استعمال کرتا ہے۔ آج کا انعام مکمل کرنے کے لیے اسے درج کریں۔",
             "pin_title": "اپنا PIN درج کریں",
             "pin_subtitle": "یہ Zelf ID PIN استعمال کرتا ہے۔ آج کا انعام مکمل کرنے کے لیے اسے درج کریں۔"
+        },
+        "redeem": {
+            "title": "$ZNS ریڈیم کریں",
+            "you_have": "آپ کے پاس",
+            "option_1m": "اپنے Zelf ID کے لیے ایک مہینہ حاصل کریں",
+            "option_2m": "اپنے Zelf ID کے لیے دو مہینے حاصل کریں",
+            "option_5m": "اپنے Zelf ID کے لیے پانچ مہینے حاصل کریں",
+            "option_3y": "6–15 حروف کا Zelf ID خریدیں (3 سال)",
+            "option_1y": "6–15 حروف کا Zelf ID خریدیں (1 سال)",
+            "option_2y": "6–15 حروف کا Zelf ID خریدیں (2 سال)"
         }
     },
     "referrals": {
@@ -2336,7 +2350,68 @@
         "biometric_required": "دستخط کے لیے بائیو میٹرک تصدیق ضروری ہے",
         "estimated_gas_fee": "تخمینی گیس فیس",
         "estimating": "تخمین لگایا جا رہا ہے...",
-        "unable_to_estimate": "تخمین ممکن نہیں"
+        "unable_to_estimate": "تخمین ممکن نہیں",
+        "from_token": "ماخذ ٹوکن",
+        "to_token": "منزل ٹوکن",
+        "approve_step": "مرحلہ 1: سویپ یا منتقلی کے لیے معاہدے کو اپنے ٹوکن خرچ کرنے دیں۔",
+        "amount_wei": "{{amount}} WEI",
+        "min_amount_wei": "کم از کم: {{amount}} WEI",
+        "verify_valid": "تصدیق شدہ",
+        "verify_invalid": "ڈومین مماثل نہیں",
+        "verify_threat": "نقصان دہ",
+        "verify_unknown": "غیر تصدیق شدہ",
+        "enter_pin": "اپنا PIN درج کریں",
+        "enter_password": "اپنا پاس ورڈ درج کریں",
+        "decrypt_failed": "والیٹ ڈکرپٹ نہیں ہو سکی",
+        "signing_failed": "دستخط ناکام",
+        "tx": {
+            "failed": "لین دین ناکام رہا۔ دوبارہ کوشش کریں۔",
+            "insufficient": "گیس کے لیے کافی {{symbol}} نہیں۔ فنڈز شامل کریں اور دوبارہ کوشش کریں۔",
+            "slippage": "سویپ ناکام: قیمت بہت بدل گئی۔ slippage برداشت بڑھائیں۔",
+            "reverted": "لین دین چین پر واپس ہو گیا۔ سویپ کی میعاد ختم ہو سکتی ہے۔ دوبارہ کوشش کریں۔",
+            "nonce": "لین دین کا تصادم۔ تھوڑی دیر بعد دوبارہ کوشش کریں۔",
+            "gas": "گیس کی حد بہت کم ہے۔ slippage یا گیس بڑھائیں۔",
+            "cancelled": "لین دین منسوخ ہو گیا۔",
+            "bad_password": "غلط پاس ورڈ۔ دوبارہ کوشش کریں۔",
+            "network": "نیٹ ورک کی خرابی۔ کنکشن چیک کریں اور دوبارہ کوشش کریں۔",
+            "send": "{{amount}} کو {{address}} پر بھیجیں",
+            "transfer_tokens": "ٹوکن {{address}} کو منتقل کریں",
+            "approve_unlimited": "{{symbol}} کا لامحدود خرچ منظور کریں",
+            "approve_spending": "{{symbol}} ٹوکن کا خرچ منظور کریں",
+            "transfer_nft": "NFT #{{tokenId}} کو {{address}} کو منتقل کریں",
+            "approve_all": "{{address}} کو اپنے تمام NFT منظم کرنے دیں",
+            "revoke_all": "{{address}} کی NFT انتظامیہ منسوخ کریں",
+            "mint_nft": "{{address}} کے لیے NFT منٹ کریں",
+            "list_nft": "NFT #{{tokenId}} فروخت کے لیے لگائیں",
+            "buy_nft": "NFT #{{tokenId}} خریدیں",
+            "offer_nft": "NFT #{{tokenId}} پر پیشکش کریں",
+            "accept_offer": "NFT #{{tokenId}} کی پیشکش قبول کریں",
+            "cancel_listing": "NFT #{{tokenId}} کی فروخت منسوخ کریں",
+            "create_collection": "مجموعہ \"{{name}}\" ({{symbol}}) بنائیں",
+            "token_swap": "ٹوکن سویپ",
+            "token_swap_via": "{{protocol}} کے ذریعے ٹوکن سویپ",
+            "swap_bundled": "ٹوکن سویپ (مجموعی لین دین)",
+            "call": "{{address}} پر {{name}}() کال کریں",
+            "contract": "معاہدہ {{address}} کے ساتھ تعامل",
+            "nft_interaction": "NFT تعامل: {{name}}",
+            "via": "{{protocol}} کے ذریعے {{action}}",
+            "swap_exact_tokens": "ٹوکن کی درست مقدار کو ٹوکن سے بدلیں",
+            "swap_eth_for_exact": "ETH کو ٹوکن کی درست مقدار سے بدلیں",
+            "swap_exact_for_eth": "ٹوکن کی درست مقدار کو ETH سے بدلیں",
+            "swap_tokens_for_exact": "ٹوکن کو ٹوکن کی درست مقدار سے بدلیں",
+            "swap_tokens_for_exact_eth": "ٹوکن کو ETH کی درست مقدار سے بدلیں",
+            "swap_eth_for_tokens": "ETH کو ٹوکن سے بدلیں",
+            "swap_exact_in_single": "سویپ (درست ان پٹ، ایک ہاپ)",
+            "swap_exact_in_multi": "سویپ (درست ان پٹ، کئی ہاپ)",
+            "swap_exact_out_single": "سویپ (درست آؤٹ پٹ، ایک ہاپ)",
+            "swap_exact_out_multi": "سویپ (درست آؤٹ پٹ، کئی ہاپ)",
+            "swap_multicall": "ٹوکن سویپ (multicall)",
+            "swap_aggregated": "ٹوکن سویپ (مجموع)",
+            "swap_via_uniswap_v3": "Uniswap V3 کے ذریعے ٹوکن سویپ",
+            "swap_via_uniswap": "Uniswap کے ذریعے ٹوکن سویپ",
+            "wrap_eth": "ETH لپیٹیں",
+            "unwrap_eth": "ETH میں کھولیں"
+        }
     },
     "zai": {
         "signed_in_as": "Signed in as {{name}}",
@@ -2411,7 +2486,14 @@
         "header_profile_aria": "پروفائل",
         "header_collapse_aria": "نام چھپائیں",
         "header_expand_aria": "نام دکھائیں",
-        "add_account_aria": "اکاؤنٹ شامل کریں"
+        "add_account_aria": "اکاؤنٹ شامل کریں",
+        "promo_change_logo_title": "لوگو تبدیل کریں",
+        "promo_change_logo_cta": "حسبِ ضرورت",
+        "promo_claim_reward_title": "انعام حاصل کریں",
+        "promo_claim_reward_cta": "حاصل کریں",
+        "promo_carousel_label": "پروموشنز",
+        "promo_previous": "پچھلی پروموشن",
+        "promo_next": "اگلی پروموشن"
     },
     "welcomeZelfid": {
         "plan_free": "مفت Zelf ID — 100 سال کے لیے آپ کا۔ بعد میں اپ گریڈ کر سکتے ہیں۔",

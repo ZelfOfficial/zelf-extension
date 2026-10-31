@@ -141,6 +141,15 @@
         line-height: 1.4;
     }
 
+    &__decoded-subtext {
+        font-family: variables.$themeBodyFamily;
+        font-size: 13px;
+        opacity: 0.8;
+        margin: 4px 0 0;
+        line-height: 1.4;
+        color: variables.$themeText;
+    }
+
     // ---------- Details ----------
 
     &__details {

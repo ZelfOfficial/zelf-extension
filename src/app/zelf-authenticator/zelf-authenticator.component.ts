@@ -24,7 +24,11 @@ export class ZelfAuthenticatorComponent implements OnInit, OnDestroy {
 
     error: string | null = null;
     filteredZotps: ZOTP[] = [];
-    loading = false;
+    /** True only while the first list for this visit has not arrived and there is nothing to paint. */
+    loading = true;
+    /** A completed list (including a real empty vault) has been published. */
+    private _sawList = false;
+    readonly skeletonRows = [0, 1, 2];
     searchControl = new FormControl("", { nonNullable: true });
     zotps: ZOTP[] = [];
 
@@ -48,6 +52,24 @@ export class ZelfAuthenticatorComponent implements OnInit, OnDestroy {
             this._applyFilters();
         });
 
+        this._zotpService.zotps$.pipe(takeUntil(this.unsubscriber$)).subscribe((items) => {
+            if (!items) {
+                this.zotps = [];
+                this._applyFilters();
+                this._syncLoadingFlag(this._zotpService.listLoading);
+                return;
+            }
+
+            this._sawList = true;
+            this.zotps = items;
+            this._applyFilters();
+            this._syncLoadingFlag(false);
+        });
+
+        this._zotpService.listLoading$.pipe(takeUntil(this.unsubscriber$)).subscribe((loading) => {
+            this._syncLoadingFlag(loading);
+        });
+
         this._initSubscriptions();
         await this._reloadZotps(false);
     }
@@ -59,6 +81,15 @@ export class ZelfAuthenticatorComponent implements OnInit, OnDestroy {
 
     get zotpCount(): number {
         return this.zotps.length;
+    }
+
+    /** Empty copy only after a finished load that returned zero 2FAs. */
+    get showEmptyState(): boolean {
+        return !this.loading && !this.error && this._sawList && this.zotps.length === 0;
+    }
+
+    get showLoadingState(): boolean {
+        return this.loading && this.zotps.length === 0 && !this.error;
     }
 
     onAddZotp(): void {
@@ -97,6 +128,10 @@ export class ZelfAuthenticatorComponent implements OnInit, OnDestroy {
     }
 
     private async _reloadZotpsForWalletSwitch(): Promise<void> {
+        this._sawList = false;
+        this.zotps = [];
+        this.filteredZotps = [];
+        this.loading = true;
         this._zotpService.clearCache();
 
         try {
@@ -109,22 +144,28 @@ export class ZelfAuthenticatorComponent implements OnInit, OnDestroy {
     }
 
     private async _reloadZotps(forceRefresh: boolean): Promise<void> {
-        this.loading = true;
+        if (this.zotps.length === 0) this.loading = true;
         this.error = null;
+        this._changeDetectorRef.detectChanges();
 
         try {
-            this.zotps = forceRefresh
-                ? await this._zotpService.loadZOTPsFromBackend(true)
-                : await this._zotpService.loadZOTPsFromBackend(false);
-
+            const zotps = await this._zotpService.loadZOTPsFromBackend(forceRefresh);
+            this._sawList = true;
+            this.zotps = zotps;
             this._applyFilters();
         } catch (error) {
             console.error("Error loading ZOTPs:", error);
             this.error = "load_failed";
+            this._sawList = true;
         } finally {
             this.loading = false;
             this._changeDetectorRef.detectChanges();
         }
+    }
+
+    private _syncLoadingFlag(listLoading: boolean): void {
+        this.loading = this.zotps.length === 0 && !this.error && (listLoading || !this._sawList);
+        this._changeDetectorRef.detectChanges();
     }
 
     private _applyFilters(): void {

@@ -135,28 +135,7 @@
         </section>
 
         <section class="home-hub__section home-hub__section--promo">
-            <div class="home-hub__promo-block">
-                <div class="home-hub__promo-card">
-                    <div class="home-hub__promo-copy">
-                        <p class="home-hub__promo-title">{{ t("home_hub.promo_placeholder_title") }}</p>
-                        <a
-                            routerLink="/zelf-keys"
-                            class="home-hub__promo-cta zelf-button zelf-button--thin home-hub__cta-accent home-hub__cta-compact"
-                            mat-flat-button
-                        >
-                            {{ t("home_hub.promo_placeholder_cta") }}
-                        </a>
-                    </div>
-                    <div class="home-hub__promo-visual" aria-hidden="true">
-                        <img src="assets/images/zelf_keys_preview.png" alt="" class="home-hub__promo-image" />
-                    </div>
-                </div>
-                <div class="home-hub__promo-dots" aria-hidden="true">
-                    <span class="home-hub__promo-dot home-hub__promo-dot--active"></span>
-                    <span class="home-hub__promo-dot"></span>
-                    <span class="home-hub__promo-dot"></span>
-                </div>
-            </div>
+            <home-promo-carousel></home-promo-carousel>
         </section>
     </div>
 

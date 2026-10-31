@@ -794,8 +794,11 @@
             "summary": {
                 "self_custodian": "셀프 커스터디",
                 "offline_feature": "오프라인 기능",
-                "human_authn": "인간 인증"
-            }
+                "human_authn": "인간 인증",
+                "human_bound": "사람에게 연결됨",
+                "device_agnostic": "기기에 구애받지 않음"
+            },
+            "zelf_secur_is": "Zelf Secur는"
         }
     },
     "settings": {
@@ -2147,7 +2150,8 @@
             "loading": "암호화된 데이터 로드 중…"
         },
         "decrypt_failed": "이 ZOTP를 열 수 없습니다. 다시 시도하세요.",
-        "warning": "경고"
+        "warning": "경고",
+        "loading_list": "2FA를 불러오는 중…"
     },
     "rewards": {
         "title": "보상",
@@ -2235,6 +2239,16 @@
             "password_subtitle": "이 Zelf ID는 비밀번호를 사용합니다. 입력하고 오늘 받기를 완료하세요.",
             "pin_title": "PIN 입력",
             "pin_subtitle": "이 Zelf ID는 PIN을 사용합니다. 입력하고 오늘 받기를 완료하세요."
+        },
+        "redeem": {
+            "title": "$ZNS 교환",
+            "you_have": "보유",
+            "option_1m": "Zelf ID 1개월 받기",
+            "option_2m": "Zelf ID 2개월 받기",
+            "option_5m": "Zelf ID 5개월 받기",
+            "option_3y": "Zelf ID 구매 (3년, 6–15자)",
+            "option_1y": "Zelf ID 구매 (1년, 6–15자)",
+            "option_2y": "Zelf ID 구매 (2년, 6–15자)"
         }
     },
     "referrals": {
@@ -2336,7 +2350,68 @@
         "biometric_required": "서명하려면 생체 인증이 필요합니다",
         "estimated_gas_fee": "예상 가스 수수료",
         "estimating": "추정 중...",
-        "unable_to_estimate": "추정할 수 없음"
+        "unable_to_estimate": "추정할 수 없음",
+        "from_token": "보내는 토큰",
+        "to_token": "받는 토큰",
+        "approve_step": "1단계: 스왑이나 전송을 위해 계약이 토큰을 사용할 수 있게 허용합니다.",
+        "amount_wei": "{{amount}} WEI",
+        "min_amount_wei": "최소: {{amount}} WEI",
+        "verify_valid": "확인됨",
+        "verify_invalid": "도메인이 일치하지 않음",
+        "verify_threat": "악성",
+        "verify_unknown": "미확인",
+        "enter_pin": "PIN을 입력하세요",
+        "enter_password": "비밀번호를 입력하세요",
+        "decrypt_failed": "지갑을 복호화하지 못했습니다",
+        "signing_failed": "서명에 실패했습니다",
+        "tx": {
+            "failed": "거래에 실패했습니다. 다시 시도하세요.",
+            "insufficient": "가스 수수료를 낼 {{symbol}}이(가) 부족합니다. 자금을 추가하고 다시 시도하세요.",
+            "slippage": "스왑 실패: 가격이 너무 많이 움직였습니다. 슬리피지 허용치를 높이세요.",
+            "reverted": "거래가 체인에서 되돌려졌습니다. 스왑이 만료되었을 수 있습니다. 다시 시도하세요.",
+            "nonce": "거래 충돌입니다. 잠시 후 다시 시도하세요.",
+            "gas": "가스 한도가 너무 낮습니다. 슬리피지나 가스를 높이세요.",
+            "cancelled": "거래가 취소되었습니다.",
+            "bad_password": "비밀번호가 올바르지 않습니다. 다시 시도하세요.",
+            "network": "네트워크 오류입니다. 연결을 확인하고 다시 시도하세요.",
+            "send": "{{amount}}을(를) {{address}}(으)로 보내기",
+            "transfer_tokens": "토큰을 {{address}}(으)로 전송",
+            "approve_unlimited": "{{symbol}} 무제한 사용 승인",
+            "approve_spending": "{{symbol}} 토큰 사용 승인",
+            "transfer_nft": "NFT #{{tokenId}}을(를) {{address}}(으)로 전송",
+            "approve_all": "{{address}}이(가) 모든 NFT를 관리하도록 승인",
+            "revoke_all": "{{address}}의 NFT 관리 권한 취소",
+            "mint_nft": "{{address}}에 NFT 발행",
+            "list_nft": "NFT #{{tokenId}} 판매 등록",
+            "buy_nft": "NFT #{{tokenId}} 구매",
+            "offer_nft": "NFT #{{tokenId}}에 제안",
+            "accept_offer": "NFT #{{tokenId}} 제안 수락",
+            "cancel_listing": "NFT #{{tokenId}} 판매 취소",
+            "create_collection": "컬렉션 \"{{name}}\" ({{symbol}}) 만들기",
+            "token_swap": "토큰 스왑",
+            "token_swap_via": "{{protocol}}을 통한 토큰 스왑",
+            "swap_bundled": "토큰 스왑 (묶음 거래)",
+            "call": "{{address}}에서 {{name}}() 호출",
+            "contract": "{{address}} 계약과 상호작용",
+            "nft_interaction": "NFT 상호작용: {{name}}",
+            "via": "{{protocol}}을 통한 {{action}}",
+            "swap_exact_tokens": "정확한 수량의 토큰을 토큰으로 스왑",
+            "swap_eth_for_exact": "ETH를 정확한 수량의 토큰으로 스왑",
+            "swap_exact_for_eth": "정확한 수량의 토큰을 ETH로 스왑",
+            "swap_tokens_for_exact": "토큰을 정확한 수량의 토큰으로 스왑",
+            "swap_tokens_for_exact_eth": "토큰을 정확한 수량의 ETH로 스왑",
+            "swap_eth_for_tokens": "ETH를 토큰으로 스왑",
+            "swap_exact_in_single": "스왑 (정확한 입력, 단일 홉)",
+            "swap_exact_in_multi": "스왑 (정확한 입력, 다중 홉)",
+            "swap_exact_out_single": "스왑 (정확한 출력, 단일 홉)",
+            "swap_exact_out_multi": "스왑 (정확한 출력, 다중 홉)",
+            "swap_multicall": "토큰 스왑 (multicall)",
+            "swap_aggregated": "토큰 스왑 (집계)",
+            "swap_via_uniswap_v3": "Uniswap V3을 통한 토큰 스왑",
+            "swap_via_uniswap": "Uniswap을 통한 토큰 스왑",
+            "wrap_eth": "ETH 래핑",
+            "unwrap_eth": "ETH로 언래핑"
+        }
     },
     "zai": {
         "signed_in_as": "Signed in as {{name}}",
@@ -2411,7 +2486,14 @@
         "header_profile_aria": "프로필",
         "header_collapse_aria": "이름 숨기기",
         "header_expand_aria": "이름 표시",
-        "add_account_aria": "계정 추가"
+        "add_account_aria": "계정 추가",
+        "promo_change_logo_title": "로고 변경",
+        "promo_change_logo_cta": "맞춤 설정",
+        "promo_claim_reward_title": "보상 받기",
+        "promo_claim_reward_cta": "받기",
+        "promo_carousel_label": "프로모션",
+        "promo_previous": "이전 프로모션",
+        "promo_next": "다음 프로모션"
     },
     "welcomeZelfid": {
         "plan_free": "무료 Zelf ID — 100년 동안 내 것. 나중에 업그레이드할 수 있습니다.",

@@ -38,9 +38,9 @@
                     </svg>
                 </div>
                 <div class="dapp-sign__decoded-text">
-                    <p class="dapp-sign__decoded-description">{{ decoded.description }}</p>
-                    <p class="dapp-sign__decoded-subtext" *ngIf="decoded.type === 'erc20_approve' || decoded.type === 'erc721_approve_all'" style="font-size: 13px; opacity: 0.8; margin-top: 4px; line-height: 1.4;">
-                        Step 1: Permit the contract to spend your tokens to execute a swap or transfer.
+                    <p class="dapp-sign__decoded-description">{{ txDescription(decoded) }}</p>
+                    <p class="dapp-sign__decoded-subtext" *ngIf="decoded.type === 'erc20_approve' || decoded.type === 'erc721_approve_all'">
+                        {{ t("dapp.approve_step") }}
                     </p>
                 </div>
             </div>
@@ -74,9 +74,9 @@
 
                 <ng-container *ngIf="decoded?.type === 'swap'">
                     <div class="dapp-sign__detail-row" *ngIf="decoded?.srcToken">
-                        <span class="dapp-sign__detail-label">From Token</span>
+                        <span class="dapp-sign__detail-label">{{ t("dapp.from_token") }}</span>
                         <div class="dapp-sign__detail-value">
-                            <span *ngIf="decoded?.amountIn && decoded?.amountIn !== '0'">{{ decoded?.amountIn }} WEI </span>
+                            <span *ngIf="decoded?.amountIn && decoded?.amountIn !== '0'">{{ t("dapp.amount_wei", { amount: decoded?.amountIn }) }} </span>
                             <span class="dapp-sign__detail-value--mono" [title]="decoded?.srcTokenSymbol ? shortAddress(decoded?.srcToken || '') : ''">
                                 <ng-container *ngIf="decoded?.srcTokenSymbol">{{ decoded?.srcTokenSymbol }}</ng-container>
                                 <ng-container *ngIf="!decoded?.srcTokenSymbol">{{ shortAddress(decoded?.srcToken || '') }}</ng-container>
@@ -85,9 +85,9 @@
                     </div>
                     
                     <div class="dapp-sign__detail-row" *ngIf="decoded?.dstToken">
-                        <span class="dapp-sign__detail-label">To Token</span>
+                        <span class="dapp-sign__detail-label">{{ t("dapp.to_token") }}</span>
                         <div class="dapp-sign__detail-value">
-                            <span *ngIf="decoded?.amountOutMin && decoded?.amountOutMin !== '0'">Min: {{ decoded?.amountOutMin }} WEI </span>
+                            <span *ngIf="decoded?.amountOutMin && decoded?.amountOutMin !== '0'">{{ t("dapp.min_amount_wei", { amount: decoded?.amountOutMin }) }} </span>
                             <span class="dapp-sign__detail-value--mono" [title]="decoded?.dstTokenSymbol ? shortAddress(decoded?.dstToken || '') : ''">
                                 <ng-container *ngIf="decoded?.dstTokenSymbol">{{ decoded?.dstTokenSymbol }}</ng-container>
                                 <ng-container *ngIf="!decoded?.dstTokenSymbol">{{ shortAddress(decoded?.dstToken || '') }}</ng-container>

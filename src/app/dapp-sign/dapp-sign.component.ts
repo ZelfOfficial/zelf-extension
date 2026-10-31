@@ -206,7 +206,7 @@ export class DappSignComponent implements OnInit {
         if (!this.isFaceOnly && !secret) {
             this.passwordSet = false;
             await this._checkBiometrics();
-            this._openErrorSnackBar(this.isPinUnlock ? "Enter your PIN" : "Enter your password");
+            this._openErrorSnackBar(this.isPinUnlock ? "dapp.enter_pin" : "dapp.enter_password");
             return;
         }
 
@@ -244,7 +244,7 @@ export class DappSignComponent implements OnInit {
 
         if (gate.action === "ask-secret") {
             await this._checkBiometrics();
-            this._openErrorSnackBar(this.isPinUnlock ? "Enter your PIN" : "Enter your password");
+            this._openErrorSnackBar(this.isPinUnlock ? "dapp.enter_pin" : "dapp.enter_password");
             return;
         }
 
@@ -269,7 +269,7 @@ export class DappSignComponent implements OnInit {
             let mnemonic = await this._signingService.decryptMnemonicOnce(this.wallet as TagModel, passphrase);
 
             if (!mnemonic) {
-                this._openErrorSnackBar("Failed to decrypt wallet");
+                this._openErrorSnackBar("dapp.decrypt_failed");
                 this.signing = false;
                 return;
             }
@@ -328,7 +328,7 @@ export class DappSignComponent implements OnInit {
             if (/incorrect/i.test(error?.message)) {
                 await this._handleInvalidCredentials();
             } else {
-                this._openErrorSnackBar(error?.message || "Signing failed");
+                this._openErrorSnackBar(error?.message || "dapp.signing_failed");
             }
 
             this.signing = false;
@@ -585,36 +585,53 @@ export class DappSignComponent implements OnInit {
         }
     }
 
+    txDescription(decoded: { description: string; descriptionKey?: string; descriptionParams?: Record<string, string> } | null | undefined): string {
+        if (!decoded?.descriptionKey) return decoded?.description || "";
+
+        const params: Record<string, string> = { ...(decoded.descriptionParams || {}) };
+        if (params["actionKey"]) {
+            params["action"] = this._translocoService.translate(params["actionKey"]);
+        }
+
+        return this._translocoService.translate(decoded.descriptionKey, params);
+    }
+
+    private _tx(key: string, params?: Record<string, string>): string {
+        return this._translocoService.translate(key, params);
+    }
+
     private _parseRpcError(raw: string): string {
-        if (!raw) return "Transaction failed. Please try again.";
+        if (!raw) return this._tx("dapp.tx.failed");
+        if (raw.startsWith("dapp.")) return this._tx(raw);
+
         const msg = raw.toLowerCase();
 
         if (msg.includes("insufficient funds")) {
-            return `Not enough ${this.txChainSymbol} to cover gas fees. Add funds to your wallet and try again.`;
+            return this._tx("dapp.tx.insufficient", { symbol: this.txChainSymbol || "" });
         }
         if (msg.includes("execution reverted") || msg.includes("reverted")) {
             if (msg.includes("slippage") || msg.includes("price impact")) {
-                return "Swap failed: price moved too much. Try increasing slippage tolerance.";
+                return this._tx("dapp.tx.slippage");
             }
-            return "Transaction reverted on-chain. The swap may have expired — please try again.";
+            return this._tx("dapp.tx.reverted");
         }
         if (msg.includes("nonce too low") || msg.includes("replacement transaction underpriced")) {
-            return "Transaction conflict. Please wait a moment and try again.";
+            return this._tx("dapp.tx.nonce");
         }
         if (msg.includes("gas required exceeds allowance") || msg.includes("gas limit")) {
-            return "Gas limit too low. Try increasing slippage or gas settings.";
+            return this._tx("dapp.tx.gas");
         }
         if (msg.includes("user rejected") || msg.includes("rejected by user")) {
-            return "Transaction cancelled.";
+            return this._tx("dapp.tx.cancelled");
         }
         if (msg.includes("incorrect_passphrase") || msg.includes("incorrect passphrase")) {
-            return "Incorrect password. Please try again.";
+            return this._tx("dapp.tx.bad_password");
         }
         if (msg.includes("network") || msg.includes("connection")) {
-            return "Network error. Check your connection and try again.";
+            return this._tx("dapp.tx.network");
         }
 
-        return "Transaction failed. Please try again.";
+        return this._tx("dapp.tx.failed");
     }
 
     private _openErrorSnackBar(rawMessage: string): void {

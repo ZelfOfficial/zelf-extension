@@ -794,8 +794,11 @@
             "summary": {
                 "self_custodian": "自托管",
                 "offline_feature": "离线功能",
-                "human_authn": "HumanAuthn"
-            }
+                "human_authn": "HumanAuthn",
+                "human_bound": "绑定到人",
+                "device_agnostic": "不依赖设备"
+            },
+            "zelf_secur_is": "Zelf Secur 是"
         }
     },
     "settings": {
@@ -2147,7 +2150,8 @@
             "loading": "正在加载加密数据…"
         },
         "decrypt_failed": "无法打开此 ZOTP。请重试。",
-        "warning": "警告"
+        "warning": "警告",
+        "loading_list": "正在加载你的 2FA…"
     },
     "rewards": {
         "title": "奖励",
@@ -2235,6 +2239,16 @@
             "password_subtitle": "此 Zelf ID 使用密码。输入密码以完成今日领取。",
             "pin_title": "输入 PIN",
             "pin_subtitle": "此 Zelf ID 使用 PIN。输入 PIN 以完成今日领取。"
+        },
+        "redeem": {
+            "title": "兑换 $ZNS",
+            "you_have": "你拥有",
+            "option_1m": "为你的 Zelf ID 获得一个月",
+            "option_2m": "为你的 Zelf ID 获得两个月",
+            "option_5m": "为你的 Zelf ID 获得五个月",
+            "option_3y": "购买 6–15 个字符的 Zelf ID（3 年）",
+            "option_1y": "购买 6–15 个字符的 Zelf ID（1 年）",
+            "option_2y": "购买 6–15 个字符的 Zelf ID（2 年）"
         }
     },
     "referrals": {
@@ -2336,7 +2350,68 @@
         "biometric_required": "需要生物识别验证才能签名",
         "estimated_gas_fee": "预估 Gas 费用",
         "estimating": "正在估算...",
-        "unable_to_estimate": "无法估算"
+        "unable_to_estimate": "无法估算",
+        "from_token": "转出代币",
+        "to_token": "转入代币",
+        "approve_step": "第 1 步：允许合约使用你的代币来完成兑换或转账。",
+        "amount_wei": "{{amount}} WEI",
+        "min_amount_wei": "最低：{{amount}} WEI",
+        "verify_valid": "已验证",
+        "verify_invalid": "域名不匹配",
+        "verify_threat": "恶意",
+        "verify_unknown": "未验证",
+        "enter_pin": "输入 PIN",
+        "enter_password": "输入密码",
+        "decrypt_failed": "无法解密钱包",
+        "signing_failed": "签名失败",
+        "tx": {
+            "failed": "交易失败。请重试。",
+            "insufficient": "{{symbol}} 不足以支付 gas。请充值后重试。",
+            "slippage": "兑换失败：价格变动过大。请提高滑点容忍度。",
+            "reverted": "交易已在链上回滚。兑换可能已过期，请重试。",
+            "nonce": "交易冲突。请稍候再试。",
+            "gas": "Gas 上限过低。请提高滑点或 gas。",
+            "cancelled": "交易已取消。",
+            "bad_password": "密码不正确。请重试。",
+            "network": "网络错误。请检查连接后重试。",
+            "send": "向 {{address}} 发送 {{amount}}",
+            "transfer_tokens": "向 {{address}} 转账代币",
+            "approve_unlimited": "批准无限花费 {{symbol}}",
+            "approve_spending": "批准花费 {{symbol}} 代币",
+            "transfer_nft": "将 NFT #{{tokenId}} 转给 {{address}}",
+            "approve_all": "批准 {{address}} 管理你的全部 NFT",
+            "revoke_all": "撤销 {{address}} 的 NFT 管理权限",
+            "mint_nft": "向 {{address}} 铸造 NFT",
+            "list_nft": "出售 NFT #{{tokenId}}",
+            "buy_nft": "购买 NFT #{{tokenId}}",
+            "offer_nft": "对 NFT #{{tokenId}} 出价",
+            "accept_offer": "接受 NFT #{{tokenId}} 的出价",
+            "cancel_listing": "取消 NFT #{{tokenId}} 的出售",
+            "create_collection": "创建系列「{{name}}」（{{symbol}}）",
+            "token_swap": "代币兑换",
+            "token_swap_via": "通过 {{protocol}} 兑换代币",
+            "swap_bundled": "代币兑换（捆绑交易）",
+            "call": "在 {{address}} 上调用 {{name}}()",
+            "contract": "与合约 {{address}} 交互",
+            "nft_interaction": "NFT 交互：{{name}}",
+            "via": "通过 {{protocol}} {{action}}",
+            "swap_exact_tokens": "用精确数量的代币兑换代币",
+            "swap_eth_for_exact": "用 ETH 兑换精确数量的代币",
+            "swap_exact_for_eth": "用精确数量的代币兑换 ETH",
+            "swap_tokens_for_exact": "用代币兑换精确数量的代币",
+            "swap_tokens_for_exact_eth": "用代币兑换精确数量的 ETH",
+            "swap_eth_for_tokens": "用 ETH 兑换代币",
+            "swap_exact_in_single": "兑换（精确输入，单跳）",
+            "swap_exact_in_multi": "兑换（精确输入，多跳）",
+            "swap_exact_out_single": "兑换（精确输出，单跳）",
+            "swap_exact_out_multi": "兑换（精确输出，多跳）",
+            "swap_multicall": "代币兑换（multicall）",
+            "swap_aggregated": "代币兑换（聚合）",
+            "swap_via_uniswap_v3": "通过 Uniswap V3 兑换代币",
+            "swap_via_uniswap": "通过 Uniswap 兑换代币",
+            "wrap_eth": "包装 ETH",
+            "unwrap_eth": "解包为 ETH"
+        }
     },
     "zai": {
         "signed_in_as": "Signed in as {{name}}",
@@ -2411,7 +2486,14 @@
         "header_profile_aria": "个人资料",
         "header_collapse_aria": "隐藏名称",
         "header_expand_aria": "显示名称",
-        "add_account_aria": "添加账户"
+        "add_account_aria": "添加账户",
+        "promo_change_logo_title": "更换标志",
+        "promo_change_logo_cta": "自定义",
+        "promo_claim_reward_title": "领取奖励",
+        "promo_claim_reward_cta": "领取",
+        "promo_carousel_label": "推广",
+        "promo_previous": "上一条推广",
+        "promo_next": "下一条推广"
     },
     "welcomeZelfid": {
         "plan_free": "免费 Zelf ID — 归你 100 年。之后可以升级。",

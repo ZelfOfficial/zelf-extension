@@ -84,7 +84,7 @@ export class WelcomeZelfidOnboardingComponent implements OnInit, OnDestroy {
             featureBulletKeys: [] as string[],
         },
         {
-            eyebrowKey: "welcome.onboarding.designed_for",
+            eyebrowKey: "welcome.onboarding.zelf_secur_is",
             highlights: [
                 { id: "wallets", labelKey: "welcome.onboarding.features.wallets", icon: "wallet" },
                 { id: "passwordManagers", labelKey: "welcome.onboarding.features.password_managers", icon: "password" },
@@ -92,11 +92,11 @@ export class WelcomeZelfidOnboardingComponent implements OnInit, OnDestroy {
                 { id: "inheritance", labelKey: "welcome.onboarding.features.inheritance", icon: "inheritance" },
             ],
             activeHighlight: "",
-            introLineKeys: ["welcome.onboarding.summary_intro"],
+            introLineKeys: [] as string[],
             featureBulletKeys: [
                 "welcome.onboarding.summary.self_custodian",
-                "welcome.onboarding.summary.offline_feature",
-                "welcome.onboarding.summary.human_authn",
+                "welcome.onboarding.summary.human_bound",
+                "welcome.onboarding.summary.device_agnostic",
             ],
         },
     ];

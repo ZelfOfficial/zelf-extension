@@ -1,0 +1,161 @@
+@use "../../../styles/variables";
+
+:host {
+    display: block;
+    width: 100%;
+    min-width: 0;
+}
+
+.home-promo {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: calc(10px * var(--zns-space-scale, 1));
+
+    &__viewport {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    &__card {
+        flex: 0 0 100%;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+        display: flex;
+        flex-direction: row;
+        gap: calc(8px * var(--zns-space-scale, 1));
+        padding: calc(14px * var(--zns-space-scale, 1)) calc(16px * var(--zns-space-scale, 1));
+        border-radius: 20px;
+        border: 1px solid variables.$themeBorder;
+        background: variables.$themeCard;
+        align-items: center;
+        min-height: calc(146px * var(--zns-space-scale, 1));
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    &__copy {
+        flex: 1 1 48%;
+        max-width: 58%;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        gap: calc(12px * var(--zns-space-scale, 1));
+    }
+
+    &__title {
+        margin: 0;
+        font-family: variables.$themeBodyFamily;
+        font-weight: 500;
+        font-size: calc(16px * var(--zns-font-scale, 1));
+        line-height: calc(22px * var(--zns-font-scale, 1));
+        letter-spacing: 0;
+        color: color-mix(in srgb, variables.$themeText 80%, transparent);
+        overflow-wrap: anywhere;
+    }
+
+    &__cta {
+        flex-shrink: 0;
+        max-width: 100%;
+        pointer-events: none;
+    }
+
+    &__visual {
+        flex: 0 1 42%;
+        max-width: 42%;
+        min-width: 0;
+        min-height: 0;
+        max-height: calc(118px * var(--zns-space-scale, 1));
+        border-radius: 12px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        align-self: center;
+        color: variables.$secondaryColor;
+    }
+
+    &__image {
+        width: auto;
+        max-width: 100%;
+        height: auto;
+        max-height: 100%;
+        object-fit: contain;
+        object-position: right center;
+        display: block;
+    }
+
+    &__icon {
+        font-size: calc(64px * var(--zns-font-scale, 1));
+        line-height: 1;
+    }
+
+    &__controls {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: calc(8px * var(--zns-space-scale, 1));
+        min-width: 0;
+    }
+
+    &__arrow {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: calc(32px * var(--zns-space-scale, 1));
+        height: calc(32px * var(--zns-space-scale, 1));
+        border: 0;
+        border-radius: 999px;
+        background: variables.$themeButtonSecondary;
+        color: variables.$themeButtonSecondaryText;
+        cursor: pointer;
+        flex: 0 0 auto;
+
+        .material-symbols-outlined {
+            font-size: calc(20px * var(--zns-font-scale, 1));
+        }
+    }
+
+    &__dots {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: calc(6px * var(--zns-space-scale, 1));
+        min-width: 0;
+    }
+
+    &__dot {
+        width: calc(22px * var(--zns-space-scale, 1));
+        height: calc(4px * var(--zns-space-scale, 1));
+        padding: 0;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(255, 87, 33, 0.22);
+        cursor: pointer;
+
+        &--active {
+            background: variables.$secondaryColor;
+        }
+    }
+}

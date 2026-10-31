@@ -794,8 +794,11 @@
             "summary": {
                 "self_custodian": "حفظ ذاتي",
                 "offline_feature": "ميزة دون اتصال",
-                "human_authn": "HumanAuthn"
-            }
+                "human_authn": "HumanAuthn",
+                "human_bound": "مرتبط بإنسان",
+                "device_agnostic": "مستقل عن الجهاز"
+            },
+            "zelf_secur_is": "Zelf Secur هو"
         }
     },
     "settings": {
@@ -2147,7 +2150,8 @@
             "loading": "جارٍ تحميل البيانات المشفرة…"
         },
         "decrypt_failed": "تعذر فتح ZOTP هذا. حاول مرة أخرى.",
-        "warning": "تحذير"
+        "warning": "تحذير",
+        "loading_list": "جارٍ تحميل رموز 2FA…"
     },
     "rewards": {
         "title": "المكافآت",
@@ -2235,6 +2239,16 @@
             "password_subtitle": "يستخدم هذا الـ Zelf ID كلمة مرور. أدخلها لإكمال مطالبة اليوم.",
             "pin_title": "أدخل رمز PIN",
             "pin_subtitle": "يستخدم هذا الـ Zelf ID رمز PIN. أدخله لإكمال مطالبة اليوم."
+        },
+        "redeem": {
+            "title": "استبدال $ZNS",
+            "you_have": "لديك",
+            "option_1m": "احصل على شهر لـ Zelf ID",
+            "option_2m": "احصل على شهرين لـ Zelf ID",
+            "option_5m": "احصل على خمسة أشهر لـ Zelf ID",
+            "option_3y": "اشترِ Zelf ID (3 سنوات) من 6 إلى 15 حرفًا",
+            "option_1y": "اشترِ Zelf ID (سنة) من 6 إلى 15 حرفًا",
+            "option_2y": "اشترِ Zelf ID (سنتان) من 6 إلى 15 حرفًا"
         }
     },
     "referrals": {
@@ -2336,7 +2350,68 @@
         "biometric_required": "مطلوب التحقق البيومتري للتوقيع",
         "estimated_gas_fee": "رسوم الغاز المقدرة",
         "estimating": "جاري التقدير...",
-        "unable_to_estimate": "تعذر التقدير"
+        "unable_to_estimate": "تعذر التقدير",
+        "from_token": "الرمز المصدر",
+        "to_token": "الرمز الوجهة",
+        "approve_step": "الخطوة 1: اسمح للعقد بإنفاق رموزك لتنفيذ مبادلة أو تحويل.",
+        "amount_wei": "{{amount}} WEI",
+        "min_amount_wei": "الحد الأدنى: {{amount}} WEI",
+        "verify_valid": "تم التحقق",
+        "verify_invalid": "النطاق غير مطابق",
+        "verify_threat": "خبيث",
+        "verify_unknown": "غير مُحقق",
+        "enter_pin": "أدخل رمز PIN",
+        "enter_password": "أدخل كلمة المرور",
+        "decrypt_failed": "تعذر فك تشفير المحفظة",
+        "signing_failed": "فشل التوقيع",
+        "tx": {
+            "failed": "فشلت المعاملة. حاول مرة أخرى.",
+            "insufficient": "لا يكفي {{symbol}} لرسوم الغاز. أضف رصيدًا وحاول مرة أخرى.",
+            "slippage": "فشلت المبادلة: تحرك السعر كثيرًا. زِد تحمل الانزلاق.",
+            "reverted": "أُلغيت المعاملة على السلسلة. ربما انتهت صلاحية المبادلة. حاول مرة أخرى.",
+            "nonce": "تعارض في المعاملة. انتظر لحظة وحاول مرة أخرى.",
+            "gas": "حد الغاز منخفض جدًا. زِد الانزلاق أو الغاز.",
+            "cancelled": "أُلغيت المعاملة.",
+            "bad_password": "كلمة المرور غير صحيحة. حاول مرة أخرى.",
+            "network": "خطأ في الشبكة. تحقق من الاتصال وحاول مرة أخرى.",
+            "send": "أرسل {{amount}} إلى {{address}}",
+            "transfer_tokens": "حوّل الرموز إلى {{address}}",
+            "approve_unlimited": "الموافقة على إنفاق غير محدود من {{symbol}}",
+            "approve_spending": "الموافقة على إنفاق رموز {{symbol}}",
+            "transfer_nft": "تحويل NFT #{{tokenId}} إلى {{address}}",
+            "approve_all": "السماح لـ {{address}} بإدارة كل NFT لديك",
+            "revoke_all": "إلغاء إدارة NFT لـ {{address}}",
+            "mint_nft": "سك NFT إلى {{address}}",
+            "list_nft": "عرض NFT #{{tokenId}} للبيع",
+            "buy_nft": "شراء NFT #{{tokenId}}",
+            "offer_nft": "تقديم عرض على NFT #{{tokenId}}",
+            "accept_offer": "قبول العرض على NFT #{{tokenId}}",
+            "cancel_listing": "إلغاء عرض NFT #{{tokenId}}",
+            "create_collection": "إنشاء المجموعة \"{{name}}\" ({{symbol}})",
+            "token_swap": "مبادلة رموز",
+            "token_swap_via": "مبادلة رموز عبر {{protocol}}",
+            "swap_bundled": "مبادلة رموز (معاملة مجمعة)",
+            "call": "استدعاء {{name}}() على {{address}}",
+            "contract": "تفاعل مع العقد {{address}}",
+            "nft_interaction": "تفاعل NFT: {{name}}",
+            "via": "{{action}} عبر {{protocol}}",
+            "swap_exact_tokens": "مبادلة كمية دقيقة من الرموز برموز",
+            "swap_eth_for_exact": "مبادلة ETH بكمية دقيقة من الرموز",
+            "swap_exact_for_eth": "مبادلة كمية دقيقة من الرموز بـ ETH",
+            "swap_tokens_for_exact": "مبادلة رموز بكمية دقيقة من الرموز",
+            "swap_tokens_for_exact_eth": "مبادلة رموز بكمية دقيقة من ETH",
+            "swap_eth_for_tokens": "مبادلة ETH برموز",
+            "swap_exact_in_single": "مبادلة (إدخال دقيق، قفزة واحدة)",
+            "swap_exact_in_multi": "مبادلة (إدخال دقيق، عدة قفزات)",
+            "swap_exact_out_single": "مبادلة (إخراج دقيق، قفزة واحدة)",
+            "swap_exact_out_multi": "مبادلة (إخراج دقيق، عدة قفزات)",
+            "swap_multicall": "مبادلة رموز (multicall)",
+            "swap_aggregated": "مبادلة رموز (مجمّعة)",
+            "swap_via_uniswap_v3": "مبادلة رموز عبر Uniswap V3",
+            "swap_via_uniswap": "مبادلة رموز عبر Uniswap",
+            "wrap_eth": "تغليف ETH",
+            "unwrap_eth": "فك التغليف إلى ETH"
+        }
     },
     "zai": {
         "signed_in_as": "Signed in as {{name}}",
@@ -2411,7 +2486,14 @@
         "header_profile_aria": "الملف الشخصي",
         "header_collapse_aria": "إخفاء الاسم",
         "header_expand_aria": "إظهار الاسم",
-        "add_account_aria": "إضافة حساب"
+        "add_account_aria": "إضافة حساب",
+        "promo_change_logo_title": "تغيير الشعار",
+        "promo_change_logo_cta": "تخصيص",
+        "promo_claim_reward_title": "المطالبة بالمكافأة",
+        "promo_claim_reward_cta": "مطالبة",
+        "promo_carousel_label": "العروض",
+        "promo_previous": "العرض السابق",
+        "promo_next": "العرض التالي"
     },
     "welcomeZelfid": {
         "plan_free": "Zelf ID مجاني — لك لمدة 100 عام. يمكنك الترقية لاحقًا.",

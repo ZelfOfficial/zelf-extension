@@ -794,8 +794,11 @@
             "summary": {
                 "self_custodian": "自己管理",
                 "offline_feature": "オフライン機能",
-                "human_authn": "HumanAuthn"
-            }
+                "human_authn": "HumanAuthn",
+                "human_bound": "人に紐づく",
+                "device_agnostic": "デバイスを選ばない"
+            },
+            "zelf_secur_is": "Zelf Secur は"
         }
     },
     "settings": {
@@ -2147,7 +2150,8 @@
             "loading": "暗号化データを読み込んでいます…"
         },
         "decrypt_failed": "この ZOTP を開けませんでした。もう一度お試しください。",
-        "warning": "警告"
+        "warning": "警告",
+        "loading_list": "2FAを読み込み中…"
     },
     "rewards": {
         "title": "報酬",
@@ -2235,6 +2239,16 @@
             "password_subtitle": "この Zelf ID はパスワードを使います。入力して今日の受け取りを完了してください。",
             "pin_title": "PIN を入力",
             "pin_subtitle": "この Zelf ID は PIN を使います。入力して今日の受け取りを完了してください。"
+        },
+        "redeem": {
+            "title": "$ZNSを交換",
+            "you_have": "保有",
+            "option_1m": "Zelf IDを1か月分入手",
+            "option_2m": "Zelf IDを2か月分入手",
+            "option_5m": "Zelf IDを5か月分入手",
+            "option_3y": "6〜15文字のZelf IDを購入（3年）",
+            "option_1y": "6〜15文字のZelf IDを購入（1年）",
+            "option_2y": "6〜15文字のZelf IDを購入（2年）"
         }
     },
     "referrals": {
@@ -2336,7 +2350,68 @@
         "biometric_required": "署名には生体認証が必要です",
         "estimated_gas_fee": "推定ガス代",
         "estimating": "見積もり中...",
-        "unable_to_estimate": "見積もりできません"
+        "unable_to_estimate": "見積もりできません",
+        "from_token": "送金元トークン",
+        "to_token": "送金先トークン",
+        "approve_step": "手順1: スワップまたは送金のため、コントラクトがトークンを使えるように許可します。",
+        "amount_wei": "{{amount}} WEI",
+        "min_amount_wei": "最小: {{amount}} WEI",
+        "verify_valid": "確認済み",
+        "verify_invalid": "ドメインが一致しません",
+        "verify_threat": "悪意あり",
+        "verify_unknown": "未確認",
+        "enter_pin": "PINを入力",
+        "enter_password": "パスワードを入力",
+        "decrypt_failed": "ウォレットを復号できませんでした",
+        "signing_failed": "署名に失敗しました",
+        "tx": {
+            "failed": "取引に失敗しました。もう一度お試しください。",
+            "insufficient": "ガス代を払う{{symbol}}が足りません。資金を追加して再試行してください。",
+            "slippage": "スワップ失敗: 価格が大きく動きました。スリッページ許容度を上げてください。",
+            "reverted": "取引はチェーン上で取り消されました。スワップの期限が切れた可能性があります。もう一度お試しください。",
+            "nonce": "取引が競合しています。しばらくしてから再試行してください。",
+            "gas": "ガス上限が低すぎます。スリッページまたはガスを上げてください。",
+            "cancelled": "取引をキャンセルしました。",
+            "bad_password": "パスワードが正しくありません。もう一度お試しください。",
+            "network": "ネットワークエラーです。接続を確認して再試行してください。",
+            "send": "{{amount}}を{{address}}に送る",
+            "transfer_tokens": "トークンを{{address}}に送る",
+            "approve_unlimited": "{{symbol}}の無制限の使用を承認",
+            "approve_spending": "{{symbol}}トークンの使用を承認",
+            "transfer_nft": "NFT #{{tokenId}}を{{address}}に送る",
+            "approve_all": "{{address}}にすべてのNFTの管理を許可",
+            "revoke_all": "{{address}}のNFT管理を取り消す",
+            "mint_nft": "{{address}}にNFTを発行",
+            "list_nft": "NFT #{{tokenId}}を出品",
+            "buy_nft": "NFT #{{tokenId}}を購入",
+            "offer_nft": "NFT #{{tokenId}}にオファー",
+            "accept_offer": "NFT #{{tokenId}}のオファーを承認",
+            "cancel_listing": "NFT #{{tokenId}}の出品をキャンセル",
+            "create_collection": "コレクション「{{name}}」（{{symbol}}）を作成",
+            "token_swap": "トークンスワップ",
+            "token_swap_via": "{{protocol}}経由のトークンスワップ",
+            "swap_bundled": "トークンスワップ（まとめ取引）",
+            "call": "{{address}}で{{name}}()を呼び出す",
+            "contract": "{{address}}のコントラクトと対話",
+            "nft_interaction": "NFTの操作: {{name}}",
+            "via": "{{protocol}}経由の{{action}}",
+            "swap_exact_tokens": "正確な数量のトークンをトークンにスワップ",
+            "swap_eth_for_exact": "ETHを正確な数量のトークンにスワップ",
+            "swap_exact_for_eth": "正確な数量のトークンをETHにスワップ",
+            "swap_tokens_for_exact": "トークンを正確な数量のトークンにスワップ",
+            "swap_tokens_for_exact_eth": "トークンを正確な数量のETHにスワップ",
+            "swap_eth_for_tokens": "ETHをトークンにスワップ",
+            "swap_exact_in_single": "スワップ（正確な入力、単一ホップ）",
+            "swap_exact_in_multi": "スワップ（正確な入力、複数ホップ）",
+            "swap_exact_out_single": "スワップ（正確な出力、単一ホップ）",
+            "swap_exact_out_multi": "スワップ（正確な出力、複数ホップ）",
+            "swap_multicall": "トークンスワップ（multicall）",
+            "swap_aggregated": "トークンスワップ（集約）",
+            "swap_via_uniswap_v3": "Uniswap V3経由のトークンスワップ",
+            "swap_via_uniswap": "Uniswap経由のトークンスワップ",
+            "wrap_eth": "ETHをラップ",
+            "unwrap_eth": "ETHにアンラップ"
+        }
     },
     "zai": {
         "signed_in_as": "Signed in as {{name}}",
@@ -2411,7 +2486,14 @@
         "header_profile_aria": "プロフィール",
         "header_collapse_aria": "名前を隠す",
         "header_expand_aria": "名前を表示",
-        "add_account_aria": "アカウントを追加"
+        "add_account_aria": "アカウントを追加",
+        "promo_change_logo_title": "ロゴを変更",
+        "promo_change_logo_cta": "カスタマイズ",
+        "promo_claim_reward_title": "報酬を受け取る",
+        "promo_claim_reward_cta": "受け取る",
+        "promo_carousel_label": "プロモーション",
+        "promo_previous": "前のプロモーション",
+        "promo_next": "次のプロモーション"
     },
     "welcomeZelfid": {
         "plan_free": "無料の Zelf ID — 100年間あなたのもの。後からアップグレードできます。",
