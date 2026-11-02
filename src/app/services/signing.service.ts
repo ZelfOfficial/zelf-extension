@@ -5,7 +5,7 @@ import { TransactionParams, TransactionResult } from "../core/models/transaction
 import { BlockchainTransactionsService } from "./blockchain-transactions.service";
 import { DappGasEstimationService } from "./dapp-gas-estimation.service";
 import { RpcProviderService } from "./rpc-provider.service";
-import { allowDirectFallbackForChainKey, getChainKeyFromChainId } from "@shared/utils/evm-chain-key.util";
+import { allowDirectFallbackForChainKey, getChainKeyFromChainId, getChainKeyFromNetwork } from "@shared/utils/evm-chain-key.util";
 import { VaultService } from "../vault.service";
 import { WalletService } from "../wallet.service";
 import { TagModel } from "../tags.service";
@@ -266,12 +266,15 @@ export class SigningService {
         const baseWallet = ethers.Wallet.fromPhrase(cleanMnemonic);
         const preparedTxParams = await this._dappGasEstimation.prepareTransactionForBroadcast(txParams, baseWallet.address);
         const chainId = preparedTxParams.chainId;
-        const key = typeof chainId === "number" ? getChainKeyFromChainId(chainId) : null;
-        const provider = key
-            ? await this._rpcProvider.getEthersProvider(key, {
-                  allowDirectFallback: allowDirectFallbackForChainKey(key),
-              })
-            : new ethers.JsonRpcProvider(this._dappGasEstimation.resolveRpcUrl(preparedTxParams.chainId, network));
+        const key = (typeof chainId === "number" ? getChainKeyFromChainId(chainId) : null) || getChainKeyFromNetwork(network);
+
+        if (!key) {
+            throw new Error(`Unsupported network for RPC: ${network}`);
+        }
+
+        const provider = await this._rpcProvider.getEthersProvider(key, {
+            allowDirectFallback: allowDirectFallbackForChainKey(key),
+        });
         const wallet = baseWallet.connect(provider);
 
         const tx: ethers.TransactionRequest = {

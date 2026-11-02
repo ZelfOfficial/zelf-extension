@@ -223,6 +223,24 @@ export class AuthService {
         return this._mintSession(true);
     }
 
+    /**
+     * The proxy returned 401. Mint a replacement session even if a verified token is pinned,
+     * because that token has already been rejected.
+     */
+    async refreshAfterUnauthorized(): Promise<string> {
+        const keep = this._keepVerifiedSession;
+
+        this._keepVerifiedSession = false;
+        this._accessToken = "";
+        this._accessTokenExpiresAt = 0;
+
+        try {
+            return await this._mintSession(true);
+        } finally {
+            if (keep) this._keepVerifiedSession = true;
+        }
+    }
+
     private _mintSession(killSession: boolean): Promise<string> {
         if (!this._minting) {
             this._minting = this._mintSessionNow(killSession).finally(() => {

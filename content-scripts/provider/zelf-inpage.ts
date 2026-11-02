@@ -119,6 +119,8 @@ class ZelfProvider implements EIP1193Provider {
             case "eth_getTransactionReceipt":
             case "eth_getTransactionByHash":
             case "eth_getCode":
+            // eth_getLogs is forwarded and then rejected. The API proxy allowlist does not include it,
+            // and the background handler blocks it before any upstream call.
             case "eth_getLogs":
                 return this._sendToContentScript("DAPP_RPC_PROXY", { method, params: params ?? [], chainId: this.chainId });
 

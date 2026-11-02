@@ -2,9 +2,7 @@ import { Injectable } from "@angular/core";
 import { ethers, JsonRpcApiProvider } from "ethers";
 
 import { RpcProviderService } from "app/services/rpc-provider.service";
-import { getChainConfig } from "@shared/types/dapp.types";
-import { allowDirectFallbackForChainKey, getChainKeyFromChainId } from "@shared/utils/evm-chain-key.util";
-import { environment } from "environments/environment";
+import { allowDirectFallbackForChainKey, getChainKeyFromChainId, getChainKeyFromNetwork } from "@shared/utils/evm-chain-key.util";
 
 export interface GasAwareDappTransactionParams {
     to?: string;
@@ -39,49 +37,18 @@ const PRIORITY_MULTIPLIER_NATIVE = 3n;
     providedIn: "root",
 })
 export class DappGasEstimationService {
-    private readonly _providerByRpcUrl = new Map<string, ethers.JsonRpcProvider>();
-
     constructor(private readonly _rpcProvider: RpcProviderService) {}
 
-    resolveRpcUrl(chainId?: number, network?: string): string {
-        const chainConfig = typeof chainId === "number" ? getChainConfig(chainId) : undefined;
-        if (chainConfig?.rpcUrl) {
-            return chainConfig.rpcUrl;
-        }
-
-        switch ((network || "").toLowerCase()) {
-            case "ethereum":
-                return environment.ethereumRpc.mainnet;
-            case "arbitrum":
-                return environment.arbitrumRpc.mainnet;
-            case "optimism":
-                return environment.optimismRpc.mainnet;
-            case "base":
-                return "https://mainnet.base.org";
-            case "avalanche":
-                return environment.avalancheRpc.mainnet;
-            case "polygon":
-                return environment.polygonRpc.mainnet;
-            case "bsc":
-            case "binance":
-                return environment.binanceRpc.mainnet;
-            case "blockdag":
-                return "https://rpc.bdagscan.com";
-            default:
-                return environment.ethereumRpc.mainnet;
-        }
-    }
-
     private async _resolveJsonRpcProvider(chainId?: number, network?: string): Promise<ethers.JsonRpcProvider> {
-        if (typeof chainId === "number") {
-            const key = getChainKeyFromChainId(chainId);
-            if (key) {
-                return this._rpcProvider.getEthersProvider(key, {
-                    allowDirectFallback: allowDirectFallbackForChainKey(key),
-                });
-            }
+        const key = (typeof chainId === "number" ? getChainKeyFromChainId(chainId) : null) || getChainKeyFromNetwork(network);
+
+        if (!key) {
+            throw new Error(`Unsupported network for RPC: ${network || chainId}`);
         }
-        return this._getProvider(this.resolveRpcUrl(chainId, network));
+
+        return this._rpcProvider.getEthersProvider(key, {
+            allowDirectFallback: allowDirectFallbackForChainKey(key),
+        });
     }
 
     async estimateTransactionFee(params: GasAwareDappTransactionParams, fromAddress?: string): Promise<DappGasEstimate> {
@@ -151,22 +118,6 @@ export class DappGasEstimationService {
         }
 
         return txRequest;
-    }
-
-    private _getProvider(rpcUrl: string): ethers.JsonRpcProvider {
-        const cached = this._providerByRpcUrl.get(rpcUrl);
-        if (cached) {
-            return cached;
-        }
-
-        const needsNoBatch = rpcUrl.includes("bdagscan.com");
-        const provider = new ethers.JsonRpcProvider(
-            rpcUrl,
-            undefined,
-            needsNoBatch ? { batchMaxCount: 1 } : undefined,
-        );
-        this._providerByRpcUrl.set(rpcUrl, provider);
-        return provider;
     }
 
     private async _resolveGasLimit(

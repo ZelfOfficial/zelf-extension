@@ -65,7 +65,6 @@
         "@polkadot/api": "^16.5.6",
         "@polkadot/util": "^14.0.3",
         "@polkadot/util-crypto": "^14.0.3",
-        "@quicknode/sdk": "^3.8.1",
         "@reown/walletkit": "^1.5.6",
         "@scure/bip32": "^1.6.2",
         "@scure/bip39": "^1.5.4",

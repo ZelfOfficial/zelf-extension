@@ -72,4 +72,35 @@ describe("AuthService Zelf name", () => {
 
         service.releaseVerifiedSession();
     });
+
+    it("mints a replacement session after the proxy rejects the token", async () => {
+        const token = jwt({ identifier: "current", tagName: "alice.zelf", domain: "zelf" });
+        const post = jasmine.createSpy("post").and.returnValue({
+            toPromise: () => Promise.resolve({ data: { token: "next", expiresAt: moment().add(1, "hour").unix() } }),
+        });
+        const service = new AuthService(
+            {
+                getItem: async (key: string) => {
+                    if (key === "accessToken") return token;
+                    if (key === "accessTokenExpiresAt") return moment().add(1, "hour").unix();
+                    return null;
+                },
+                setItem: async () => undefined,
+                removeItem: async () => undefined,
+            } as any,
+            { post } as any,
+            {
+                getCurrentWallet: async () => ({
+                    tagName: "alice.zelf",
+                    publicData: { domain: "zelf", ethAddress: "0xabc" },
+                }),
+            } as any
+        );
+
+        service.keepVerifiedSession();
+
+        await expectAsync(service.refreshAfterUnauthorized()).toBeResolvedTo("next");
+        expect(post.calls.mostRecent().args[1].killSession).toBe(1);
+        expect(service.keepingVerifiedSession).toBeTrue();
+    });
 });

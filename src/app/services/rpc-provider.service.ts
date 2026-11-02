@@ -1,60 +1,51 @@
 import { Injectable } from "@angular/core";
 import { FetchRequest, JsonRpcProvider } from "ethers";
 import { Connection } from "@solana/web3.js";
-import Web3 from "web3";
+import Web3 from "app/services/web3-facade";
 import HttpProvider from "web3-providers-http";
-import type { HttpProviderOptions } from "web3-providers-http";
+import { ResponseError } from "web3-errors";
 
 import { AuthService } from "app/services/auth.service";
 import { environment } from "environments/environment";
-import { getChainKeyFromChainId } from "@shared/utils/evm-chain-key.util";
+import { allowDirectFallbackForChainKey, getChainKeyFromChainId } from "@shared/utils/evm-chain-key.util";
+import { fetchWithSessionAuth, protectedRpcUrl, type SessionTokens } from "@shared/utils/rpc-proxy-http";
 
 export interface SolanaConnectionOptions {
-    /**
-     * When true, use public mainnet HTTP only (no JWT) — not the Zelf protected proxy.
-     * Prefer default (false): `POST /api/protected/rpc/solana` with Bearer JWT.
-     */
+    /** Kept so existing call sites compile. Solana always uses the authenticated proxy. */
     useDirectRpc?: boolean;
 }
 
 export interface RpcProviderOptions {
     /**
-     * When false and JWT is unavailable, throws instead of using direct `environment.*Rpc` URLs.
-     * Use for sends / swaps so traffic stays on `/api/protected/rpc/:chainKey` (server `EXTENSION_*_RPC_URL`).
-     * Default true for backward compatibility.
+     * Public chains (arbitrum, optimism, base, blockdag) may use their public endpoint
+     * when a session cannot be minted. Paid chains never do.
      */
     allowDirectFallback?: boolean;
 }
 
+const BLOCKDAG_PUBLIC_RPC = "https://rpc.bdagscan.com";
+
 /**
- * EVM + Solana JSON-RPC via Zelf API `POST /api/protected/rpc/:chainKey` with Bearer JWT.
- * Falls back to chain-specific public RPC URLs when auth is unavailable (Solana: mainnet-beta), unless `allowDirectFallback: false`.
+ * JSON-RPC for wallet reads and sends goes through `POST /api/protected/rpc/:chainKey`
+ * with the session JWT. ethers retries a 401 once after a session refresh; its built-in
+ * throttle honors a numeric `Retry-After`. web3 and Solana use the shared fetch helper,
+ * which also retries 401 once and waits on 429.
  */
 @Injectable({
     providedIn: "root",
 })
 export class RpcProviderService {
     private _solanaConnection: Promise<Connection> | null = null;
-    private _solanaDirectConnection: Promise<Connection> | null = null;
 
     constructor(private readonly _auth: AuthService) {}
 
     getProtectedProxyUrl(chainKey: string): string {
-        const base = environment.apiUrl.replace(/\/$/, "");
-        return `${base}/api/protected/rpc/${chainKey}`;
+        return protectedRpcUrl(environment.apiUrl, chainKey);
     }
 
-    /** Direct RPC URL used when the protected proxy cannot be used (mirrors previous extension behavior). */
-    getFallbackDirectRpcUrl(chainKey: string): string {
+    /** Public endpoint used only when a session is unavailable. Paid chains return null. */
+    getFallbackDirectRpcUrl(chainKey: string): string | null {
         switch (chainKey) {
-            case "ethereum":
-                return environment.ethereumRpc.mainnet;
-            case "polygon":
-                return environment.polygonRpc.mainnet;
-            case "avalanche":
-                return environment.avalancheRpc.mainnet;
-            case "bsc":
-                return environment.binanceRpc.mainnet;
             case "arbitrum":
                 return environment.arbitrumRpc.mainnet;
             case "optimism":
@@ -62,132 +53,168 @@ export class RpcProviderService {
             case "base":
                 return environment.baseRpc.mainnet;
             case "blockdag":
-                return "https://rpc.bdagscan.com";
-            case "solana":
-                /** No QuickNode URL in env — unauthenticated fallback only (primary path is JWT proxy). */
-                return "https://api.mainnet-beta.solana.com";
+                return BLOCKDAG_PUBLIC_RPC;
             default:
-                return environment.ethereumRpc.mainnet;
+                return null;
         }
     }
 
-    /**
-     * Solana `Connection`: default is `/api/protected/rpc/solana` + JWT; `{ useDirectRpc: true }` uses public mainnet HTTP (no JWT).
-     */
-    getSolanaConnection(opts: SolanaConnectionOptions = {}): Promise<Connection> {
-        if (opts.useDirectRpc) {
-            if (!this._solanaDirectConnection) {
-                const url = this.getFallbackDirectRpcUrl("solana");
-                this._solanaDirectConnection = Promise.resolve(new Connection(url, { commitment: "confirmed" }));
-            }
-            return this._solanaDirectConnection;
-        }
+    getSolanaConnection(_opts: SolanaConnectionOptions = {}): Promise<Connection> {
         if (!this._solanaConnection) {
-            this._solanaConnection = this._createSolanaConnection();
+            this._solanaConnection = this._createSolanaConnection().catch((error) => {
+                this._solanaConnection = null;
+                throw error;
+            });
         }
+
         return this._solanaConnection;
     }
 
+    private _sessionTokens(): SessionTokens {
+        return {
+            getToken: () => this._auth.checkAccessToken(),
+            refreshToken: () => this._auth.refreshAfterUnauthorized(),
+        };
+    }
+
     private async _createSolanaConnection(): Promise<Connection> {
+        await this._auth.checkAccessToken();
+
         const endpoint = this.getProtectedProxyUrl("solana");
-        const fallback = this.getFallbackDirectRpcUrl("solana");
-        try {
-            await this._auth.checkAccessToken();
-        } catch {
-            return new Connection(fallback, { commitment: "confirmed" });
-        }
+        const tokens = this._sessionTokens();
 
         return new Connection(endpoint, {
             commitment: "confirmed",
-            fetchMiddleware: (info, init, callback) => {
-                void this._auth
-                    .checkAccessToken()
-                    .then((token) => {
-                        const headers = new Headers(init?.headers as HeadersInit);
-                        headers.set("Authorization", `Bearer ${token}`);
-                        headers.set("Content-Type", "application/json");
-                        callback(info, { ...init, headers });
-                    })
-                    .catch(() => {
-                        callback(info, init);
-                    });
+            disableRetryOnRateLimit: true,
+            fetch: (input, init) => {
+                const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+
+                return fetchWithSessionAuth(url, init, tokens);
             },
         });
     }
 
-    /**
-     * ethers v6 provider: `FetchRequest.preflightFunc` refreshes the Bearer token before each batch.
-     *
-     * `batchMaxCount: 1` is forced on the protected proxy path so each `JsonRpcProvider`
-     * call is sent as a single JSON-RPC object. The proxy validates a single object body
-     * via Joi; sending a batch array (ethers v6 default) was producing `code: -32600`
-     * `"value" must be of type object` and ethers `BAD_DATA` "missing response for request"
-     * with the raw payload leaking into the UI.
-     */
+    private _bindEthersSession(request: FetchRequest): void {
+        request.setHeader("Content-Type", "application/json");
+        request.preflightFunc = async (req) => {
+            const token = await this._auth.checkAccessToken();
+
+            req.setHeader("Authorization", `Bearer ${token}`);
+
+            return req;
+        };
+        request.processFunc = async (req, response) => {
+            if (response.statusCode !== 401 || req.getHeader("x-zelf-auth-retry") === "1") {
+                return response;
+            }
+
+            req.setHeader("x-zelf-auth-retry", "1");
+            await this._auth.refreshAfterUnauthorized();
+
+            throw Object.assign(new Error("session expired"), { throttle: true, stall: 0 });
+        };
+    }
+
+    private _directFallbackUrl(chainKey: string, allowDirectFallback: boolean): string | null {
+        if (!allowDirectFallback || !allowDirectFallbackForChainKey(chainKey)) return null;
+
+        return this.getFallbackDirectRpcUrl(chainKey);
+    }
+
     async getEthersProvider(chainKey: string, opts: RpcProviderOptions = {}): Promise<JsonRpcProvider> {
         const allowDirectFallback = opts.allowDirectFallback !== false;
-        const url = this.getProtectedProxyUrl(chainKey);
+
         try {
             await this._auth.checkAccessToken();
         } catch (err) {
-            if (!allowDirectFallback) {
+            const fallback = this._directFallbackUrl(chainKey, allowDirectFallback);
+
+            if (!fallback) {
                 throw new Error("Session required for RPC. Sign in and try again.");
             }
+
             if (!environment.production) {
-                console.warn(`[RpcProviderService] Direct RPC fallback for ${chainKey} (no JWT)`, err);
+                console.warn(`[RpcProviderService] Public RPC fallback for ${chainKey} (no JWT)`, err);
             }
-            return new JsonRpcProvider(
-                this.getFallbackDirectRpcUrl(chainKey),
-                undefined,
-                chainKey === "blockdag" ? { batchMaxCount: 1 } : undefined,
-            );
+
+            return new JsonRpcProvider(fallback, undefined, chainKey === "blockdag" ? { batchMaxCount: 1 } : undefined);
         }
 
-        const fr = new FetchRequest(url);
-        fr.setHeader("Content-Type", "application/json");
-        fr.preflightFunc = async (req) => {
-            const token = await this._auth.checkAccessToken();
-            req.setHeader("Authorization", `Bearer ${token}`);
-            return req;
-        };
+        const request = new FetchRequest(this.getProtectedProxyUrl(chainKey));
 
-        return new JsonRpcProvider(fr, undefined, { batchMaxCount: 1 });
+        this._bindEthersSession(request);
+
+        return new JsonRpcProvider(request, undefined, { batchMaxCount: 1 });
     }
 
     async getEthersProviderForChainId(chainId: number, opts: RpcProviderOptions = {}): Promise<JsonRpcProvider> {
         const key = getChainKeyFromChainId(chainId);
+
         if (!key) {
             throw new Error(`Unsupported chainId for protected RPC: ${chainId}`);
         }
+
         return this.getEthersProvider(key, opts);
     }
 
-    /**
-     * web3.js v4 HTTP provider with auth headers (token at construction time; recreate via this service if token rotates).
-     */
     async getWeb3(chainKey: string, opts: RpcProviderOptions = {}): Promise<Web3> {
         const allowDirectFallback = opts.allowDirectFallback !== false;
-        const url = this.getProtectedProxyUrl(chainKey);
+
         try {
-            const token = await this._auth.checkAccessToken();
-            const httpOpts: HttpProviderOptions = {
-                providerOptions: {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                },
-            };
-            const http = new HttpProvider(url, httpOpts);
-            return new Web3(http);
+            await this._auth.checkAccessToken();
         } catch (err) {
-            if (!allowDirectFallback) {
+            const fallback = this._directFallbackUrl(chainKey, allowDirectFallback);
+
+            if (!fallback) {
                 throw new Error("Session required for RPC. Sign in and try again.");
             }
+
             if (!environment.production) {
-                console.warn(`[RpcProviderService] Direct RPC fallback for ${chainKey} (no JWT)`, err);
+                console.warn(`[RpcProviderService] Public RPC fallback for ${chainKey} (no JWT)`, err);
             }
-            return new Web3(new HttpProvider(this.getFallbackDirectRpcUrl(chainKey)));
+
+            return new Web3(new HttpProvider(fallback));
         }
+
+        return new Web3(new SessionHttpProvider(this.getProtectedProxyUrl(chainKey), this._sessionTokens()));
+    }
+}
+
+class SessionHttpProvider extends HttpProvider {
+    constructor(
+        private readonly _url: string,
+        private readonly _tokens: SessionTokens
+    ) {
+        super(_url);
+    }
+
+    override async request(payload: unknown): Promise<any> {
+        const response = await fetchWithSessionAuth(
+            this._url,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            },
+            this._tokens
+        );
+        const text = await response.text();
+        let body: unknown = text;
+
+        if (text) {
+            try {
+                body = JSON.parse(text);
+            } catch {
+                body = { error: { message: text } };
+            }
+        }
+
+        if (!response.ok) {
+            const errorBody = body && typeof body === "object" ? body : { error: { message: text || response.statusText } };
+
+            throw new ResponseError(errorBody as any, undefined, undefined, response.status);
+        }
+
+        return body;
     }
 }

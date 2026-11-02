@@ -1,4 +1,4 @@
-import Web3 from "web3";
+import Web3 from "./web3-facade";
 import { isAddress } from "web3-validator";
 
 import { Injectable } from "@angular/core";
@@ -9,6 +9,7 @@ import { RpcProviderService } from "app/services/rpc-provider.service";
 import { HttpWrapperService } from "../http-wrapper.service";
 import { failedBalanceFetch } from "app/core/utils/balance-fetch-result.util";
 import { historyQueryParams } from "../core/utils/transaction-history-pagination.util";
+import { protectedRpcUrl } from "@shared/utils/rpc-proxy-http";
 
 @Injectable({
     providedIn: "root",
@@ -21,7 +22,7 @@ export class AvaxService {
             blockExplorerUrls: ["https://snowtrace.io"],
             chainId: 43114,
             chainName: "Avalanche C-Chain",
-            rpcUrls: [environment.avalancheRpc.mainnet],
+            rpcUrls: [protectedRpcUrl(environment.apiUrl, "avalanche")],
             nativeCurrency: {
                 decimals: 18,
                 name: "AVAX",
