@@ -13,7 +13,8 @@ import {
     hexToChainId,
 } from "@shared/types/dapp.types";
 import { getPreferredChainIdForOrigin } from "@shared/services/dapp-mapping.service";
-import { getChainKeyFromChainId } from "@shared/utils/evm-chain-key.util";
+import { allowDirectFallbackForChainKey, getChainKeyFromChainId } from "@shared/utils/evm-chain-key.util";
+import { fetchWithSessionAuth, protectedRpcUrl } from "@shared/utils/rpc-proxy-http";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -48,7 +49,81 @@ const BLOCKED_DAPP_RPC_METHODS = new Set([
 ]);
 
 /** Prefixes for RPC namespaces that should never be exposed to arbitrary dApps. */
-const BLOCKED_DAPP_RPC_PREFIXES = ["admin_", "debug_", "engine_", "miner_", "ots_", "personal_", "trace_", "txpool_"];
+const BLOCKED_DAPP_RPC_PREFIXES = ["admin_", "alchemy_", "debug_", "engine_", "miner_", "ots_", "personal_", "qn_", "trace_", "txpool_"];
+
+function storageGet(keys: string[]): Promise<Record<string, any>> {
+    return new Promise((resolve) => {
+        try {
+            chrome.storage.local.get(keys, (items) => {
+                if (chrome.runtime.lastError) {
+                    resolve({});
+                    return;
+                }
+                resolve(items || {});
+            });
+        } catch {
+            resolve({});
+        }
+    });
+}
+
+function sessionTag(tagName: string | null, domain: string | null): { tagName: string; domain: string } {
+    const tld = String(domain || "zelf")
+        .trim()
+        .toLowerCase()
+        .replace(/^\.+/, "") || "zelf";
+    let bare = String(tagName || "")
+        .trim()
+        .toLowerCase();
+    const suffix = `.${tld}`;
+
+    while (bare.endsWith(suffix)) bare = bare.slice(0, -suffix.length);
+    bare = bare.replace(/\.+$/, "");
+
+    if (!bare) return { tagName: "", domain: tld };
+
+    return { tagName: `${bare}.${tld}`, domain: tld };
+}
+
+/**
+ * Re-mint the same session identifier the extension UI stored.
+ * A service worker cannot reproduce the UI fingerprint, so it must not invent a new one.
+ */
+async function mintStoredSession(killSession: boolean): Promise<string | null> {
+    const items = await storageGet(["sessionIdentifier", "wallet"]);
+    const identifier = typeof items.sessionIdentifier === "string" ? items.sessionIdentifier : "";
+
+    if (!identifier) return null;
+
+    const wallet = items.wallet || {};
+    const tag = sessionTag(wallet.tagName || wallet.name || wallet.publicData?.tagName || null, wallet.publicData?.domain || wallet.domain || "zelf");
+    const payload: Record<string, unknown> = { identifier };
+
+    if (tag.domain) payload.domain = tag.domain;
+    if (wallet.publicData?.ethAddress) payload.ethAddress = wallet.publicData.ethAddress;
+    if (tag.tagName) payload.tagName = tag.tagName;
+    if (killSession) payload.killSession = 1;
+
+    const response = await fetch(`${environment.apiBaseUrl.replace(/\/$/, "")}/api/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) return null;
+
+    const responseData = await response.json().catch(() => null);
+    const token = responseData?.data?.token;
+    const expiresAt = responseData?.data?.expiresAt;
+
+    if (!token || expiresAt == null) return null;
+
+    await new Promise<void>((resolve) => {
+        chrome.storage.local.set({ accessToken: token, accessTokenExpiresAt: expiresAt, sessionIdentifier: identifier }, () => resolve());
+    });
+
+    return token;
+}
 
 /** Read JWT from the same chrome.storage.local keys used by AuthService (extension UI). */
 function readAccessTokenFromStorage(): Promise<string | null> {
@@ -138,14 +213,6 @@ async function handleRpcProxy(
         return;
     }
 
-    if (!rpcUrl) {
-        sendResponse({
-            success: false,
-            error: { code: -32603, message: `Zelf Wallet: No RPC URL for chain ${chainId}. Read-only methods require a configured RPC.` },
-        });
-        return;
-    }
-
     const jsonBody = JSON.stringify({
         jsonrpc: "2.0",
         id: 1,
@@ -153,30 +220,16 @@ async function handleRpcProxy(
         params: Array.isArray(params) ? params : [],
     });
 
-    try {
-        const chainKey = getChainKeyFromChainId(chainId);
-        const token = await readAccessTokenFromStorage();
-        if (chainKey && token) {
-            const base = environment.apiBaseUrl.replace(/\/$/, "");
-            const proxyUrl = `${base}/api/protected/rpc/${chainKey}`;
-            try {
-                const res = await fetch(proxyUrl, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: jsonBody,
-                });
-                const json = await res.json();
-                if (res.ok && json && json.result !== undefined && !json.error) {
-                    sendResponse({ success: true, data: json.result });
-                    return;
-                }
-                Logger.warn(`[DAPP_RPC_PROXY] Protected proxy returned ${res.status}, falling back to direct RPC`);
-            } catch (proxyErr: any) {
-                Logger.warn("[DAPP_RPC_PROXY] Protected proxy failed, falling back to direct RPC:", proxyErr?.message || proxyErr);
-            }
+    const chainKey = getChainKeyFromChainId(chainId);
+    const allowDirect = Boolean(chainKey && allowDirectFallbackForChainKey(chainKey) && rpcUrl);
+
+    const sendDirect = async () => {
+        if (!rpcUrl) {
+            sendResponse({
+                success: false,
+                error: { code: -32603, message: `Zelf Wallet: No RPC URL for chain ${chainId}. Read-only methods require a configured RPC.` },
+            });
+            return;
         }
 
         const res = await fetch(rpcUrl, {
@@ -195,12 +248,96 @@ async function handleRpcProxy(
         }
 
         sendResponse({ success: true, data: json.result });
+    };
+
+    if (!chainKey) {
+        try {
+            await sendDirect();
+        } catch (err: any) {
+            Logger.error("DAPP_RPC_PROXY error:", err);
+            sendResponse({
+                success: false,
+                error: { code: -32603, message: err?.message || "RPC request failed" },
+            });
+        }
+        return;
+    }
+
+    try {
+        const proxyUrl = protectedRpcUrl(environment.apiBaseUrl, chainKey);
+        const res = await fetchWithSessionAuth(
+            proxyUrl,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: jsonBody,
+            },
+            {
+                getToken: async () => {
+                    const token = (await readAccessTokenFromStorage()) || (await mintStoredSession(false));
+
+                    if (!token) throw new Error("Session required for RPC.");
+
+                    return token;
+                },
+                refreshToken: async () => {
+                    const token = await mintStoredSession(true);
+
+                    if (!token) throw new Error("Session required for RPC.");
+
+                    return token;
+                },
+            }
+        );
+        const json = await res.json().catch(() => null);
+
+        if (res.ok && json && !json.error) {
+            sendResponse({ success: true, data: json.result });
+            return;
+        }
+
+        if (res.ok && json?.error) {
+            sendResponse({
+                success: false,
+                error: { code: json.error.code ?? -32603, message: json.error.message || "RPC error" },
+            });
+            return;
+        }
+
+        if (!allowDirect) {
+            sendResponse({
+                success: false,
+                error: {
+                    code: json?.error?.code ?? -32603,
+                    message: json?.error?.message || `Zelf Wallet: RPC proxy failed (${res.status}).`,
+                },
+            });
+            return;
+        }
+
+        Logger.warn(`[DAPP_RPC_PROXY] Protected proxy returned ${res.status}, falling back to public RPC`);
+        await sendDirect();
     } catch (err: any) {
-        Logger.error("DAPP_RPC_PROXY error:", err);
-        sendResponse({
-            success: false,
-            error: { code: -32603, message: err?.message || "RPC proxy failed" },
-        });
+        if (!allowDirect) {
+            Logger.error("DAPP_RPC_PROXY error:", err);
+            sendResponse({
+                success: false,
+                error: { code: -32603, message: err?.message || "RPC request failed" },
+            });
+            return;
+        }
+
+        Logger.warn("[DAPP_RPC_PROXY] Protected proxy failed, falling back to public RPC:", err?.message || err);
+
+        try {
+            await sendDirect();
+        } catch (directErr: any) {
+            Logger.error("DAPP_RPC_PROXY error:", directErr);
+            sendResponse({
+                success: false,
+                error: { code: -32603, message: directErr?.message || "RPC proxy failed" },
+            });
+        }
     }
 }
 

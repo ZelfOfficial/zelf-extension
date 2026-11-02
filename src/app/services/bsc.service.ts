@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import Web3 from "web3";
+import Web3 from "./web3-facade";
 import { isAddress } from "web3-validator";
 
 import { Injectable } from "@angular/core";
@@ -10,6 +10,7 @@ import { environment } from "environments/environment";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
 import { failedBalanceFetch } from "app/core/utils/balance-fetch-result.util";
 import { historyQueryParams } from "../core/utils/transaction-history-pagination.util";
+import { protectedRpcUrl } from "@shared/utils/rpc-proxy-http";
 
 @Injectable({
     providedIn: "root",
@@ -24,7 +25,7 @@ export class BscService {
             blockExplorerUrls: ["https://bscscan.com"],
             chainId: 56,
             chainName: "BNB Smart Chain",
-            rpcUrls: [environment.binanceRpc.mainnet],
+            rpcUrls: [protectedRpcUrl(environment.apiUrl, "bsc")],
             nativeCurrency: {
                 decimals: 18,
                 name: "BNB",

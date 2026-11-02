@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import Web3 from "web3";
+import Web3 from "./web3-facade";
 import { isAddress } from "web3-validator";
 
 import { Injectable } from "@angular/core";

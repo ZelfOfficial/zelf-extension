@@ -10,6 +10,21 @@ export const CHAIN_KEY_BY_CHAIN_ID: Readonly<Record<number, string>> = {
     42161: "arbitrum",
     43114: "avalanche",
     1404: "blockdag",
+    11155111: "sepolia",
+};
+
+const CHAIN_KEY_BY_NETWORK: Readonly<Record<string, string>> = {
+    ethereum: "ethereum",
+    sepolia: "sepolia",
+    "ethereum-sepolia": "sepolia",
+    polygon: "polygon",
+    avalanche: "avalanche",
+    bsc: "bsc",
+    binance: "bsc",
+    arbitrum: "arbitrum",
+    optimism: "optimism",
+    base: "base",
+    blockdag: "blockdag",
 };
 
 export function getChainKeyFromChainId(chainId: number): string | null {
@@ -17,11 +32,18 @@ export function getChainKeyFromChainId(chainId: number): string | null {
     return CHAIN_KEY_BY_CHAIN_ID[chainId] ?? null;
 }
 
+export function getChainKeyFromNetwork(network?: string | null): string | null {
+    if (!network) return null;
+
+    return CHAIN_KEY_BY_NETWORK[network.trim().toLowerCase()] ?? null;
+}
+
 /**
  * Chains where asset sends must use JWT + `/api/protected/rpc/:chainKey` (no silent direct RPC fallback).
  * Aligns with server `EXTENSION_*_RPC_URL` tracking.
  */
-export const STRICT_PROTECTED_RPC_CHAIN_KEYS = new Set<string>(["ethereum", "bsc", "polygon", "avalanche"]);
+/** Paid chains. These never fall back to a URL shipped in the extension. */
+export const STRICT_PROTECTED_RPC_CHAIN_KEYS = new Set<string>(["ethereum", "sepolia", "bsc", "polygon", "avalanche"]);
 
 /** When `false`, RpcProviderService must not fall back to direct env RPC (session required). */
 export function allowDirectFallbackForChainKey(chainKey: string): boolean {

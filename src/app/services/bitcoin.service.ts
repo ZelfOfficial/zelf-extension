@@ -13,6 +13,8 @@ import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "..
 import { HttpWrapperService } from "./../http-wrapper.service";
 import { failedBalanceFetch } from "app/core/utils/balance-fetch-result.util";
 import { historyQueryParams } from "../core/utils/transaction-history-pagination.util";
+import { AuthService } from "./auth.service";
+import { blockbookUtxoSatoshis, btcProxyUrl, fetchWithSessionAuth } from "@shared/utils/rpc-proxy-http";
 
 const ECPair = ECPairFactory(secp256k1);
 const bip32 = BIP32Factory(secp256k1);
@@ -37,7 +39,8 @@ export class BitcoinService {
 
     constructor(
         private _httpWrapperService: HttpWrapperService,
-        private _assetService: AssetService
+        private _assetService: AssetService,
+        private _auth: AuthService
     ) {}
 
     public feeRates: MempoolFeeRates = {
@@ -296,8 +299,16 @@ export class BitcoinService {
 
             if (!sourceAddress) throw new Error("Failed to derive Bitcoin address");
 
-            const baseUrl = isTestnet ? "https://mempool.space/testnet/api" : "https://mempool.space/api";
-            const utxoResponse = await fetch(`${baseUrl}/address/${sourceAddress}/utxo`);
+            const btcNetwork = isTestnet ? "testnet" : "mainnet";
+            const tokens = {
+                getToken: () => this._auth.checkAccessToken(),
+                refreshToken: () => this._auth.refreshAfterUnauthorized(),
+            };
+            const utxoResponse = await fetchWithSessionAuth(
+                btcProxyUrl(this._baseUrl, btcNetwork, `address/${sourceAddress}/utxo`),
+                { method: "GET" },
+                tokens
+            );
 
             if (!utxoResponse.ok) {
                 if (utxoResponse.status === 404 || utxoResponse.status === 400) {
@@ -307,16 +318,32 @@ export class BitcoinService {
                 throw new Error(`Failed to fetch UTXOs: ${utxoResponse.statusText}`);
             }
 
-            const utxos = await utxoResponse.json();
+            const utxoBody = await utxoResponse.json();
+            const utxoList = Array.isArray(utxoBody) ? utxoBody : [];
+            const utxos = utxoList.map((utxo: { txid?: string; vout?: number; value?: unknown }) => ({
+                txid: String(utxo.txid || ""),
+                vout: Number(utxo.vout),
+                value: blockbookUtxoSatoshis(utxo.value),
+            }));
 
             if (!utxos || utxos.length === 0) {
                 throw new Error(`No UTXOs found for address ${sourceAddress}. Please fund this address first.`);
             }
 
             const utxoDetails = await Promise.all(
-                utxos.map(async (utxo: any) => {
-                    const txResponse = await fetch(`${baseUrl}/tx/${utxo.txid}/hex`);
-                    const txHex = await txResponse.text();
+                utxos.map(async (utxo) => {
+                    const txResponse = await fetchWithSessionAuth(
+                        btcProxyUrl(this._baseUrl, btcNetwork, `tx/${utxo.txid}/hex`),
+                        { method: "GET" },
+                        tokens
+                    );
+
+                    if (!txResponse.ok) {
+                        throw new Error(`Failed to fetch transaction hex: ${txResponse.statusText}`);
+                    }
+
+                    const txHex = (await txResponse.text()).trim();
+
                     return {
                         ...utxo,
                         txHex,
@@ -401,10 +428,15 @@ export class BitcoinService {
             const tx = psbt.extractTransaction();
             const txHex = tx.toHex();
 
-            const broadcastResponse = await fetch(`${baseUrl}/tx`, {
-                method: "POST",
-                body: txHex,
-            });
+            const broadcastResponse = await fetchWithSessionAuth(
+                btcProxyUrl(this._baseUrl, btcNetwork, "tx"),
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain" },
+                    body: txHex,
+                },
+                tokens
+            );
 
             if (!broadcastResponse.ok) {
                 const errorText = await broadcastResponse.text();

@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { BehaviorSubject, Observable } from "rxjs";
-import Web3 from "web3";
+import Web3 from "./services/web3-facade";
 import { isAddress } from "web3-validator";
 
 import { Injectable } from "@angular/core";
@@ -13,6 +13,7 @@ import { RpcProviderService } from "./services/rpc-provider.service";
 import { EthTransaction } from "@shared/types/wallet.types";
 import { failedBalanceFetch } from "./core/utils/balance-fetch-result.util";
 import { historyQueryParams } from "./core/utils/transaction-history-pagination.util";
+import { protectedRpcUrl } from "@shared/utils/rpc-proxy-http";
 
 export interface ChainConfig {
     blockExplorerUrls: string[];
@@ -41,7 +42,7 @@ export class EthereumService {
             blockExplorerUrls: ["https://etherscan.io"],
             chainId: 1,
             chainName: "Ethereum Mainnet",
-            rpcUrls: [environment.ethereumRpc.mainnet],
+            rpcUrls: [protectedRpcUrl(environment.apiUrl, "ethereum")],
             nativeCurrency: {
                 decimals: 18,
                 name: "Ether",
@@ -52,7 +53,7 @@ export class EthereumService {
             blockExplorerUrls: ["https://sepolia.etherscan.io"],
             chainId: 11155111,
             chainName: "Sepolia Testnet",
-            rpcUrls: [environment.ethereumRpc.testnet],
+            rpcUrls: [protectedRpcUrl(environment.apiUrl, "sepolia")],
             nativeCurrency: {
                 decimals: 18,
                 name: "Sepolia Ether",

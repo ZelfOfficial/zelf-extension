@@ -6,6 +6,8 @@ import { failedBalanceFetch } from "app/core/utils/balance-fetch-result.util";
 import { environment } from "environments/environment";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
 import { HttpWrapperService } from "../http-wrapper.service";
+import { AuthService } from "./auth.service";
+import { retryAfterDelayMs, stellarProxyBase } from "@shared/utils/rpc-proxy-http";
 import { StellarSorobanService } from "./stellar-soroban.service";
 import { StellarFeeBreakdown, StellarSendPreview } from "./stellar-send.types";
 import {
@@ -21,16 +23,66 @@ import { stellarHistoryQueryParams } from "../core/utils/transaction-history-pag
 })
 export class StellarService {
     private _baseUrl: string = environment.apiUrl;
+    private _horizon: Horizon.Server | null = null;
+    /** The Stellar HTTP client applies request interceptors synchronously, so the token is cached here. */
+    private _horizonToken = "";
 
     constructor(
         private _httpWrapper: HttpWrapperService,
-        private _stellarSoroban: StellarSorobanService
+        private _stellarSoroban: StellarSorobanService,
+        private _auth: AuthService
     ) {}
 
-    private _horizonServer(): Horizon.Server {
-        const url = environment.stellarRpc?.mainnet || "https://horizon.stellar.org";
+    private async _horizonServer(): Promise<Horizon.Server> {
+        this._horizonToken = await this._auth.checkAccessToken();
 
-        return new Horizon.Server(url);
+        if (this._horizon) return this._horizon;
+
+        const url = stellarProxyBase(this._baseUrl);
+        const server = new Horizon.Server(url, { allowHttp: url.startsWith("http://") });
+
+        server.httpClient.interceptors.request.use((config) => {
+            const headers = new Headers((config.headers as HeadersInit | undefined) || undefined);
+
+            headers.set("Authorization", `Bearer ${this._horizonToken}`);
+            config.headers = headers;
+
+            return config;
+        });
+
+        server.httpClient.interceptors.response.use(
+            (response) => response,
+            async (error: { response?: { status?: number; headers?: Record<string, unknown> }; config?: Record<string, any> }) => {
+                const status = error?.response?.status;
+                const config = error?.config;
+
+                if (!config) throw error;
+
+                if (status === 401 && !config["__zelfAuthRetried"]) {
+                    config["__zelfAuthRetried"] = true;
+                    this._horizonToken = await this._auth.refreshAfterUnauthorized();
+
+                    return server.httpClient.makeRequest(config);
+                }
+
+                if (status === 429 && !config["__zelfRateRetried"]) {
+                    config["__zelfRateRetried"] = true;
+                    const headers = error.response?.headers as unknown;
+                    const retryAfter =
+                        headers && typeof (headers as Headers).get === "function" ? (headers as Headers).get("retry-after") : null;
+
+                    await new Promise((resolve) => setTimeout(resolve, retryAfterDelayMs(retryAfter)));
+
+                    return server.httpClient.makeRequest(config);
+                }
+
+                throw error;
+            }
+        );
+
+        this._horizon = server;
+
+        return server;
     }
 
     private _networkPassphrase(): string {
@@ -70,7 +122,7 @@ export class StellarService {
     }
 
     async destinationAccountExists(destination: string): Promise<boolean> {
-        const server = this._horizonServer();
+        const server = await this._horizonServer();
 
         try {
             await server.accounts().accountId(destination.trim()).call();
@@ -93,7 +145,7 @@ export class StellarService {
      * Native XLM preview: payment vs createAccount vs createAccount+payment (merged ops).
      */
     async getNativeSendPreview(destination: string, amountXlm: number): Promise<StellarSendPreview> {
-        const server = this._horizonServer();
+        const server = await this._horizonServer();
         const baseReserveStroops = await this._fetchLatestBaseReserveStroops(server);
         const minReserveXlm = minimumNewAccountBalanceXlm(baseReserveStroops);
         const exists = await this.destinationAccountExists(destination);
@@ -160,7 +212,7 @@ export class StellarService {
     private async _destinationHasTrustlineForAsset(destination: string, asset: Asset): Promise<boolean> {
         if (asset.isNative()) return true;
 
-        const server = this._horizonServer();
+        const server = await this._horizonServer();
         const acc = await server.accounts().accountId(destination.trim()).call();
 
         return acc.balances.some(
@@ -175,7 +227,7 @@ export class StellarService {
     async getClassicSendPreview(destination: string, amount: number, tokenAddress: string | undefined): Promise<StellarSendPreview> {
         this._stellarSoroban.assertClassicOrNativeOnly(tokenAddress);
 
-        const server = this._horizonServer();
+        const server = await this._horizonServer();
         const baseReserveStroops = await this._fetchLatestBaseReserveStroops(server);
         const minReserveXlm = minimumNewAccountBalanceXlm(baseReserveStroops);
         const asset = parseClassicAsset(tokenAddress);
@@ -233,7 +285,7 @@ export class StellarService {
         tokenAddress?: string,
         tokenDecimals?: number
     ): Promise<TransactionFeeEstimate> {
-        const server = this._horizonServer();
+        const server = await this._horizonServer();
         const baseFeeStroops = await server.fetchBaseFee();
         const feeXlm = baseFeeStroops / 1e7;
         const price = tokenPrice || 0;
@@ -323,7 +375,7 @@ export class StellarService {
 
         const secret = this.getSecretKeyFromMnemonic(params.mnemonic);
         const keypair = Keypair.fromSecret(secret);
-        const server = this._horizonServer();
+        const server = await this._horizonServer();
         const amountNum = parseFloat(params.value);
 
         if (!Number.isFinite(amountNum) || amountNum <= 0) {

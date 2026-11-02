@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import Web3 from "web3";
+import Web3 from "./web3-facade";
 import { isAddress } from "web3-validator";
 
 import { Injectable } from "@angular/core";
@@ -10,6 +10,7 @@ import { RpcProviderService } from "app/services/rpc-provider.service";
 import { environment } from "environments/environment";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
 import { historyQueryParams } from "../core/utils/transaction-history-pagination.util";
+import { protectedRpcUrl } from "@shared/utils/rpc-proxy-http";
 
 @Injectable({
     providedIn: "root",
@@ -24,7 +25,7 @@ export class PolygonService {
             blockExplorerUrls: ["https://polygonscan.com"],
             chainId: 137,
             chainName: "Polygon Mainnet",
-            rpcUrls: [environment.polygonRpc.mainnet],
+            rpcUrls: [protectedRpcUrl(environment.apiUrl, "polygon")],
             nativeCurrency: {
                 decimals: 18,
                 name: "MATIC",
