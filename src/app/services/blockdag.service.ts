@@ -9,6 +9,11 @@ import { environment } from "environments/environment";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
 import { failedBalanceFetch } from "app/core/utils/balance-fetch-result.util";
 import { historyQueryParams } from "../core/utils/transaction-history-pagination.util";
+import {
+    BLOCKDAG_BLOCKSCOUT_EXPLORERS,
+    blockdagHistoryNeedsExplorerFallback,
+    blockscoutHistoryPage,
+} from "../core/utils/blockdag-blockscout-history.util";
 
 @Injectable({
     providedIn: "root",
@@ -169,23 +174,63 @@ export class BlockDAGService {
         }
     }
 
-    async requestTransactionHistory(address: string, pagination: { page: number; show?: number; cursor?: string }): Promise<any> {
-        try {
-            if (!isAddress(address)) {
-                return { data: { transactions: [] } };
-            }
+    private _historyUnavailable(): { data: { transactions: unknown[]; transactionsUnavailable: true; error: "HISTORY_UNAVAILABLE" } } {
+        return { data: { transactions: [], transactionsUnavailable: true, error: "HISTORY_UNAVAILABLE" } };
+    }
 
+    /**
+     * The Zelf history route depends on BlockDAGScan. When that explorer is blocked, the API
+     * returns an empty list. A synced public Blockscout still has the transfers.
+     */
+    private async _historyFromBlockscout(
+        address: string,
+        pagination: { page: number; show?: number }
+    ): Promise<ReturnType<typeof blockscoutHistoryPage> | null> {
+        const page = typeof pagination.page === "number" && pagination.page >= 0 ? pagination.page : 0;
+        const show = pagination.show && pagination.show > 0 ? pagination.show : 20;
+        const needed = (page + 1) * show;
+
+        for (const base of BLOCKDAG_BLOCKSCOUT_EXPLORERS) {
+            try {
+                const response = await fetch(`${base}/api/v2/addresses/${address}/transactions`, {
+                    headers: { Accept: "application/json" },
+                });
+                if (!response.ok) continue;
+
+                const body = await response.json();
+                const items = Array.isArray(body?.items) ? body.items : null;
+                if (!items) continue;
+
+                return blockscoutHistoryPage(items, address, page, show, items.length > needed || Boolean(body?.next_page_params));
+            } catch (error) {
+                console.warn("BlockDAG Blockscout history failed:", error);
+            }
+        }
+
+        return null;
+    }
+
+    async requestTransactionHistory(address: string, pagination: { page: number; show?: number; cursor?: string }): Promise<any> {
+        if (!isAddress(address)) {
+            return { data: { transactions: [] } };
+        }
+
+        try {
             const response = await this._httpWrapper.sendRequest(
                 "get",
                 `${this._baseUrl}/api/blockdag/address/${address}/transactions`,
                 historyQueryParams(pagination)
             );
 
-            return response;
+            if (!blockdagHistoryNeedsExplorerFallback(response)) return response;
+
+            const fallback = await this._historyFromBlockscout(address, pagination);
+            return fallback || this._historyUnavailable();
         } catch (error) {
             console.error("Error getting BlockDAG transaction history:", error);
 
-            return { data: { transactions: [] } };
+            const fallback = await this._historyFromBlockscout(address, pagination);
+            return fallback || this._historyUnavailable();
         }
     }
 
