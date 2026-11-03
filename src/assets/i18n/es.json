@@ -803,11 +803,33 @@
         }
     },
     "welcomeZelfid": {
-        "plan_free": "Zelf ID gratis: tuyo por 100 años. Puedes mejorar el plan después.",
-        "plan_short_hold": "Zelf ID gratis: tuyo por 100 años, nombres cortos incluidos.",
+        "plan_free": "Gratis por {{years}} años. Puedes pasar a Premium o Unlimited más tarde.",
+        "plan_short_hold": "Los nombres cortos son gratis por 1 año. Compra Unlimited para conservarlo.",
         "plan_unlimited": "Zelf ID gratis: tuyo por 100 años.",
         "plan_label": "Plan: {{ plan }}",
-        "hold_subtitle": "Tu Zelf ID es gratis por 100 años."
+        "hold_subtitle": "Este nombre corto es gratis por 1 año.",
+        "plan_name_free": "Gratis",
+        "plan_name_premium": "Premium",
+        "plan_name_unlimited": "Unlimited",
+        "free_term_one": "1 año",
+        "free_term_years": "{{years}} años",
+        "duration_one": "1 año",
+        "duration_years": "{{count}} años",
+        "duration_lifetime": "De por vida",
+        "free_limits_note": "El plan gratis tiene límites de uso. Pasa a Premium o Unlimited cuando los alcances.",
+        "choose_plan": "Elige un plan",
+        "purchase_plan": "Comprar {{plan}}",
+        "register_free_one": "Registrar gratis por 1 año",
+        "register_free_years": "Registrar gratis por {{years}} años",
+        "limits_title": "Incluido en Gratis",
+        "limit_passwords": "{{count}} contraseñas",
+        "limit_notes": "{{count}} notas",
+        "limit_cards": "{{count}} tarjetas",
+        "limit_authenticators": "{{count}} autenticadores",
+        "limit_wallets": "{{count}} carteras",
+        "limit_generic": "{{label}}: {{value}}",
+        "recommended": "Recomendado",
+        "price_confirmed": "El precio se confirma en la página de pago."
     },
     "settings": {
         "networks_label": "Redes",
@@ -1141,7 +1163,9 @@
         "lifetime": "De por vida",
         "price_per_year": "Precio por año",
         "title": "Dominio a comprar",
-        "years": "{{ yearCount }} años"
+        "years": "{{ yearCount }} años",
+        "select_plan": "Elige un plan",
+        "prices_unavailable": "Esta búsqueda no incluyó los precios de los planes."
     },
     "wallet": {
         "download_qr": "Descargar QR",

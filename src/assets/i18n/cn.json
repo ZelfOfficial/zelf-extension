@@ -1134,7 +1134,9 @@
         "lifetime": "终身",
         "price_per_year": "每年价格",
         "title": "要购买的域名",
-        "years": "{{ yearCount }}年"
+        "years": "{{ yearCount }}年",
+        "select_plan": "选择方案",
+        "prices_unavailable": "这次搜索没有返回方案价格。"
     },
     "wallet": {
         "download_qr": "下载二维码",
@@ -2497,11 +2499,33 @@
         "promo_next": "下一条推广"
     },
     "welcomeZelfid": {
-        "plan_free": "免费 Zelf ID — 归你 100 年。之后可以升级。",
-        "plan_short_hold": "免费 Zelf ID — 归你 100 年，包含短名称。",
+        "plan_free": "免费 {{years}} 年。之后可升级到 Premium 或 Unlimited。",
+        "plan_short_hold": "短名称免费使用 1 年。购买 Unlimited 以保留此名称。",
         "plan_unlimited": "免费 Zelf ID — 归你 100 年。",
         "plan_label": "方案：{{ plan }}",
-        "hold_subtitle": "你的 Zelf ID 免费使用 100 年。"
+        "hold_subtitle": "此短名称免费使用 1 年。",
+        "plan_name_free": "免费",
+        "plan_name_premium": "Premium",
+        "plan_name_unlimited": "Unlimited",
+        "free_term_one": "1 年",
+        "free_term_years": "{{years}} 年",
+        "duration_one": "1 年",
+        "duration_years": "{{count}} 年",
+        "duration_lifetime": "终身",
+        "free_limits_note": "免费方案有使用限额。达到限额后请升级到 Premium 或 Unlimited。",
+        "choose_plan": "选择方案",
+        "purchase_plan": "购买 {{plan}}",
+        "register_free_one": "免费注册 1 年",
+        "register_free_years": "免费注册 {{years}} 年",
+        "limits_title": "免费方案包含",
+        "limit_passwords": "{{count}} 个密码",
+        "limit_notes": "{{count}} 条笔记",
+        "limit_cards": "{{count}} 张支付卡",
+        "limit_authenticators": "{{count}} 个验证器",
+        "limit_wallets": "{{count}} 个钱包",
+        "limit_generic": "{{label}}：{{value}}",
+        "recommended": "推荐",
+        "price_confirmed": "价格在付款页确认。"
     },
     "superapp": {
         "connecting_with": "正在连接 {{appName}}",

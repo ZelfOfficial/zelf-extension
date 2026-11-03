@@ -1134,7 +1134,9 @@
         "lifetime": "평생",
         "price_per_year": "연간 가격",
         "title": "결제 카드 정보",
-        "years": "{{ yearCount }}년"
+        "years": "{{ yearCount }}년",
+        "select_plan": "플랜 선택",
+        "prices_unavailable": "이 검색에는 플랜 가격이 포함되지 않았습니다."
     },
     "wallet": {
         "download_qr": "QR 다운로드",
@@ -2497,11 +2499,33 @@
         "promo_next": "다음 프로모션"
     },
     "welcomeZelfid": {
-        "plan_free": "무료 Zelf ID — 100년 동안 내 것. 나중에 업그레이드할 수 있습니다.",
-        "plan_short_hold": "무료 Zelf ID — 100년 동안 내 것, 짧은 이름 포함.",
+        "plan_free": "{{years}}년 무료. 나중에 Premium 또는 Unlimited로 업그레이드할 수 있습니다.",
+        "plan_short_hold": "짧은 이름은 1년 동안 무료입니다. 이 이름을 유지하려면 Unlimited를 구매하세요.",
         "plan_unlimited": "무료 Zelf ID — 100년 동안 내 것.",
         "plan_label": "플랜: {{ plan }}",
-        "hold_subtitle": "Zelf ID는 100년 동안 무료입니다."
+        "hold_subtitle": "이 짧은 이름은 1년 동안 무료입니다.",
+        "plan_name_free": "무료",
+        "plan_name_premium": "Premium",
+        "plan_name_unlimited": "Unlimited",
+        "free_term_one": "1년",
+        "free_term_years": "{{years}}년",
+        "duration_one": "1년",
+        "duration_years": "{{count}}년",
+        "duration_lifetime": "평생",
+        "free_limits_note": "무료 플랜에는 사용 한도가 있습니다. 한도에 도달하면 Premium 또는 Unlimited로 업그레이드하세요.",
+        "choose_plan": "플랜 선택",
+        "purchase_plan": "{{plan}} 구매",
+        "register_free_one": "1년 무료 등록",
+        "register_free_years": "{{years}}년 무료 등록",
+        "limits_title": "무료 플랜 포함",
+        "limit_passwords": "비밀번호 {{count}}개",
+        "limit_notes": "메모 {{count}}개",
+        "limit_cards": "결제 카드 {{count}}개",
+        "limit_authenticators": "인증 {{count}}개",
+        "limit_wallets": "지갑 {{count}}개",
+        "limit_generic": "{{label}}: {{value}}",
+        "recommended": "추천",
+        "price_confirmed": "가격은 결제 페이지에서 확정됩니다."
     },
     "superapp": {
         "connecting_with": "{{appName}}에 연결 중",

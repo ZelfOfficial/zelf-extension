@@ -10,6 +10,7 @@ import { CaptchaService } from "app/captcha.service";
 import { ChromeService } from "app/chrome.service";
 import { TagModel } from "app/tags.service";
 import { ZelfIdsService } from "app/zelf-ids.service";
+import { buildZelfIdPaymentUrl, ownedNamePaymentQuery } from "app/zelf-ids/plan-pricing";
 import { environment } from "environments/environment";
 
 @Component({
@@ -55,10 +56,7 @@ export class WelcomeZelfidGraceComponent extends CopyToClipboardBase implements 
     }
 
     get externalUrl(): string {
-        const name = this.tagNameObject?.tagName || "";
-        const domain = this.tagNameObject?.domain || "zelf";
-        const duration = 1;
-        return `${environment.paymentZelfIdUrl}?tagname=${name}&domain=${domain}&duration=${duration}`;
+        return this._paymentUrl();
     }
 
     private async _queryZNS(zelfName: string): Promise<void> {
@@ -129,11 +127,22 @@ export class WelcomeZelfidGraceComponent extends CopyToClipboardBase implements 
     }
 
     renewZelfName(): void {
-        const name = this.tagNameObject?.tagName || "";
-        const domain = this.tagNameObject?.domain || "zelf";
-        const duration = 1;
         this._router.navigate(["/external-link"], {
-            queryParams: { externalUrl: `${environment.paymentZelfIdUrl}?tagname=${name}&domain=${domain}&duration=${duration}` },
+            queryParams: { externalUrl: this._paymentUrl() },
         });
+    }
+
+    private _paymentUrl(): string {
+        const data = this.tagNameObject?.publicData as { plan?: string; duration?: string | number } | undefined;
+
+        return buildZelfIdPaymentUrl(
+            environment.paymentZelfIdUrl,
+            ownedNamePaymentQuery({
+                tagName: this.tagNameObject?.tagName || this.tagName || "",
+                domain: this.tagNameObject?.domain || this.domain || "zelf",
+                currentPlan: data?.plan,
+                currentDuration: data?.duration,
+            })
+        );
     }
 }

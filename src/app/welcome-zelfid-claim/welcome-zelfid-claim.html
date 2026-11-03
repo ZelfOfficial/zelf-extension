@@ -168,16 +168,18 @@
                 <div class="zelf-chip" [ngClass]="isEnterMode ? 'zelf-chip--info' : 'zelf-chip--success'">
                     {{ isEnterMode ? (t("welcome.found") || "Found") : t("common.available") }}
                 </div>
-                <h2 class="zelf-card__title">{{ checkedTagName | zelfName }}.{{ form.get("domain")?.value || "zelf" | lowercase }}</h2>
+                <h2 class="zelf-card__title welcome-claim__name">
+                    <span>{{ checkedTagName | zelfName }}</span><span class="welcome-claim__domain">.{{ form.get("domain")?.value || "zelf" | lowercase }}</span>
+                </h2>
                 <p class="zelf-card__subtitle welcome-claim__subtitle">
                     {{ isEnterMode ? (t("welcome.login_to_this_domain") || "Login to access your wallet") : t("welcome.you_will_register_this_domain") }}
                 </p>
-                <p class="zelf-card__subtitle" *ngIf="!isEnterMode && planHint?.isShortName">
-                    {{ t("welcomeZelfid.plan_short_hold") }}
-                </p>
-                <p class="zelf-card__subtitle" *ngIf="!isEnterMode && planHint && !planHint.isShortName">
-                    {{ t("welcomeZelfid.plan_free") }}
-                </p>
+                <zelf-id-plan-options
+                    *ngIf="!isEnterMode"
+                    [catalog]="catalog"
+                    [selection]="planSelection"
+                    (selectionChange)="onPlanSelection($event)"
+                ></zelf-id-plan-options>
             </div>
 
             <div class="welcome-claim__divider"></div>
@@ -194,12 +196,25 @@
                         </label>
 
                         <button
-                            (click)="goToSecurity()"
+                            *ngIf="planSelection.plan !== 'free'"
+                            (click)="purchaseSelected()"
                             [disabled]="!form.get('termsAndConditions')?.value || loading || loadingReferral"
                             class="zelf-button zelf-button--primary zelf-button--wide"
                             mat-flat-button
+                            type="button"
                         >
-                            {{ t("common.create_a_new_wallet") }}
+                            {{ t("welcomeZelfid.purchase_plan", { plan: t(selectedPlanNameKey) }) }}
+                        </button>
+
+                        <button
+                            (click)="goToSecurity()"
+                            [disabled]="!form.get('termsAndConditions')?.value || loading || loadingReferral"
+                            class="zelf-button zelf-button--wide"
+                            [ngClass]="planSelection.plan === 'free' ? 'zelf-button--primary' : 'zelf-button--outlined'"
+                            mat-flat-button
+                            type="button"
+                        >
+                            {{ planSelection.plan === "free" ? t("common.create_a_new_wallet") : t(freeRegistrationKey, { years: catalog?.freeTermYears }) }}
                         </button>
 
                         <button
@@ -207,6 +222,7 @@
                             [disabled]="!form.get('termsAndConditions')?.value || loading || loadingReferral"
                             class="zelf-button zelf-button--outlined zelf-button--wide"
                             mat-flat-button
+                            type="button"
                         >
                             {{ t("common.import_a_wallet") }}
                         </button>

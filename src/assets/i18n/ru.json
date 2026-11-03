@@ -1134,7 +1134,9 @@
         "lifetime": "Пожизненно",
         "price_per_year": "Цена за год",
         "title": "Домен для покупки",
-        "years": "{{ yearCount }} лет"
+        "years": "{{ yearCount }} лет",
+        "select_plan": "Выберите план",
+        "prices_unavailable": "Этот поиск не содержит цен планов."
     },
     "wallet": {
         "download_qr": "Скачать QR",
@@ -2497,11 +2499,33 @@
         "promo_next": "Следующая акция"
     },
     "welcomeZelfid": {
-        "plan_free": "Бесплатный Zelf ID — ваш на 100 лет. Позже можно улучшить план.",
-        "plan_short_hold": "Бесплатный Zelf ID — ваш на 100 лет, включая короткие имена.",
+        "plan_free": "Бесплатно {{years}} лет. Позже можно перейти на Premium или Unlimited.",
+        "plan_short_hold": "Короткие имена бесплатны 1 год. Купите Unlimited, чтобы сохранить это имя.",
         "plan_unlimited": "Бесплатный Zelf ID — ваш на 100 лет.",
         "plan_label": "План: {{ plan }}",
-        "hold_subtitle": "Ваш Zelf ID бесплатен 100 лет."
+        "hold_subtitle": "Это короткое имя бесплатно 1 год.",
+        "plan_name_free": "Бесплатно",
+        "plan_name_premium": "Premium",
+        "plan_name_unlimited": "Unlimited",
+        "free_term_one": "1 год",
+        "free_term_years": "{{years}} лет",
+        "duration_one": "1 год",
+        "duration_years": "{{count}} лет",
+        "duration_lifetime": "Навсегда",
+        "free_limits_note": "У бесплатного плана есть лимиты. Перейдите на Premium или Unlimited, когда достигнете их.",
+        "choose_plan": "Выберите план",
+        "purchase_plan": "Купить {{plan}}",
+        "register_free_one": "Зарегистрировать бесплатно на 1 год",
+        "register_free_years": "Зарегистрировать бесплатно на {{years}} лет",
+        "limits_title": "Входит в бесплатный план",
+        "limit_passwords": "{{count}} паролей",
+        "limit_notes": "{{count}} заметок",
+        "limit_cards": "{{count}} карт",
+        "limit_authenticators": "{{count}} аутентификаторов",
+        "limit_wallets": "{{count}} кошельков",
+        "limit_generic": "{{label}}: {{value}}",
+        "recommended": "Рекомендуем",
+        "price_confirmed": "Цена подтверждается на странице оплаты."
     },
     "superapp": {
         "connecting_with": "Подключение к {{appName}}",

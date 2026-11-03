@@ -13,16 +13,10 @@
         <div class="welcome-available__identity">
             <div class="zelf-chip zelf-chip--success">{{ t("common.available") }}</div>
 
-            <h2 class="zelf-card__title">{{ tagName | zelfName }}.{{ domain }}</h2>
+            <h2 class="zelf-card__title welcome-available__title"><span>{{ tagName | zelfName }}</span><span class="welcome-available__domain">.{{ domain }}</span></h2>
 
             <p class="zelf-card__subtitle welcome-available__subtitle">
                 {{ t("welcome.you_will_register_this_domain") }}
-            </p>
-            <p class="zelf-card__subtitle welcome-available__subtitle" *ngIf="planHint?.isShortName">
-                {{ t("welcomeZelfid.plan_short_hold") }}
-            </p>
-            <p class="zelf-card__subtitle welcome-available__subtitle" *ngIf="planHint && !planHint.isShortName">
-                {{ t("welcomeZelfid.plan_free") }}
             </p>
         </div>
     </div>
@@ -30,6 +24,23 @@
     <div class="welcome-available__divider"></div>
 
     <form [formGroup]="form" class="welcome-available__form" (ngSubmit)="searchZelfName($event)">
+        <div class="welcome-available__scroll">
+            <zelf-id-plan-options [catalog]="catalog" [selection]="planSelection" (selectionChange)="onPlanSelection($event)"></zelf-id-plan-options>
+
+            <div class="welcome-available__top">
+                <welcome-available-content
+                    (clearInvalidReferralEvent)="clearInvalidReferral()"
+                    (sanitizeZelfNameEvent)="sanitizeZelfName()"
+                    (searchZelfName)="searchZelfName($event)"
+                    [form]="form"
+                    [invalidReferral]="invalidReferral"
+                    [loading]="loading"
+                    [loadingReferral]="loadingReferral"
+                    [zelfNameObject]="referralTagModel"
+                ></welcome-available-content>
+            </div>
+        </div>
+
         <div class="welcome-available__buttons">
             <label class="zelf-checkbox">
                 <input formControlName="termsAndConditions" id="termsAndConditions" name="termsAndConditions" type="checkbox" />
@@ -42,12 +53,25 @@
             </label>
 
             <button
-                (click)="goToSecurity()"
+                *ngIf="planSelection.plan !== 'free'"
+                (click)="purchaseSelected()"
                 [disabled]="form.invalid || loading || loadingReferral"
                 class="zelf-button zelf-button--primary zelf-button--wide"
                 mat-flat-button
+                type="button"
             >
-                {{ t("common.create_a_new_wallet") }}
+                {{ t("welcomeZelfid.purchase_plan", { plan: t(selectedPlanNameKey) }) }}
+            </button>
+
+            <button
+                (click)="goToSecurity()"
+                [disabled]="form.invalid || loading || loadingReferral"
+                class="zelf-button zelf-button--wide"
+                [ngClass]="planSelection.plan === 'free' ? 'zelf-button--primary' : 'zelf-button--outlined'"
+                mat-flat-button
+                type="button"
+            >
+                {{ planSelection.plan === "free" ? t("common.create_a_new_wallet") : t(freeRegistrationKey, { years: catalog?.freeTermYears }) }}
             </button>
 
             <button
@@ -55,23 +79,10 @@
                 [disabled]="form.invalid || loading || loadingReferral"
                 class="zelf-button zelf-button--outlined zelf-button--wide"
                 mat-flat-button
+                type="button"
             >
                 {{ t("common.import_a_wallet") }}
             </button>
-
-        </div>
-
-        <div class="welcome-available__top">
-            <welcome-available-content
-                (clearInvalidReferralEvent)="clearInvalidReferral()"
-                (sanitizeZelfNameEvent)="sanitizeZelfName()"
-                (searchZelfName)="searchZelfName($event)"
-                [form]="form"
-                [invalidReferral]="invalidReferral"
-                [loading]="loading"
-                [loadingReferral]="loadingReferral"
-                [zelfNameObject]="referralTagModel"
-            ></welcome-available-content>
         </div>
     </form>
 </div>

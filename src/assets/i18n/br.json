@@ -1134,7 +1134,9 @@
         "lifetime": "Vitalício",
         "price_per_year": "Preço por ano",
         "title": "Domínio para comprar",
-        "years": "{{ yearCount }} anos"
+        "years": "{{ yearCount }} anos",
+        "select_plan": "Escolha um plano",
+        "prices_unavailable": "Esta busca não incluiu os preços dos planos."
     },
     "wallet": {
         "download_qr": "QR",
@@ -2497,11 +2499,33 @@
         "promo_next": "Próxima promoção"
     },
     "welcomeZelfid": {
-        "plan_free": "Zelf ID grátis — seu por 100 anos. Você pode fazer upgrade depois.",
-        "plan_short_hold": "Zelf ID grátis — seu por 100 anos, nomes curtos incluídos.",
+        "plan_free": "Grátis por {{years}} anos. Você pode mudar para Premium ou Unlimited depois.",
+        "plan_short_hold": "Nomes curtos são grátis por 1 ano. Compre Unlimited para manter este nome.",
         "plan_unlimited": "Zelf ID grátis — seu por 100 anos.",
         "plan_label": "Plano: {{ plan }}",
-        "hold_subtitle": "Seu Zelf ID é grátis por 100 anos."
+        "hold_subtitle": "Este nome curto é grátis por 1 ano.",
+        "plan_name_free": "Grátis",
+        "plan_name_premium": "Premium",
+        "plan_name_unlimited": "Unlimited",
+        "free_term_one": "1 ano",
+        "free_term_years": "{{years}} anos",
+        "duration_one": "1 ano",
+        "duration_years": "{{count}} anos",
+        "duration_lifetime": "Vitalício",
+        "free_limits_note": "O plano grátis tem limites de uso. Mude para Premium ou Unlimited ao atingi-los.",
+        "choose_plan": "Escolha um plano",
+        "purchase_plan": "Comprar {{plan}}",
+        "register_free_one": "Registrar grátis por 1 ano",
+        "register_free_years": "Registrar grátis por {{years}} anos",
+        "limits_title": "Incluído no Grátis",
+        "limit_passwords": "{{count}} senhas",
+        "limit_notes": "{{count}} notas",
+        "limit_cards": "{{count}} cartões",
+        "limit_authenticators": "{{count}} autenticadores",
+        "limit_wallets": "{{count}} carteiras",
+        "limit_generic": "{{label}}: {{value}}",
+        "recommended": "Recomendado",
+        "price_confirmed": "O preço é confirmado na página de pagamento."
     },
     "superapp": {
         "connecting_with": "Conectando com {{appName}}",

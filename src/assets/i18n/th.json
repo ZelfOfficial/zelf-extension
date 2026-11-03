@@ -1134,7 +1134,9 @@
         "lifetime": "ตลอดชีพ",
         "price_per_year": "ราคาต่อปี",
         "title": "โดเมนที่จะซื้อ",
-        "years": "{{ yearCount }} ปี"
+        "years": "{{ yearCount }} ปี",
+        "select_plan": "เลือกแผน",
+        "prices_unavailable": "การค้นหานี้ไม่มีราคาแผน"
     },
     "wallet": {
         "download_qr": "ดาวน์โหลด QR",
@@ -2497,11 +2499,33 @@
         "promo_next": "โปรโมชันถัดไป"
     },
     "welcomeZelfid": {
-        "plan_free": "Zelf ID ฟรี — เป็นของคุณ 100 ปี อัปเกรดได้ภายหลัง",
-        "plan_short_hold": "Zelf ID ฟรี — เป็นของคุณ 100 ปี รวมชื่อสั้น",
+        "plan_free": "ฟรี {{years}} ปี อัปเกรดเป็น Premium หรือ Unlimited ได้ภายหลัง",
+        "plan_short_hold": "ชื่อสั้นใช้ฟรี 1 ปี ซื้อ Unlimited เพื่อเก็บชื่อนี้ไว้",
         "plan_unlimited": "Zelf ID ฟรี — เป็นของคุณ 100 ปี",
         "plan_label": "แพ็กเกจ: {{ plan }}",
-        "hold_subtitle": "Zelf ID ของคุณฟรี 100 ปี"
+        "hold_subtitle": "ชื่อสั้นนี้ใช้ฟรี 1 ปี",
+        "plan_name_free": "ฟรี",
+        "plan_name_premium": "Premium",
+        "plan_name_unlimited": "Unlimited",
+        "free_term_one": "1 ปี",
+        "free_term_years": "{{years}} ปี",
+        "duration_one": "1 ปี",
+        "duration_years": "{{count}} ปี",
+        "duration_lifetime": "ตลอดชีพ",
+        "free_limits_note": "แผนฟรีมีขีดจำกัดการใช้งาน อัปเกรดเป็น Premium หรือ Unlimited เมื่อถึงขีดจำกัด",
+        "choose_plan": "เลือกแผน",
+        "purchase_plan": "ซื้อ {{plan}}",
+        "register_free_one": "ลงทะเบียนฟรี 1 ปี",
+        "register_free_years": "ลงทะเบียนฟรี {{years}} ปี",
+        "limits_title": "รวมในแผนฟรี",
+        "limit_passwords": "รหัสผ่าน {{count}} รายการ",
+        "limit_notes": "บันทึก {{count}} รายการ",
+        "limit_cards": "บัตร {{count}} ใบ",
+        "limit_authenticators": "ตัวยืนยัน {{count}} รายการ",
+        "limit_wallets": "กระเป๋า {{count}} ใบ",
+        "limit_generic": "{{label}}: {{value}}",
+        "recommended": "แนะนำ",
+        "price_confirmed": "ราคายืนยันในหน้าชำระเงิน"
     },
     "superapp": {
         "connecting_with": "กำลังเชื่อมต่อกับ {{appName}}",

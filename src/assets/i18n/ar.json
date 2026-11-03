@@ -1134,7 +1134,9 @@
         "lifetime": "مدى الحياة",
         "price_per_year": "السعر لكل سنة",
         "title": "النطاق للشراء",
-        "years": "سنوات"
+        "years": "سنوات",
+        "select_plan": "اختر خطة",
+        "prices_unavailable": "لم يتضمّن هذا البحث أسعار الخطط."
     },
     "wallet": {
         "download_qr": "تحميل رمز QR",
@@ -2497,11 +2499,33 @@
         "promo_next": "العرض التالي"
     },
     "welcomeZelfid": {
-        "plan_free": "Zelf ID مجاني — لك لمدة 100 عام. يمكنك الترقية لاحقًا.",
-        "plan_short_hold": "Zelf ID مجاني — لك لمدة 100 عام، بما في ذلك الأسماء القصيرة.",
+        "plan_free": "مجاني لمدة {{years}} سنة. يمكنك الترقية إلى Premium أو Unlimited لاحقًا.",
+        "plan_short_hold": "الأسماء القصيرة مجانية لمدة سنة واحدة. اشترِ Unlimited للاحتفاظ بهذا الاسم.",
         "plan_unlimited": "Zelf ID مجاني — لك لمدة 100 عام.",
         "plan_label": "الخطة: {{ plan }}",
-        "hold_subtitle": "Zelf ID مجاني لمدة 100 عام."
+        "hold_subtitle": "هذا الاسم القصير مجاني لمدة سنة واحدة.",
+        "plan_name_free": "مجاني",
+        "plan_name_premium": "Premium",
+        "plan_name_unlimited": "Unlimited",
+        "free_term_one": "سنة واحدة",
+        "free_term_years": "{{years}} سنة",
+        "duration_one": "سنة واحدة",
+        "duration_years": "{{count}} سنوات",
+        "duration_lifetime": "مدى الحياة",
+        "free_limits_note": "للخطة المجانية حدود استخدام. رقِّ إلى Premium أو Unlimited عند بلوغها.",
+        "choose_plan": "اختر خطة",
+        "purchase_plan": "شراء {{plan}}",
+        "register_free_one": "سجّل مجانًا لمدة سنة",
+        "register_free_years": "سجّل مجانًا لمدة {{years}} سنة",
+        "limits_title": "يشمله المجاني",
+        "limit_passwords": "{{count}} كلمات مرور",
+        "limit_notes": "{{count}} ملاحظات",
+        "limit_cards": "{{count}} بطاقات",
+        "limit_authenticators": "{{count}} مصادقات",
+        "limit_wallets": "{{count}} محافظ",
+        "limit_generic": "{{label}}: {{value}}",
+        "recommended": "موصى به",
+        "price_confirmed": "يُؤكد السعر في صفحة الدفع."
     },
     "superapp": {
         "connecting_with": "جارٍ الاتصال بـ {{appName}}",

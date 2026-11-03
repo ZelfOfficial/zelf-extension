@@ -1134,7 +1134,9 @@
         "lifetime": "عمر بھر",
         "price_per_year": "سالانہ قیمت",
         "title": "خریدنے کے لیے ڈومین",
-        "years": "{{ yearCount }} سال"
+        "years": "{{ yearCount }} سال",
+        "select_plan": "پلان منتخب کریں",
+        "prices_unavailable": "اس تلاش میں پلان کی قیمتیں شامل نہیں تھیں۔"
     },
     "wallet": {
         "download_qr": "QR ڈاؤن لوڈ کریں",
@@ -2497,11 +2499,33 @@
         "promo_next": "اگلی پروموشن"
     },
     "welcomeZelfid": {
-        "plan_free": "مفت Zelf ID — 100 سال کے لیے آپ کا۔ بعد میں اپ گریڈ کر سکتے ہیں۔",
-        "plan_short_hold": "مفت Zelf ID — 100 سال کے لیے، مختصر نام شامل۔",
+        "plan_free": "{{years}} سال کے لیے مفت۔ بعد میں Premium یا Unlimited میں اپ گریڈ کر سکتے ہیں۔",
+        "plan_short_hold": "مختصر نام 1 سال کے لیے مفت ہیں۔ یہ نام رکھنے کے لیے Unlimited خریدیں۔",
         "plan_unlimited": "مفت Zelf ID — 100 سال کے لیے آپ کا۔",
         "plan_label": "پلان: {{ plan }}",
-        "hold_subtitle": "آپ کا Zelf ID 100 سال کے لیے مفت ہے۔"
+        "hold_subtitle": "یہ مختصر نام 1 سال کے لیے مفت ہے۔",
+        "plan_name_free": "مفت",
+        "plan_name_premium": "Premium",
+        "plan_name_unlimited": "Unlimited",
+        "free_term_one": "1 سال",
+        "free_term_years": "{{years}} سال",
+        "duration_one": "1 سال",
+        "duration_years": "{{count}} سال",
+        "duration_lifetime": "تاحیات",
+        "free_limits_note": "مفت پلان کی استعمال کی حدیں ہیں۔ حد پوری ہونے پر Premium یا Unlimited میں اپ گریڈ کریں۔",
+        "choose_plan": "پلان منتخب کریں",
+        "purchase_plan": "{{plan}} خریدیں",
+        "register_free_one": "1 سال کے لیے مفت رجسٹر کریں",
+        "register_free_years": "{{years}} سال کے لیے مفت رجسٹر کریں",
+        "limits_title": "مفت میں شامل",
+        "limit_passwords": "{{count}} پاس ورڈ",
+        "limit_notes": "{{count}} نوٹس",
+        "limit_cards": "{{count}} کارڈ",
+        "limit_authenticators": "{{count}} تصدیق کار",
+        "limit_wallets": "{{count}} والٹس",
+        "limit_generic": "{{label}}: {{value}}",
+        "recommended": "تجویز کردہ",
+        "price_confirmed": "قیمت ادائیگی کے صفحے پر طے ہوتی ہے۔"
     },
     "superapp": {
         "connecting_with": "{{appName}} سے جڑ رہے ہیں",
