@@ -803,8 +803,8 @@
         }
     },
     "welcomeZelfid": {
-        "plan_free": "Free for {{years}} years. You can upgrade to Premium or Unlimited later.",
-        "plan_short_hold": "Short names are free for 1 year. Purchase Unlimited to keep this name.",
+        "plan_free": "Free for {{years}} years.",
+        "plan_short_hold": "This name is free for 1 year.",
         "plan_unlimited": "Free Zelf ID — yours for 100 years.",
         "plan_label": "Plan: {{ plan }}",
         "hold_subtitle": "This short name is free for 1 year.",

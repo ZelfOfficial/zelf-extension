@@ -2499,8 +2499,8 @@
         "promo_next": "Susunod na promo"
     },
     "welcomeZelfid": {
-        "plan_free": "Libre sa loob ng {{years}} taon. Puwede kang mag-upgrade sa Premium o Unlimited mamaya.",
-        "plan_short_hold": "Ang maiikling pangalan ay libre sa loob ng 1 taon. Bilhin ang Unlimited para mapanatili ang pangalan.",
+        "plan_free": "Libre sa loob ng {{years}} taon.",
+        "plan_short_hold": "Libre ang pangalan na ito sa loob ng 1 taon.",
         "plan_unlimited": "Libreng Zelf ID — iyo sa loob ng 100 taon.",
         "plan_label": "Plano: {{ plan }}",
         "hold_subtitle": "Libre ang maikling pangalan na ito sa loob ng 1 taon.",

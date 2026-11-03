@@ -2499,8 +2499,8 @@
         "promo_next": "العرض التالي"
     },
     "welcomeZelfid": {
-        "plan_free": "مجاني لمدة {{years}} سنة. يمكنك الترقية إلى Premium أو Unlimited لاحقًا.",
-        "plan_short_hold": "الأسماء القصيرة مجانية لمدة سنة واحدة. اشترِ Unlimited للاحتفاظ بهذا الاسم.",
+        "plan_free": "مجاني لمدة {{years}} سنة.",
+        "plan_short_hold": "هذا الاسم مجاني لمدة سنة واحدة.",
         "plan_unlimited": "Zelf ID مجاني — لك لمدة 100 عام.",
         "plan_label": "الخطة: {{ plan }}",
         "hold_subtitle": "هذا الاسم القصير مجاني لمدة سنة واحدة.",

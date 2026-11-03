@@ -2499,8 +2499,8 @@
         "promo_next": "اگلی پروموشن"
     },
     "welcomeZelfid": {
-        "plan_free": "{{years}} سال کے لیے مفت۔ بعد میں Premium یا Unlimited میں اپ گریڈ کر سکتے ہیں۔",
-        "plan_short_hold": "مختصر نام 1 سال کے لیے مفت ہیں۔ یہ نام رکھنے کے لیے Unlimited خریدیں۔",
+        "plan_free": "{{years}} سال کے لیے مفت۔",
+        "plan_short_hold": "یہ نام 1 سال کے لیے مفت ہے۔",
         "plan_unlimited": "مفت Zelf ID — 100 سال کے لیے آپ کا۔",
         "plan_label": "پلان: {{ plan }}",
         "hold_subtitle": "یہ مختصر نام 1 سال کے لیے مفت ہے۔",

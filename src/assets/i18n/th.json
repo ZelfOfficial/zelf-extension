@@ -2499,8 +2499,8 @@
         "promo_next": "โปรโมชันถัดไป"
     },
     "welcomeZelfid": {
-        "plan_free": "ฟรี {{years}} ปี อัปเกรดเป็น Premium หรือ Unlimited ได้ภายหลัง",
-        "plan_short_hold": "ชื่อสั้นใช้ฟรี 1 ปี ซื้อ Unlimited เพื่อเก็บชื่อนี้ไว้",
+        "plan_free": "ฟรี {{years}} ปี",
+        "plan_short_hold": "ชื่อนี้ใช้ฟรี 1 ปี",
         "plan_unlimited": "Zelf ID ฟรี — เป็นของคุณ 100 ปี",
         "plan_label": "แพ็กเกจ: {{ plan }}",
         "hold_subtitle": "ชื่อสั้นนี้ใช้ฟรี 1 ปี",

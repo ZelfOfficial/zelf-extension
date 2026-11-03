@@ -2499,8 +2499,8 @@
         "promo_next": "다음 프로모션"
     },
     "welcomeZelfid": {
-        "plan_free": "{{years}}년 무료. 나중에 Premium 또는 Unlimited로 업그레이드할 수 있습니다.",
-        "plan_short_hold": "짧은 이름은 1년 동안 무료입니다. 이 이름을 유지하려면 Unlimited를 구매하세요.",
+        "plan_free": "{{years}}년 무료.",
+        "plan_short_hold": "이 이름은 1년 동안 무료입니다.",
         "plan_unlimited": "무료 Zelf ID — 100년 동안 내 것.",
         "plan_label": "플랜: {{ plan }}",
         "hold_subtitle": "이 짧은 이름은 1년 동안 무료입니다.",

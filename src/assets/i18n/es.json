@@ -803,8 +803,8 @@
         }
     },
     "welcomeZelfid": {
-        "plan_free": "Gratis por {{years}} años. Puedes pasar a Premium o Unlimited más tarde.",
-        "plan_short_hold": "Los nombres cortos son gratis por 1 año. Compra Unlimited para conservarlo.",
+        "plan_free": "Gratis por {{years}} años.",
+        "plan_short_hold": "Este nombre es gratis por 1 año.",
         "plan_unlimited": "Zelf ID gratis: tuyo por 100 años.",
         "plan_label": "Plan: {{ plan }}",
         "hold_subtitle": "Este nombre corto es gratis por 1 año.",

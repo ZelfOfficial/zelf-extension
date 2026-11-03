@@ -2499,8 +2499,8 @@
         "promo_next": "下一条推广"
     },
     "welcomeZelfid": {
-        "plan_free": "免费 {{years}} 年。之后可升级到 Premium 或 Unlimited。",
-        "plan_short_hold": "短名称免费使用 1 年。购买 Unlimited 以保留此名称。",
+        "plan_free": "免费 {{years}} 年。",
+        "plan_short_hold": "此名称免费使用 1 年。",
         "plan_unlimited": "免费 Zelf ID — 归你 100 年。",
         "plan_label": "方案：{{ plan }}",
         "hold_subtitle": "此短名称免费使用 1 年。",

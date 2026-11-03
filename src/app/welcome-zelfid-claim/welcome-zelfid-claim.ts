@@ -19,10 +19,8 @@ import { TagModel, TagsService } from "app/tags.service";
 import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
 import { WelcomeAvailableContentComponent } from "app/welcome-available/welcome-available-content.component";
-import { ZelfIdPlanOptionsComponent } from "app/zelf-id-plan-options/zelf-id-plan-options.component";
 import { ZelfIdsService } from "app/zelf-ids.service";
-import { buildZelfIdPaymentUrl, defaultPlanSelection, resolveZelfIdPlanCatalog, ZelfIdPlanCatalog, ZelfIdPlanSelection } from "app/zelf-ids/plan-pricing";
-import { environment } from "environments/environment";
+import { resolveZelfIdPlanCatalog, ZelfIdPlanCatalog } from "app/zelf-ids/plan-pricing";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { TranslocoService } from "@jsverse/transloco";
 import { ErrorService } from "app/services/error.service";
@@ -37,7 +35,6 @@ import { MatBottomSheet } from "@angular/material/bottom-sheet";
         RouterLink,
         TranslocoModule,
         WelcomeAvailableContentComponent,
-        ZelfIdPlanOptionsComponent,
         ZelfNamePipe,
     ],
     selector: "welcome-zelfid-claim",
@@ -69,7 +66,6 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
     invalidReferral: boolean = false;
     referralTagModel: TagModel | null = null;
     catalog: ZelfIdPlanCatalog | null = null;
-    planSelection: ZelfIdPlanSelection = { plan: "free", duration: "" };
 
     constructor(
         private _activatedRoute: ActivatedRoute,
@@ -159,7 +155,6 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
                 this.isAvailable = false;
                 this.checkedTagName = "";
                 this.catalog = null;
-                this.planSelection = { plan: "free", duration: "" };
             });
     }
 
@@ -346,7 +341,6 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
                 this.isAvailable = true;
                 this.checkedTagName = tagName;
                 this.catalog = resolveZelfIdPlanCatalog(response.data, tagName);
-                this.planSelection = defaultPlanSelection(this.catalog, "register");
 
                 setTimeout(() => {
                     this.step = 2;
@@ -381,29 +375,8 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
 
     // --- Step 2: Confirm actions (absorbed from welcome-available) ---
 
-    get freeRegistrationKey(): string {
-        return this.catalog?.freeTermYears === 1 ? "welcomeZelfid.register_free_one" : "welcomeZelfid.register_free_years";
-    }
-
-    get selectedPlanNameKey(): string {
-        return `welcomeZelfid.plan_name_${this.planSelection.plan || "free"}`;
-    }
-
-    onPlanSelection(selection: ZelfIdPlanSelection): void {
-        this.planSelection = selection;
-    }
-
-    purchaseSelected(): void {
-        if (!this.form.get("termsAndConditions")?.value || !this.planSelection.duration || this.planSelection.plan === "free") return;
-
-        const externalUrl = buildZelfIdPaymentUrl(environment.paymentZelfIdUrl, {
-            tagName: this.checkedTagName,
-            domain: this.form.get("domain")?.value || "zelf",
-            plan: this.planSelection.plan,
-            duration: this.planSelection.duration,
-        });
-
-        this._router.navigate(["/external-link"], { queryParams: { externalUrl } });
+    get freeTermYears(): number {
+        return this.catalog?.freeTermYears || 0;
     }
 
     async goToSecurity(): Promise<void> {

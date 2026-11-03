@@ -11,10 +11,8 @@ import { DiscountType } from "app/pipes/discount.pipe";
 import { ZelfNamePipe } from "app/pipes/zelf-name.pipe";
 import { TagModel } from "app/tags.service";
 import { WelcomeAvailableContentComponent } from "app/welcome-available/welcome-available-content.component";
-import { ZelfIdPlanOptionsComponent } from "app/zelf-id-plan-options/zelf-id-plan-options.component";
 import { ZelfIdSearchResponse, ZelfIdsService } from "app/zelf-ids.service";
-import { buildZelfIdPaymentUrl, defaultPlanSelection, resolveZelfIdPlanCatalog, ZelfIdPlanCatalog, ZelfIdPlanSelection } from "app/zelf-ids/plan-pricing";
-import { environment } from "environments/environment";
+import { resolveZelfIdPlanCatalog, ZelfIdPlanCatalog } from "app/zelf-ids/plan-pricing";
 
 @Component({
     imports: [
@@ -25,7 +23,6 @@ import { environment } from "environments/environment";
         RouterModule,
         TranslocoModule,
         WelcomeAvailableContentComponent,
-        ZelfIdPlanOptionsComponent,
         ZelfNamePipe,
     ],
     selector: "welcome-zelfid-available",
@@ -47,7 +44,6 @@ export class WelcomeZelfidAvailableComponent implements OnInit, OnDestroy {
     tagResponse: ZelfIdSearchResponse | null = null;
     referralTagModel: TagModel | null = null;
     catalog: ZelfIdPlanCatalog | null = null;
-    planSelection: ZelfIdPlanSelection = { plan: "free", duration: "" };
 
     constructor(
         private _activatedRoute: ActivatedRoute,
@@ -66,37 +62,11 @@ export class WelcomeZelfidAvailableComponent implements OnInit, OnDestroy {
         this.domain = await this._zelfIdsService.getDomain();
         this.tagModel = await this._zelfIdsService.getTagNameObject();
         this.tagResponse = await this._zelfIdsService.getTagResponse();
-        this._applyPlans(this.tagResponse, this.tagName);
+        this.catalog = resolveZelfIdPlanCatalog(this.tagResponse, this.tagName);
     }
 
-    get freeRegistrationKey(): string {
-        return this.catalog?.freeTermYears === 1 ? "welcomeZelfid.register_free_one" : "welcomeZelfid.register_free_years";
-    }
-
-    get selectedPlanNameKey(): string {
-        return `welcomeZelfid.plan_name_${this.planSelection.plan || "free"}`;
-    }
-
-    onPlanSelection(selection: ZelfIdPlanSelection): void {
-        this.planSelection = selection;
-    }
-
-    purchaseSelected(): void {
-        if (this.form.invalid || !this.planSelection.duration || this.planSelection.plan === "free") return;
-
-        const externalUrl = buildZelfIdPaymentUrl(environment.paymentZelfIdUrl, {
-            tagName: this.tagName,
-            domain: this.domain || "zelf",
-            plan: this.planSelection.plan,
-            duration: this.planSelection.duration,
-        });
-
-        this._router.navigate(["/external-link"], { queryParams: { externalUrl } });
-    }
-
-    private _applyPlans(response: ZelfIdSearchResponse | null, tagName: string): void {
-        this.catalog = resolveZelfIdPlanCatalog(response, tagName);
-        this.planSelection = defaultPlanSelection(this.catalog, "register");
+    get freeTermYears(): number {
+        return this.catalog?.freeTermYears || 0;
     }
 
     ngOnDestroy(): void {

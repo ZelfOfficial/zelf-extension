@@ -2499,8 +2499,8 @@
         "promo_next": "Следующая акция"
     },
     "welcomeZelfid": {
-        "plan_free": "Бесплатно {{years}} лет. Позже можно перейти на Premium или Unlimited.",
-        "plan_short_hold": "Короткие имена бесплатны 1 год. Купите Unlimited, чтобы сохранить это имя.",
+        "plan_free": "Бесплатно {{years}} лет.",
+        "plan_short_hold": "Это имя бесплатно 1 год.",
         "plan_unlimited": "Бесплатный Zelf ID — ваш на 100 лет.",
         "plan_label": "План: {{ plan }}",
         "hold_subtitle": "Это короткое имя бесплатно 1 год.",
