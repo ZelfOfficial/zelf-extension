@@ -651,6 +651,7 @@
         "approve": "Approve",
         "history": "History",
         "no_history_found": "No transaction history found",
+        "history_unavailable": "Some networks could not refresh their history. Movements already loaded stay on screen.",
         "pending": "Pending",
         "receive": "Receive",
         "send": "Send",

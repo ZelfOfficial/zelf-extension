@@ -30,6 +30,14 @@
     height: 100%;
     flex-grow: 1;
 
+    &__unavailable {
+        margin: calc(16px * var(--zns-space-scale, 1)) calc(16px * var(--zns-space-scale, 1)) 0;
+        text-align: center;
+        color: variables.$themeTextSecondary;
+        font-size: calc(13px * var(--zns-font-scale, 1));
+        line-height: 1.4;
+    }
+
     &__load-more {
         margin: calc(32px * var(--zns-space-scale, 1)) 0 0;
     }

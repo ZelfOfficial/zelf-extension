@@ -1,4 +1,4 @@
-import { isDisplayableTransaction, transactionTime, transactionTimestampMs } from "./transaction-history.util";
+import { historyRefreshFailed, isDisplayableTransaction, transactionTime, transactionTimestampMs } from "./transaction-history.util";
 
 describe("transaction-history.util", () => {
     it("parses the date shapes returned by the network APIs", () => {
@@ -33,5 +33,14 @@ describe("transaction-history.util", () => {
     it("keeps real transactions", () => {
         expect(isDisplayableTransaction({ hash: "0x12ab", from: "0xabc", date: "2026-09-30 19:15:09", traffic: "IN" })).toBeTrue();
         expect(isDisplayableTransaction({ hash: "abc=", from: ["EQabc"], date: 1759259709 })).toBeTrue();
+        // RouteScan rows carry `timestamp` and, before the API fix, no `date`. They still belong on that day.
+        expect(isDisplayableTransaction({ hash: "0xeth", from: "0xabc", timestamp: 1791232055 })).toBeTrue();
+    });
+
+    it("flags a failed history refresh without treating an empty list as a failure", () => {
+        expect(historyRefreshFailed({ data: { transactions: [], transactionsUnavailable: true, error: "HISTORY_UNAVAILABLE" } })).toBeTrue();
+        expect(historyRefreshFailed({ data: { transactions: [], error: "history_unavailable" } })).toBeTrue();
+        expect(historyRefreshFailed({ data: { transactions: [] } })).toBeFalse();
+        expect(historyRefreshFailed(null)).toBeFalse();
     });
 });

@@ -651,6 +651,7 @@
         "approve": "Aprovar",
         "history": "Histórico",
         "no_history_found": "Nenhum histórico de transações encontrado",
+        "history_unavailable": "Não foi possível atualizar o histórico de algumas redes. Os movimentos já carregados continuam na tela.",
         "pending": "Pendente",
         "receive": "Receber",
         "send": "Enviar",
