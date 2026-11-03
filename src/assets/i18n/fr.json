@@ -812,7 +812,8 @@
             "no_networks_available": "Aucun réseau disponible pour votre licence. Veuillez mettre à niveau votre plan pour accéder à plus de réseaux."
         },
         "language": {
-            "description": "Choisissez votre langue préférée pour l'application."
+            "description": "Choisissez votre langue préférée pour l'application.",
+            "button_label": "Langue"
         },
         "dapps_label": "Connexions Dapps",
         "dapps": {

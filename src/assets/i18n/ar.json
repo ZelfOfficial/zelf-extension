@@ -812,7 +812,8 @@
             "no_networks_available": "لا توجد شبكات متاحة لترخيصك. يرجى ترقية خطتك للوصول إلى المزيد من الشبكات."
         },
         "language": {
-            "description": "اختر لغتك المفضلة للتطبيق."
+            "description": "اختر لغتك المفضلة للتطبيق.",
+            "button_label": "اللغة"
         },
         "dapps_label": "اتصالات Dapps",
         "dapps": {

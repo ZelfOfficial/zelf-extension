@@ -831,7 +831,8 @@
             "send_receive_description": "Recibe avisos cuando envías o recibes activos."
         },
         "language": {
-            "description": "Elige tu idioma preferido para la aplicación."
+            "description": "Elige tu idioma preferido para la aplicación.",
+            "button_label": "Idioma"
         },
         "theme": {
             "description": "Elige claro, oscuro o seguir la apariencia del sistema.",

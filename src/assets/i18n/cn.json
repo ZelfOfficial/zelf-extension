@@ -812,7 +812,8 @@
             "no_networks_available": "您的许可证下没有可用网络。请升级您的计划以访问更多网络。"
         },
         "language": {
-            "description": "选择您偏好的应用程序语言。"
+            "description": "选择您偏好的应用程序语言。",
+            "button_label": "语言"
         },
         "dapps_label": "Dapps 连接",
         "dapps": {

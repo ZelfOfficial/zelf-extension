@@ -174,10 +174,23 @@ $apps-hub-coral-icon-filter: brightness(0) saturate(100%) invert(47%) sepia(93%)
         gap: calc(10px * var(--zns-space-scale, 1));
 
         .apps-hub__row--link {
-            flex: 1;
+            flex: 1 1 auto;
             width: auto;
             min-width: 0;
             margin-top: 0;
+            padding-inline: calc(12px * var(--zns-space-scale, 1));
+            gap: calc(8px * var(--zns-space-scale, 1));
+
+            .apps-hub__icon-tile {
+                width: calc(36px * var(--zns-space-scale, 1));
+                height: calc(36px * var(--zns-space-scale, 1));
+            }
+
+            .apps-hub__label {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
         }
     }
 
@@ -190,14 +203,28 @@ $apps-hub-coral-icon-filter: brightness(0) saturate(100%) invert(47%) sepia(93%)
     &__lang-btn {
         flex: 0 0 auto;
         width: auto;
+        max-width: 100%;
         justify-content: center;
         gap: calc(8px * var(--zns-space-scale, 1));
+        padding-inline: calc(12px * var(--zns-space-scale, 1));
         color: variables.$themeText;
         font: inherit;
+        white-space: nowrap;
     }
 
     &__lang-globe {
         flex-shrink: 0;
+        color: variables.$themeText;
+    }
+
+    &__lang-label {
+        flex: 0 1 auto;
+        min-width: 0;
+        font-size: calc(15px * var(--zns-font-scale, 1));
+        font-weight: 500;
+        line-height: 1.2;
+        color: variables.$themeText;
+        white-space: nowrap;
     }
 
     &__lang-chevron {
@@ -244,5 +271,27 @@ $apps-hub-coral-icon-filter: brightness(0) saturate(100%) invert(47%) sepia(93%)
 
     &__version-dot {
         opacity: 0.5;
+    }
+}
+
+// Popup height is 600px. Keep the language label and the Settings row fully on screen.
+@media (max-height: 640px) {
+    .apps-hub {
+        &__header {
+            padding-bottom: calc(10px * var(--zns-space-scale, 1));
+        }
+
+        &__body {
+            padding-top: calc(10px * var(--zns-space-scale, 1));
+            padding-bottom: calc(8px * var(--zns-space-scale, 1));
+        }
+
+        &__list {
+            gap: calc(8px * var(--zns-space-scale, 1));
+        }
+
+        &__row {
+            padding-block: calc(10px * var(--zns-space-scale, 1));
+        }
     }
 }
