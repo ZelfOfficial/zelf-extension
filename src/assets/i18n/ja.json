@@ -651,6 +651,7 @@
         "approve": "承認",
         "history": "履歴",
         "no_history_found": "取引履歴が見つかりません",
+        "history_unavailable": "一部のネットワークの履歴を更新できませんでした。読み込み済みの取引は表示されたままです。",
         "pending": "保留中",
         "receive": "受信",
         "send": "送信",

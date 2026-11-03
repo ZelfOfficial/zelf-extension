@@ -651,6 +651,7 @@
         "approve": "批准",
         "history": "历史",
         "no_history_found": "未找到交易历史",
+        "history_unavailable": "部分网络的历史记录无法刷新。已加载的记录仍会显示。",
         "pending": "待处理",
         "receive": "接收",
         "send": "发送",

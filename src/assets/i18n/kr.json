@@ -651,6 +651,7 @@
         "approve": "승인",
         "history": "내역",
         "no_history_found": "거래 내역이 없습니다",
+        "history_unavailable": "일부 네트워크의 내역을 새로고침하지 못했습니다. 이미 불러온 거래는 그대로 표시됩니다.",
         "pending": "대기 중",
         "receive": "수신",
         "send": "송금",

@@ -651,6 +651,7 @@
         "approve": "Aprubahan",
         "history": "Kasaysayan",
         "no_history_found": "Walang nakitang kasaysayan ng transaksyon",
+        "history_unavailable": "Hindi ma-refresh ang history ng ilang network. Mananatili ang mga galaw na na-load na.",
         "pending": "Naghihintay",
         "receive": "Tumanggap",
         "send": "Magpadala",

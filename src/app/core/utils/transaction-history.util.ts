@@ -49,6 +49,20 @@ export function transactionTime(tx: TxLike): number | null {
  * (zero hash / traffic "ERROR" / method "Error"), and rows without sender or a usable date.
  * Rendering those used to throw in the date pipe (NG02100) and could leave the list blank.
  */
+/**
+ * The history API sets this when every upstream for that chain failed.
+ * An empty transaction list on its own means the address has no rows.
+ */
+export function historyRefreshFailed(payload: unknown): boolean {
+    if (!payload || typeof payload !== "object") return false;
+
+    const root = payload as Record<string, any>;
+    const data = root.data && typeof root.data === "object" && !Array.isArray(root.data) ? root.data : root;
+    const code = String(data.error || data.clientCode || "").toUpperCase();
+
+    return data.transactionsUnavailable === true || code === "HISTORY_UNAVAILABLE";
+}
+
 export function isDisplayableTransaction(tx: TxLike | null | undefined): boolean {
     if (!tx) return false;
 

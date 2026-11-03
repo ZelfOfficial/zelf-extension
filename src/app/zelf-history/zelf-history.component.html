@@ -1,4 +1,6 @@
 <div class="zelf-history" *transloco="let t">
+    <p class="zelf-history__unavailable" *ngIf="historyUnavailable">{{ t("activity.history_unavailable") }}</p>
+
     <div class="zelf-history__no-results" *ngIf="!history && !loading">
         <svg xmlns="http://www.w3.org/2000/svg" height="150px" viewBox="0 -960 960 960" width="150px" fill="#e3e3e3">
             <path

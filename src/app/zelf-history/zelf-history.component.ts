@@ -12,7 +12,7 @@ import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { SettingsService } from "app/services/settings.service";
 import { SUPPORTED_NETWORK_IDS } from "app/core/network-settings.util";
-import { isDisplayableTransaction, transactionTime } from "app/core/utils/transaction-history.util";
+import { historyRefreshFailed, isDisplayableTransaction, transactionTime } from "app/core/utils/transaction-history.util";
 import {
     ChainHistoryState,
     HistoryPageRequest,
@@ -77,6 +77,8 @@ export class ZelfHistoryComponent implements OnInit, OnDestroy {
     public loading = false;
     /** True while some networks are still answering after the first transactions are on screen. */
     public syncing = false;
+    /** A chain answered with HISTORY_UNAVAILABLE. Other chains still render. */
+    public historyUnavailable = false;
     public noMoreTransactions = false;
     public transactionHashMap: Record<string, boolean> = {};
 
@@ -188,6 +190,7 @@ export class ZelfHistoryComponent implements OnInit, OnDestroy {
 
         for (const network of networks) {
             const current = this._chainState[network] || createChainHistoryState(network);
+            if (historyRefreshFailed(responses[network])) this.historyUnavailable = true;
             const signals = readHistoryPageSignals(responses[network]);
             const txs = byNetwork[network] || [];
             const seen = new Set(Object.keys(this.transactionHashMap));
