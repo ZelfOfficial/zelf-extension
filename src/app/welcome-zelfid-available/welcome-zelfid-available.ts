@@ -12,6 +12,7 @@ import { ZelfNamePipe } from "app/pipes/zelf-name.pipe";
 import { TagModel } from "app/tags.service";
 import { WelcomeAvailableContentComponent } from "app/welcome-available/welcome-available-content.component";
 import { ZelfIdSearchResponse, ZelfIdsService } from "app/zelf-ids.service";
+import { resolveZelfIdPlanCatalog, ZelfIdPlanCatalog } from "app/zelf-ids/plan-pricing";
 
 @Component({
     imports: [
@@ -42,7 +43,7 @@ export class WelcomeZelfidAvailableComponent implements OnInit, OnDestroy {
     tagModel: TagModel | null = null;
     tagResponse: ZelfIdSearchResponse | null = null;
     referralTagModel: TagModel | null = null;
-    planHint: { plan: string; isShortName: boolean } | null = null;
+    catalog: ZelfIdPlanCatalog | null = null;
 
     constructor(
         private _activatedRoute: ActivatedRoute,
@@ -61,7 +62,11 @@ export class WelcomeZelfidAvailableComponent implements OnInit, OnDestroy {
         this.domain = await this._zelfIdsService.getDomain();
         this.tagModel = await this._zelfIdsService.getTagNameObject();
         this.tagResponse = await this._zelfIdsService.getTagResponse();
-        this.planHint = this._zelfIdsService.resolvePlanHint(this.tagResponse, this.tagName);
+        this.catalog = resolveZelfIdPlanCatalog(this.tagResponse, this.tagName);
+    }
+
+    get freeTermYears(): number {
+        return this.catalog?.freeTermYears || 0;
     }
 
     ngOnDestroy(): void {

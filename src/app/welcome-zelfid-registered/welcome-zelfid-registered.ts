@@ -8,6 +8,7 @@ import { ZelfIdsService } from "app/zelf-ids.service";
 import { CopyToClipboardBase } from "app/base/copy-to-clipboard/copy-to-clipboard.base";
 import { ChromeService } from "app/chrome.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { buildZelfIdPaymentUrl, ownedNamePaymentQuery } from "app/zelf-ids/plan-pricing";
 import { environment } from "environments/environment";
 
 interface RegisteredAddress {
@@ -47,8 +48,9 @@ export class WelcomeZelfidRegisteredComponent extends CopyToClipboardBase implem
     }
 
     get isShortHold(): boolean {
-        const name = this.tagModel?.tagName || "";
-        return this.tagModel?.publicData?.type === "hold" && name.length > 0 && name.length <= 5;
+        if (this.tagModel?.publicData?.type !== "hold") return false;
+
+        return this._zelfIdsService.resolvePlanHint(this.tagResponse, this.tagModel?.tagName).isShortName;
     }
 
     get planLabel(): string {
@@ -154,13 +156,19 @@ export class WelcomeZelfidRegisteredComponent extends CopyToClipboardBase implem
     }
 
     purchaseNow(): void {
-        const name = this.tagModel?.tagName || "";
-        const domain = this.tagModel?.domain || "zelf";
-        const duration = 1;
+        const data = this.tagModel?.publicData as { plan?: string; duration?: string | number } | undefined;
+        const externalUrl = buildZelfIdPaymentUrl(
+            environment.paymentZelfIdUrl,
+            ownedNamePaymentQuery({
+                tagName: this.tagModel?.tagName || "",
+                domain: this.tagModel?.domain || "zelf",
+                currentPlan: data?.plan,
+                currentDuration: data?.duration,
+            })
+        );
+
         this._router.navigate(["/external-link"], {
-            queryParams: {
-                externalUrl: `${environment.paymentZelfIdUrl}?tagname=${name}&domain=${domain}&duration=${duration}`,
-            },
+            queryParams: { externalUrl },
         });
     }
 }

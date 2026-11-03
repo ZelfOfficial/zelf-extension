@@ -12,12 +12,15 @@
 
 
 .welcome-available {
-    min-height: 75vh;
     display: flex;
+    height: 100%;
     justify-content: flex-start;
+    min-height: 0;
+    overflow: hidden;
 
     &__header {
-        flex-grow: 1;
+        flex-grow: 0;
+        flex-shrink: 0;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -36,8 +39,18 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: calc(8px * var(--zns-space-scale, 1));
-        padding: calc(24px * var(--zns-space-scale, 1)) 0;
+        gap: calc(4px * var(--zns-space-scale, 1));
+        padding: calc(4px * var(--zns-space-scale, 1)) 0 0;
+    }
+
+    &__title {
+        font-size: calc(24px * var(--zns-font-scale, 1));
+        line-height: calc(28px * var(--zns-font-scale, 1));
+        text-align: center;
+    }
+
+    &__domain {
+        white-space: nowrap;
     }
 
     &__divider {
@@ -60,9 +73,22 @@
     &__form {
         width: 100%;
         display: flex;
+        flex: 1 1 auto;
         flex-direction: column;
         align-items: center;
-        padding-top: calc(16px * var(--zns-space-scale, 1));
+        min-height: 0;
+        padding-top: calc(8px * var(--zns-space-scale, 1));
+    }
+
+    &__scroll {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        gap: calc(12px * var(--zns-space-scale, 1));
+        min-height: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        width: 100%;
     }
 
     &__top {
@@ -95,4 +121,9 @@
             background-color: transparent !important;
         }
     }
+}
+
+.zelf-card.welcome-available h2.zelf-card__title.welcome-available__title {
+    overflow-wrap: normal;
+    word-break: normal;
 }

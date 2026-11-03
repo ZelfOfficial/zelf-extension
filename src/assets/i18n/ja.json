@@ -1134,7 +1134,9 @@
         "lifetime": "生涯",
         "price_per_year": "年間価格",
         "title": "支払いカード情報",
-        "years": "{{ yearCount }}年"
+        "years": "{{ yearCount }}年",
+        "select_plan": "プランを選択",
+        "prices_unavailable": "この検索結果にプラン価格は含まれていません。"
     },
     "wallet": {
         "download_qr": "QRをダウンロード",
@@ -2497,11 +2499,33 @@
         "promo_next": "次のプロモーション"
     },
     "welcomeZelfid": {
-        "plan_free": "無料の Zelf ID — 100年間あなたのもの。後からアップグレードできます。",
-        "plan_short_hold": "無料の Zelf ID — 100年間あなたのもの。短い名前も含みます。",
+        "plan_free": "{{years}}年間無料。",
+        "plan_short_hold": "この名前は1年間無料です。",
         "plan_unlimited": "無料の Zelf ID — 100年間あなたのもの。",
         "plan_label": "プラン: {{ plan }}",
-        "hold_subtitle": "あなたの Zelf ID は100年間無料です。"
+        "hold_subtitle": "この短い名前は1年間無料です。",
+        "plan_name_free": "無料",
+        "plan_name_premium": "Premium",
+        "plan_name_unlimited": "Unlimited",
+        "free_term_one": "1年",
+        "free_term_years": "{{years}}年",
+        "duration_one": "1年",
+        "duration_years": "{{count}}年",
+        "duration_lifetime": "無期限",
+        "free_limits_note": "無料プランには利用上限があります。上限に達したら Premium または Unlimited にアップグレードしてください。",
+        "choose_plan": "プランを選択",
+        "purchase_plan": "{{plan}} を購入",
+        "register_free_one": "1年間無料で登録",
+        "register_free_years": "{{years}}年間無料で登録",
+        "limits_title": "無料プランに含まれるもの",
+        "limit_passwords": "パスワード {{count}} 件",
+        "limit_notes": "メモ {{count}} 件",
+        "limit_cards": "支払いカード {{count}} 枚",
+        "limit_authenticators": "認証 {{count}} 件",
+        "limit_wallets": "ウォレット {{count}} 件",
+        "limit_generic": "{{label}}: {{value}}",
+        "recommended": "おすすめ",
+        "price_confirmed": "価格は支払いページで確定します。"
     },
     "superapp": {
         "connecting_with": "{{appName}} に接続しています",

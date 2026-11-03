@@ -1134,7 +1134,9 @@
         "lifetime": "Habang-buhay",
         "price_per_year": "Presyo bawat taon",
         "title": "Impormasyon ng Payment Card",
-        "years": "{{ yearCount }} na taon"
+        "years": "{{ yearCount }} na taon",
+        "select_plan": "Pumili ng plan",
+        "prices_unavailable": "Walang presyo ng plan sa paghahanap na ito."
     },
     "wallet": {
         "download_qr": "I-download ang QR",
@@ -2497,11 +2499,33 @@
         "promo_next": "Susunod na promo"
     },
     "welcomeZelfid": {
-        "plan_free": "Libreng Zelf ID — iyo sa loob ng 100 taon. Puwede kang mag-upgrade mamaya.",
-        "plan_short_hold": "Libreng Zelf ID — iyo sa loob ng 100 taon, kasama ang maiikling pangalan.",
+        "plan_free": "Libre sa loob ng {{years}} taon.",
+        "plan_short_hold": "Libre ang pangalan na ito sa loob ng 1 taon.",
         "plan_unlimited": "Libreng Zelf ID — iyo sa loob ng 100 taon.",
         "plan_label": "Plano: {{ plan }}",
-        "hold_subtitle": "Libre ang Zelf ID mo sa loob ng 100 taon."
+        "hold_subtitle": "Libre ang maikling pangalan na ito sa loob ng 1 taon.",
+        "plan_name_free": "Libre",
+        "plan_name_premium": "Premium",
+        "plan_name_unlimited": "Unlimited",
+        "free_term_one": "1 taon",
+        "free_term_years": "{{years}} taon",
+        "duration_one": "1 taon",
+        "duration_years": "{{count}} taon",
+        "duration_lifetime": "Habambuhay",
+        "free_limits_note": "May limitasyon ang libreng plan. Mag-upgrade sa Premium o Unlimited kapag naabot mo ito.",
+        "choose_plan": "Pumili ng plan",
+        "purchase_plan": "Bilhin ang {{plan}}",
+        "register_free_one": "Magrehistro nang libre sa loob ng 1 taon",
+        "register_free_years": "Magrehistro nang libre sa loob ng {{years}} taon",
+        "limits_title": "Kasama sa Libre",
+        "limit_passwords": "{{count}} password",
+        "limit_notes": "{{count}} note",
+        "limit_cards": "{{count}} card",
+        "limit_authenticators": "{{count}} authenticator",
+        "limit_wallets": "{{count}} wallet",
+        "limit_generic": "{{label}}: {{value}}",
+        "recommended": "Inirerekomenda",
+        "price_confirmed": "Kinukumpirma ang presyo sa pahina ng pagbabayad."
     },
     "superapp": {
         "connecting_with": "Kumokonekta sa {{appName}}",

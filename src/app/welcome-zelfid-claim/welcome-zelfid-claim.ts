@@ -20,6 +20,7 @@ import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
 import { WelcomeAvailableContentComponent } from "app/welcome-available/welcome-available-content.component";
 import { ZelfIdsService } from "app/zelf-ids.service";
+import { resolveZelfIdPlanCatalog, ZelfIdPlanCatalog } from "app/zelf-ids/plan-pricing";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { TranslocoService } from "@jsverse/transloco";
 import { ErrorService } from "app/services/error.service";
@@ -64,7 +65,7 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
     loadingReferral: boolean = false;
     invalidReferral: boolean = false;
     referralTagModel: TagModel | null = null;
-    planHint: { plan: string; isShortName: boolean } | null = null;
+    catalog: ZelfIdPlanCatalog | null = null;
 
     constructor(
         private _activatedRoute: ActivatedRoute,
@@ -153,7 +154,7 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
                 this.availabilityChecked = false;
                 this.isAvailable = false;
                 this.checkedTagName = "";
-                this.planHint = null;
+                this.catalog = null;
             });
     }
 
@@ -339,7 +340,7 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
                 this.availabilityChecked = true;
                 this.isAvailable = true;
                 this.checkedTagName = tagName;
-                this.planHint = this._zelfIdsService.resolvePlanHint(response.data, tagName);
+                this.catalog = resolveZelfIdPlanCatalog(response.data, tagName);
 
                 setTimeout(() => {
                     this.step = 2;
@@ -373,6 +374,10 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
     }
 
     // --- Step 2: Confirm actions (absorbed from welcome-available) ---
+
+    get freeTermYears(): number {
+        return this.catalog?.freeTermYears || 0;
+    }
 
     async goToSecurity(): Promise<void> {
         await this._zelfIdsService.setFlow("create");

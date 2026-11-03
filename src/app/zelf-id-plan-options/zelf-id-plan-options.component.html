@@ -1,0 +1,65 @@
+<div class="plan-options" *transloco="let t" role="radiogroup" [attr.aria-label]="t('welcomeZelfid.choose_plan')">
+    <p class="plan-options__hold" *ngIf="catalog?.emphasizePaid">{{ t("welcomeZelfid.plan_short_hold") }}</p>
+
+    <article
+        class="plan-card"
+        *ngFor="let plan of plans; trackBy: trackPlan"
+        [class.plan-card--selected]="isSelected(plan.id)"
+        [class.plan-card--recommended]="plan.recommended"
+        [class.plan-card--free]="plan.id === 'free'"
+    >
+        <button type="button" class="plan-card__head" (click)="plan.id === 'free' ? selectFree() : selectPaid(plan)" [attr.aria-pressed]="isSelected(plan.id)">
+            <span class="plan-card__name">
+                {{ t("welcomeZelfid.plan_name_" + plan.id) }}
+                <span class="plan-card__badge" *ngIf="plan.recommended">{{ t("welcomeZelfid.recommended") }}</span>
+            </span>
+            <span class="plan-card__amount" *ngIf="plan.id === 'free'">{{ (plan.price ?? 0) | currency: catalog?.currency || "USD" : "symbol" : "1.2-2" }}</span>
+        </button>
+
+        <p class="plan-card__term" *ngIf="plan.id === 'free'">{{ t(termKey(catalog?.freeTermYears || 0), { years: catalog?.freeTermYears }) }}</p>
+
+        <p class="plan-card__note" *ngIf="plan.id === 'free' && !catalog?.emphasizePaid">{{ t("welcomeZelfid.free_limits_note") }}</p>
+
+        <div class="plan-card__limits" *ngIf="plan.id === 'free' && catalog?.limits?.length">
+            <p class="plan-card__limits-title">{{ t("welcomeZelfid.limits_title") }}</p>
+            <ul>
+                <li *ngFor="let line of catalog?.limits || []">
+                    <ng-container *ngIf="line.key === 'text'">{{ line.text }}</ng-container>
+                    <ng-container *ngIf="line.key === 'generic'">{{ line.value ? t("welcomeZelfid.limit_generic", { label: line.label, value: line.value }) : line.label }}</ng-container>
+                    <ng-container *ngIf="limitKey(line)">{{ t(limitKey(line), { count: line.count }) }}</ng-container>
+                </li>
+            </ul>
+        </div>
+
+        <div class="plan-card__durations" *ngIf="plan.durations.length" role="group" [attr.aria-label]="t('welcomeZelfid.plan_name_' + plan.id)">
+            <button
+                type="button"
+                class="duration-chip"
+                *ngFor="let duration of plan.durations; trackBy: trackDuration"
+                [class.duration-chip--selected]="isSelected(plan.id, duration.key)"
+                (click)="selectPaid(plan, duration.key)"
+                [attr.aria-pressed]="isSelected(plan.id, duration.key)"
+            >
+                <span class="duration-chip__term">
+                    <ng-container *ngIf="durationLabel(duration.key) as label">{{ label.raw || t(label.i18n, label.params) }}</ng-container>
+                </span>
+                <span class="duration-chip__price">{{ duration.price | currency: catalog?.currency || "USD" : "symbol" : "1.2-2" }}</span>
+            </button>
+        </div>
+    </article>
+
+    <div class="plan-options__unpriced" *ngIf="allowUnpriced && !catalog?.hasPricedPaidPlans && catalog?.fallbackPaidPlans?.length">
+        <p class="plan-options__missing">{{ t("domain_purchase.prices_unavailable") }}</p>
+        <button
+            type="button"
+            class="duration-chip"
+            *ngFor="let plan of catalog?.fallbackPaidPlans || []"
+            [class.duration-chip--selected]="isSelected(plan)"
+            (click)="selectUnpriced(plan)"
+            [attr.aria-pressed]="isSelected(plan)"
+        >
+            <span class="duration-chip__term">{{ t("welcomeZelfid.plan_name_" + plan) }}</span>
+            <span class="duration-chip__price">{{ t("welcomeZelfid.price_confirmed") }}</span>
+        </button>
+    </div>
+</div>

@@ -803,11 +803,33 @@
         }
     },
     "welcomeZelfid": {
-        "plan_free": "Free Zelf ID — yours for 100 years. You can upgrade later.",
-        "plan_short_hold": "Free Zelf ID — yours for 100 years, short names included.",
+        "plan_free": "Free for {{years}} years.",
+        "plan_short_hold": "This name is free for 1 year.",
         "plan_unlimited": "Free Zelf ID — yours for 100 years.",
         "plan_label": "Plan: {{ plan }}",
-        "hold_subtitle": "Your Zelf ID is free for 100 years."
+        "hold_subtitle": "This short name is free for 1 year.",
+        "plan_name_free": "Free",
+        "plan_name_premium": "Premium",
+        "plan_name_unlimited": "Unlimited",
+        "free_term_one": "1 year",
+        "free_term_years": "{{years}} years",
+        "duration_one": "1 year",
+        "duration_years": "{{count}} years",
+        "duration_lifetime": "Lifetime",
+        "free_limits_note": "Free has usage limits. Upgrade to Premium or Unlimited when you reach them.",
+        "choose_plan": "Choose a plan",
+        "purchase_plan": "Purchase {{plan}}",
+        "register_free_one": "Register free for 1 year",
+        "register_free_years": "Register free for {{years}} years",
+        "limits_title": "Included on Free",
+        "limit_passwords": "{{count}} passwords",
+        "limit_notes": "{{count}} notes",
+        "limit_cards": "{{count}} payment cards",
+        "limit_authenticators": "{{count}} authenticators",
+        "limit_wallets": "{{count}} wallets",
+        "limit_generic": "{{label}}: {{value}}",
+        "recommended": "Recommended",
+        "price_confirmed": "Price is confirmed on the payment page."
     },
     "settings": {
         "networks_label": "Networks",
@@ -1141,7 +1163,9 @@
         "lifetime": "Lifetime",
         "price_per_year": "Price per year",
         "title": "Domain to purchase",
-        "years": "{{ yearCount }} years"
+        "years": "{{ yearCount }} years",
+        "select_plan": "Choose a plan",
+        "prices_unavailable": "This search did not include plan prices."
     },
     "wallet": {
         "download_qr": "QR",

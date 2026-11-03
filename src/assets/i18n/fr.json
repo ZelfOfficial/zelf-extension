@@ -1134,7 +1134,9 @@
         "lifetime": "À vie",
         "price_per_year": "Prix par an",
         "title": "Domaine à acheter",
-        "years": "{{ yearCount }} ans"
+        "years": "{{ yearCount }} ans",
+        "select_plan": "Choisir une offre",
+        "prices_unavailable": "Cette recherche n'incluait pas les prix des offres."
     },
     "wallet": {
         "action_download": "Télécharger",
@@ -2497,11 +2499,33 @@
         "promo_next": "Promotion suivante"
     },
     "welcomeZelfid": {
-        "plan_free": "Zelf ID gratuit — à vous pendant 100 ans. Vous pourrez passer à une offre supérieure plus tard.",
-        "plan_short_hold": "Zelf ID gratuit — à vous pendant 100 ans, noms courts inclus.",
+        "plan_free": "Gratuit pendant {{years}} ans.",
+        "plan_short_hold": "Ce nom est gratuit pendant 1 an.",
         "plan_unlimited": "Zelf ID gratuit — à vous pendant 100 ans.",
         "plan_label": "Offre : {{ plan }}",
-        "hold_subtitle": "Votre Zelf ID est gratuit pendant 100 ans."
+        "hold_subtitle": "Ce nom court est gratuit pendant 1 an.",
+        "plan_name_free": "Gratuit",
+        "plan_name_premium": "Premium",
+        "plan_name_unlimited": "Unlimited",
+        "free_term_one": "1 an",
+        "free_term_years": "{{years}} ans",
+        "duration_one": "1 an",
+        "duration_years": "{{count}} ans",
+        "duration_lifetime": "À vie",
+        "free_limits_note": "L'offre gratuite a des limites d'usage. Passez à Premium ou Unlimited lorsque vous les atteignez.",
+        "choose_plan": "Choisir une offre",
+        "purchase_plan": "Acheter {{plan}}",
+        "register_free_one": "Enregistrer gratuitement pour 1 an",
+        "register_free_years": "Enregistrer gratuitement pour {{years}} ans",
+        "limits_title": "Inclus avec Gratuit",
+        "limit_passwords": "{{count}} mots de passe",
+        "limit_notes": "{{count}} notes",
+        "limit_cards": "{{count}} cartes",
+        "limit_authenticators": "{{count}} authentificateurs",
+        "limit_wallets": "{{count}} portefeuilles",
+        "limit_generic": "{{label}} : {{value}}",
+        "recommended": "Recommandé",
+        "price_confirmed": "Le prix est confirmé sur la page de paiement."
     },
     "superapp": {
         "connecting_with": "Connexion à {{appName}}",

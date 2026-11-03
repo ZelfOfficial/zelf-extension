@@ -1134,7 +1134,9 @@
         "lifetime": "जीवन भर",
         "price_per_year": "प्रति वर्ष मूल्य",
         "title": "भुगतान कार्ड की जानकारी",
-        "years": "{{ yearCount }} वर्ष"
+        "years": "{{ yearCount }} वर्ष",
+        "select_plan": "प्लान चुनें",
+        "prices_unavailable": "इस खोज में प्लान की कीमतें नहीं थीं।"
     },
     "wallet": {
         "download_qr": "QR डाउनलोड करें",
@@ -2497,11 +2499,33 @@
         "promo_next": "अगला प्रचार"
     },
     "welcomeZelfid": {
-        "plan_free": "मुफ़्त Zelf ID — 100 साल के लिए आपका। बाद में अपग्रेड कर सकते हैं।",
-        "plan_short_hold": "मुफ़्त Zelf ID — 100 साल के लिए, छोटे नाम शामिल।",
+        "plan_free": "{{years}} साल के लिए मुफ़्त।",
+        "plan_short_hold": "यह नाम 1 साल के लिए मुफ़्त है।",
         "plan_unlimited": "मुफ़्त Zelf ID — 100 साल के लिए आपका।",
         "plan_label": "प्लान: {{ plan }}",
-        "hold_subtitle": "आपका Zelf ID 100 साल तक मुफ़्त है।"
+        "hold_subtitle": "यह छोटा नाम 1 साल के लिए मुफ़्त है।",
+        "plan_name_free": "मुफ़्त",
+        "plan_name_premium": "Premium",
+        "plan_name_unlimited": "Unlimited",
+        "free_term_one": "1 साल",
+        "free_term_years": "{{years}} साल",
+        "duration_one": "1 साल",
+        "duration_years": "{{count}} साल",
+        "duration_lifetime": "आजीवन",
+        "free_limits_note": "मुफ़्त प्लान की उपयोग सीमाएँ हैं। सीमा पूरी होने पर Premium या Unlimited में अपग्रेड करें।",
+        "choose_plan": "प्लान चुनें",
+        "purchase_plan": "{{plan}} खरीदें",
+        "register_free_one": "1 साल के लिए मुफ़्त रजिस्टर करें",
+        "register_free_years": "{{years}} साल के लिए मुफ़्त रजिस्टर करें",
+        "limits_title": "मुफ़्त में शामिल",
+        "limit_passwords": "{{count}} पासवर्ड",
+        "limit_notes": "{{count}} नोट",
+        "limit_cards": "{{count}} कार्ड",
+        "limit_authenticators": "{{count}} ऑथेंटिकेटर",
+        "limit_wallets": "{{count}} वॉलेट",
+        "limit_generic": "{{label}}: {{value}}",
+        "recommended": "सुझाव",
+        "price_confirmed": "कीमत भुगतान पृष्ठ पर पुष्टि होती है।"
     },
     "superapp": {
         "connecting_with": "{{appName}} से कनेक्ट हो रहे हैं",

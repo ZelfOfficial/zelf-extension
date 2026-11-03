@@ -219,13 +219,26 @@
         width: 100%;
     }
 
+    &__name {
+        font-size: calc(24px * var(--zns-font-scale, 1));
+        line-height: calc(28px * var(--zns-font-scale, 1));
+        overflow-wrap: normal;
+        text-align: center;
+        word-break: normal;
+    }
+
+    &__domain {
+        white-space: nowrap;
+    }
+
     &__identity {
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: calc(8px * var(--zns-space-scale, 1));
-        padding: calc(32px * var(--zns-space-scale, 1)) 0 calc(24px * var(--zns-space-scale, 1));
+        padding: calc(12px * var(--zns-space-scale, 1)) 0;
         justify-content: center;
+        width: 100%;
     }
 
     &__divider {

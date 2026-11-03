@@ -8,13 +8,26 @@ import { ChromeService } from "app/chrome.service";
 import { ZelfNamePipe } from "app/pipes/zelf-name.pipe";
 import { TagModel } from "app/tags.service";
 import { WalletService } from "app/wallet.service";
+import { ZelfIdPlanOptionsComponent } from "app/zelf-id-plan-options/zelf-id-plan-options.component";
+import { ZelfIdSearchResponse, ZelfIdsService } from "app/zelf-ids.service";
+import { buildZelfIdPaymentUrl, defaultPlanSelection, resolveZelfIdPlanCatalog, ZelfIdPlanCatalog, ZelfIdPlanSelection } from "app/zelf-ids/plan-pricing";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
-import { Subject, takeUntil } from "rxjs";
 import { environment } from "environments/environment";
+import { Subject, takeUntil } from "rxjs";
 
 @Component({
     selector: "domain-purchase",
-    imports: [TranslocoModule, CommonModule, MatButtonModule, RouterLink, RouterModule, ZelfNamePipe, FormsModule, ZelfLoaderComponent],
+    imports: [
+        TranslocoModule,
+        CommonModule,
+        MatButtonModule,
+        RouterLink,
+        RouterModule,
+        ZelfNamePipe,
+        FormsModule,
+        ZelfLoaderComponent,
+        ZelfIdPlanOptionsComponent,
+    ],
     templateUrl: "./domain-purchase.component.html",
     styleUrls: ["./domain-purchase.component.scss"],
 })
@@ -24,15 +37,18 @@ export class DomainPurchaseComponent implements OnInit, OnDestroy {
 
     durationToken: string = "";
     agreement: boolean = false;
-    yearCount: number = 1;
     loading: boolean = false;
     wallet: Partial<TagModel> = {};
-    paymentDomainUrl = environment.paymentDomainUrl;
+    catalog: ZelfIdPlanCatalog | null = null;
+    planSelection: ZelfIdPlanSelection = { plan: "free", duration: "" };
+    tagName = "";
+    domain = "zelf";
 
     constructor(
         private _activatedRoute: ActivatedRoute,
         private _chromeService: ChromeService,
-        private _walletService: WalletService
+        private _walletService: WalletService,
+        private _zelfIdsService: ZelfIdsService
     ) {
         this._selectedZelfName = this._activatedRoute.snapshot.queryParams.zelfName;
 
@@ -43,6 +59,7 @@ export class DomainPurchaseComponent implements OnInit, OnDestroy {
 
     async ngOnInit(): Promise<void> {
         await this._setWallets();
+        await this._loadPlans();
 
         this.durationToken = await this._chromeService.getItem("durationToken");
         this.loading = false;
@@ -51,6 +68,21 @@ export class DomainPurchaseComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this.unsubscriber$.next();
         this.unsubscriber$.complete();
+    }
+
+    get paymentUrl(): string {
+        if (!this.planSelection.plan || this.planSelection.plan === "free") return "";
+
+        return buildZelfIdPaymentUrl(environment.paymentZelfIdUrl, {
+            tagName: this.tagName,
+            domain: this.domain,
+            plan: this.planSelection.plan,
+            duration: this.planSelection.duration || "1",
+        });
+    }
+
+    onPlanSelection(selection: ZelfIdPlanSelection): void {
+        this.planSelection = selection;
     }
 
     private async _setWallets(): Promise<void> {
@@ -67,11 +99,27 @@ export class DomainPurchaseComponent implements OnInit, OnDestroy {
         this.wallet = wallet || {};
     }
 
-    decrementYearCount(): void {
-        this.yearCount--;
-    }
+    private async _loadPlans(): Promise<void> {
+        const raw = this.wallet.tagName || this.wallet.publicData?.tagName || this._selectedZelfName || "";
+        const fallbackDomain = this.wallet.publicData?.domain || "zelf";
+        const parsed = raw.includes(".") ? this._zelfIdsService.parseTagName(raw) : { name: raw, domain: fallbackDomain };
 
-    incrementYearCount(): void {
-        this.yearCount++;
+        this.tagName = parsed.name;
+        this.domain = parsed.domain || fallbackDomain;
+
+        let response: ZelfIdSearchResponse | null = null;
+
+        if (this.tagName) {
+            try {
+                const result = await this._zelfIdsService.searchTag({ tagName: this.tagName, domain: this.domain });
+
+                response = result?.data || null;
+            } catch (error) {
+                console.error({ error });
+            }
+        }
+
+        this.catalog = resolveZelfIdPlanCatalog(response, this.tagName);
+        this.planSelection = defaultPlanSelection(this.catalog, "purchase");
     }
 }

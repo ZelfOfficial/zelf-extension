@@ -26,6 +26,7 @@ import { VaultService } from "./vault.service";
 import { FaceApiService } from "./services/face-api/face-api.service";
 import { withNormalizedZelfTag } from "./core/utils/zelf-name.util";
 import { parseMyPlan, resolveMyPlanZelfName, ZelfIdMyPlan } from "./zelf-keys/plan-limits/zelf-id-my-plan";
+import { resolveZelfIdPlanCatalog } from "./zelf-ids/plan-pricing";
 
 export type ZelfIdPlan = "free" | "premium" | "unlimited" | "";
 
@@ -36,14 +37,49 @@ export interface ZelfIdPrice {
     discount?: number;
     priceWithoutDiscount?: number;
     discountType?: string;
+    duration?: string;
+    length?: number;
     plan?: ZelfIdPlan;
+    /** Paid plan quoted in `price` while `plan` stays the record plan (`free`). */
+    quotedPlan?: ZelfIdPlan;
     allowedPlans?: ZelfIdPlan[];
+}
+
+/** Free row. `price` is 0. `termYears` is 1 for short names and 100 otherwise. `limits` is optional license usage. */
+export interface ZelfIdFreePlan {
+    price?: number;
+    termYears?: number;
+    currency?: string;
+    limits?: unknown;
+}
+
+/** Duration key (`1`–`5`, `lifetime`, …) to a USD amount from the license. */
+export interface ZelfIdDurationPrices {
+    [duration: string]: number | undefined;
+}
+
+export interface ZelfIdPlans {
+    free?: ZelfIdFreePlan | null;
+    premium?: ZelfIdDurationPrices | null;
+    unlimited?: ZelfIdDurationPrices | null;
+}
+
+export interface ZelfIdEligibility {
+    premium?: boolean;
+    unlimited?: boolean;
+    shortName?: boolean;
+    freeTermYears?: number;
 }
 
 export interface ZelfIdSearchResponse extends TagSearchResponse {
     price?: ZelfIdPrice;
     preview?: ProofPreview;
     zelfIDObject?: TagSearchResponse["tagObject"];
+    plan?: ZelfIdPlan;
+    allowedPlans?: ZelfIdPlan[];
+    currency?: string;
+    plans?: ZelfIdPlans;
+    eligibility?: ZelfIdEligibility;
 }
 
 export { TagFlow, TagModel, TagSearchResponse, TagType };
@@ -361,22 +397,12 @@ export class ZelfIdsService {
     }
 
     resolvePlanHint(response?: ZelfIdSearchResponse | null, tagName?: string): { plan: ZelfIdPlan; allowedPlans: ZelfIdPlan[]; isShortName: boolean } {
-        const name = (tagName || response?.tagName || "").split(".")[0];
-        const isShortName = name.length > 0 && name.length <= 5;
-        const price = response?.price;
-
-        if (price?.plan || price?.allowedPlans?.length) {
-            return {
-                plan: (price.plan || (isShortName ? "unlimited" : "free")) as ZelfIdPlan,
-                allowedPlans: (price.allowedPlans || (isShortName ? ["unlimited"] : ["free", "premium", "unlimited"])) as ZelfIdPlan[],
-                isShortName,
-            };
-        }
+        const catalog = resolveZelfIdPlanCatalog(response, tagName);
 
         return {
-            plan: isShortName ? "unlimited" : "free",
-            allowedPlans: isShortName ? ["unlimited"] : ["free", "premium", "unlimited"],
-            isShortName,
+            plan: catalog.recordPlan,
+            allowedPlans: catalog.allowedPlans,
+            isShortName: catalog.isShortName,
         };
     }
 
