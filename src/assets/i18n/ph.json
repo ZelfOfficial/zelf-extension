@@ -813,7 +813,8 @@
             "no_networks_available": "Walang available na mga network para sa iyong lisensya. Mangyaring i-upgrade ang iyong plan upang ma-access ang higit pang mga network."
         },
         "language": {
-            "description": "Pumili ng iyong gustong wika para sa application."
+            "description": "Pumili ng iyong gustong wika para sa application.",
+            "button_label": "Wika"
         },
         "dapps_label": "Mga koneksyon ng Dapps",
         "dapps": {

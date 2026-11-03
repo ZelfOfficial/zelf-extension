@@ -854,7 +854,8 @@
             "send_receive_description": "Get alerted when you send or receive assets."
         },
         "language": {
-            "description": "Choose your preferred language for the application."
+            "description": "Choose your preferred language for the application.",
+            "button_label": "Language"
         },
         "theme": {
             "description": "Choose light, dark, or match your system appearance.",

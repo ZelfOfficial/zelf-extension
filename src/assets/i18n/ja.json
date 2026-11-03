@@ -813,7 +813,8 @@
             "no_networks_available": "ライセンスで利用可能なネットワークがありません。より多くのネットワークにアクセスするにはプランをアップグレードしてください。"
         },
         "language": {
-            "description": "アプリケーションの言語を選択してください。"
+            "description": "アプリケーションの言語を選択してください。",
+            "button_label": "言語"
         },
         "dapps_label": "Dapps接続",
         "dapps": {
