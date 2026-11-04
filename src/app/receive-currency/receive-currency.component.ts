@@ -7,9 +7,12 @@ import { Router, RouterLink } from "@angular/router";
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { readPublicDataDotAddress, readPublicDataKsmAddress } from "@shared/types/tag.types";
 import { firstValueFrom, skip, Subject, takeUntil } from "rxjs";
+import { AssetService } from "app/asset.service";
 import { CopyToClipboardBase } from "app/base/copy-to-clipboard/copy-to-clipboard.base";
 import { ChromeService } from "app/chrome.service";
+import { networkFiatTotalsFromTokens, sortNetworkIdsByBalance } from "app/core/utils/network-balance-order.util";
 import { AddressMaskPipe } from "app/pipes/address-mask.pipe";
+import { WalletBalanceCacheService } from "app/services/wallet-balance-cache.service";
 import { ReceiveGenerateSubstrateModalComponent } from "app/receive-qr/receive-generate-substrate-modal/receive-generate-substrate-modal.component";
 import { Network, SUBSTRATE_ADDRESS_PLACEHOLDER, WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
@@ -34,6 +37,8 @@ export class ReceiveCurrencyComponent extends CopyToClipboardBase implements OnI
         private _walletService: WalletService,
         private _settingsService: SettingsService,
         private _tagsService: TagsService,
+        private _assetService: AssetService,
+        private _walletBalanceCache: WalletBalanceCacheService,
         public _chromeService: ChromeService,
         public _snackBar: MatSnackBar,
         public _translocoService: TranslocoService
@@ -80,8 +85,30 @@ export class ReceiveCurrencyComponent extends CopyToClipboardBase implements OnI
         let list = !enabledNetworkIds ? allNetworks : allNetworks.filter((network) => this._isNetworkEnabled(network, enabledNetworkIds));
 
         list = this._withSubstratePlaceholdersIfNeeded(list, wallet, enabledNetworkIds);
+        this.networks = await this._orderNetworksByBalance(list, wallet);
+    }
 
-        this.networks = list;
+    /** Same USD order as Home / Send. Missing totals stay in the list's current order, then confirmed zeros. */
+    private async _orderNetworksByBalance(list: Network[], wallet: TagModel): Promise<Network[]> {
+        const tagName = (wallet.tagName || wallet.name || "") as string;
+        const [sessionTokens, cache] = await Promise.all([
+            this._assetService.loadTokensFromSession(),
+            tagName ? this._walletBalanceCache.load(tagName) : Promise.resolve(null),
+        ]);
+        const tokens = sessionTokens.length ? sessionTokens : cache?.tokens || [];
+        const lastKnown = {
+            ...networkFiatTotalsFromTokens(cache?.tokens),
+            ...(cache?.networkFiatTotals || {}),
+        };
+        const orderedIds = sortNetworkIdsByBalance(
+            list.map((network) => this._mapNetworkToId(network)),
+            tokens,
+            undefined,
+            lastKnown
+        );
+        const rank = new Map(orderedIds.map((id, index) => [id, index]));
+
+        return [...list].sort((a, b) => (rank.get(this._mapNetworkToId(a)) ?? 0) - (rank.get(this._mapNetworkToId(b)) ?? 0));
     }
 
     private _isNetworkEnabled(network: Network, enabledNetworkIds: string[]): boolean {
