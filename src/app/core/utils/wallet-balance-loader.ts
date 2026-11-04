@@ -4,15 +4,12 @@ import { catchError, takeUntil, timeout } from "rxjs/operators";
 import { TagModel } from "app/tags.service";
 import { AssetService } from "app/asset.service";
 import { BlockchainTransactionsService } from "app/services/blockchain-transactions.service";
-import {
-    BACKGROUND_BALANCE_CONCURRENCY,
-    SUPPORTED_NETWORK_IDS,
-    splitBalanceStages,
-} from "app/core/network-settings.util";
+import { BACKGROUND_BALANCE_CONCURRENCY, SUPPORTED_NETWORK_IDS, splitBalanceStages } from "app/core/network-settings.util";
 import { selectAccountPortfolioSeed } from "app/core/utils/account-portfolio.util";
 import { balancePayloadFailed } from "app/core/utils/balance-fetch-result.util";
 import { dedupeBalanceTokens, mergeBalanceTokens, sumFiatBalance } from "app/core/utils/balance-tokens.util";
 import { projectHomeNetworkTokens, uniqueChainIds } from "app/core/utils/home-network-list.util";
+import { buildNetworkFiatTotals, networkFiatTotalsFromTokens, orderTokensByNetworkBalance } from "app/core/utils/network-balance-order.util";
 import { hasReportedBalance } from "app/core/utils/token-balance.util";
 import { tokenNetworkToLicenseId } from "app/core/utils/token-network-id.util";
 import { forEachWithConcurrency } from "app/core/utils/concurrency.util";
@@ -27,6 +24,8 @@ export interface WalletBalanceCacheSnapshot {
     tokens: any[];
     totalFiatBalance: number;
     loadedNetworkIds: string[];
+    /** Last confirmed USD total per chain, so the next open can sort before the refresh finishes. */
+    networkFiatTotals?: Record<string, number>;
     updatedAtMs: number;
 }
 
@@ -97,20 +96,19 @@ function setNetworkStatuses(
     status: Record<string, NetworkBalanceStatus>,
     ids: readonly string[],
     value: NetworkBalanceStatus,
-    callbacks: WalletBalanceLoadCallbacks
+    callbacks: WalletBalanceLoadCallbacks,
+    emit = true
 ): void {
     for (const id of ids) {
         status[id] = value;
     }
 
-    callbacks.onNetworkStatus?.({ ...status });
+    // Terminal states are emitted with the merged rows (see publish). Emitting "loaded"
+    // before those rows exist makes the chain look like a confirmed zero for one paint.
+    if (emit) callbacks.onNetworkStatus?.({ ...status });
 }
 
-async function fetchNetworks(
-    ctx: WalletBalanceLoadContext,
-    networkIds: string[],
-    status: Record<string, NetworkBalanceStatus>
-): Promise<any | null> {
+async function fetchNetworks(ctx: WalletBalanceLoadContext, networkIds: string[], status: Record<string, NetworkBalanceStatus>): Promise<any | null> {
     if (!networkIds.length) return null;
 
     setNetworkStatuses(status, networkIds, "loading", ctx.callbacks);
@@ -130,17 +128,17 @@ async function fetchNetworks(
         response = await firstValueFrom(request$);
 
         if (!response) {
-            setNetworkStatuses(status, networkIds, "error", ctx.callbacks);
+            setNetworkStatuses(status, networkIds, "error", ctx.callbacks, false);
         } else {
             const failed = networkIds.filter((id) => balancePayloadFailed(response, id));
             const loaded = networkIds.filter((id) => !failed.includes(id));
 
-            if (loaded.length) setNetworkStatuses(status, loaded, "loaded", ctx.callbacks);
-            if (failed.length) setNetworkStatuses(status, failed, "error", ctx.callbacks);
+            if (loaded.length) setNetworkStatuses(status, loaded, "loaded", ctx.callbacks, false);
+            if (failed.length) setNetworkStatuses(status, failed, "error", ctx.callbacks, false);
         }
     } catch (err) {
         console.warn("[WalletBalanceLoader] network fetch error:", networkIds, err);
-        setNetworkStatuses(status, networkIds, "error", ctx.callbacks);
+        setNetworkStatuses(status, networkIds, "error", ctx.callbacks, false);
     }
 
     return response;
@@ -173,7 +171,11 @@ async function retryFailedBalanceNetworks(
     return merged;
 }
 
-async function fetchNetworkWithRetry(ctx: WalletBalanceLoadContext, networkId: string, status: Record<string, NetworkBalanceStatus>): Promise<any | null> {
+async function fetchNetworkWithRetry(
+    ctx: WalletBalanceLoadContext,
+    networkId: string,
+    status: Record<string, NetworkBalanceStatus>
+): Promise<any | null> {
     const response = await fetchNetworks(ctx, [networkId], status);
 
     return retryFailedBalanceNetworks(ctx, [networkId], response, status);
@@ -214,9 +216,15 @@ function publishTokens(
     tokens: any[],
     enabledNetworkIds: string[] | undefined,
     status: Record<string, NetworkBalanceStatus>,
-    lastKnownTotal: number | null | undefined
+    _lastKnownTotal: number | null | undefined,
+    lastKnownNetworkUsd?: Record<string, number> | null
 ): void {
-    const visible = withBalanceHints(projectHomeNetworkTokens(tokens, enabledNetworkIds), status);
+    const visible = orderTokensByNetworkBalance(withBalanceHints(projectHomeNetworkTokens(tokens, enabledNetworkIds), status), {
+        networkOrder: enabledNetworkIds,
+        status,
+        lastKnownUsd: lastKnownNetworkUsd,
+        pinnedFirst: true,
+    });
     const total = sumFiatBalance(visible);
 
     ctx.callbacks.onTokensUpdated(visible, total);
@@ -246,9 +254,7 @@ export async function loadWalletBalances(ctx: WalletBalanceLoadContext): Promise
               sessionAccountId: sessionTokens.length ? ctx.accountId : "",
               sessionTokens,
               persistedByAccount:
-                  !ctx.forceNetworkRefresh && ctx.persistedCache?.tokens?.length
-                      ? { [ctx.accountId]: ctx.persistedCache.tokens }
-                      : {},
+                  !ctx.forceNetworkRefresh && ctx.persistedCache?.tokens?.length ? { [ctx.accountId]: ctx.persistedCache.tokens } : {},
           })
         : dedupeBalanceTokens(ctx.getLoadedTokens());
 
@@ -258,9 +264,30 @@ export async function loadWalletBalances(ctx: WalletBalanceLoadContext): Promise
     }
 
     let lastKnownTotal = tokens.length ? sumFiatBalance(projectHomeNetworkTokens(tokens, enabledIds)) : null;
+    let networkFiatTotals: Record<string, number> = {
+        ...networkFiatTotalsFromTokens(ctx.persistedCache?.tokens),
+        ...(ctx.persistedCache?.networkFiatTotals || {}),
+    };
+
+    const loadedIds = () => allIds.filter((id) => status[id] === "loaded");
+
+    const syncTotals = () => {
+        networkFiatTotals = buildNetworkFiatTotals(tokens, loadedIds(), networkFiatTotals);
+    };
+
+    const publish = () => {
+        syncTotals();
+        ctx.callbacks.onNetworkStatus?.({ ...status });
+        publishTokens(ctx, tokens, enabledIds, status, lastKnownTotal, networkFiatTotals);
+    };
+
+    const persist = async () => {
+        syncTotals();
+        await ctx.onPersistCache?.(buildBalanceCacheSnapshot(ctx.wallet, tokens, loadedIds(), networkFiatTotals));
+    };
 
     if (tokens.length && ctx.shouldContinue()) {
-        publishTokens(ctx, tokens, enabledIds, status, lastKnownTotal);
+        publish();
     }
 
     const walletTag = ctx.wallet?.tagName || ctx.wallet?.name;
@@ -275,18 +302,16 @@ export async function loadWalletBalances(ctx: WalletBalanceLoadContext): Promise
         if (priorityResponse && priority.some((id) => !balancePayloadFailed(priorityResponse, id))) {
             const result = await ctx.assetService.processTokensFromResponse(priorityResponse);
             tokens = mergeBalanceTokens(tokens, result.tokens);
-            publishTokens(ctx, tokens, enabledIds, status, lastKnownTotal);
+            publish();
 
             if (ctx.shouldContinue() && (ctx.wallet?.tagName || ctx.wallet?.name) === walletTag) {
                 await ctx.assetService.saveTokensToSession(tokens, "merge");
-                await ctx.onPersistCache?.(
-                    buildBalanceCacheSnapshot(ctx.wallet, tokens, priority.filter((id) => status[id] === "loaded"))
-                );
+                await persist();
             }
         }
 
         if (ctx.shouldContinue() && (ctx.wallet?.tagName || ctx.wallet?.name) === walletTag) {
-            publishTokens(ctx, tokens, enabledIds, status, lastKnownTotal);
+            publish();
         }
     } finally {
         ctx.callbacks.onLoadingFlags?.(false, background.length > 0);
@@ -294,7 +319,8 @@ export async function loadWalletBalances(ctx: WalletBalanceLoadContext): Promise
 
     if (!background.length) {
         if (ctx.shouldContinue() && (ctx.wallet?.tagName || ctx.wallet?.name) === walletTag) {
-            publishTokens(ctx, tokens, enabledIds, status, lastKnownTotal);
+            publish();
+            await persist();
         }
 
         ctx.callbacks.onLoadingFlags?.(false, false);
@@ -319,32 +345,32 @@ export async function loadWalletBalances(ctx: WalletBalanceLoadContext): Promise
 
                     if (ctx.shouldContinue() && (ctx.wallet?.tagName || ctx.wallet?.name) === walletTag) {
                         await ctx.assetService.saveTokensToSession(tokens, "merge");
-                        await ctx.onPersistCache?.(
-                            buildBalanceCacheSnapshot(
-                                ctx.wallet,
-                                tokens,
-                                allIds.filter((id) => status[id] === "loaded")
-                            )
-                        );
+                        await persist();
                     }
                 }
             }
 
             if (ctx.shouldContinue() && (ctx.wallet?.tagName || ctx.wallet?.name) === walletTag) {
-                publishTokens(ctx, tokens, enabledIds, status, lastKnownTotal);
+                publish();
             }
         },
         ctx.shouldContinue
     );
 
     if (ctx.shouldContinue() && (ctx.wallet?.tagName || ctx.wallet?.name) === walletTag) {
-        publishTokens(ctx, tokens, enabledIds, status, lastKnownTotal);
+        publish();
+        await persist();
     }
 
     ctx.callbacks.onLoadingFlags?.(false, false);
 }
 
-export function buildBalanceCacheSnapshot(wallet: Partial<TagModel>, tokens: any[], loadedNetworkIds: string[]): WalletBalanceCacheSnapshot {
+export function buildBalanceCacheSnapshot(
+    wallet: Partial<TagModel>,
+    tokens: any[],
+    loadedNetworkIds: string[],
+    networkFiatTotals?: Record<string, number> | null
+): WalletBalanceCacheSnapshot {
     const tagName = (wallet?.tagName || wallet?.name || "") as string;
     const deduped = dedupeBalanceTokens(tokens);
 
@@ -353,11 +379,15 @@ export function buildBalanceCacheSnapshot(wallet: Partial<TagModel>, tokens: any
         tokens: deduped,
         totalFiatBalance: sumFiatBalance(deduped),
         loadedNetworkIds: [...loadedNetworkIds],
+        networkFiatTotals: networkFiatTotals ? { ...networkFiatTotals } : buildNetworkFiatTotals(deduped, loadedNetworkIds),
         updatedAtMs: Date.now(),
     };
 }
 
-export function mergeBalanceCacheSnapshots(previous: WalletBalanceCacheSnapshot | null, next: WalletBalanceCacheSnapshot): WalletBalanceCacheSnapshot {
+export function mergeBalanceCacheSnapshots(
+    previous: WalletBalanceCacheSnapshot | null,
+    next: WalletBalanceCacheSnapshot
+): WalletBalanceCacheSnapshot {
     if (!previous || previous.tagName !== next.tagName) return next;
 
     const tokens = mergeBalanceTokens(previous.tokens, next.tokens);
@@ -368,6 +398,10 @@ export function mergeBalanceCacheSnapshots(previous: WalletBalanceCacheSnapshot 
         tokens,
         totalFiatBalance: sumFiatBalance(tokens),
         loadedNetworkIds,
+        networkFiatTotals: buildNetworkFiatTotals(tokens, loadedNetworkIds, {
+            ...(previous.networkFiatTotals || networkFiatTotalsFromTokens(previous.tokens)),
+            ...(next.networkFiatTotals || {}),
+        }),
         updatedAtMs: next.updatedAtMs,
     };
 }

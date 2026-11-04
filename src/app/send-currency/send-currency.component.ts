@@ -7,6 +7,7 @@ import { TranslocoModule } from "@jsverse/transloco";
 import { firstValueFrom, Subject } from "rxjs";
 
 import { AssetService, NetworkPermissions } from "app/asset.service";
+import { orderTokensByNetworkBalance } from "app/core/utils/network-balance-order.util";
 import { isSuiSendTokenType, sendScreenSuiTokenType } from "app/core/utils/sui-coin.util";
 import { BitcoinService } from "app/services/bitcoin.service";
 import { BlockchainTransactionsService } from "app/services/blockchain-transactions.service";
@@ -113,6 +114,8 @@ export class SendCurrencyComponent implements OnInit, OnDestroy {
             } else {
                 await this._fetchTokens();
             }
+
+            this.tokens = orderTokensByNetworkBalance(this.tokens);
 
             this._changeDetectionRef.detectChanges();
         } catch (error) {

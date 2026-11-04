@@ -1,4 +1,5 @@
 import {
+    buildBalanceCacheSnapshot,
     cardsAfterNetworkSettled,
     createNetworkStatusMap,
     displayTotalFiatBalance,
@@ -79,5 +80,37 @@ describe("wallet-balance-loader helpers", () => {
         expect(merged.tokens.length).toBe(2);
         expect(merged.totalFiatBalance).toBe(15);
         expect(merged.loadedNetworkIds).toEqual(["ethereum", "binance"]);
+        expect(merged.networkFiatTotals).toEqual({ ethereum: 10, binance: 5 });
+    });
+
+    it("remembers a loaded empty chain as zero and keeps a chain the new snapshot did not touch", () => {
+        const snapshot = buildBalanceCacheSnapshot(
+            { tagName: "alice" },
+            [{ symbol: "ETH", network: "Ethereum", tokenType: "ETH", fiatBalance: 10, amount: 1 }],
+            ["ethereum", "bitcoin"]
+        );
+
+        expect(snapshot.networkFiatTotals).toEqual({ ethereum: 10, bitcoin: 0 });
+
+        const merged = mergeBalanceCacheSnapshots(
+            {
+                tagName: "alice",
+                tokens: [{ symbol: "ETH", network: "Ethereum", fiatBalance: 10 }],
+                totalFiatBalance: 10,
+                loadedNetworkIds: ["ethereum"],
+                networkFiatTotals: { ethereum: 10, polygon: 8 },
+                updatedAtMs: 1,
+            },
+            {
+                tagName: "alice",
+                tokens: [{ symbol: "BNB", network: "Binance", fiatBalance: 5 }],
+                totalFiatBalance: 5,
+                loadedNetworkIds: ["binance"],
+                networkFiatTotals: { binance: 5 },
+                updatedAtMs: 2,
+            }
+        );
+
+        expect(merged.networkFiatTotals).toEqual({ ethereum: 10, polygon: 8, binance: 5 });
     });
 });

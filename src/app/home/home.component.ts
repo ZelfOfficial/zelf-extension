@@ -21,13 +21,15 @@ import { HomeProfilePanelComponent } from "./home-profile-panel/home-profile-pan
 import { WalletBalanceTopCardComponent } from "app/zelf-wallet/wallet-balance-top-card/wallet-balance-top-card.component";
 import { FooterNavDestination, FooterNavigationService } from "app/zelf-footer/footer-navigation.service";
 import { ZelfFooterComponent } from "app/zelf-footer/zelf-footer.component";
-import {
-    NetworkBalanceStatus,
-    displayTotalFiatBalance,
-    loadWalletBalances,
-} from "app/core/utils/wallet-balance-loader";
+import { NetworkBalanceStatus, displayTotalFiatBalance, loadWalletBalances } from "app/core/utils/wallet-balance-loader";
 import { dedupeBalanceTokens } from "app/core/utils/balance-tokens.util";
 import { projectHomeNetworkTokens, uniqueChainIds } from "app/core/utils/home-network-list.util";
+import {
+    buildNetworkFiatTotals,
+    networkFiatTotalsFromTokens,
+    orderTokensByNetworkBalance,
+    sortNetworkIdsByBalance,
+} from "app/core/utils/network-balance-order.util";
 import { nextAccountToLoad, walletAccountIdentity } from "app/core/utils/wallet-session.util";
 import { WalletBalanceCacheService } from "app/services/wallet-balance-cache.service";
 import { HomeEnabledNetworksComponent } from "./home-enabled-networks/home-enabled-networks.component";
@@ -37,7 +39,7 @@ import { HomePromoCarouselComponent } from "./home-promo-carousel/home-promo-car
 const QUICK_HUB_IDS = ["zelf-keys", "zelf-authenticator", "legacy", "manage-domains"] as const;
 
 @Component({
-    imports: [ValidityYearsPipe, 
+    imports: [ValidityYearsPipe,
         FlexLayoutModule,
         HomeHubHeaderComponent,
         HomeProfilePanelComponent,
@@ -84,6 +86,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     /** Tokens loaded in this view; the running total is computed from these (session storage is only a cache). */
     private _tokens: any[] = [];
     private _lastKnownTotalFiat: number | null = null;
+    /** Last confirmed USD total per chain. Keeps chip order stable before the next fetch settles. */
+    private _lastKnownNetworkFiat: Record<string, number> = {};
     private _wallet!: Partial<TagModel>;
     private _enabledKey = "";
     private _balanceLoadGen = 0;
@@ -156,6 +160,11 @@ export class HomeComponent implements OnInit, OnDestroy {
         return display;
     }
 
+    /** Enabled networks, highest USD total first. Loading and failed chains keep their last known place. */
+    get orderedNetworkIds(): string[] {
+        return sortNetworkIdsByBalance(this.enabledNetworkIds, this._tokens, this.networkStatus, this._lastKnownNetworkFiat);
+    }
+
     private async _onNetworkSettingsChanged(): Promise<void> {
         if (!this._wallet?.tagName) return;
 
@@ -197,15 +206,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     private async _getBalances(): Promise<void> {
-        const enabledNetworks = await this._settingsService.getEnabledNetworkIdsFromLicense();
-        this._applyEnabledNetworks(enabledNetworks);
-
         await this._runBalanceLoad(false);
     }
 
     private async _runBalanceLoad(forceNetworkRefresh: boolean): Promise<void> {
         const enabledNetworks = await this._settingsService.getEnabledNetworkIdsFromLicense();
-        this._applyEnabledNetworks(enabledNetworks);
         const loadGen = ++this._balanceLoadGen;
 
         const tagName = this._wallet?.tagName || this._wallet?.name || "";
@@ -214,6 +219,15 @@ export class HomeComponent implements OnInit, OnDestroy {
         if (persistedCache?.totalFiatBalance) {
             this._lastKnownTotalFiat = persistedCache.totalFiatBalance;
         }
+
+        if (persistedCache) {
+            this._lastKnownNetworkFiat = {
+                ...networkFiatTotalsFromTokens(persistedCache.tokens),
+                ...(persistedCache.networkFiatTotals || {}),
+            };
+        }
+
+        this._applyEnabledNetworks(enabledNetworks);
 
         await loadWalletBalances({
             wallet: this._wallet,
@@ -230,7 +244,8 @@ export class HomeComponent implements OnInit, OnDestroy {
             onPersistCache: (snapshot) => this._walletBalanceCache.save(snapshot),
             callbacks: {
                 onTokensUpdated: (tokens, total) => {
-                    this._tokens = tokens;
+                    this._rememberNetworkTotals(tokens);
+                    this._tokens = this._orderedTokens(tokens);
                     this.totalFiatBalance = total;
                     if (total > 0) this._lastKnownTotalFiat = total;
                     this._changeDetectorRef.detectChanges();
@@ -248,8 +263,24 @@ export class HomeComponent implements OnInit, OnDestroy {
         });
     }
 
+    private _rememberNetworkTotals(tokens: any[]): void {
+        const loaded = Object.keys(this.networkStatus).filter((id) => this.networkStatus[id] === "loaded");
+
+        this._lastKnownNetworkFiat = buildNetworkFiatTotals(tokens, loaded, this._lastKnownNetworkFiat);
+    }
+
+    private _orderedTokens(tokens: any[]): any[] {
+        return orderTokensByNetworkBalance(tokens, {
+            networkOrder: this.enabledNetworkIds,
+            status: this.networkStatus,
+            lastKnownUsd: this._lastKnownNetworkFiat,
+            pinnedFirst: true,
+        });
+    }
+
     private _updateTokenState(tokens: any[]): void {
-        this._tokens = tokens;
+        this._rememberNetworkTotals(tokens);
+        this._tokens = this._orderedTokens(tokens);
         this.totalFiatBalance = tokens.reduce((total, token) => total + (parseFloat(token.fiatBalance) || 0), 0);
         if (this.totalFiatBalance > 0) this._lastKnownTotalFiat = this.totalFiatBalance;
     }
@@ -283,6 +314,8 @@ export class HomeComponent implements OnInit, OnDestroy {
         this._tokens = [];
         this.totalFiatBalance = 0;
         this._lastKnownTotalFiat = null;
+        this._lastKnownNetworkFiat = {};
+        this.enabledNetworkIds = [];
         this.networkStatus = {};
         this._enabledKey = "";
         this._assetService.claimSessionAccount(nextId);

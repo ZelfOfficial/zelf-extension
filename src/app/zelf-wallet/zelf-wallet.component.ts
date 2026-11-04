@@ -25,13 +25,10 @@ import { ZelfNameService } from "app/zelf-name-service.service";
 import { HomeCollectiblesComponent } from "./home-collectibles/home-collectibles.component";
 import { HomeHubHeaderComponent } from "app/home/home-hub-header/home-hub-header.component";
 import { HomeProfilePanelComponent } from "app/home/home-profile-panel/home-profile-panel.component";
-import {
-    NetworkBalanceStatus,
-    displayTotalFiatBalance,
-    loadWalletBalances,
-} from "app/core/utils/wallet-balance-loader";
+import { NetworkBalanceStatus, displayTotalFiatBalance, loadWalletBalances } from "app/core/utils/wallet-balance-loader";
 import { dedupeBalanceTokens } from "app/core/utils/balance-tokens.util";
 import { projectHomeNetworkTokens, uniqueChainIds } from "app/core/utils/home-network-list.util";
+import { buildNetworkFiatTotals, networkFiatTotalsFromTokens, orderTokensByNetworkBalance } from "app/core/utils/network-balance-order.util";
 import { nextAccountToLoad, walletAccountIdentity } from "app/core/utils/wallet-session.util";
 import { WalletBalanceCacheService } from "app/services/wallet-balance-cache.service";
 import { TokenCardComponent } from "./token-card/token-card.component";
@@ -73,6 +70,8 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
     totalFiatBalance: number = 0;
     wallet!: TagModel;
     private _lastKnownTotalFiat: number | null = null;
+    /** Last confirmed USD total per chain. Holds list order until a refresh settles. */
+    private _lastKnownNetworkFiat: Record<string, number> = {};
     private _enabledKey = "";
     private _balanceLoadGen = 0;
     private _portfolioAccountId = "";
@@ -199,7 +198,6 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
 
     private async _runBalanceLoad(forceNetworkRefresh: boolean): Promise<void> {
         const enabledNetworks = await this._settingsService.getEnabledNetworkIdsFromLicense();
-        this._enabledKey = uniqueChainIds(enabledNetworks ?? []).join("|");
         const loadGen = ++this._balanceLoadGen;
         const walletTag = (this.wallet?.tagName || this.wallet?.name) as string;
         const persistedCache = walletTag ? await this._walletBalanceCache.load(walletTag) : null;
@@ -207,6 +205,15 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
         if (persistedCache?.totalFiatBalance) {
             this._lastKnownTotalFiat = persistedCache.totalFiatBalance;
         }
+
+        if (persistedCache) {
+            this._lastKnownNetworkFiat = {
+                ...networkFiatTotalsFromTokens(persistedCache.tokens),
+                ...(persistedCache.networkFiatTotals || {}),
+            };
+        }
+
+        this._enabledKey = uniqueChainIds(enabledNetworks ?? []).join("|");
 
         await loadWalletBalances({
             wallet: this.wallet,
@@ -251,8 +258,26 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
         });
     }
 
+    private _networkOrder(): string[] | undefined {
+        const ids = this._enabledKey ? this._enabledKey.split("|").filter(Boolean) : [];
+
+        return ids.length ? ids : undefined;
+    }
+
+    private _rememberNetworkTotals(tokens: any[]): void {
+        const loaded = Object.keys(this.networkStatus).filter((id) => this.networkStatus[id] === "loaded");
+
+        this._lastKnownNetworkFiat = buildNetworkFiatTotals(tokens, loaded, this._lastKnownNetworkFiat);
+    }
+
     private _updateTokenState(tokens: any[]): void {
-        this.tokens = tokens;
+        this._rememberNetworkTotals(tokens);
+        this.tokens = orderTokensByNetworkBalance(tokens, {
+            networkOrder: this._networkOrder(),
+            status: this.networkStatus,
+            lastKnownUsd: this._lastKnownNetworkFiat,
+            pinnedFirst: true,
+        });
         this.totalFiatBalance = this.tokens.reduce((total, token) => {
             return total + (parseFloat(token.fiatBalance) || 0);
         }, 0);
@@ -290,6 +315,7 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
         this.tokens = [];
         this.totalFiatBalance = 0;
         this._lastKnownTotalFiat = null;
+        this._lastKnownNetworkFiat = {};
         this.networkStatus = {};
         this._enabledKey = "";
         this._assetService.claimSessionAccount(nextId);
@@ -387,12 +413,11 @@ export class ZelfWalletComponent implements OnInit, OnDestroy {
 
         if (tokenIndex !== -1) {
             this.tokens[tokenIndex].isPinned = isPinned;
-
-            // Re-sort the tokens: pinned first, then by fiat balance
-            this.tokens.sort((a, b) => {
-                if (a.isPinned && !b.isPinned) return -1;
-                if (!a.isPinned && b.isPinned) return 1;
-                return b.fiatBalance - a.fiatBalance;
+            this.tokens = orderTokensByNetworkBalance(this.tokens, {
+                networkOrder: this._networkOrder(),
+                status: this.networkStatus,
+                lastKnownUsd: this._lastKnownNetworkFiat,
+                pinnedFirst: true,
             });
 
             // Save updated tokens to session

@@ -16,6 +16,7 @@ import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { SwapData, TokenData } from "@shared/types/wallet.types";
 import { AssetService, NetworkPermissions } from "app/asset.service";
 import { ChromeService } from "app/chrome.service";
+import { sortNetworkIdsByBalance } from "app/core/utils/network-balance-order.util";
 import { mapTransactionErrorToTranslationKey } from "app/core/utils/user-facing-transaction-error.util";
 import { BlockchainTransactionsService } from "app/services/blockchain-transactions.service";
 import { LifiService } from "app/services/lifi.service";
@@ -327,7 +328,9 @@ export class SwapComponent implements OnInit, OnDestroy {
             row.extraTokenCount = Math.max(0, list.length - 3);
         });
 
-        return Array.from(rows.values()).sort((a, b) => b.usdTotal - a.usdTotal);
+        const orderedIds = sortNetworkIdsByBalance(Array.from(rows.keys()), this.tokens);
+
+        return orderedIds.map((id) => rows.get(id)!).filter((row) => !!row);
     }
 
     get selectedNetworkButtonLabel(): string {
