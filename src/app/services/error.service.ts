@@ -24,6 +24,7 @@ export class ErrorService {
         "PASSWORD REQUIRED": "ERR_PASSWORD_REQUIRED",
         "PASSWORD REQUIRED.": "ERR_PASSWORD_REQUIRED",
         "409:ERR_PASSWORD_REQUIRED": "ERR_PASSWORD_REQUIRED",
+        "400:ERR_MISSING_PASSWORD": "ERR_MISSING_PASSWORD",
         failed_to_decrypt: "failed_to_decrypt",
         encryption_key_didnt_match: "encryption_key_didnt_match",
     };
