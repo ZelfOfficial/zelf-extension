@@ -16,6 +16,17 @@
             <p>{{ t("send.stellar.invalid_amount") }}</p>
         </div>
 
+        <div class="zelf-message zelf-message--error" *ngIf="has('sender_reserve_exceeded') || breakdown.preview.senderReserveExceeded">
+            <p>
+                {{
+                    t("send.stellar.sender_reserve_exceeded", {
+                        reserve: (breakdown.preview.senderMinReserveXlm ?? breakdown.preview.minReserveXlm) | number: "1.0-7",
+                        spendable: (breakdown.preview.senderSpendableXlm ?? 0) | number: "1.0-7"
+                    })
+                }}
+            </p>
+        </div>
+
         <div class="stellar-send-summary__panel" *ngIf="showNewAccountDetails()">
             <h3 class="stellar-send-summary__title">{{ t("send.stellar.new_account_title") }}</h3>
             <p class="stellar-send-summary__subtitle">{{ t("send.stellar.new_account_subtitle") }}</p>

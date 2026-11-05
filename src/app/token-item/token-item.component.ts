@@ -1,4 +1,4 @@
-import { CurrencyPipe, DecimalPipe, NgIf, NgTemplateOutlet } from "@angular/common";
+import { NgIf, NgTemplateOutlet } from "@angular/common";
 import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -10,7 +10,7 @@ import { WalletService } from "app/wallet.service";
 import { DisplayAmountPipe, DisplayFiatPipe } from "../pipes/display-number.pipe";
 
 @Component({
-    imports: [DisplayAmountPipe, DisplayFiatPipe, NgIf, NgTemplateOutlet, CurrencyPipe, DecimalPipe, MatButtonModule],
+    imports: [DisplayAmountPipe, DisplayFiatPipe, NgIf, NgTemplateOutlet, MatButtonModule],
     selector: "token-item",
     styleUrls: ["./token-item.component.scss"],
     templateUrl: "./token-item.component.html",

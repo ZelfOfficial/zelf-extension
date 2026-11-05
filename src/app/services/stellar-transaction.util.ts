@@ -2,9 +2,31 @@ import { Asset, StrKey } from "@stellar/stellar-sdk";
 
 const STROOPS = 10_000_000;
 
+/** Default Stellar mainnet minimum reserve (2 × 0.5 XLM) and base fee (100 stroops = 0.00001 XLM). */
+export const STELLAR_DEFAULT_MIN_RESERVE_XLM = 1;
+export const STELLAR_DEFAULT_BASE_FEE_XLM = 0.00001;
+
 /** Minimum balance for an account with zero sub-entries: (2 + 0) × base_reserve. */
 export function minimumNewAccountBalanceXlm(baseReserveStroops: number): number {
     return (2 * baseReserveStroops) / STROOPS;
+}
+
+/**
+ * Minimum native XLM reserve required for an existing account:
+ * ((2 + subentryCount + numSponsoring - numSponsored) × baseReserveStroops) / 1e7 + sellingLiabilitiesXlm
+ */
+export function minimumAccountReserveXlm(
+    baseReserveStroops: number,
+    subentryCount: number = 0,
+    numSponsoring: number = 0,
+    numSponsored: number = 0,
+    sellingLiabilitiesXlm: number = 0
+): number {
+    const entries = Math.max(2, 2 + (subentryCount || 0) + (numSponsoring || 0) - (numSponsored || 0));
+    const reserveXlm = (entries * baseReserveStroops) / STROOPS;
+    const liabilities = Number.isFinite(sellingLiabilitiesXlm) && sellingLiabilitiesXlm > 0 ? sellingLiabilitiesXlm : 0;
+
+    return Number((reserveXlm + liabilities).toFixed(7));
 }
 
 export function stroopsToXlm(stroops: number): number {

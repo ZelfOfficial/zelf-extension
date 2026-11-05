@@ -306,9 +306,15 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
         const p = this.stellarFeeBreakdown?.preview;
 
         if (!p) return false;
-        if (p.amountBelowMinimum) return true;
+        if (p.amountBelowMinimum || p.senderReserveExceeded) return true;
 
-        return p.warningKeys.some((k) => k === "classic_fund_first" || k === "classic_trustline" || k === "invalid_amount");
+        return p.warningKeys.some(
+            (k) =>
+                k === "classic_fund_first" ||
+                k === "classic_trustline" ||
+                k === "invalid_amount" ||
+                k === "sender_reserve_exceeded"
+        );
     }
 
     get networkCurrency(): string {

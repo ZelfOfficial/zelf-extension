@@ -20,6 +20,7 @@ import { BitcoinService } from "app/services/bitcoin.service";
 import { BlockDAGService } from "app/services/blockdag.service";
 import { TransactionParams } from "app/core/models/transaction-fee.model";
 import { StellarService } from "app/services/stellar.service";
+import { STELLAR_DEFAULT_BASE_FEE_XLM, STELLAR_DEFAULT_MIN_RESERVE_XLM } from "app/services/stellar-transaction.util";
 import { SubstrateRelayService } from "app/services/substrate-relay.service";
 import { SuiService } from "app/services/sui.service";
 import { SolanaService } from "app/solana.service";
@@ -65,6 +66,7 @@ export class SendTransactionComponent implements OnDestroy {
     searching: boolean = false;
     transactionData!: TransactionData;
     withdrawStep: boolean = false;
+    private _stellarReservePlusFeeXlm: number = STELLAR_DEFAULT_MIN_RESERVE_XLM + STELLAR_DEFAULT_BASE_FEE_XLM;
 
 
     constructor(
@@ -354,12 +356,35 @@ export class SendTransactionComponent implements OnDestroy {
         return 18;
     }
 
+    private _isNativeXlmSend(): boolean {
+        if (!this.transactionData?.isXlmToken) return false;
+
+        const tok = this.transactionData?.token as unknown as Record<string, unknown> | undefined;
+        const tokenAddress = String(tok?.address || tok?.tokenAddress || tok?.address_token || tok?.contractAddress || "").trim();
+
+        return !tokenAddress;
+    }
+
     /**
      * Balance truncated to token decimals (floor) so max validation, "withdraw all", and error copy stay aligned.
+     * On native Stellar XLM, subtracts the required account minimum reserve + base network fee.
      */
     private _getMaxSendableAmount(): string {
         const decimals = this._getSendDecimals();
         const raw = this.transactionData.balance;
+
+        if (this._isNativeXlmSend()) {
+            const rawNum = parseFloat(String(raw ?? 0).replace(/,/g, "").trim());
+
+            if (!Number.isFinite(rawNum) || rawNum <= 0) return "0";
+
+            const spendable = Math.max(0, rawNum - this._stellarReservePlusFeeXlm);
+            const factor = 10 ** decimals;
+            const floored = Math.floor(spendable * factor + 1e-12) / factor;
+
+            return this._trimAmountFraction(floored.toFixed(decimals));
+        }
+
         let s = String(raw ?? 0)
             .replace(/,/g, "")
             .trim();
@@ -424,7 +449,7 @@ export class SendTransactionComponent implements OnDestroy {
         if (this.transactionData.isSolToken) pattern = this._walletService.SOLRegex;
         if (this.transactionData.isBtcToken) pattern = this._walletService.BTCRegex;
         if (this.transactionData.isSuiToken) pattern = this._walletService.SUIRegex;
-        if (this.transactionData.isXlmToken) pattern = /^G[A-Z2-7]{54}$/;
+        if (this.transactionData.isXlmToken) pattern = /^G[A-Z2-7]{55}$/;
         if (this.transactionData.isAptToken) pattern = /^0x[0-9a-fA-F]{1,64}$/;
         if (this.transactionData.isDotToken || this.transactionData.isKsmToken) pattern = /^[1-9A-HJ-NP-Za-km-z]{30,100}$/;
 
@@ -444,7 +469,7 @@ export class SendTransactionComponent implements OnDestroy {
     }
 
     private async _handleToAddressChange(text?: string): Promise<any> {
-        if (this.searching || this.form.get("toAddress")?.invalid) return;
+        if (this.withdrawStep || this.searching || this.form.get("toAddress")?.invalid) return;
 
         this.isFromRecentAddress = false;
 
@@ -470,8 +495,19 @@ export class SendTransactionComponent implements OnDestroy {
             const { name: tagName, domain } = this._tagsService.parseTagName(text);
 
             const finalDomain = domain || this.transactionData?.sender?.domain || "zelf";
+            const isRawChainAddress =
+                (this.transactionData.isXlmToken && this._stellarService.isValidStellarAddress(text)) ||
+                (this.transactionData.isSolToken && this._solanaService.isValidSolanaAddress(text)) ||
+                (this.transactionData.isSuiToken && this._suiService.isValidSuiAddress(text)) ||
+                (isEVM && this._checkEVMAddress(text)) ||
+                (this.transactionData.isAptToken && this._aptosService.isValidAddress(text)) ||
+                (this.transactionData.isBtcToken && this._bitcoinService.isValidBTCAddress(text));
 
-            if (this._walletService.TagRegex.test(text) || this._walletService.TagRegexNoPostfix.test(text))
+            if (
+                !isRawChainAddress &&
+                tagName.length <= 27 &&
+                (this._walletService.TagRegex.test(text) || this._walletService.TagRegexNoPostfix.test(text))
+            )
                 await this._searchTag("tagName", tagName, finalDomain);
 
             if (!this.foundAddress) {
@@ -571,6 +607,8 @@ export class SendTransactionComponent implements OnDestroy {
         this._syncToAddressControlDisabledState();
 
         toAddressCtrl.valueChanges.pipe(takeUntil(this.unsubscriber$), debounceTime(1000)).subscribe((value: string) => {
+            if (this.withdrawStep) return;
+
             if (!value || !value.trim() || this.form.get("toAddress")?.invalid) {
                 this.foundAddress = undefined;
                 this.isZelfNameNotFound = false;
@@ -616,6 +654,25 @@ export class SendTransactionComponent implements OnDestroy {
         await this._fetchTokenPrice();
 
         this._initForm();
+
+        if (this._isNativeXlmSend() && this.transactionData?.sender?.address) {
+            void this._stellarService.getSenderSpendableInfo(this.transactionData.sender.address).then((info) => {
+                if (!info) return;
+
+                const nextReservePlusFee = Number((info.minReserveXlm + info.feeXlm).toFixed(7));
+
+                if (Math.abs(nextReservePlusFee - this._stellarReservePlusFeeXlm) > 1e-8) {
+                    this._stellarReservePlusFeeXlm = nextReservePlusFee;
+                    const amountCtrl = this.form?.get("amount");
+
+                    if (amountCtrl) {
+                        amountCtrl.setValidators([this._amountValidation(this._getMaxSendableAmount())]);
+                        amountCtrl.updateValueAndValidity({ emitEvent: false });
+                    }
+                    this._changeDetectionRef.markForCheck();
+                }
+            });
+        }
     }
 
     async _searchTag(key: string, value: string, domain: string = "zelf"): Promise<void> {
@@ -711,7 +768,7 @@ export class SendTransactionComponent implements OnDestroy {
             const toAddressCtrl = this.form.get("toAddress");
 
             if (toAddressCtrl) {
-                toAddressCtrl.setValue(this.foundAddress.publicData[this.addressKey] || "");
+                toAddressCtrl.setValue(this.foundAddress.publicData[this.addressKey] || "", { emitEvent: false });
 
                 toAddressCtrl.updateValueAndValidity({ emitEvent: false });
             }

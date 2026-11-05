@@ -13,6 +13,7 @@ import { StellarFeeBreakdown, StellarSendPreview } from "./stellar-send.types";
 import {
     formatTokenAmount,
     isClassicAssetRef,
+    minimumAccountReserveXlm,
     minimumNewAccountBalanceXlm,
     parseClassicAsset,
 } from "./stellar-transaction.util";
@@ -41,11 +42,35 @@ export class StellarService {
         const url = stellarProxyBase(this._baseUrl);
         const server = new Horizon.Server(url, { allowHttp: url.startsWith("http://") });
 
-        server.httpClient.interceptors.request.use((config) => {
-            const headers = new Headers((config.headers as HeadersInit | undefined) || undefined);
+        const retryHttpRequest = (config: Record<string, any>): Promise<any> => {
+            const client = server.httpClient as unknown as {
+                request?: (cfg: Record<string, any>) => Promise<any>;
+                makeRequest?: (cfg: Record<string, any>) => Promise<any>;
+            };
 
-            headers.set("Authorization", `Bearer ${this._horizonToken}`);
-            config.headers = headers;
+            if (typeof client.request === "function") {
+                return client.request(config);
+            }
+
+            if (typeof client.makeRequest === "function") {
+                return client.makeRequest(config);
+            }
+
+            throw new Error("Stellar HTTP client does not support retrying requests");
+        };
+
+        server.httpClient.interceptors.request.use((config) => {
+            const authValue = `Bearer ${this._horizonToken}`;
+            const rawHeaders = config.headers as { set?: (k: string, v: string) => void } | Record<string, string> | undefined;
+
+            if (rawHeaders && typeof rawHeaders.set === "function") {
+                rawHeaders.set("Authorization", authValue);
+            } else {
+                const headers = new Headers((config.headers as HeadersInit | undefined) || undefined);
+
+                headers.set("Authorization", authValue);
+                config.headers = headers;
+            }
 
             return config;
         });
@@ -62,18 +87,20 @@ export class StellarService {
                     config["__zelfAuthRetried"] = true;
                     this._horizonToken = await this._auth.refreshAfterUnauthorized();
 
-                    return server.httpClient.makeRequest(config);
+                    return retryHttpRequest(config);
                 }
 
                 if (status === 429 && !config["__zelfRateRetried"]) {
                     config["__zelfRateRetried"] = true;
                     const headers = error.response?.headers as unknown;
                     const retryAfter =
-                        headers && typeof (headers as Headers).get === "function" ? (headers as Headers).get("retry-after") : null;
+                        headers && typeof (headers as Headers).get === "function"
+                            ? (headers as Headers).get("retry-after")
+                            : (headers as Record<string, string> | undefined)?.["retry-after"] || null;
 
                     await new Promise((resolve) => setTimeout(resolve, retryAfterDelayMs(retryAfter)));
 
-                    return server.httpClient.makeRequest(config);
+                    return retryHttpRequest(config);
                 }
 
                 throw error;
@@ -278,34 +305,150 @@ export class StellarService {
         };
     }
 
+    private async _getSenderAccountReserveInfo(
+        server: Horizon.Server,
+        senderAddress: string,
+        baseReserveStroops: number,
+        feeXlm: number
+    ): Promise<{
+        nativeBalanceXlm: number;
+        minReserveXlm: number;
+        spendableXlm: number;
+    } | null> {
+        const trimmed = senderAddress?.trim();
+
+        if (!trimmed || !this.isValidStellarAddress(trimmed)) return null;
+
+        try {
+            const acc = (await server.accounts().accountId(trimmed).call()) as unknown as {
+                subentry_count?: number;
+                num_sponsoring?: number;
+                num_sponsored?: number;
+                balances?: Array<{
+                    asset_type?: string;
+                    balance?: string;
+                    selling_liabilities?: string;
+                }>;
+            };
+
+            const nativeEntry = acc.balances?.find((b) => b.asset_type === "native");
+            const nativeBalanceXlm = parseFloat(nativeEntry?.balance || "0") || 0;
+            const sellingLiabilitiesXlm = parseFloat(nativeEntry?.selling_liabilities || "0") || 0;
+            const minReserveXlm = minimumAccountReserveXlm(
+                baseReserveStroops,
+                acc.subentry_count || 0,
+                acc.num_sponsoring || 0,
+                acc.num_sponsored || 0,
+                sellingLiabilitiesXlm
+            );
+            const spendableXlm = Math.max(0, Number((nativeBalanceXlm - minReserveXlm - feeXlm).toFixed(7)));
+
+            return {
+                nativeBalanceXlm,
+                minReserveXlm,
+                spendableXlm,
+            };
+        } catch (err: unknown) {
+            const e = err as { response?: { status?: number }; constructor?: { name?: string } };
+
+            if (e?.response?.status === 404 || e?.constructor?.name === "NotFoundError") {
+                const minReserveXlm = minimumNewAccountBalanceXlm(baseReserveStroops);
+
+                return {
+                    nativeBalanceXlm: 0,
+                    minReserveXlm,
+                    spendableXlm: 0,
+                };
+            }
+
+            return null;
+        }
+    }
+
+    async getSenderSpendableInfo(senderAddress: string): Promise<{
+        nativeBalanceXlm: number;
+        minReserveXlm: number;
+        feeXlm: number;
+        spendableXlm: number;
+    } | null> {
+        try {
+            const server = await this._horizonServer();
+            const [baseFeeStroops, baseReserveStroops] = await Promise.all([
+                server.fetchBaseFee(),
+                this._fetchLatestBaseReserveStroops(server),
+            ]);
+            const feeXlm = baseFeeStroops / 1e7;
+            const info = await this._getSenderAccountReserveInfo(server, senderAddress, baseReserveStroops, feeXlm);
+
+            if (!info) return null;
+
+            return {
+                ...info,
+                feeXlm,
+            };
+        } catch {
+            return null;
+        }
+    }
+
     async calculateTransactionFees(
         receiverAddress: string,
         amount: number,
         tokenPrice: number,
         tokenAddress?: string,
-        tokenDecimals?: number
+        tokenDecimals?: number,
+        senderAddress?: string,
+        sendAll?: boolean
     ): Promise<TransactionFeeEstimate> {
         const server = await this._horizonServer();
         const baseFeeStroops = await server.fetchBaseFee();
         const feeXlm = baseFeeStroops / 1e7;
         const price = tokenPrice || 0;
         const fiatFee = feeXlm * price;
-        const amountInUsd = amount * price;
 
         this._stellarSoroban.assertClassicOrNativeOnly(tokenAddress);
 
-        let preview: StellarSendPreview;
+        const isNative = !tokenAddress?.trim() || !isClassicAssetRef(tokenAddress);
+        const baseReserveStroops = await this._fetchLatestBaseReserveStroops(server);
+        const senderReserve = senderAddress
+            ? await this._getSenderAccountReserveInfo(server, senderAddress, baseReserveStroops, feeXlm)
+            : null;
 
-        if (!tokenAddress?.trim() || !isClassicAssetRef(tokenAddress)) {
-            preview = await this.getNativeSendPreview(receiverAddress?.trim() || "", amount);
-        } else {
-            preview = await this.getClassicSendPreview(receiverAddress?.trim() || "", amount, tokenAddress);
+        let effectiveAmount = amount;
+        let adjustedAmount: string | undefined;
+
+        if (isNative && sendAll && senderReserve && senderReserve.spendableXlm > 0) {
+            effectiveAmount = senderReserve.spendableXlm;
+            adjustedAmount = this._formatNativeAmount(senderReserve.spendableXlm);
         }
 
-        const xlmOut =
-            !tokenAddress?.trim() || !isClassicAssetRef(tokenAddress)
-                ? preview.userAmount
-                : 0;
+        const amountInUsd = effectiveAmount * price;
+        let preview: StellarSendPreview;
+
+        if (isNative) {
+            preview = await this.getNativeSendPreview(receiverAddress?.trim() || "", effectiveAmount);
+        } else {
+            preview = await this.getClassicSendPreview(receiverAddress?.trim() || "", effectiveAmount, tokenAddress);
+        }
+
+        if (senderReserve) {
+            preview.senderMinReserveXlm = senderReserve.minReserveXlm;
+            preview.senderSpendableXlm = senderReserve.spendableXlm;
+
+            const eps = 1e-8;
+            const exceedsReserve = isNative
+                ? effectiveAmount > senderReserve.spendableXlm + eps
+                : senderReserve.nativeBalanceXlm + eps < senderReserve.minReserveXlm + feeXlm;
+
+            if (exceedsReserve) {
+                preview.senderReserveExceeded = true;
+                if (!preview.warningKeys.includes("sender_reserve_exceeded")) {
+                    preview.warningKeys.push("sender_reserve_exceeded");
+                }
+            }
+        }
+
+        const xlmOut = isNative ? preview.userAmount : 0;
 
         const stellar: StellarFeeBreakdown = {
             preview,
@@ -317,6 +460,7 @@ export class StellarService {
             fiatFee,
             total: amountInUsd + fiatFee,
             networkPrice: price,
+            adjustedAmount,
             stellar,
         };
     }
@@ -325,15 +469,79 @@ export class StellarService {
         return formatTokenAmount(amount, 7);
     }
 
+    private _extractResultCodes(err: unknown): { transaction?: string; operations?: string[] } | undefined {
+        const e = err as {
+            response?: { data?: { extras?: { result_codes?: { transaction?: string; operations?: string[] } } } };
+            data?: { extras?: { result_codes?: { transaction?: string; operations?: string[] } } };
+        };
+
+        return e?.response?.data?.extras?.result_codes || e?.data?.extras?.result_codes;
+    }
+
     private _isCreateAccountRaceError(err: unknown): boolean {
-        const data = err as { response?: { data?: { extras?: { result_codes?: { operations?: string[] } } } } };
-        const ops = data?.response?.data?.extras?.result_codes?.operations;
+        const ops = this._extractResultCodes(err)?.operations;
 
         if (!ops?.length) return false;
 
         const joined = ops.join(" ").toLowerCase();
 
         return joined.includes("account_exists") || joined.includes("already_exists") || joined.includes("op_already_exists");
+    }
+
+    private _isBadSequenceError(err: unknown): boolean {
+        const codes = this._extractResultCodes(err);
+        const txCode = (codes?.transaction || "").toLowerCase();
+        const msg = ((err as Error)?.message || "").toLowerCase();
+
+        return txCode.includes("tx_bad_seq") || msg.includes("tx_bad_seq");
+    }
+
+    private _mapHorizonSubmitError(err: unknown): string {
+        const e = err as { name?: string; constructor?: { name?: string }; message?: string };
+        const errName = (e?.name || e?.constructor?.name || "").toLowerCase();
+        const rawMsg = (e?.message || "").trim();
+        const rawLower = rawMsg.toLowerCase();
+
+        if (rawMsg.startsWith("errors.")) {
+            return rawMsg;
+        }
+
+        if (errName.includes("accountrequiresmemo") || rawLower.includes("account requires memo") || rawLower.includes("memo_required")) {
+            return "errors.stellar_memo_required";
+        }
+
+        const codes = this._extractResultCodes(err);
+        const opCode = (codes?.operations?.find((op) => op && op !== "op_success") || codes?.operations?.[0] || "").toLowerCase();
+        const txCode = (codes?.transaction || "").toLowerCase();
+        const combined = `${opCode} ${txCode} ${rawLower}`;
+
+        if (combined.includes("op_underfunded") || combined.includes("tx_insufficient_balance")) {
+            return "errors.stellar_sender_reserve_exceeded";
+        }
+
+        if (combined.includes("op_low_reserve")) {
+            return "errors.stellar_amount_below_reserve";
+        }
+
+        if (combined.includes("op_no_destination")) {
+            return "errors.stellar_classic_fund_xlm_first";
+        }
+
+        if (combined.includes("op_no_trust") || combined.includes("op_not_authorized")) {
+            return "errors.stellar_classic_trustline_required";
+        }
+
+        if (combined.includes("op_line_full")) {
+            return "errors.stellar_recipient_line_full";
+        }
+
+        if (combined.includes("tx_bad_seq")) {
+            return "errors.stellar_bad_sequence";
+        }
+
+        const fallback = opCode || txCode || rawMsg || "Stellar transaction failed";
+
+        return typeof fallback === "string" ? fallback : JSON.stringify(fallback);
     }
 
     private async _submitBuilt(server: Horizon.Server, keypair: Keypair, builder: TransactionBuilder): Promise<TransactionResult> {
@@ -349,14 +557,7 @@ export class StellarService {
                 status: "pending",
             };
         } catch (err: unknown) {
-            const resultCodes = (err as { response?: { data?: { extras?: { result_codes?: unknown } } } })?.response?.data?.extras
-                ?.result_codes;
-
-            const opErr = (resultCodes as { operations?: string[] })?.operations?.[0] || (resultCodes as { transaction?: string })?.transaction;
-
-            const message = opErr || (err as Error)?.message || "Stellar transaction failed";
-
-            throw new Error(typeof message === "string" ? message : JSON.stringify(message));
+            throw new Error(this._mapHorizonSubmitError(err));
         }
     }
 
@@ -384,8 +585,27 @@ export class StellarService {
 
         const account = await server.loadAccount(keypair.publicKey());
         const baseFee = await server.fetchBaseFee();
+        const feeXlm = baseFee / 1e7;
         const baseReserveStroops = await this._fetchLatestBaseReserveStroops(server);
         const minReserveXlm = minimumNewAccountBalanceXlm(baseReserveStroops);
+
+        const rawAccount = account as unknown as {
+            subentry_count?: number;
+            num_sponsoring?: number;
+            num_sponsored?: number;
+            balances?: Array<{ asset_type?: string; balance?: string; selling_liabilities?: string }>;
+        };
+        const nativeEntry = rawAccount.balances?.find((b) => b.asset_type === "native");
+        const senderNativeBalanceXlm = parseFloat(nativeEntry?.balance || "0") || 0;
+        const senderSellingLiabilitiesXlm = parseFloat(nativeEntry?.selling_liabilities || "0") || 0;
+        const senderMinReserveXlm = minimumAccountReserveXlm(
+            baseReserveStroops,
+            rawAccount.subentry_count || 0,
+            rawAccount.num_sponsoring || 0,
+            rawAccount.num_sponsored || 0,
+            senderSellingLiabilitiesXlm
+        );
+        const senderSpendableXlm = Math.max(0, Number((senderNativeBalanceXlm - senderMinReserveXlm - feeXlm).toFixed(7)));
 
         const memoText = params.memo?.trim();
         const passphrase = this._networkPassphrase();
@@ -396,9 +616,27 @@ export class StellarService {
             return b.addMemo(Memo.text(memoText));
         };
 
+        const submitWithSeqRetry = async (buildForAccount: (acc: Horizon.AccountResponse) => TransactionBuilder): Promise<TransactionResult> => {
+            try {
+                return await this._submitBuilt(server, keypair, buildForAccount(account));
+            } catch (err: unknown) {
+                if (this._isBadSequenceError(err)) {
+                    const refreshed = await server.loadAccount(keypair.publicKey());
+
+                    return this._submitBuilt(server, keypair, buildForAccount(refreshed));
+                }
+
+                throw err;
+            }
+        };
+
         const tokenAddress = params.tokenAddress?.trim();
 
         if (tokenAddress && isClassicAssetRef(tokenAddress)) {
+            if (senderNativeBalanceXlm + 1e-8 < senderMinReserveXlm + feeXlm) {
+                throw new Error("errors.stellar_sender_reserve_exceeded");
+            }
+
             const exists = await this.destinationAccountExists(destination);
 
             if (!exists) {
@@ -415,85 +653,93 @@ export class StellarService {
             const dec = params.tokenDecimals !== undefined ? Math.min(7, Math.max(0, params.tokenDecimals)) : 7;
             const amountStr = formatTokenAmount(amountNum, dec);
 
-            let builder = new TransactionBuilder(account, {
-                fee: baseFee.toString(),
-                networkPassphrase: passphrase,
-            }).addOperation(
-                Operation.payment({
-                    destination,
-                    asset,
-                    amount: amountStr,
-                })
-            );
+            return submitWithSeqRetry((acc) => {
+                let builder = new TransactionBuilder(acc, {
+                    fee: baseFee.toString(),
+                    networkPassphrase: passphrase,
+                }).addOperation(
+                    Operation.payment({
+                        destination,
+                        asset,
+                        amount: amountStr,
+                    })
+                );
 
-            builder = appendMemo(builder);
+                builder = appendMemo(builder);
 
-            return this._submitBuilt(server, keypair, builder);
+                return builder;
+            });
+        }
+
+        if (amountNum > senderSpendableXlm + 1e-8) {
+            throw new Error("errors.stellar_sender_reserve_exceeded");
         }
 
         const destExists = await this.destinationAccountExists(destination);
 
         if (destExists) {
-            let builder = new TransactionBuilder(account, {
-                fee: baseFee.toString(),
-                networkPassphrase: passphrase,
-            }).addOperation(
-                Operation.payment({
-                    destination,
-                    asset: Asset.native(),
-                    amount: this._formatNativeAmount(amountNum),
-                })
-            );
+            return submitWithSeqRetry((acc) => {
+                let builder = new TransactionBuilder(acc, {
+                    fee: baseFee.toString(),
+                    networkPassphrase: passphrase,
+                }).addOperation(
+                    Operation.payment({
+                        destination,
+                        asset: Asset.native(),
+                        amount: this._formatNativeAmount(amountNum),
+                    })
+                );
 
-            builder = appendMemo(builder);
+                builder = appendMemo(builder);
 
-            return this._submitBuilt(server, keypair, builder);
+                return builder;
+            });
         }
 
         if (amountNum + 1e-12 < minReserveXlm) {
             throw new Error("errors.stellar_amount_below_reserve");
         }
 
-        const startingBalanceStr = this._formatNativeAmount(Math.max(amountNum, minReserveXlm));
+        const buildCreateTx = (acc: Horizon.AccountResponse): TransactionBuilder => {
+            let builder = new TransactionBuilder(acc, {
+                fee: baseFee.toString(),
+                networkPassphrase: passphrase,
+            });
 
-        let builder = new TransactionBuilder(account, {
-            fee: baseFee.toString(),
-            networkPassphrase: passphrase,
-        });
+            const remainderXlm = amountNum - minReserveXlm;
 
-        const remainderXlm = amountNum - minReserveXlm;
-
-        if (remainderXlm <= 1e-8) {
-            builder = builder.addOperation(
-                Operation.createAccount({
-                    destination,
-                    startingBalance: this._formatNativeAmount(amountNum),
-                })
-            );
-        } else {
-            const reserveStr = this._formatNativeAmount(minReserveXlm);
-            const remainderStr = this._formatNativeAmount(remainderXlm);
-
-            builder = builder
-                .addOperation(
+            if (remainderXlm <= 1e-8) {
+                builder = builder.addOperation(
                     Operation.createAccount({
                         destination,
-                        startingBalance: reserveStr,
-                    })
-                )
-                .addOperation(
-                    Operation.payment({
-                        destination,
-                        asset: Asset.native(),
-                        amount: remainderStr,
+                        startingBalance: this._formatNativeAmount(amountNum),
                     })
                 );
-        }
+            } else {
+                const reserveStr = this._formatNativeAmount(minReserveXlm);
+                const remainderStr = this._formatNativeAmount(remainderXlm);
 
-        builder = appendMemo(builder);
+                builder = builder
+                    .addOperation(
+                        Operation.createAccount({
+                            destination,
+                            startingBalance: reserveStr,
+                        })
+                    )
+                    .addOperation(
+                        Operation.payment({
+                            destination,
+                            asset: Asset.native(),
+                            amount: remainderStr,
+                        })
+                    );
+            }
+
+            return appendMemo(builder);
+        };
 
         try {
-            return await this._submitBuilt(server, keypair, builder);
+            return await submitWithSeqRetry(buildCreateTx);
         } catch (err: unknown) {
             if (this._isCreateAccountRaceError(err)) {
                 const refreshed = await server.loadAccount(keypair.publicKey());

@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe, DecimalPipe, NgClass, NgFor, NgIf, NgTemplateOutlet } from "@angular/common";
+import { CurrencyPipe, DatePipe, NgClass, NgFor, NgIf, NgTemplateOutlet } from "@angular/common";
 import { Component, Input, OnDestroy, OnInit } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatRippleModule } from "@angular/material/core";
@@ -27,7 +27,7 @@ import {
     supportsTransactionHistory,
 } from "app/core/utils/transaction-history-pagination.util";
 import { Subscription } from "rxjs";
-import { DisplayAmountPipe, DisplayFiatPipe } from "../pipes/display-number.pipe";
+import { DisplayAmountPipe } from "../pipes/display-number.pipe";
 
 type TransactionType = "send" | "receive" | "swap" | "approve" | "";
 
@@ -49,11 +49,11 @@ type ProcessedTransaction = {
 };
 
 @Component({
-    imports: [DisplayAmountPipe, DisplayFiatPipe, 
+    imports: [
+        DisplayAmountPipe,
         AddressMaskPipe,
         CurrencyPipe,
         DatePipe,
-        DecimalPipe,
         MatRippleModule,
         MatButtonModule,
         NgClass,

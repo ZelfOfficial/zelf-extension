@@ -81,7 +81,7 @@ export class TransactionService {
     }
 
     async getCurrentTransactionData(): Promise<TransactionData> {
-        if (this._transactionData) return this._transactionData;
+        if (this._transactionData?.hasTransactionData) return this._transactionData;
 
         this._transactionData = new TransactionData((await this._chromeService.getItem("transactionData")) || {});
 
@@ -109,6 +109,8 @@ export class TransactionService {
 
     async removeTransactionData(): Promise<void> {
         await this._chromeService.removeItem("transactionData");
+        this._transactionData = new TransactionData({});
+        this._transactionData$.next(this._transactionData);
     }
 
     removeAddressFromRecentAddresses(address: string): void {

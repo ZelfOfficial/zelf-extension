@@ -1,4 +1,4 @@
-import { CurrencyPipe, DecimalPipe, NgClass, NgFor, NgIf } from "@angular/common";
+import { DecimalPipe, NgClass, NgFor, NgIf } from "@angular/common";
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, Renderer2, ViewChild } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { Router, RouterLink } from "@angular/router";
@@ -17,14 +17,14 @@ import { ZelfHistoryComponent } from "app/zelf-history/zelf-history.component";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { AreaData, AreaSeries, AreaSeriesOptions, ChartOptionsBase, ColorType, createChart, IChartApi, ISeriesApi } from "lightweight-charts";
 import { firstValueFrom, Subject, takeUntil } from "rxjs";
-import { DisplayAmountPipe, DisplayFiatPipe } from "../pipes/display-number.pipe";
+import { DisplayFiatPipe } from "../pipes/display-number.pipe";
 import { formatDisplayAmount } from "../core/utils/display-number.util";
 import { isNativeChainToken } from "../core/utils/token-balance.util";
 import { tokenNetworkToLicenseId } from "../core/utils/token-network-id.util";
 
 @Component({
-    imports: [DisplayAmountPipe, DisplayFiatPipe, 
-        CurrencyPipe,
+    imports: [
+        DisplayFiatPipe,
         DecimalPipe,
         MatButtonModule,
         NgClass,

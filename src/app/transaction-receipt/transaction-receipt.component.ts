@@ -17,7 +17,7 @@ import { NetworkName, NetworkService } from "app/services/network.service";
 import { TokenData } from "@shared/types/wallet.types";
 import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
-import { DisplayAmountPipe, DisplayFiatPipe } from "app/pipes/display-number.pipe";
+import { DisplayAmountPipe } from "app/pipes/display-number.pipe";
 import { TagModel } from "app/tags.service";
 
 @Component({
@@ -31,7 +31,6 @@ import { TagModel } from "app/tags.service";
         TranslocoModule,
         ZelfLoaderComponent,
         DisplayAmountPipe,
-        DisplayFiatPipe,
     ],
     selector: "transaction-receipt",
     styleUrls: ["./transaction-receipt.component.scss"],
@@ -146,6 +145,7 @@ export class TransactionReceiptComponent extends CopyToClipboardBase implements 
             else if (this.symbol === "BNB") return "binance";
             else if (this.symbol === "POL") return "polygon";
             else if (this.symbol === "SUI") return "sui";
+            else if (this.symbol === "XLM") return "stellar";
             else if (this.symbol === "APT") return "aptos";
             else if (this.symbol === "BDAG") return "blockdag";
             else return "ethereum";

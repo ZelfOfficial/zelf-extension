@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, Output } from "@angular/core";
-import { CurrencyPipe, DecimalPipe, NgClass, NgIf } from "@angular/common";
+import { NgClass, NgIf } from "@angular/common";
 import { FlexLayoutModule } from "@angular/flex-layout";
 import { TranslocoModule } from "@jsverse/transloco";
 import { isNativeChainToken } from "app/core/utils/token-balance.util";
@@ -80,7 +80,7 @@ import { DisplayAmountPipe, DisplayFiatPipe } from "../../pipes/display-number.p
         </div>
     `,
     styleUrls: ["./token-card.component.scss"],
-    imports: [DisplayAmountPipe, DisplayFiatPipe, CurrencyPipe, NgClass, NgIf, DecimalPipe, FlexLayoutModule, TranslocoModule],
+    imports: [DisplayAmountPipe, DisplayFiatPipe, NgClass, NgIf, FlexLayoutModule, TranslocoModule],
 })
 export class TokenCardComponent implements OnChanges {
     @Input() data: any;

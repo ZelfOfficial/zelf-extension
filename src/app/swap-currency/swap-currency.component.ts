@@ -1,4 +1,4 @@
-import { CurrencyPipe, DecimalPipe, NgClass, NgFor, NgIf, NgTemplateOutlet, TitleCasePipe } from "@angular/common";
+import { CurrencyPipe, NgClass, NgFor, NgIf, NgTemplateOutlet, TitleCasePipe } from "@angular/common";
 import {
     ChangeDetectorRef,
     Component,
@@ -25,7 +25,7 @@ import { TokenData } from "@shared/types/wallet.types";
 import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { SettingsService } from "app/services/settings.service";
-import { DisplayAmountPipe, DisplayFiatPipe } from "../pipes/display-number.pipe";
+import { DisplayAmountPipe } from "../pipes/display-number.pipe";
 import { formatDisplayFiat } from "../core/utils/display-number.util";
 
 export interface AssetChangeData {
@@ -34,7 +34,8 @@ export interface AssetChangeData {
 }
 
 @Component({
-    imports: [DisplayAmountPipe, DisplayFiatPipe, 
+    imports: [
+        DisplayAmountPipe,
         NgIf,
         NgFor,
         NgClass,
@@ -43,7 +44,6 @@ export interface AssetChangeData {
         ReactiveFormsModule,
         TranslocoModule,
         CurrencyPipe,
-        DecimalPipe,
         MatRippleModule,
         MatButtonModule,
         ZelfLoaderComponent,

@@ -33,12 +33,46 @@ const KNOWN_ERROR_KEYS = new Set([
     "errors.send_transaction_network_error",
     "errors.send_transaction_user_rejected",
     "errors.something_went_wrong",
+    "errors.stellar_amount_below_reserve",
+    "errors.stellar_bad_sequence",
+    "errors.stellar_classic_fund_xlm_first",
+    "errors.stellar_classic_trustline_required",
+    "errors.stellar_invalid_asset_format",
+    "errors.stellar_memo_required",
+    "errors.stellar_recipient_line_full",
+    "errors.stellar_sender_reserve_exceeded",
+    "errors.stellar_soroban_send_unsupported",
 ]);
 
 /** Allows callers (e.g. an inner layer) to throw with a translation key directly. */
 function mapKnownErrorMessage(message: string): string | null {
     if (!message) return null;
     if (KNOWN_ERROR_KEYS.has(message)) return message;
+
+    const lower = message.toLowerCase();
+
+    if (lower.includes("op_underfunded") || lower.includes("tx_insufficient_balance")) {
+        return "errors.stellar_sender_reserve_exceeded";
+    }
+    if (lower.includes("op_low_reserve")) {
+        return "errors.stellar_amount_below_reserve";
+    }
+    if (lower.includes("op_no_destination")) {
+        return "errors.stellar_classic_fund_xlm_first";
+    }
+    if (lower.includes("op_no_trust") || lower.includes("op_not_authorized")) {
+        return "errors.stellar_classic_trustline_required";
+    }
+    if (lower.includes("op_line_full")) {
+        return "errors.stellar_recipient_line_full";
+    }
+    if (lower.includes("account requires memo") || lower.includes("accountrequiresmemo")) {
+        return "errors.stellar_memo_required";
+    }
+    if (lower.includes("tx_bad_seq")) {
+        return "errors.stellar_bad_sequence";
+    }
+
     return null;
 }
 

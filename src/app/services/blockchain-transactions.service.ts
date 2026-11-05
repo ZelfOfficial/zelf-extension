@@ -175,7 +175,9 @@ export class BlockchainTransactionsService {
                         amount,
                         tokenPrice || 0,
                         tokenAddress,
-                        tokenDecimals
+                        tokenDecimals,
+                        params.senderAddress,
+                        params.sendAll
                     );
                 case "sui":
                     return await this._suiService.calculateTransactionFees(
@@ -608,7 +610,12 @@ export class BlockchainTransactionsService {
     private _stellarTxToTransaction(data: any): Transaction {
         const STROOPS_TO_XLM = 1 / 10_000_000;
         if (data.hash && typeof data.traffic === "string") {
-            return new TransactionModel({ ...data, network: "stellar", gasFee: parseFloat(data.fee || 0) || 0 }) as Transaction;
+            return new TransactionModel({
+                ...data,
+                network: "stellar",
+                gasFee: parseFloat(data.fee || 0) || 0,
+                status: typeof data.status === "string" ? data.status.toLowerCase() : "success",
+            }) as Transaction;
         }
         const created = data.created_at ? new Date(data.created_at) : new Date();
         const feeXLM = ((parseInt(data.fee_charged || 0, 10) || 0) * STROOPS_TO_XLM).toString();
@@ -618,12 +625,13 @@ export class BlockchainTransactionsService {
             to: null,
             amount: 0,
             asset: "XLM",
-            date: created.toISOString().slice(0, 10),
+            date: created.toISOString(),
             age: "",
             gasFee: parseFloat(feeXLM) || 0,
-            status: data.successful ? "Success" : "Failed",
+            status: data.successful ? "success" : "failed",
             traffic: "",
             network: "stellar",
+            tokenType: "XLM",
             fiatAmount: 0,
         }) as Transaction;
     }

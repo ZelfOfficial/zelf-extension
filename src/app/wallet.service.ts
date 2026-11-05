@@ -1097,6 +1097,13 @@ export class WalletService {
         const updateTotalNum = Number(updateTotal);
         const isUpdateTotalInvalid = !updateTotal || updateTotalNum === 0 || isNaN(updateTotalNum);
         const shouldPreserveTotal = !isNaN(originalTotalNum) && originalTotalNum > 0 && isUpdateTotalInvalid;
+        const resolvedFeeNum = Number(
+            update.gasFee ?? (shouldPreserveFee ? originalFee : isUpdateFeeInvalid ? originalFee : updateFee)
+        );
+        const computedTotalFromPreservedAmount =
+            shouldPreserveAmount && isUpdateAmountInvalid
+                ? originalAmountNum + (Number.isFinite(resolvedFeeNum) ? resolvedFeeNum : 0)
+                : null;
 
         const originalIsSwap = String(original?.type || "").toLowerCase() === "swap";
         const mergedType = String(update?.type || original?.type || "").toLowerCase();
@@ -1128,8 +1135,15 @@ export class WalletService {
             fee: shouldPreserveFee ? originalFee : isUpdateFeeInvalid ? originalFee : updateFee,
             // Preserve fiatFee from original if update has invalid fiatFee
             fiatFee: shouldPreserveFiatFee ? originalFiatFee : isUpdateFiatFeeInvalid ? originalFiatFee : updateFiatFee,
-            // Preserve total from original if update has invalid total
-            total: shouldPreserveTotal ? originalTotal : isUpdateTotalInvalid ? originalTotal : updateTotal,
+            // Preserve total from original if update has invalid total (or recompute when amount came from original)
+            total:
+                computedTotalFromPreservedAmount !== null
+                    ? computedTotalFromPreservedAmount
+                    : shouldPreserveTotal
+                      ? originalTotal
+                      : isUpdateTotalInvalid
+                        ? originalTotal
+                        : updateTotal,
             // Preserve other important fields from original if they exist
             date: original.date || update.date,
             from: original.from || update.from,

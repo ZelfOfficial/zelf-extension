@@ -1084,14 +1084,19 @@ export class TransactionData implements TransactionData {
     }
 
     get senderFullTagName(): string {
-        return this.sender?.fullTagName || (this.sender?.domain ? `${this.sender?.tagName}.${this.sender?.domain}` : this.sender?.tagName || "");
+        if (this.sender?.fullTagName) return this.sender.fullTagName;
+        const tag = (this.sender?.tagName || "").replace(/\.hold$/i, "");
+        const domain = this.sender?.domain || "";
+        if (!domain || tag.toLowerCase().endsWith(`.${domain.toLowerCase()}`)) return tag;
+        return `${tag}.${domain}`;
     }
 
     get receiverFullTagName(): string {
-        return (
-            this.receiver?.fullTagName ||
-            (this.receiver?.domain ? `${this.receiver?.tagName}.${this.receiver?.domain}` : this.receiver?.tagName || "")
-        );
+        if (this.receiver?.fullTagName) return this.receiver.fullTagName;
+        const tag = (this.receiver?.tagName || "").replace(/\.hold$/i, "");
+        const domain = this.receiver?.domain || "";
+        if (!domain || tag.toLowerCase().endsWith(`.${domain.toLowerCase()}`)) return tag;
+        return `${tag}.${domain}`;
     }
 }
 

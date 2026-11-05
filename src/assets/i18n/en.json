@@ -698,7 +698,8 @@
             "fee_separate": "The fee above is separate from the send amount.",
             "classic_fund_first": "This asset cannot be sent until the recipient has a funded Stellar account. Send native XLM first to create their account.",
             "classic_trustline": "The recipient must add a trustline for this asset before they can receive it.",
-            "invalid_amount": "Enter a valid amount to continue."
+            "invalid_amount": "Enter a valid amount to continue.",
+            "sender_reserve_exceeded": "Stellar accounts must keep a minimum reserve of {{reserve}} XLM. Your maximum spendable amount after reserve and fees is {{spendable}} XLM."
         },
         "transaction_sent": "Transaction sent",
         "transaction_failed": "Could not send the transaction"
@@ -1290,9 +1291,14 @@
         "solana_insufficient_sol_for_fees": "Insufficient SOL. You do not have enough SOL to cover the transaction fees or account creation.",
         "solana_insufficient_sol_for_rent": "Insufficient SOL. You do not have enough SOL to pay for the destination account creation.",
         "stellar_amount_below_reserve": "The amount is below the minimum required to open this Stellar account.",
+        "stellar_bad_sequence": "Your Stellar account sequence changed. Please try sending the transaction again.",
         "stellar_classic_fund_xlm_first": "Send native XLM first to fund the recipient's Stellar account before sending this asset.",
         "stellar_classic_trustline_required": "The recipient must add a trustline for this asset before they can receive it.",
+        "stellar_memo_required": "The destination Stellar account requires a memo. Please go back and enter a memo.",
+        "stellar_recipient_line_full": "The recipient's trustline limit for this asset is full.",
+        "stellar_sender_reserve_exceeded": "Insufficient spendable XLM. Stellar accounts must keep a minimum reserve of at least 1 XLM plus network fees.",
         "stellar_soroban_not_supported": "Soroban (contract) assets are not supported in this wallet yet.",
+        "stellar_soroban_send_unsupported": "Soroban (contract) assets are not supported in this wallet yet.",
         "stellar_invalid_asset_format": "Invalid Stellar asset. Use CODE:ISSUER (for example USDC:G…).",
         "ERR_PASSWORD_REQUIRED": "This Zelf ID requires a password. Enter your password and try again.",
         "encryption_key_didnt_match": "Your session encryption key is out of date. Reload the extension and try again.",

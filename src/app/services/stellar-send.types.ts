@@ -16,6 +16,12 @@ export interface StellarSendPreview {
     userAmount: number;
     /** True when amount is below minReserveXlm on a create path. */
     amountBelowMinimum: boolean;
+    /** Minimum native XLM reserve required on the sender's account (including subentries & selling liabilities). */
+    senderMinReserveXlm?: number;
+    /** Maximum native XLM the sender can spend after keeping senderMinReserveXlm and the network fee. */
+    senderSpendableXlm?: number;
+    /** True when sending this transaction would dip below the sender's required minimum XLM reserve + fee. */
+    senderReserveExceeded?: boolean;
     /** User-facing warning keys (translate via send.stellar.*). */
     warningKeys: string[];
 }

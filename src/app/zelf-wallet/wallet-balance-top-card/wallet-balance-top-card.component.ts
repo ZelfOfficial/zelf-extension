@@ -1,12 +1,12 @@
-import { CurrencyPipe, NgIf } from "@angular/common";
+import { NgIf } from "@angular/common";
 import { Component, EventEmitter, Input, Output } from "@angular/core";
 import { FlexLayoutModule } from "@angular/flex-layout";
 import { RouterLink } from "@angular/router";
 import { TranslocoModule } from "@jsverse/transloco";
-import { DisplayAmountPipe, DisplayFiatPipe } from "../../pipes/display-number.pipe";
+import { DisplayFiatPipe } from "../../pipes/display-number.pipe";
 
 @Component({
-    imports: [DisplayAmountPipe, DisplayFiatPipe, CurrencyPipe, FlexLayoutModule, NgIf, RouterLink, TranslocoModule],
+    imports: [DisplayFiatPipe, FlexLayoutModule, NgIf, RouterLink, TranslocoModule],
     selector: "wallet-balance-top-card",
     // Do not add main.scss here: with emulated encapsulation it rewrites app-global rules and breaks the card/icons.
     // Global styles (including .zelf-action-button) already load on AppComponent.
