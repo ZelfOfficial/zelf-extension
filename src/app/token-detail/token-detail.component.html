@@ -30,6 +30,8 @@
                 {{ t("common.your_token", { symbol: asset.symbol }) }}
             </div>
 
+            <p class="token-detail__deprecated" *ngIf="showBlockdagNotice">{{ t("errors.BDAG_DEPRECATED") }}</p>
+
             <h3 class="token-detail__amount">{{ formattedBalance }} {{ asset.symbol }}</h3>
 
             <p class="token-detail__price">{{ displayPrice | displayFiat }}</p>

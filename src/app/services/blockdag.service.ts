@@ -7,7 +7,9 @@ import { HttpWrapperService } from "app/http-wrapper.service";
 import { RpcProviderService } from "app/services/rpc-provider.service";
 import { environment } from "environments/environment";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
+import { BLOCKDAG_DEPRECATION_CODE } from "app/core/blockdag-support";
 import { failedBalanceFetch } from "app/core/utils/balance-fetch-result.util";
+import { protectedRpcUrl } from "@shared/utils/rpc-proxy-http";
 import { historyQueryParams } from "../core/utils/transaction-history-pagination.util";
 import {
     BLOCKDAG_BLOCKSCOUT_EXPLORERS,
@@ -23,10 +25,10 @@ export class BlockDAGService {
 
     private readonly _chainConfigs = {
         mainnet: {
-            blockExplorerUrls: ["https://bdagscan.com"],
+            blockExplorerUrls: ["https://explorer.east.bdag-us.org"],
             chainId: 1404,
             chainName: "BlockDAG Mainnet",
-            rpcUrls: ["https://rpc.bdagscan.com"],
+            rpcUrls: [protectedRpcUrl(environment.apiUrl, "blockdag")],
             nativeCurrency: {
                 decimals: 18,
                 name: "BDAG",
@@ -234,54 +236,8 @@ export class BlockDAGService {
         }
     }
 
-    async sendTransaction(params: TransactionParams): Promise<TransactionResult> {
-        try {
-            if (!params.privateKey) {
-                throw new Error("Private key is required for BlockDAG transactions");
-            }
-
-            if (!isAddress(params.to)) {
-                throw new Error("Invalid receiver address");
-            }
-
-            const provider = await this._rpcProvider.getEthersProvider("blockdag");
-            const wallet = new ethers.Wallet(params.privateKey, provider);
-
-            let txResponse;
-
-            if (params.tokenAddress) {
-                // ERC20 token transfer
-                const tokenContract = new ethers.Contract(
-                    params.tokenAddress,
-                    ["function transfer(address to, uint256 amount) returns (bool)", "function decimals() view returns (uint8)"],
-                    wallet
-                );
-
-                const decimals = params.tokenDecimals || 18;
-                const amount = ethers.parseUnits(params.value, decimals);
-
-                txResponse = await tokenContract.transfer(params.to, amount);
-            } else {
-                // Native BDAG transfer
-                const transaction = {
-                    to: params.to,
-                    value: ethers.parseEther(params.value),
-                    chainId: this._chainConfigs.mainnet.chainId,
-                    type: 0,
-                    gasPrice: BigInt(500e9),
-                };
-
-                txResponse = await wallet.sendTransaction(transaction);
-            }
-
-            return {
-                hash: txResponse.hash,
-                status: "pending",
-            };
-        } catch (error: any) {
-            console.error("Error sending BlockDAG transaction:", error);
-            throw error;
-        }
+    async sendTransaction(_params: TransactionParams): Promise<TransactionResult> {
+        throw Object.assign(new Error(BLOCKDAG_DEPRECATION_CODE), { code: BLOCKDAG_DEPRECATION_CODE });
     }
 
     getChainConfig() {

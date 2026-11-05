@@ -13,7 +13,7 @@ import { buildApprovedNamespaces, getSdkError } from "@walletconnect/utils";
 
 const WC_PROJECT_ID = "YOUR_WALLETCONNECT_PROJECT_ID"; // Replace with actual project ID from cloud.walletconnect.com
 
-const SUPPORTED_CHAINS = ["eip155:1", "eip155:43114", "eip155:137", "eip155:56", "eip155:1404"];
+const SUPPORTED_CHAINS = ["eip155:1", "eip155:43114", "eip155:137", "eip155:56"];
 const SUPPORTED_METHODS = [
     "eth_sendTransaction",
     "eth_signTransaction",

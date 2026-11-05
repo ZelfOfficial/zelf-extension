@@ -9,7 +9,6 @@ import {
 } from "@angular/core";
 import { FlexLayoutModule } from "@angular/flex-layout";
 import { MatButtonModule } from "@angular/material/button";
-import { RouterLink } from "@angular/router";
 import { TranslocoModule } from "@jsverse/transloco";
 
 import { BlockdagManualNftsService } from "app/services/blockdag-manual-nfts.service";
@@ -29,7 +28,6 @@ type CollectiblesState = "idle" | "loading" | "ready" | "error" | "no_address" |
         MatButtonModule,
         NgFor,
         NgIf,
-        RouterLink,
         TranslocoModule,
         ZelfLoaderComponent,
     ],

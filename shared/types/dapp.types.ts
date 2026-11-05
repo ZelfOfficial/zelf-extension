@@ -165,7 +165,7 @@ export const SUPPORTED_CHAINS: ChainConfig[] = [
     { chainId: 43114, name: "Avalanche", symbol: "AVAX", network: "avalanche", rpcUrl: "https://api.avax.network/ext/bc/C/rpc", blockExplorer: "https://avascan.info" },
     { chainId: 137, name: "Polygon", symbol: "POL", network: "polygon", rpcUrl: "https://polygon-rpc.com", blockExplorer: "https://polygonscan.com" },
     { chainId: 56, name: "BNB Chain", symbol: "BNB", network: "binance", rpcUrl: "https://bsc-dataseed.binance.org", blockExplorer: "https://bscscan.com" },
-    { chainId: 1404, name: "BlockDAG", symbol: "BDAG", network: "blockdag", rpcUrl: "https://rpc.bdagscan.com", blockExplorer: "https://bdagscan.com" },
+    { chainId: 1404, name: "BlockDAG", symbol: "BDAG", network: "blockdag", blockExplorer: "https://explorer.east.bdag-us.org" },
 ];
 
 export function getChainConfig(chainId: number): ChainConfig | undefined {

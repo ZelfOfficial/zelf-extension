@@ -298,7 +298,7 @@ export class BlockchainTransactionsService {
         if (network === "binance") return `https://bscscan.com/tx/${hash}`;
         if (network === "bitcoin") return `https://mempool.space/tx/${hash}`;
         if (network === "bitcoinTestnet") return `https://mempool.space/testnet/tx/${hash}`;
-        if (network === "blockdag") return `https://bdagscan.com/tx/${hash}`;
+        if (network === "blockdag") return `https://explorer.east.bdag-us.org/tx/${hash}`;
         if (network === "ethereum") return `http://etherscan.io/tx/${hash}`;
         if (network === "polygon") return `https://polygonscan.com/tx/${hash}`;
         if (network === "optimism") return `https://optimistic.etherscan.io/tx/${hash}`;
@@ -318,7 +318,8 @@ export class BlockchainTransactionsService {
     getAddressData(wallet: Partial<TagModel> | null, enabledNetworks?: string[]): Observable<any> {
         if (!wallet) return of([]);
 
-        const isEnabled = (network: string) => !enabledNetworks || enabledNetworks.includes(network);
+        const isEnabled = (network: string) =>
+            network === "blockdag" ? !!enabledNetworks?.includes("blockdag") : !enabledNetworks || enabledNetworks.includes(network);
         const xlmAddr = this._getXlmAddress(wallet);
         const dotAddr = this._getDotAddress(wallet);
         const ksmAddr = this._getKsmAddress(wallet);
@@ -510,7 +511,8 @@ export class BlockchainTransactionsService {
     getTransactionHistory(wallet: Partial<TagModel> | null, pagination: HistoryPaginationInput, enabledNetworks?: string[]): Observable<TransactionHistoryResult> {
         if (!wallet) return of(EMPTY_TRANSACTION_HISTORY);
 
-        const isEnabled = (network: string) => !enabledNetworks || enabledNetworks.includes(network);
+        const isEnabled = (network: string) =>
+            network === "blockdag" ? !!enabledNetworks?.includes("blockdag") : !enabledNetworks || enabledNetworks.includes(network);
         const xlmAddr = this._getXlmAddress(wallet);
         const queryFor = (network: string) => historyQueryForNetwork(network, pagination);
 

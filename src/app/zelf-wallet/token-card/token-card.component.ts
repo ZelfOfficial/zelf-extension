@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnChanges, Output } from "@angular/core
 import { NgClass, NgIf } from "@angular/common";
 import { FlexLayoutModule } from "@angular/flex-layout";
 import { TranslocoModule } from "@jsverse/transloco";
+import { isBlockdagToken } from "app/core/blockdag-support";
 import { isNativeChainToken } from "app/core/utils/token-balance.util";
 import { tokenNetworkToLicenseId } from "app/core/utils/token-network-id.util";
 import { NetworkService } from "app/services/network.service";
@@ -40,6 +41,7 @@ import { DisplayAmountPipe, DisplayFiatPipe } from "../../pipes/display-number.p
 
                 <p class="token-card__name" *ngIf="!hideBalances">{{ data.price | displayFiat }}</p>
                 <p class="token-card__name token-card__name--masked" *ngIf="hideBalances">••••</p>
+                <p class="token-card__deprecated" *ngIf="showBlockdagNotice">{{ "errors.BDAG_DEPRECATED" | transloco }}</p>
             </div>
 
             <div class="amount-container" fxLayout="column" fxLayoutAlign="end end">
@@ -91,6 +93,10 @@ export class TokenCardComponent implements OnChanges {
 
     currentImage!: string;
     isHovered: boolean = false;
+
+    get showBlockdagNotice(): boolean {
+        return isBlockdagToken(this.data);
+    }
 
     get balanceHint(): string {
         if (this.data?.balanceState === "unavailable") return "—";

@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 
 import { environment } from "../environments/environment";
 import { ChromeService } from "./chrome.service";
+import { withoutBdagPaymentCurrencies } from "./core/blockdag-support";
 import { DomainLicense } from "./core/models/domain.type";
 import { HttpWrapperService } from "./http-wrapper.service";
 
@@ -45,7 +46,7 @@ export class DomainService {
                     customRules: [],
                     payment: {
                         methods: ["crypto", "stripe"],
-                        currencies: ["BTC", "ETH", "USDC", "BDAG", "ZNS", "AVAX"],
+                        currencies: ["BTC", "ETH", "USDC", "ZNS", "AVAX"],
                         discounts: { yearly: 0.1, lifetime: 0.2 },
                         rewardPrice: 10,
                         whitelist: {},
@@ -185,8 +186,11 @@ export class DomainService {
         const response = await this.httpWrapper.sendRequest<DomainResponse>("get", `${this.apiUrl}/api/tags/domains`, queryParams);
 
         if (response.data) {
-            this._domainKeys = Object.keys(response.data);
-            this._domainConfigs = response.data;
+            this._domainConfigs = Object.fromEntries(
+                Object.entries(response.data).map(([name, config]) => [name, this._withoutBdagPayments(config as DomainLicense)])
+            );
+            this._domainKeys = Object.keys(this._domainConfigs);
+            response.data = this._domainConfigs;
 
             await this._saveDomainsToStorage();
         }
@@ -196,6 +200,23 @@ export class DomainService {
 
     getDomainLicense(domainName: string): DomainLicense | undefined {
         return this._domainConfigs[domainName];
+    }
+
+    private _withoutBdagPayments(config: DomainLicense): DomainLicense {
+        const currencies = config.tags?.payment?.currencies;
+
+        if (!currencies?.some((currency) => currency.toUpperCase() === "BDAG")) return config;
+
+        return {
+            ...config,
+            tags: {
+                ...config.tags,
+                payment: {
+                    ...config.tags.payment,
+                    currencies: withoutBdagPaymentCurrencies(currencies),
+                },
+            },
+        };
     }
 
     private async _saveDomainsToStorage(): Promise<void> {
@@ -224,7 +245,7 @@ export class DomainService {
             for (const domainName of this._domainKeys) {
                 const config = await this.chromeService.getItem<DomainLicense>(`domainConfig_${domainName}`);
 
-                if (config) this._domainConfigs[domainName] = config;
+                if (config) this._domainConfigs[domainName] = this._withoutBdagPayments(config);
             }
 
             return Object.values(this._domainConfigs);

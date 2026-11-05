@@ -11,6 +11,7 @@ import { TranslocoModule } from "@jsverse/transloco";
 import { CaptchaService } from "app/captcha.service";
 import { ChromeService } from "app/chrome.service";
 import { DomainLicense } from "app/core/models/domain.type";
+import { coerceSelectableDomain, selectableNameDomains } from "app/core/blockdag-support";
 import { DomainSelectionData, DomainSelectionModalComponent } from "app/domain-selection-modal/domain-selection-modal.component";
 import { DomainService } from "app/domain.service";
 import { ZelfNamePipe } from "app/pipes/zelf-name.pipe";
@@ -94,9 +95,15 @@ export class WelcomeFindImportClaimComponent implements OnInit, OnDestroy, After
         } catch {
             // Fall back to cached storage if API fails
         }
-        this.availableDomains = await this._domainService.loadDomainsFromStorage();
+        this.availableDomains = selectableNameDomains(await this._domainService.loadDomainsFromStorage());
+        const domain = coerceSelectableDomain(this.domain);
 
-        this.form.patchValue({ domain: this.domain }, { emitEvent: false });
+        if (domain !== (this.domain || "").toLowerCase()) {
+            this.domain = domain;
+            await this._tagsService.setDomain(domain);
+        }
+
+        this.form.patchValue({ domain }, { emitEvent: false });
     }
 
     private _initForm(): void {

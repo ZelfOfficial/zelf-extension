@@ -10,7 +10,6 @@ export const DAPP_PREFERRED_NETWORKS: Record<string, number> = {
     "zelf.world": 1404,
     "zelf.world/nft": 1404,
     "dashboard.zelf.world": 1404,
-    "bdagscan.com": 1404,
     "blockdag.network": 1404,
 
     // --- Avalanche (43114) ---

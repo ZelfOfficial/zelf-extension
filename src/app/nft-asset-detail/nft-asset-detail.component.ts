@@ -5,13 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { Subscription } from "rxjs";
 
-import { ChromeService } from "app/chrome.service";
-import {
-    BlockdagNftService,
-    BLOCKDAG_NFT_APP_ORIGIN,
-    NftItem,
-    parseNftImageUrl,
-} from "app/services/blockdag-nft.service";
+import { BlockdagNftService, NftItem, parseNftImageUrl } from "app/services/blockdag-nft.service";
 import { BlockdagManualNftsService } from "app/services/blockdag-manual-nfts.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 
@@ -37,7 +31,6 @@ export class NftAssetDetailComponent implements OnInit, OnDestroy {
         private _route: ActivatedRoute,
         private _router: Router,
         private _nft: BlockdagNftService,
-        private _chrome: ChromeService,
         private _manual: BlockdagManualNftsService,
         private _transloco: TranslocoService,
         private _cdr: ChangeDetectorRef
@@ -133,14 +126,6 @@ export class NftAssetDetailComponent implements OnInit, OnDestroy {
         };
     }
 
-    async openInMarketplace(): Promise<void> {
-        const id = this.detail?.cid || this.detail?.ipfsId || this.detail?.tokenId;
-        if (!id) return;
-        const locale = this._marketplaceLocale(this._transloco.getActiveLang());
-        const url = `${BLOCKDAG_NFT_APP_ORIGIN}/${locale}/nft/asset/${encodeURIComponent(String(id))}`;
-        await this._chrome.openExternalUrl(url);
-    }
-
     async removeManual(): Promise<void> {
         const c =
             this._routeContract ||
@@ -149,11 +134,5 @@ export class NftAssetDetailComponent implements OnInit, OnDestroy {
         if (!c || !t) return;
         await this._manual.remove(c, t);
         await this._router.navigate(["/wallet"], { queryParams: { tab: "nfts" } });
-    }
-
-    private _marketplaceLocale(lang: string): string {
-        const map: Record<string, string> = { cn: "zh", br: "pt", in: "en" };
-        const normalized = (lang || "en").toLowerCase();
-        return map[normalized] || normalized || "en";
     }
 }

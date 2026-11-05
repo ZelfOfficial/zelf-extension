@@ -18,6 +18,15 @@
 
         <home-enabled-networks [networkIds]="orderedNetworkIds" [networkStatus]="networkStatus" />
 
+        <section class="home-hub__section home-hub__blockdag" *ngIf="showBlockdagNotice">
+            <div class="home-hub__blockdag-card">
+                <p class="home-hub__blockdag-copy">{{ t("errors.BDAG_DEPRECATED") }}</p>
+                <button type="button" class="home-hub__blockdag-dismiss" (click)="dismissBlockdagNotice()">
+                    {{ t("common.close") }}
+                </button>
+            </div>
+        </section>
+
         <section class="home-hub__section home-hub__section--subscription">
             <div class="home-hub__subscription-card" fxLayout="column" fxLayoutGap="10px">
                 <div class="home-hub__subscription-card-top" fxLayout="row" fxLayoutAlign="space-between center" fxLayoutGap="12px">

@@ -41,6 +41,13 @@ describe("ErrorService.resolveErrorKey (tags decrypt #50)", () => {
         expect(service.resolveErrorKey({ status: 409, error: "ERR_PASSWORD_REQUIRED" })).toBe("ERR_PASSWORD_REQUIRED");
     });
 
+    it("keeps BDAG_DEPRECATED so the support-ended copy can be shown", () => {
+        expect(service.resolveErrorKey({ status: 400, error: { code: "BDAG_DEPRECATED", message: "BDAG_DEPRECATED" } })).toBe(
+            "BDAG_DEPRECATED"
+        );
+        expect(service.resolveErrorKey({ status: 410, error: "400:BDAG_DEPRECATED" })).toBe("BDAG_DEPRECATED");
+    });
+
     it("translateErrorMessage returns localized copy", () => {
         expect(service.translateErrorMessage("ERR_PASSWORD_REQUIRED")).toBe("Password required");
         expect(service.translateErrorMessage("missing_key", "errors.generic")).toBe("Generic");

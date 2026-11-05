@@ -76,6 +76,13 @@
         word-break: break-all;
     }
 
+    &__deprecated {
+        margin: 0 24px 12px;
+        font-size: 13px;
+        line-height: 1.45;
+        color: variables.$themeText;
+    }
+
     // ---------- Body ----------
 
     &__body {

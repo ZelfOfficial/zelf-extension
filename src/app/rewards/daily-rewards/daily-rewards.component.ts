@@ -182,7 +182,9 @@ export class DailyRewardsComponent implements OnInit, OnDestroy {
             } else if (wheelConfig.alreadyClaimedToday) {
                 this.hasSpunToday = true;
 
-                if (wheelConfig.todayReward) {
+                if ((wheelConfig.todayReward?.currency || "").toUpperCase() === "BDAG") {
+                    this.errorMessage = this._translocoService.translate("errors.BDAG_DEPRECATED");
+                } else if (wheelConfig.todayReward) {
                     this.wonAmount = wheelConfig.todayReward.amount;
                 }
 
@@ -396,6 +398,15 @@ export class DailyRewardsComponent implements OnInit, OnDestroy {
                 this.pendingWinningIndex = null;
                 this.canRetryClaim = true;
                 this.errorMessage = response.message || this._translocoService.translate("rewards.error.claim_failed");
+                this._stopSpinWithoutReward();
+                return;
+            }
+
+            if ((response.reward?.currency || "").toUpperCase() === "BDAG") {
+                this._claimOutcome = "failed";
+                this.pendingWinningIndex = null;
+                this.canRetryClaim = false;
+                this.errorMessage = this._translocoService.translate("errors.BDAG_DEPRECATED");
                 this._stopSpinWithoutReward();
                 return;
             }

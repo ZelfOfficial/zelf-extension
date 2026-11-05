@@ -13,6 +13,7 @@ import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 
 import { AssetService } from "app/asset.service";
 import { ChromeService } from "app/chrome.service";
+import { isBlockdagNetworkId, isBlockdagToken } from "app/core/blockdag-support";
 import { areSendAddressesSame } from "app/core/utils/same-wallet-address.util";
 import { isNativeSuiHolding, sendConfirmNetworkLabel } from "app/core/utils/sui-coin.util";
 import { mapTransactionErrorToTranslationKey } from "app/core/utils/user-facing-transaction-error.util";
@@ -747,6 +748,11 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
     async confirmTransaction() {
         if (this.sending || this.feeError) return;
 
+        if (this._isBlockdagSend()) {
+            this.openErrorSnackBar("errors.BDAG_DEPRECATED");
+            return;
+        }
+
         // #88 signing rule: see core/security/signing-gate.util.ts.
         const gate = resolveSigningGate(await this._signingGateInput());
 
@@ -865,7 +871,19 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
      * Handle standard (non-stealth) transaction for all networks
      * @private
      */
+    private _isBlockdagSend(): boolean {
+        return (
+            !!this.transactionData?.isBDAGToken ||
+            isBlockdagNetworkId(this.transactionData?.network) ||
+            isBlockdagToken(this.transactionData?.token)
+        );
+    }
+
     private async _handleStandardTransaction(cleanMnemonic: string, normalizedAmount: number, amountText?: string): Promise<void> {
+        if (this._isBlockdagSend()) {
+            throw Object.assign(new Error("BDAG_DEPRECATED"), { code: "BDAG_DEPRECATED" });
+        }
+
         const exactAmount = (amountText || String(normalizedAmount)).replace(/,/g, "").trim();
         const transactionParams: TransactionParams = {
             from: "",

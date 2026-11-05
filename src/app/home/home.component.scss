@@ -473,6 +473,33 @@
         color: variables.$themeText;
     }
 
+    &__blockdag-card {
+        display: flex;
+        flex-direction: column;
+        gap: calc(10px * var(--zns-space-scale, 1));
+        padding: calc(14px * var(--zns-space-scale, 1));
+        border-radius: 16px;
+        border: 1px solid variables.$themeBorder;
+        background: variables.$themeCard;
+    }
+
+    &__blockdag-copy {
+        margin: 0;
+        font-size: calc(13px * var(--zns-font-scale, 1));
+        line-height: 1.45;
+        color: variables.$themeText;
+    }
+
+    &__blockdag-dismiss {
+        align-self: flex-start;
+        border: 0;
+        background: transparent;
+        color: variables.$secondaryColor;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0;
+    }
+
     &__signals-placeholder-body {
         margin: 0;
         font-size: calc(13px * var(--zns-font-scale, 1));

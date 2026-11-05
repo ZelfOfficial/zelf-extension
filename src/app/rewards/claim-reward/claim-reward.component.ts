@@ -61,6 +61,13 @@ export class ClaimRewardComponent implements OnInit, OnDestroy {
             this.rewardType = params["rewardType"] || "";
             this.friendFullName = `${this.friendTagName}.${this.friendDomain}`;
 
+            if ((this.rewardType || "").toUpperCase() === "BDAG") {
+                this.state = "error";
+                this.errorKey = "errors.BDAG_DEPRECATED";
+                this.isAlreadyClaimed = true;
+                return;
+            }
+
             if (!this.tagName || !this.domain || !this.friendTagName || !this.friendDomain) {
                 this.state = "error";
                 this.errorKey = "claim_reward.error.messages.generic";
@@ -107,6 +114,7 @@ export class ClaimRewardComponent implements OnInit, OnDestroy {
                 referral_limit_reached: "claim_reward.error.messages.referral_limit_reached",
                 reward_claim_in_progress: "claim_reward.error.messages.reward_claim_in_progress",
                 reward_not_eligible: "claim_reward.error.messages.reward_not_eligible",
+                bdag_deprecated: "errors.BDAG_DEPRECATED",
             };
 
             const nonRetryableCodes = new Set([
@@ -114,6 +122,7 @@ export class ClaimRewardComponent implements OnInit, OnDestroy {
                 "referral_limit_reached",
                 "reward_claim_in_progress",
                 "reward_not_eligible",
+                "bdag_deprecated",
             ]);
 
             this.errorKey = errorMappings[normalizedCode] || "";

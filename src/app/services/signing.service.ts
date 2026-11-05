@@ -166,6 +166,10 @@ export class SigningService {
     }
 
     async signRawTransaction(mnemonic: string, txParams: DappTransactionParams): Promise<string> {
+        if (txParams.chainId === 1404 || txParams.network?.toLowerCase() === "blockdag") {
+            throw Object.assign(new Error("BDAG_DEPRECATED"), { code: "BDAG_DEPRECATED" });
+        }
+
         const cleanMnemonic = mnemonic.trim().toLowerCase();
         const wallet = ethers.Wallet.fromPhrase(cleanMnemonic);
         const preparedTxParams = await this._dappGasEstimation.prepareTransactionForBroadcast(txParams, wallet.address);
@@ -263,6 +267,10 @@ export class SigningService {
     async sendEvmTransactionNative(mnemonic: string, txParams: DappTransactionParams): Promise<TransactionResult> {
         const cleanMnemonic = mnemonic.trim().toLowerCase();
         const network = txParams.network.toLowerCase();
+
+        if (txParams.chainId === 1404 || network === "blockdag") {
+            throw Object.assign(new Error("BDAG_DEPRECATED"), { code: "BDAG_DEPRECATED" });
+        }
         const baseWallet = ethers.Wallet.fromPhrase(cleanMnemonic);
         const preparedTxParams = await this._dappGasEstimation.prepareTransactionForBroadcast(txParams, baseWallet.address);
         const chainId = preparedTxParams.chainId;
@@ -289,15 +297,6 @@ export class SigningService {
         if (preparedTxParams.maxFeePerGas) tx.maxFeePerGas = BigInt(preparedTxParams.maxFeePerGas);
         if (preparedTxParams.maxPriorityFeePerGas) tx.maxPriorityFeePerGas = BigInt(preparedTxParams.maxPriorityFeePerGas);
         if (preparedTxParams.nonce !== undefined) tx.nonce = preparedTxParams.nonce;
-
-        if (preparedTxParams.chainId === 1404) {
-            tx.type = 0;
-            delete tx.maxFeePerGas;
-            delete tx.maxPriorityFeePerGas;
-            if (!tx.gasPrice) {
-                tx.gasPrice = BigInt(500e9);
-            }
-        }
 
         try {
             try {
