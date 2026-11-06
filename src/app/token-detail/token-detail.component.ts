@@ -418,8 +418,6 @@ export class TokenDetailComponent implements AfterViewInit, OnDestroy {
     }
 
     checkCanSend(): boolean {
-        if (this.showBlockdagNotice) return false;
-
         return this.CAN_SEND[this.networkSymbol as keyof NetworkPermissions] || false;
     }
 

@@ -1310,7 +1310,7 @@
         "THE PROVIDED PASSWORD IS INVALID.": "La contraseña que ingresaste es incorrecta. Comprueba tu contraseña e inténtalo de nuevo.",
         "ERR_MISSING_PASSWORD": "Esta clave está protegida con tu contraseña maestra. Ingrésala e inténtalo de nuevo.",
         "ERR_ZELF_ID_STILL_ACTIVE": "Este Zelf ID sigue activo. Inicia sesión con él en lugar de recuperarlo con otro nombre.",
-        "BDAG_DEPRECATED": "Zelf deja de dar soporte a BlockDAG (BDAG). Después de revisar el proyecto, ya no consideramos que BlockDAG sea lo suficientemente confiable para darle soporte, y Zelf no lo respalda. Ya no puedes activar BDAG ni registrar nombres .bdag nuevos. Si tienes BDAG, exporta tus 12/24 palabras de recuperación e impórtalas en otra billetera para acceder a tus fondos. Si tienes un nombre .bdag, puedes reclamar el mismo nombre en .zelf gratis. Tus otras billeteras y activos no se ven afectados.",
+        "BDAG_DEPRECATED": "Zelf deja de dar soporte a BlockDAG (BDAG). Ya no puedes activar BDAG ni registrar nombres .bdag nuevos. Tus fondos están seguros. Si tienes BDAG, exporta tus 12 o 24 palabras de recuperación e impórtalas en otra billetera. Si tienes un nombre .bdag, puedes reclamar el mismo nombre en .zelf gratis. Tus otras billeteras y activos no se ven afectados.",
         "unknown": "Error desconocido"
     },
     "swap": {

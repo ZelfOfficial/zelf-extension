@@ -41,11 +41,10 @@ describe("ErrorService.resolveErrorKey (tags decrypt #50)", () => {
         expect(service.resolveErrorKey({ status: 409, error: "ERR_PASSWORD_REQUIRED" })).toBe("ERR_PASSWORD_REQUIRED");
     });
 
-    it("keeps BDAG_DEPRECATED so the support-ended copy can be shown", () => {
-        expect(service.resolveErrorKey({ status: 400, error: { code: "BDAG_DEPRECATED", message: "BDAG_DEPRECATED" } })).toBe(
-            "BDAG_DEPRECATED"
-        );
-        expect(service.resolveErrorKey({ status: 410, error: "400:BDAG_DEPRECATED" })).toBe("BDAG_DEPRECATED");
+    it("keeps HTTP 410 BDAG_DEPRECATED so the support-ended copy can be shown", () => {
+        expect(service.resolveErrorKey({ status: 410, error: { code: "BDAG_DEPRECATED", chain: "blockdag" } })).toBe("BDAG_DEPRECATED");
+        expect(service.resolveErrorKey({ status: 410, error: { code: "BDAG_DEPRECATED", message: "Gone" } })).toBe("BDAG_DEPRECATED");
+        expect(service.resolveErrorKey({ status: 410, error: "410:BDAG_DEPRECATED" })).toBe("BDAG_DEPRECATED");
     });
 
     it("translateErrorMessage returns localized copy", () => {

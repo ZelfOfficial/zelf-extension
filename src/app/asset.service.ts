@@ -97,7 +97,7 @@ export class AssetService {
             // Aptos send stays off until a small real test send is approved (same policy as TON).
             APT: false,
             AVAX: true,
-            BDAG: false,
+            BDAG: true,
             BNB: true,
             BTC: true,
             DOT: true,

@@ -239,15 +239,6 @@ export class DappSignComponent implements OnInit {
     async confirmSigning(): Promise<void> {
         if (this.signing) return;
 
-        if (!this.isMessageSign && (this.txChainId === 1404 || this.txNetwork === "blockdag")) {
-            this._snackBar.open(this._translocoService.translate("errors.BDAG_DEPRECATED"), this._translocoService.translate("common.close"), {
-                duration: 8000,
-                panelClass: "zelf-snackbar",
-                verticalPosition: "top",
-            });
-            return;
-        }
-
         // #88 signing rule (core/security/signing-gate.util.ts).
         const gate = resolveSigningGate(await this._signingGateInput());
 
