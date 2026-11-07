@@ -5,7 +5,9 @@ import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { ActivatedRoute, Router } from "@angular/router";
 import { TranslocoModule } from "@jsverse/transloco";
 
+import { BLOCKDAG_CHAIN_ID } from "app/core/blockdag-support";
 import { ChromeService } from "app/chrome.service";
+import { SettingsService } from "app/services/settings.service";
 import { SigningService } from "app/services/signing.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { VerifyStatus, getChainConfig, SUPPORTED_CHAINS } from "@shared/types/dapp.types";
@@ -31,16 +33,18 @@ export class DappConnectComponent implements OnInit, OnDestroy {
     activeTab: "accounts" | "permissions" = "accounts";
     accounts: { tagName: string; address: string; selected: boolean }[] = [];
     verifyStatus: VerifyStatus = "UNKNOWN";
-    chainId = 1404;
-    chainName = "BlockDAG";
-    chainSymbol = "BDAG";
+    chainId = 1;
+    chainName = "Ethereum";
+    chainSymbol = "ETH";
     showPicker = false;
-    supportedChains = SUPPORTED_CHAINS;
+    supportedChains = SUPPORTED_CHAINS.filter((chain) => chain.chainId !== BLOCKDAG_CHAIN_ID);
+    private _blockdagEnabled = false;
 
     constructor(
         private _activatedRoute: ActivatedRoute,
         private _chromeService: ChromeService,
         private _router: Router,
+        private _settingsService: SettingsService,
         private _signingService: SigningService
     ) {}
 
@@ -53,6 +57,10 @@ export class DappConnectComponent implements OnInit, OnDestroy {
         }
 
         try {
+            const enabledIds = await this._settingsService.getEnabledNetworkIdsFromLicense();
+            this._blockdagEnabled = !!enabledIds?.includes("blockdag");
+            this.supportedChains = SUPPORTED_CHAINS.filter((chain) => chain.chainId !== BLOCKDAG_CHAIN_ID || this._blockdagEnabled);
+
             const allAccounts = await this._signingService.getAllWalletAccounts();
 
             this.accounts = allAccounts.map((acc, index) => ({
@@ -70,7 +78,10 @@ export class DappConnectComponent implements OnInit, OnDestroy {
                 this.verifyStatus = pendingData.verifyStatus || "UNKNOWN";
 
                 const preferredChainId = getPreferredChainIdForOrigin(this.origin);
-                const resolvedChainId = pendingData.chainId || preferredChainId || 1404;
+                let resolvedChainId = pendingData.chainId || preferredChainId || 1;
+
+                if (resolvedChainId === BLOCKDAG_CHAIN_ID && !this._blockdagEnabled) resolvedChainId = 1;
+
                 this.chainId = resolvedChainId;
                 const chainConfig = getChainConfig(resolvedChainId);
                 if (chainConfig) {
@@ -161,6 +172,8 @@ export class DappConnectComponent implements OnInit, OnDestroy {
     }
 
     selectNetwork(chainId: number): void {
+        if (chainId === BLOCKDAG_CHAIN_ID && !this._blockdagEnabled) return;
+
         this.chainId = chainId;
         const config = getChainConfig(chainId);
         if (config) {

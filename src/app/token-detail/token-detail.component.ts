@@ -19,6 +19,7 @@ import { AreaData, AreaSeries, AreaSeriesOptions, ChartOptionsBase, ColorType, c
 import { firstValueFrom, Subject, takeUntil } from "rxjs";
 import { DisplayFiatPipe } from "../pipes/display-number.pipe";
 import { formatDisplayAmount } from "../core/utils/display-number.util";
+import { isBlockdagToken } from "../core/blockdag-support";
 import { isNativeChainToken } from "../core/utils/token-balance.util";
 import { tokenNetworkToLicenseId } from "../core/utils/token-network-id.util";
 
@@ -410,6 +411,10 @@ export class TokenDetailComponent implements AfterViewInit, OnDestroy {
         this.selectedRange = range;
 
         await this._requestChartData();
+    }
+
+    get showBlockdagNotice(): boolean {
+        return isBlockdagToken(this.asset);
     }
 
     checkCanSend(): boolean {

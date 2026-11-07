@@ -8,6 +8,8 @@
  * `console.error` the original error themselves for debugging.
  */
 export function mapTransactionErrorToTranslationKey(error: unknown): string {
+    if (isBlockdagDeprecatedError(error)) return "errors.BDAG_DEPRECATED";
+
     if (error instanceof Object) {
         const ethersKey = mapEthersError(error);
         if (ethersKey) return ethersKey;
@@ -45,6 +47,13 @@ const KNOWN_ERROR_KEYS = new Set([
 ]);
 
 /** Allows callers (e.g. an inner layer) to throw with a translation key directly. */
+function isBlockdagDeprecatedError(error: unknown): boolean {
+    const message = extractMessage(error);
+    const code = error && typeof error === "object" ? (error as { code?: unknown }).code : undefined;
+
+    return code === "BDAG_DEPRECATED" || message === "BDAG_DEPRECATED" || message.includes("BDAG_DEPRECATED");
+}
+
 function mapKnownErrorMessage(message: string): string | null {
     if (!message) return null;
     if (KNOWN_ERROR_KEYS.has(message)) return message;

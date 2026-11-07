@@ -11,6 +11,7 @@ export const DAILY_REWARD_ERROR_KEYS: Record<string, string> = {
     ERR_MISSING_PASSWORD: "rewards.error.missing_password",
     ERR_INVALID_PASSWORD: "rewards.error.invalid_password",
     ERR_PASSWORD_REQUIRED: "rewards.error.password_required",
+    BDAG_DEPRECATED: "errors.BDAG_DEPRECATED",
 };
 
 export interface DailyRewardClaimRequest {

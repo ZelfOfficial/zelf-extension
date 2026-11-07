@@ -7,6 +7,7 @@ describe("daily reward identity", () => {
         "ERR_MISSING_PASSWORD",
         "ERR_INVALID_PASSWORD",
         "ERR_PASSWORD_REQUIRED",
+        "BDAG_DEPRECATED",
     ];
 
     it("reads each claim error code from message and code", () => {

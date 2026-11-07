@@ -1274,6 +1274,7 @@
         "face_locked_about_minutes": "environ {{ minutes }} minutes",
         "face_locked_about_hours": "environ {{ hours }} heures",
         "face_replay_detected": "Cette photo a déjà été utilisée. Prenez une nouvelle photo et réessayez.",
+        "BDAG_DEPRECATED": "Zelf met fin à la prise en charge de BlockDAG (BDAG). Vous ne pouvez plus activer BDAG ni enregistrer de nouveaux noms .bdag. Vos fonds sont en sécurité. Si vous détenez du BDAG, exportez vos 12 ou 24 mots de récupération et importez-les dans un autre portefeuille. Si vous avez un nom .bdag, vous pouvez obtenir le même nom en .zelf gratuitement. Vos autres portefeuilles et actifs ne sont pas affectés.",
         "unknown": "Erreur inconnue"
     },
     "swap": {

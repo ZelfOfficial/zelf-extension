@@ -30,6 +30,8 @@
                 {{ t("common.your_token", { symbol: asset.symbol }) }}
             </div>
 
+            <p class="token-detail__deprecated" *ngIf="showBlockdagNotice">{{ t("errors.BDAG_DEPRECATED") }}</p>
+
             <h3 class="token-detail__amount">{{ formattedBalance }} {{ asset.symbol }}</h3>
 
             <p class="token-detail__price">{{ displayPrice | displayFiat }}</p>
@@ -82,7 +84,7 @@
             </div>
 
             <div class="token-detail__actions" fxLayout="row" fxLayoutAlign="center center">
-                <div class="zelf-action-button">
+                <div class="zelf-action-button" *ngIf="!showBlockdagNotice">
                     <div class="zelf-action-button__icon" [routerLink]="['/receive', 'qr', asset.network]">
                         <div class="zelf-action-button__icon-box">
                             <svg width="17" height="18" viewBox="0 0 17 18" fill="none" xmlns="http://www.w3.org/2000/svg">

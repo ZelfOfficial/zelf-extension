@@ -73,6 +73,17 @@ describe("resolveEnabledNetworkIds", () => {
         expect(resolveEnabledNetworkIds(licensed, licensed.map((id) => toggle(id, false)))).toEqual(licensed);
     });
 
+    it("does not activate BlockDAG unless the wallet already had it enabled", () => {
+        const withBlockdag = ["ethereum", "blockdag", "solana"];
+
+        expect(resolveEnabledNetworkIds(withBlockdag, undefined)).toEqual(["ethereum", "solana"]);
+        expect(resolveEnabledNetworkIds(withBlockdag, [toggle("blockdag", false)])).toEqual(["ethereum", "solana"]);
+        expect(resolveEnabledNetworkIds(withBlockdag, [toggle("blockdag", true)])).toEqual(withBlockdag);
+        expect(resolveEnabledNetworkIds(["ethereum"], [toggle("blockdag", true)])).toEqual(["ethereum", "blockdag"]);
+        expect(resolveEnabledNetworkIds(withBlockdag, withBlockdag.map((id) => toggle(id, false)))).toEqual(["ethereum", "solana"]);
+        expect(resolveEnabledNetworkIds(withBlockdag, [toggle("ethereum", false), toggle("solana", false)])).toEqual(["ethereum", "solana"]);
+    });
+
     it("keeps legacy behaviour while no license config is known", () => {
         expect(resolveEnabledNetworkIds(null, undefined)).toBeUndefined();
         expect(resolveEnabledNetworkIds(null, [toggle("ethereum", true), toggle("solana", false)])).toEqual(["ethereum"]);

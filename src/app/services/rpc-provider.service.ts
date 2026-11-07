@@ -17,13 +17,11 @@ export interface SolanaConnectionOptions {
 
 export interface RpcProviderOptions {
     /**
-     * Public chains (arbitrum, optimism, base, blockdag) may use their public endpoint
-     * when a session cannot be minted. Paid chains never do.
+     * Public chains (arbitrum, optimism, base) may use their public endpoint
+     * when a session cannot be minted. Paid chains and BlockDAG never do.
      */
     allowDirectFallback?: boolean;
 }
-
-const BLOCKDAG_PUBLIC_RPC = "https://rpc.bdagscan.com";
 
 /**
  * JSON-RPC for wallet reads and sends goes through `POST /api/protected/rpc/:chainKey`
@@ -52,8 +50,6 @@ export class RpcProviderService {
                 return environment.optimismRpc.mainnet;
             case "base":
                 return environment.baseRpc.mainnet;
-            case "blockdag":
-                return BLOCKDAG_PUBLIC_RPC;
             default:
                 return null;
         }
@@ -137,7 +133,7 @@ export class RpcProviderService {
                 console.warn(`[RpcProviderService] Public RPC fallback for ${chainKey} (no JWT)`, err);
             }
 
-            return new JsonRpcProvider(fallback, undefined, chainKey === "blockdag" ? { batchMaxCount: 1 } : undefined);
+            return new JsonRpcProvider(fallback);
         }
 
         const request = new FetchRequest(this.getProtectedProxyUrl(chainKey));

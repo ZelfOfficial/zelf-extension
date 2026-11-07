@@ -1274,6 +1274,7 @@
         "face_locked_about_minutes": "mga {{ minutes }} minuto",
         "face_locked_about_hours": "mga {{ hours }} oras",
         "face_replay_detected": "Nagamit na ang larawang ito. Kumuha ng bagong larawan at subukang muli.",
+        "BDAG_DEPRECATED": "Tinatapos na ng Zelf ang suporta para sa BlockDAG (BDAG). Hindi mo na maa-activate ang BDAG o makapagrehistro ng mga bagong pangalang .bdag. Ligtas ang iyong mga pondo. Kung may BDAG ka, i-export ang iyong 12 o 24 recovery words at i-import ang mga ito sa ibang wallet. Kung may pangalang .bdag ka, maaari mong i-claim nang libre ang parehong pangalan sa .zelf. Hindi apektado ang iyong ibang mga wallet at asset.",
         "unknown": "Hindi alam na error"
     },
     "swap": {

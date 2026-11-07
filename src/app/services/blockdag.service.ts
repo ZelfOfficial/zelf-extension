@@ -8,6 +8,7 @@ import { RpcProviderService } from "app/services/rpc-provider.service";
 import { environment } from "environments/environment";
 import { TransactionFeeEstimate, TransactionParams, TransactionResult } from "../core/models/transaction-fee.model";
 import { failedBalanceFetch } from "app/core/utils/balance-fetch-result.util";
+import { protectedRpcUrl } from "@shared/utils/rpc-proxy-http";
 import { historyQueryParams } from "../core/utils/transaction-history-pagination.util";
 import {
     BLOCKDAG_BLOCKSCOUT_EXPLORERS,
@@ -23,10 +24,10 @@ export class BlockDAGService {
 
     private readonly _chainConfigs = {
         mainnet: {
-            blockExplorerUrls: ["https://bdagscan.com"],
+            blockExplorerUrls: ["https://explorer.east.bdag-us.org"],
             chainId: 1404,
             chainName: "BlockDAG Mainnet",
-            rpcUrls: ["https://rpc.bdagscan.com"],
+            rpcUrls: [protectedRpcUrl(environment.apiUrl, "blockdag")],
             nativeCurrency: {
                 decimals: 18,
                 name: "BDAG",
@@ -250,7 +251,6 @@ export class BlockDAGService {
             let txResponse;
 
             if (params.tokenAddress) {
-                // ERC20 token transfer
                 const tokenContract = new ethers.Contract(
                     params.tokenAddress,
                     ["function transfer(address to, uint256 amount) returns (bool)", "function decimals() view returns (uint8)"],
@@ -262,7 +262,6 @@ export class BlockDAGService {
 
                 txResponse = await tokenContract.transfer(params.to, amount);
             } else {
-                // Native BDAG transfer
                 const transaction = {
                     to: params.to,
                     value: ethers.parseEther(params.value),

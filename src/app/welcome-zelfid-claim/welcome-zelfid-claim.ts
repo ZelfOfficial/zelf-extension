@@ -11,6 +11,7 @@ import { TranslocoModule } from "@jsverse/transloco";
 import { CaptchaService } from "app/captcha.service";
 import { ChromeService } from "app/chrome.service";
 import { DomainLicense } from "app/core/models/domain.type";
+import { coerceSelectableDomain, selectableNameDomains } from "app/core/blockdag-support";
 import { DomainSelectionData, DomainSelectionModalComponent } from "app/domain-selection-modal/domain-selection-modal.component";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { ZelfNamePipe } from "app/pipes/zelf-name.pipe";
@@ -121,9 +122,15 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
     private async _loadDomains(): Promise<void> {
         this.domain = await this._zelfIdsService.getDomain();
 
-        this.availableDomains = await this._zelfIdsService.loadDomains();
+        this.availableDomains = selectableNameDomains(await this._zelfIdsService.loadDomains());
+        const domain = coerceSelectableDomain(this.domain);
 
-        this.form.patchValue({ domain: this.domain }, { emitEvent: false });
+        if (domain !== (this.domain || "").toLowerCase()) {
+            this.domain = domain;
+            await this._zelfIdsService.setDomain(domain);
+        }
+
+        this.form.patchValue({ domain }, { emitEvent: false });
     }
 
     private _initForm(): void {

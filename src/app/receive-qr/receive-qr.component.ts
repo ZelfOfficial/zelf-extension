@@ -104,10 +104,18 @@ export class ReceiveQrComponent extends CopyToClipboardBase implements OnInit, O
     ) {
         super(_chromeService, _snackBar, _translocoService);
 
-        this.network = this._activatedRoute.snapshot.params["network"];
+        const initialNetwork = String(this._activatedRoute.snapshot.params["network"] || "");
+        this.network = initialNetwork.toLowerCase() === "blockdag" || initialNetwork.toLowerCase() === "bdag" ? "" : initialNetwork;
 
         this._activatedRoute.params.pipe(takeUntil(this.unsubscriber$)).subscribe((params) => {
-            this.network = params["network"];
+            const network = String(params["network"] || "");
+
+            if (network.toLowerCase() === "blockdag" || network.toLowerCase() === "bdag") {
+                void this._router.navigate(["/receive"]);
+                return;
+            }
+
+            this.network = network;
 
             this._setNetwork();
 
@@ -127,6 +135,9 @@ export class ReceiveQrComponent extends CopyToClipboardBase implements OnInit, O
 
     /** Load from Chrome storage, optional background tag search (TTL), then paint QR from local state. */
     private async _syncWalletAndQr(): Promise<void> {
+        const routeNetwork = (this.network || "").toLowerCase();
+        if (routeNetwork === "blockdag" || routeNetwork === "bdag") return;
+
         const w = (await this._walletService.getCurrentWallet()) as TagModel | null;
         this.wallet = w || {};
 

@@ -5,6 +5,7 @@ import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef } from "@angular/material/bott
 import { MatButtonModule } from "@angular/material/button";
 import { TranslocoModule } from "@jsverse/transloco";
 
+import { coerceSelectableDomain, selectableNameDomains } from "app/core/blockdag-support";
 import { DomainLicense } from "app/core/models/domain.type";
 
 export interface DomainSelectionData {
@@ -28,6 +29,11 @@ export class DomainSelectionModalComponent implements OnInit {
     ) {}
 
     ngOnInit(): void {
+        this.data = {
+            ...this.data,
+            domains: selectableNameDomains(this.data?.domains),
+            selectedDomain: coerceSelectableDomain(this.data?.selectedDomain),
+        };
         this._initForm();
     }
 

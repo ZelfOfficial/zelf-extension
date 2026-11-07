@@ -3,6 +3,7 @@ import { Component, OnDestroy, OnInit } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { TranslocoModule } from "@jsverse/transloco";
+import { isBlockdagNetworkId } from "app/core/blockdag-support";
 import { DEFAULT_NETWORK_CONFIGS } from "app/core/network-settings.util";
 import { NetworkConfig, Settings } from "app/models/settings.model";
 import { LicenseNetworksService } from "app/services/license-networks.service";
@@ -81,13 +82,23 @@ export class ZelfSettingsNetworksComponent implements OnInit, OnDestroy {
             : DEFAULT_NETWORK_CONFIGS;
 
         // Saved user toggles apply only to networks the license allows
-        this.networks = availableNetworks.map((defaultNetwork) => {
-            const savedNetwork = this.settings.networks?.find((n) => n.id === defaultNetwork.id);
-            return savedNetwork ? { ...defaultNetwork, ...savedNetwork } : { ...defaultNetwork };
-        });
+        this.networks = availableNetworks
+            .map((defaultNetwork) => {
+                const savedNetwork = this.settings.networks?.find((n) => n.id === defaultNetwork.id);
+                return savedNetwork ? { ...defaultNetwork, ...savedNetwork } : { ...defaultNetwork };
+            })
+            .filter((network) => !isBlockdagNetworkId(network.id) || network.enabled);
     }
 
     onNetworkToggle(network: NetworkConfig): void {
+        if (isBlockdagNetworkId(network.id)) {
+            if (!network.enabled) return;
+
+            network.enabled = false;
+            this._saveNetworks();
+            return;
+        }
+
         network.enabled = !network.enabled;
         this._saveNetworks();
     }

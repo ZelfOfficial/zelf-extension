@@ -143,6 +143,13 @@
         vertical-align: middle;
     }
 
+    &__deprecated {
+        margin: 0 0 calc(12px * var(--zns-space-scale, 1));
+        font-size: calc(13px * var(--zns-font-scale, 1));
+        line-height: 1.45;
+        color: variables.$themeTextSecondary;
+    }
+
     &__amount {
         font-family: variables.$themeTitleFamily;
         font-weight: 700;

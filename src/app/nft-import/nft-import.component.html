@@ -16,9 +16,9 @@
         <h1 class="nft-import__title">{{ t("home.nft_import_title") }}</h1>
     </div>
 
-    <p class="nft-import__hint">{{ t("home.nft_import_hint") }}</p>
+    <p class="nft-import__hint">{{ t("errors.BDAG_DEPRECATED") }}</p>
 
-    <form class="nft-import__form" [formGroup]="form" (ngSubmit)="submit()">
+    <form class="nft-import__form" *ngIf="false" [formGroup]="form" (ngSubmit)="submit()">
         <mat-form-field appearance="outline" class="nft-import__field">
             <mat-label>{{ t("home.nft_import_contract_label") }}</mat-label>
             <input matInput formControlName="contract" autocomplete="off" autocapitalize="off" />

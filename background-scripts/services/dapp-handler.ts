@@ -927,13 +927,13 @@ export class DappHandler {
             await this._savePermission({
                 origin: pending.origin,
                 accounts,
-                chainId: chainId || 1404,
+                chainId: chainId || 1,
                 connectedAt: Date.now(),
                 lastUsed: Date.now(),
             });
         }
 
-        const approvedChainId = chainId || pending.chainId || 1404;
+        const approvedChainId = chainId || pending.chainId || 1;
         const responsePayload = approved && accounts
             ? { result: accounts, chainId: approvedChainId }
             : { error: { code: 4001, message: "User rejected the request" } };
@@ -1651,7 +1651,7 @@ export class DappHandler {
         const hostname = this._getHostname(request.origin);
         return {
             ...request,
-            chainId: request.chainId || 1404,
+            chainId: request.chainId || 1,
             expiresAt: request.timestamp + request.timeoutMs,
             favicon: `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`,
             hostname,
@@ -1693,7 +1693,7 @@ export class DappHandler {
             tabId: typeof stored.tabId === "number" ? stored.tabId : undefined,
             method: stored.method || "eth_requestAccounts",
             params: stored.params,
-            chainId: typeof stored.chainId === "number" ? stored.chainId : 1404,
+            chainId: typeof stored.chainId === "number" ? stored.chainId : 1,
             timestamp,
             timeoutMs,
             expiresAt,

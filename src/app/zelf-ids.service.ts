@@ -106,6 +106,7 @@ const DOMAIN_CACHE_KEYS = {
     configPrefix: "zelfIdDomainConfig_",
 } as const;
 
+import { withoutBdagPaymentCurrencies } from "./core/blockdag-support";
 import { ZaiService } from "./zai/zai.service";
 @Injectable({
     providedIn: "root",
@@ -205,8 +206,10 @@ export class ZelfIdsService {
             const response = await this.getDomains();
 
             if (response.data) {
-                this._domainKeys = Object.keys(response.data);
-                this._domainConfigs = response.data;
+                this._domainConfigs = Object.fromEntries(
+                    Object.entries(response.data).map(([name, config]) => [name, stripBdagPaymentCurrencies(config as DomainLicense)])
+                );
+                this._domainKeys = Object.keys(this._domainConfigs);
                 await this._saveDomainsToStorage();
             }
         } catch {
@@ -227,7 +230,7 @@ export class ZelfIdsService {
             for (const domainName of this._domainKeys) {
                 const config = await this._chromeService.getItem<DomainLicense>(`${DOMAIN_CACHE_KEYS.configPrefix}${domainName}`);
 
-                if (config) this._domainConfigs[domainName] = config;
+                if (config) this._domainConfigs[domainName] = stripBdagPaymentCurrencies(config);
             }
 
             return Object.values(this._domainConfigs);
@@ -541,4 +544,21 @@ export class ZelfIdsService {
     formatTagName(name: string, domain: string): string {
         return `${name}.${domain}`;
     }
+}
+
+function stripBdagPaymentCurrencies(config: DomainLicense): DomainLicense {
+    const currencies = config.tags?.payment?.currencies;
+
+    if (!currencies?.some((currency) => currency.toUpperCase() === "BDAG")) return config;
+
+    return {
+        ...config,
+        tags: {
+            ...config.tags,
+            payment: {
+                ...config.tags.payment,
+                currencies: withoutBdagPaymentCurrencies(currencies),
+            },
+        },
+    };
 }

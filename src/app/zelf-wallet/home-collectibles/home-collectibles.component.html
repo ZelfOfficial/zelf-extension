@@ -1,13 +1,4 @@
 <div class="home-collectibles" fxLayout="column" fxLayoutAlign="start stretch" *transloco="let t">
-    <div
-        class="home-collectibles__toolbar"
-        *ngIf="state !== 'loading' && state !== 'network_disabled' && state !== 'no_address'"
-        fxLayout="row"
-        fxLayoutAlign="end center"
-    >
-        <button mat-stroked-button color="primary" routerLink="/nft-import" type="button">{{ t("home.collectibles_import_cta") }}</button>
-    </div>
-
     <div class="home-collectibles__center" *ngIf="state === 'loading'" fxLayout="column" fxLayoutAlign="center center">
         <zelf-loader [diameter]="48"></zelf-loader>
         <p class="home-collectibles__hint">{{ t("home.collectibles_loading") }}</p>
@@ -18,7 +9,7 @@
     </div>
 
     <div class="home-collectibles__message" *ngIf="state === 'network_disabled'">
-        <p>{{ t("home.collectibles_network_disabled") }}</p>
+        <p>{{ t("home.collectibles_empty") }}</p>
     </div>
 
     <div class="home-collectibles__message" *ngIf="state === 'error'" fxLayout="column" fxLayoutAlign="center center">

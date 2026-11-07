@@ -15,6 +15,14 @@
     font-weight: 500;
 }
 
+.token-card__deprecated {
+    margin: 4px 0 0;
+    font-size: calc(12px * var(--zns-font-scale, 1));
+    line-height: 1.4;
+    color: variables.$themeTextSecondary;
+    white-space: normal;
+}
+
 .card-container {
     cursor: pointer;
     display: flex;

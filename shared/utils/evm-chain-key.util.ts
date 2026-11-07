@@ -42,8 +42,11 @@ export function getChainKeyFromNetwork(network?: string | null): string | null {
  * Chains where asset sends must use JWT + `/api/protected/rpc/:chainKey` (no silent direct RPC fallback).
  * Aligns with server `EXTENSION_*_RPC_URL` tracking.
  */
-/** Paid chains. These never fall back to a URL shipped in the extension. */
-export const STRICT_PROTECTED_RPC_CHAIN_KEYS = new Set<string>(["ethereum", "sepolia", "bsc", "polygon", "avalanche"]);
+/**
+ * Chains that never fall back to a URL shipped in the extension.
+ * BlockDAG's public scan hosts are retired, so its RPC stays on the Zelf API proxy.
+ */
+export const STRICT_PROTECTED_RPC_CHAIN_KEYS = new Set<string>(["ethereum", "sepolia", "bsc", "polygon", "avalanche", "blockdag"]);
 
 /** When `false`, RpcProviderService must not fall back to direct env RPC (session required). */
 export function allowDirectFallbackForChainKey(chainKey: string): boolean {

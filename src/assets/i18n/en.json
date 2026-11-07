@@ -1305,6 +1305,7 @@
         "failed_to_decrypt": "We could not decrypt your Zelf ID. Check your password and face verification, then try again.",
         "ERR_MISSING_PASSWORD": "This key is protected with your master password. Enter it and try again.",
         "ERR_ZELF_ID_STILL_ACTIVE": "This Zelf ID is still active. Sign in to it instead of recovering it to a new name.",
+        "BDAG_DEPRECATED": "Zelf is ending support for BlockDAG (BDAG). You can't activate BDAG or register new .bdag names anymore. Your funds are safe. If you hold BDAG, export your 12 or 24 recovery words and import them into another wallet. If you have a .bdag name, you can claim the same name on .zelf for free. Your other wallets and assets aren't affected.",
         "unknown": "Unknown error"
     },
     "swap": {

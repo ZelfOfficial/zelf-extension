@@ -1,3 +1,4 @@
+import { applyBlockdagNetworkVisibility, isBlockdagNetworkId } from "app/core/blockdag-support";
 import { NetworkConfig } from "app/models/settings.model";
 
 /** Canonical list; keep in sync with BlockchainTransactionsService chain ids. */
@@ -6,7 +7,7 @@ export const DEFAULT_NETWORK_CONFIGS: NetworkConfig[] = [
     { id: "avalanche", name: "Avalanche", symbol: "AVAX", enabled: true },
     { id: "binance", name: "BNB Chain", symbol: "BNB", enabled: true },
     { id: "bitcoin", name: "Bitcoin", symbol: "BTC", enabled: true },
-    { id: "blockdag", name: "BlockDAG", symbol: "BDAG", enabled: true },
+    { id: "blockdag", name: "BlockDAG", symbol: "BDAG", enabled: false },
     { id: "polygon", name: "Polygon", symbol: "POL", enabled: true },
     { id: "optimism", name: "Optimism", symbol: "ETH", enabled: true },
     { id: "arbitrum", name: "Arbitrum", symbol: "ETH", enabled: true },
@@ -50,6 +51,7 @@ export function getLicenseWalletNetworkIds(license: LicenseWithWalletNetworks | 
  * Chains to show/fetch: the license allowlist minus chains the user switched off in Manage networks.
  * - licenseIds null (license never loaded): legacy behaviour, the user's toggles or no filter.
  * - user switched every licensed chain off: same as legacy "all off" = the full license list.
+ * BlockDAG is removed from every result unless the saved toggle is already on. It cannot be activated.
  */
 export function resolveEnabledNetworkIds(
     licenseIds: readonly string[] | null,
@@ -60,14 +62,22 @@ export function resolveEnabledNetworkIds(
     if (!licenseIds) {
         if (!userNetworks?.length) return undefined;
 
-        const ids = userNetworks.filter((n) => n.enabled).map((n) => n.id);
+        const ids = applyBlockdagNetworkVisibility(
+            userNetworks.filter((n) => n.enabled).map((n) => n.id),
+            userNetworks
+        );
 
         return ids.length ? ids : undefined;
     }
 
-    const ids = licenseIds.filter((id) => !userOff.has(id));
+    const enabled = licenseIds.filter((id) => !userOff.has(id));
+    const ids = applyBlockdagNetworkVisibility(enabled.length ? enabled : [...licenseIds], userNetworks);
 
-    return ids.length ? ids : [...licenseIds];
+    if (ids.length) return ids;
+
+    const withoutBlockdag = licenseIds.filter((id) => !isBlockdagNetworkId(id));
+
+    return withoutBlockdag.length ? withoutBlockdag : undefined;
 }
 
 /** How many background networks Home / Wallet fetch at the same time after the priority stage (v3 #263). */

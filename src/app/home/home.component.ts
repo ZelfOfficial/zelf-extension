@@ -8,6 +8,7 @@ import { Router, RouterLink } from "@angular/router";
 import { TranslocoModule } from "@jsverse/transloco";
 import { Subject, takeUntil } from "rxjs";
 
+import { BLOCKDAG_NOTICE_STORAGE_KEY, walletQualifiesForBlockdagNotice } from "app/core/blockdag-support";
 import { AssetService } from "app/asset.service";
 import { BlockchainNetworksService } from "app/blockchain-networks.service";
 import { ChromeService } from "app/chrome.service";
@@ -100,6 +101,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     /** Hidden until onboarding/rewards wiring; flip for follow-up ticket. */
     readonly showStartHere = false;
 
+    showBlockdagNotice = false;
+    private _blockdagNoticeDismissed = false;
+    private _noticeTokens: any[] = [];
+
     constructor(
         public readonly navService: FooterNavigationService,
         private readonly _router: Router,
@@ -138,6 +143,8 @@ export class HomeComponent implements OnInit, OnDestroy {
         const storedHide = await this._chromeService.getItem("hideWalletBalances");
 
         this.hideBalances = storedHide === true || storedHide === "true";
+        const noticeDismissed = await this._chromeService.getItem(BLOCKDAG_NOTICE_STORAGE_KEY);
+        this._blockdagNoticeDismissed = noticeDismissed === true || noticeDismissed === "true";
 
         this._chromeService.onHideWalletBalancesChanged$.pipe(takeUntil(this._destroy$)).subscribe((hidden) => {
             this.hideBalances = hidden;
@@ -172,6 +179,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         const changed = this._applyEnabledNetworks(enabledNetworks);
 
         this._updateTokenState(projectHomeNetworkTokens(this._tokens, enabledNetworks));
+        this._refreshBlockdagNotice();
 
         if (changed) {
             this._abortBalanceLoad();
@@ -221,11 +229,14 @@ export class HomeComponent implements OnInit, OnDestroy {
         }
 
         if (persistedCache) {
+            this._noticeTokens = persistedCache.tokens || [];
             this._lastKnownNetworkFiat = {
                 ...networkFiatTotalsFromTokens(persistedCache.tokens),
                 ...(persistedCache.networkFiatTotals || {}),
             };
         }
+
+        this._refreshBlockdagNotice();
 
         this._applyEnabledNetworks(enabledNetworks);
 
@@ -246,8 +257,10 @@ export class HomeComponent implements OnInit, OnDestroy {
                 onTokensUpdated: (tokens, total) => {
                     this._rememberNetworkTotals(tokens);
                     this._tokens = this._orderedTokens(tokens);
+                    this._noticeTokens = tokens;
                     this.totalFiatBalance = total;
                     if (total > 0) this._lastKnownTotalFiat = total;
+                    this._refreshBlockdagNotice();
                     this._changeDetectorRef.detectChanges();
                 },
                 onNetworkStatus: (status) => {
@@ -342,6 +355,30 @@ export class HomeComponent implements OnInit, OnDestroy {
         await this._tagsService.refreshAllTagsPublicData([this._wallet] as TagModel[], forceRefresh);
     };
 
+    async dismissBlockdagNotice(): Promise<void> {
+        this._blockdagNoticeDismissed = true;
+        this.showBlockdagNotice = false;
+        await this._chromeService.setItem(BLOCKDAG_NOTICE_STORAGE_KEY, true);
+        this._changeDetectorRef.detectChanges();
+    }
+
+    private _refreshBlockdagNotice(): void {
+        if (this._blockdagNoticeDismissed) {
+            this.showBlockdagNotice = false;
+            return;
+        }
+
+        const wallet = (this.shareables.wallet || this._wallet) as Partial<TagModel> | undefined;
+        const publicData = wallet?.publicData;
+
+        this.showBlockdagNotice = walletQualifiesForBlockdagNotice({
+            networks: this._settingsService.settings?.networks,
+            tokens: [...(this._tokens || []), ...(this._noticeTokens || [])],
+            domain: publicData?.domain || wallet?.domain,
+            tagName: wallet?.fullTagName || publicData?.tagName || wallet?.tagName || wallet?.name,
+        });
+    }
+
     private async _setWallet(): Promise<void> {
         const wallet = await this._walletService.getFirstWalletFromStorage();
 
@@ -352,6 +389,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
         this.shareables = { ...this.shareables, wallet };
         this._wallet = this.shareables.wallet;
+        this._refreshBlockdagNotice();
         this._syncSubscriptionDhms();
         this._startSubscriptionCountdown();
         this._changeDetectorRef.detectChanges();

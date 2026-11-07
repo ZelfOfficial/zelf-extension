@@ -82,7 +82,9 @@ export class ReceiveCurrencyComponent extends CopyToClipboardBase implements OnI
         const allNetworks = await this._walletService.getAvailableWalletNetworks(wallet);
         const enabledNetworkIds = this._getEnabledNetworkIds();
 
-        let list = !enabledNetworkIds ? allNetworks : allNetworks.filter((network) => this._isNetworkEnabled(network, enabledNetworkIds));
+        let list = (!enabledNetworkIds ? allNetworks : allNetworks.filter((network) => this._isNetworkEnabled(network, enabledNetworkIds))).filter(
+            (network) => this._mapNetworkToId(network) !== "blockdag"
+        );
 
         list = this._withSubstratePlaceholdersIfNeeded(list, wallet, enabledNetworkIds);
         this.networks = await this._orderNetworksByBalance(list, wallet);

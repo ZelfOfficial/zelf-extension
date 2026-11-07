@@ -16,6 +16,7 @@ import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { SwapData, TokenData } from "@shared/types/wallet.types";
 import { AssetService, NetworkPermissions } from "app/asset.service";
 import { ChromeService } from "app/chrome.service";
+import { isBlockdagNetworkId, isBlockdagToken } from "app/core/blockdag-support";
 import { sortNetworkIdsByBalance } from "app/core/utils/network-balance-order.util";
 import { mapTransactionErrorToTranslationKey } from "app/core/utils/user-facing-transaction-error.util";
 import { BlockchainTransactionsService } from "app/services/blockchain-transactions.service";
@@ -284,7 +285,7 @@ export class SwapComponent implements OnInit, OnDestroy {
             const name = this._networkService.getNetworkName(sym as NetworkSymbol);
             const id = String(name).toLowerCase();
 
-            if (!id) continue;
+            if (!id || isBlockdagNetworkId(id)) continue;
             if (enabledIds && !enabledIds.includes(id)) continue;
 
             rows.set(id, {
@@ -748,7 +749,7 @@ export class SwapComponent implements OnInit, OnDestroy {
             const sessionTokens = await this._assetService.loadTokensFromSession();
 
             if (sessionTokens.length > 0) {
-                this.tokens = sessionTokens;
+                this.tokens = sessionTokens.filter((token) => !isBlockdagToken(token));
             } else {
                 await this._fetchTokens();
             }

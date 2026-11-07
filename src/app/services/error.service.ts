@@ -47,7 +47,7 @@ export class ErrorService {
 
             if (typeof errorBody["code"] === "string") {
                 const code = errorBody["code"];
-                if (code.startsWith("ERR_")) {
+                if (code.startsWith("ERR_") || code === "BDAG_DEPRECATED") {
                     key = code;
                 } else if (code === "face_locked" || code === "pow_required" || code === "face_replay_detected") {
                     key = code;
@@ -125,7 +125,13 @@ export class ErrorService {
             return key;
         }
 
-        if (key.startsWith("ERR_LIVENESS") || key === "face_locked" || key === "pow_required" || key === "face_replay_detected") {
+        if (
+            key.startsWith("ERR_LIVENESS") ||
+            key === "BDAG_DEPRECATED" ||
+            key === "face_locked" ||
+            key === "pow_required" ||
+            key === "face_replay_detected"
+        ) {
             return key;
         }
 
@@ -160,7 +166,7 @@ export class ErrorService {
     private _normalizeErrorKey(message: string): string {
         const withoutStatus = message.replace(/^\d{3}:/, "").trim();
 
-        if (withoutStatus.startsWith("ERR_")) {
+        if (withoutStatus.startsWith("ERR_") || withoutStatus === "BDAG_DEPRECATED") {
             return withoutStatus;
         }
 

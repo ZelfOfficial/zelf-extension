@@ -74,11 +74,10 @@
                 </ul>
             </div>
 
+            <p class="nft-asset__deprecated">{{ t("errors.BDAG_DEPRECATED") }}</p>
+
             <div class="zelf-card__actions zelf-card__actions--column nft-asset__actions-wrap">
                 <div class="nft-asset__actions-inner">
-                    <button mat-flat-button type="button" class="zelf-button zelf-button--primary zelf-button--wide" (click)="openInMarketplace()">
-                        <p>{{ t("home.nft_detail_open_marketplace") }}</p>
-                    </button>
                     <button
                         *ngIf="showRemoveManual"
                         mat-flat-button

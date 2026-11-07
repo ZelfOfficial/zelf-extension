@@ -1274,6 +1274,7 @@
         "face_locked_about_minutes": "cerca de {{ minutes }} minutos",
         "face_locked_about_hours": "cerca de {{ hours }} horas",
         "face_replay_detected": "Esta foto já foi usada. Tire uma nova foto e tente novamente.",
+        "BDAG_DEPRECATED": "A Zelf está encerrando o suporte ao BlockDAG (BDAG). Você não pode mais ativar o BDAG nem registrar nomes .bdag novos. Seus fundos estão seguros. Se você tem BDAG, exporte suas 12 ou 24 palavras de recuperação e importe-as em outra carteira. Se você tem um nome .bdag, pode reivindicar o mesmo nome em .zelf gratuitamente. Suas outras carteiras e ativos não são afetados.",
         "unknown": "Erro desconhecido"
     },
     "swap": {

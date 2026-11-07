@@ -20,6 +20,10 @@
             <p class="dapp-sign__hostname">{{ hostname }}</p>
         </div>
 
+        <p class="dapp-sign__deprecated" *ngIf="!isMessageSign && (txChainId === 1404 || txNetwork === 'blockdag')">
+            {{ t("errors.BDAG_DEPRECATED") }}
+        </p>
+
         <!-- Transaction Details -->
         <div class="dapp-sign__body" *ngIf="!isMessageSign">
             <div class="dapp-sign__decoded" *ngIf="decoded">
