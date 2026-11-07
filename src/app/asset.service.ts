@@ -94,8 +94,7 @@ export class AssetService {
 
     get canSend(): NetworkPermissions {
         return {
-            // Aptos send stays off until a small real test send is approved (same policy as TON).
-            APT: false,
+            APT: true,
             AVAX: true,
             BDAG: true,
             BNB: true,
