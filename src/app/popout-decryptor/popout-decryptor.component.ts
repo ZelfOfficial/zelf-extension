@@ -15,6 +15,7 @@ import { ChromeService } from "app/chrome.service";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { AuthService } from "app/services/auth.service";
 import { ErrorService } from "app/services/error.service";
+import { FaceCaptureService } from "app/services/face-capture.service";
 import { ZelfKeysService } from "app/services/zelf-keys.service";
 import { TagModel } from "app/tags.service";
 import { ThemeService } from "app/theme.service";
@@ -122,7 +123,8 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         private _translocoService: TranslocoService,
         private _vaultService: VaultService,
         private _walletService: WalletService,
-        private _zelfKeysService: ZelfKeysService
+        private _zelfKeysService: ZelfKeysService,
+        private _faceCaptureService: FaceCaptureService
     ) {
         this._getRecordForDecryptingFromService();
         this._initializeDecryptionData();
@@ -368,7 +370,7 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         if (!videoNgx || this.response.base64Image) return;
 
         try {
-            const detection = await faceapi.detectAllFaces(videoNgx, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.2 })).withFaceLandmarks();
+            const detection = await this._faceCaptureService.detectFacesWithLandmarks(videoNgx, 0.2);
             const context = this.maskResultCanvasRef?.nativeElement.getContext("2d", { willReadFrequently: true });
 
             if (!context) return;
@@ -532,7 +534,7 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
             throw new Error("Missing password draft or wallet proof");
         }
 
-        const encryptedFace = await this._httpWrapperService.encryptMessage(faceBase64);
+        const encryptedFace = await this._faceCaptureService.encryptCapturePayload(faceBase64);
         const encryptedPassword = await this._httpWrapperService.encryptMessage(draft.password);
         const encryptedMasterPassword = this.wallet.hasPassword
             ? await this._httpWrapperService.encryptMessage(this.masterPassword)
@@ -560,7 +562,7 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
             throw new Error("Missing card draft or wallet proof");
         }
 
-        const encryptedFace = await this._httpWrapperService.encryptMessage(faceBase64);
+        const encryptedFace = await this._faceCaptureService.encryptCapturePayload(faceBase64);
         const encryptedCardNumber = await this._httpWrapperService.encryptMessage(draft.cardNumber);
         const encryptedCvv = await this._httpWrapperService.encryptMessage(draft.cvv);
         const encryptedMasterPassword = this.wallet.hasPassword
@@ -591,7 +593,7 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
             throw new Error("Missing password item");
         }
 
-        const encryptedFace = await this._httpWrapperService.encryptMessage(faceBase64);
+        const encryptedFace = await this._faceCaptureService.encryptCapturePayload(faceBase64);
         const encryptedMasterPassword = await this._httpWrapperService.encryptMessage(this.masterPassword || "");
         await this._zelfKeysService.delete(itemId, encryptedFace, encryptedMasterPassword);
     }
@@ -600,31 +602,10 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         height: number,
         width: number
     ): { center: { x: number; y: number }; radius: { x: number; y: number }; margin: { x: number; y: number } } {
-        const center = {
-            x: width / 2,
-            y: height / 2,
-        };
-
-        const margin = {
-            y: height * 0.05,
-            x: 0,
-        };
-
-        margin.x = margin.y * 0.8;
-
-        const radius = {
-            y: height * 0.35,
-            x: 0,
-        };
-
-        radius.x = radius.y * this.aspectRatio;
-
-        if (radius.x * 2 >= width) {
-            radius.x = width * 0.48;
-            radius.y = radius.x / this.aspectRatio;
-        }
-
-        return { center, radius, margin };
+        return this._faceCaptureService.getCenterAndRadius(height, width, {
+            aspectRatio: this.aspectRatio,
+            radiusYRatio: 0.35,
+        });
     }
 
     private _getRecordForDecryptingFromService(): void {
@@ -822,7 +803,7 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
 
             const versionHint = this.record.v || this.record.publicData?.v;
             const payload = {
-                faceBase64: await this._httpWrapperService.encryptMessage(base64Data),
+                faceBase64: await this._faceCaptureService.encryptCapturePayload(base64Data),
                 type: this.record.type,
                 zelfProof: this.record.zelfProof,
                 clientPublicKey,
@@ -970,63 +951,18 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         original: { x: number; y: number; width: number; height: number };
         display: { x: number; y: number; width: number; height: number };
     } | null {
-        const videoDim = this.camera.dimensions.video;
-        const realDim = this.camera.dimensions.real;
-
-        if (!videoDim?.width || !videoDim?.height) return null;
-        if (!realDim?.width || !realDim?.height) return null;
-
-        const ovalRadiusX = this.face.video?.radius?.x || 0;
-        const centerX = this.face.video?.center?.x ?? videoDim.width / 2;
-
-        if (!ovalRadiusX) return null;
-
-        const displayWidth = Math.min(2.8 * ovalRadiusX, videoDim.width);
-        const display = {
-            x: Math.max(0, centerX - displayWidth / 2),
-            y: 0,
-            width: displayWidth,
-            height: videoDim.height,
-        };
-
-        // object-fit: cover math — uniform scale so the source fully covers the display
-        // box, then the box is read out of the centered visible portion of the source.
-        const coverScale = Math.max(videoDim.width / realDim.width, videoDim.height / realDim.height);
-        const visibleSrcWidth = videoDim.width / coverScale;
-        const visibleSrcHeight = videoDim.height / coverScale;
-        const offsetSrcX = (realDim.width - visibleSrcWidth) / 2;
-        const offsetSrcY = (realDim.height - visibleSrcHeight) / 2;
-
-        const original = {
-            x: offsetSrcX + display.x / coverScale,
-            y: offsetSrcY + display.y / coverScale,
-            width: display.width / coverScale,
-            height: display.height / coverScale,
-        };
-
-        return { original, display };
+        return this._faceCaptureService.computeOvalCrops(
+            this.camera.dimensions.video,
+            this.camera.dimensions.real,
+            this.face.video
+        );
     }
 
-    /**
-     * Optionally downscale a rect so that the longest edge does not exceed `maxEdge`.
-     * Used to cap the to-send canvas size and reduce the base64 upload payload.
-     */
     private _capRect(
         rect: { x: number; y: number; width: number; height: number },
         maxEdge: number
     ): { x: number; y: number; width: number; height: number } {
-        const longest = Math.max(rect.width, rect.height);
-
-        if (longest <= maxEdge) return rect;
-
-        const scale = maxEdge / longest;
-
-        return {
-            x: rect.x,
-            y: rect.y,
-            width: Math.round(rect.width * scale),
-            height: Math.round(rect.height * scale),
-        };
+        return this._faceCaptureService.capRect(rect, maxEdge);
     }
 
     private async _setMaxVideoDimensions(): Promise<void> {
@@ -1139,25 +1075,7 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
     }
 
     private _stopCamera(): void {
-        try {
-            if (!this.webcamRef) return;
-
-            const videoElement = this.webcamRef.nativeVideoElement;
-
-            if (!videoElement || !videoElement.srcObject) return;
-
-            const stream = videoElement.srcObject as MediaStream;
-
-            if (!stream) return;
-
-            stream.getTracks().forEach((track) => {
-                track.stop();
-            });
-
-            videoElement.srcObject = null;
-        } catch (error) {
-            console.warn("Error stopping camera:", error);
-        }
+        void this._faceCaptureService.stopCameraStream(this.webcamRef?.nativeVideoElement);
     }
 
     private _takePictureLiveness(img: HTMLImageElement): void {
@@ -1177,14 +1095,14 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         const { original, display } = crops;
 
         // Preview canvas: buffer matches the display crop so CSS renders 1:1 (no squash).
-        this._drawCrop(maskResultCanvas, img, original, display);
+        this._faceCaptureService.drawCrop(maskResultCanvas, img, original, display);
 
         // To-send canvas: buffer matches the native crop so the API gets a clean face
         // crop at full quality, capped to 1080px long edge to keep the payload light.
         const sendDst = this._capRect(original, 1080);
-        this._drawCrop(toSendCanvas, img, original, sendDst);
+        this._faceCaptureService.drawCrop(toSendCanvas, img, original, sendDst);
 
-        this.response.base64Image = toSendCanvas.toDataURL("image/jpeg", 0.92);
+        this.response.base64Image = toSendCanvas.toDataURL("image/jpeg", FaceCaptureService.CAPTURE_JPEG_QUALITY);
         this.response.isLoading = true;
 
         this._changeDetectorRef.detectChanges();

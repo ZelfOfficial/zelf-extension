@@ -10,6 +10,7 @@ import { WebcamComponent, WebcamImage, WebcamInitError, WebcamModule } from "ngx
 import { Observable, Subject, takeUntil } from "rxjs";
 
 import { HttpWrapperService } from "app/http-wrapper.service";
+import { FaceCaptureService } from "app/services/face-capture.service";
 import { ZelfKeysService } from "app/services/zelf-keys.service";
 import { isDevBiometricsBypassEnabled, loadDevBiometricsFixtureBase64 } from "app/utils/dev-biometrics-bypass.util";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
@@ -100,7 +101,8 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
         private _httpWrapperService: HttpWrapperService,
         private _translocoService: TranslocoService,
         private _walletService: WalletService,
-        private _zelfKeysService: ZelfKeysService
+        private _zelfKeysService: ZelfKeysService,
+        private _faceCaptureService: FaceCaptureService
     ) {}
 
     async ngOnInit(): Promise<void> {
@@ -162,23 +164,7 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
      * Stop camera stream and cleanup
      */
     private _stopCamera(): void {
-        try {
-            if (!this.webcamRef) return;
-
-            const videoElement = this.webcamRef.nativeVideoElement;
-
-            if (!videoElement || !videoElement.srcObject) return;
-
-            const stream = videoElement.srcObject as MediaStream;
-
-            if (!stream) return;
-
-            stream.getTracks().forEach((track) => track.stop());
-
-            videoElement.srcObject = null;
-        } catch (error) {
-            console.warn("Error stopping camera:", error);
-        }
+        void this._faceCaptureService.stopCameraStream(this.webcamRef?.nativeVideoElement);
     }
 
     /**
@@ -504,7 +490,7 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
 
         try {
             // Use higher confidence threshold for better performance
-            const detection = await faceapi.detectAllFaces(videoNgx, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.4 })).withFaceLandmarks();
+            const detection = await this._faceCaptureService.detectFacesWithLandmarks(videoNgx, 0.4);
 
             const context = this.maskResultCanvasRef?.nativeElement.getContext("2d", { willReadFrequently: true });
 
@@ -636,8 +622,7 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
 
     private async _emitBiometricCapture(): Promise<void> {
         try {
-            const base64Data = this.response.base64Image.split(",")[1];
-            const encryptedFaceBase64 = await this._httpWrapperService.encryptMessage(base64Data);
+            const encryptedFaceBase64 = await this._faceCaptureService.encryptCapturePayload(this.response.base64Image);
 
             // For both encrypt and decrypt modes, emit encrypted faceBase64 and password
             // The parent component (biometrics-bottom-sheet) will handle retrieval for decrypt mode

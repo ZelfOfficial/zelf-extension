@@ -13,6 +13,7 @@ import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 
 import { HttpWrapperService } from "app/http-wrapper.service";
+import { FaceCaptureService } from "app/services/face-capture.service";
 import { MediaStreamService } from "app/services/media-stream.service";
 import { isDevBiometricsBypassEnabled, loadDevBiometricsFixtureBase64 } from "app/utils/dev-biometrics-bypass.util";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
@@ -84,7 +85,8 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         private _renderer: Renderer2,
         private _translocoService: TranslocoService,
         private _walletService: WalletService,
-        private _host: ElementRef<HTMLElement>
+        private _host: ElementRef<HTMLElement>,
+        private _faceCaptureService: FaceCaptureService
     ) {
         this.deviceData = this._walletService.getDeviceData();
 
@@ -312,8 +314,7 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
 
         this._loading({ result: true });
 
-        const base64Image = this.response.base64Image?.replace(/^data:.*;base64,/, "") as string;
-        const encryptedImage = await this._httpWrapperService.encryptMessage(base64Image);
+        const encryptedImage = await this._faceCaptureService.encryptCapturePayload(this.response.base64Image || "");
 
         this.imageCaptured.emit(encryptedImage);
     }
@@ -325,12 +326,7 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
             hasPermissions: true,
             isLoading: true,
             isLowQuality: false,
-            configuration: {
-                height: { ideal: 1080 },
-                width: { ideal: 1920 },
-                facingMode: FacingMode.USER,
-                frameRate: { ideal: 30, max: 30 },
-            },
+            configuration: this._faceCaptureService.buildCameraConfiguration({ isLandscape: true, displayMode: this.displayMode }),
             dimensions: {
                 video: {
                     max: { height: 1, width: 1 },
@@ -339,8 +335,8 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         };
 
         try {
-            const base64 = await loadDevBiometricsFixtureBase64();
-            this.response.base64Image = `data:image/jpeg;base64,${base64}`;
+            const { dataUrl } = await this._faceCaptureService.loadDevBypassDataUrl();
+            this.response.base64Image = dataUrl;
             this.canNavigate.emit(true);
             await this._emitBiometricCapture();
         } catch (error) {
@@ -350,31 +346,10 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
     }
 
     private _getCenterAndRadius = (height: number, width: number) => {
-        const data: OvalData = {
-            center: {
-                x: width / 2,
-                y: height / 2,
-            },
-            radius: {
-                x: 0,
-                y: 0,
-            },
-            margin: {
-                y: height * 0.05,
-                x: 0,
-            },
-        };
-
-        data.margin.x = data.margin.y * 0.8;
-        data.radius.y = height * 0.42;
-        data.radius.x = data.radius.y * this.aspectRatio;
-
-        if (data.radius.x * 2 >= width) {
-            data.radius.x = width * 0.48;
-            data.radius.y = data.radius.x / this.aspectRatio;
-        }
-
-        return data;
+        return this._faceCaptureService.getCenterAndRadius(height, width, {
+            aspectRatio: this.aspectRatio,
+            radiusYRatio: 0.42,
+        });
     };
 
     private _inRange(value: number, min: number, max: number) {
@@ -608,21 +583,10 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
 
     /** 720p or higher when the camera can provide it. Portrait previews cover this landscape frame. */
     private _cameraConfiguration(isLandscape: boolean): CameraData["configuration"] {
-        if (this.displayMode === "portrait") {
-            return {
-                width: { ideal: 1920 },
-                height: { ideal: 1080 },
-                facingMode: FacingMode.USER,
-                frameRate: { ideal: 30, max: 30 },
-            };
-        }
-
-        return {
-            height: { ideal: isLandscape ? 1080 : 1920 },
-            width: { ideal: isLandscape ? 1920 : 1080 },
-            facingMode: FacingMode.USER,
-            frameRate: { ideal: 30, max: 30 },
-        };
+        return this._faceCaptureService.buildCameraConfiguration({
+            isLandscape,
+            displayMode: this.displayMode,
+        });
     }
 
     private _setVideoDimensions(videoElement: HTMLVideoElement) {
@@ -700,7 +664,7 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
 
                 this.face.real = this._getCenterAndRadius(img.height, img.width);
 
-                const detection = await faceapi.detectAllFaces(img, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.2 })).withFaceLandmarks();
+                const detection = await this._faceCaptureService.detectFacesWithLandmarks(img, 0.2);
                 const context = this.maskResultCanvasRef?.nativeElement.getContext("2d", { willReadFrequently: true });
 
                 if (detection.length > 0) {

@@ -133,7 +133,12 @@
                             "sourceMap": false,
                             "vendorChunk": false,
                             "assets": [
-                                "src/assets",
+                                {
+                                    "input": "src/assets",
+                                    "output": "/assets",
+                                    "glob": "**/*",
+                                    "ignore": ["dev/**"]
+                                },
                                 "src/favicon.ico",
                                 "src/master.css",
                                 {
