@@ -1274,6 +1274,7 @@
         "face_locked_about_minutes": "約{{ minutes }}分",
         "face_locked_about_hours": "約{{ hours }}時間",
         "face_replay_detected": "この写真はすでに使用されています。新しい写真を撮って再度お試しください。",
+        "BDAG_DEPRECATED": "Zelf は BlockDAG（BDAG）のサポートを終了します。BDAG を有効にしたり、新しい .bdag 名を登録したりすることはできなくなります。資金は安全です。BDAG をお持ちの場合は、12 または 24 のリカバリーワードをエクスポートし、別のウォレットにインポートしてください。.bdag 名をお持ちの場合は、同じ名前を .zelf で無料で取得できます。他のウォレットと資産には影響ありません。",
         "unknown": "不明なエラー"
     },
     "swap": {
