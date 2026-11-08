@@ -7,6 +7,8 @@ describe("transaction-history.util", () => {
         expect(transactionTimestampMs(1759259709)).toBe(1759259709000); // unix seconds (TON / Aptos)
         expect(transactionTimestampMs("1759259709")).toBe(1759259709000);
         expect(transactionTimestampMs(1759259709000)).toBe(1759259709000); // already ms
+        expect(transactionTimestampMs("1759259709000000")).toBe(1759259709000); // microseconds (Aptos)
+        expect(transactionTimestampMs(1759259709000000)).toBe(1759259709000);
     });
 
     it("rejects missing or unparsable dates", () => {
@@ -16,8 +18,11 @@ describe("transaction-history.util", () => {
         expect(transactionTimestampMs(0)).toBeNull();
     });
 
-    it("falls back to timestamp when date is not usable", () => {
+    it("falls back to timestamp, timeStamp, blocktime, or created_at when date is not usable", () => {
         expect(transactionTime({ date: "N/A", timestamp: 1759259709 })).toBe(1759259709000);
+        expect(transactionTime({ timeStamp: "1759259709" })).toBe(1759259709000);
+        expect(transactionTime({ blocktime: 1759259709 })).toBe(1759259709000);
+        expect(transactionTime({ created_at: "2026-09-30T19:15:09Z" })).toBe(Date.parse("2026-09-30T19:15:09Z"));
     });
 
     it("drops backend error placeholders and rows without a usable date", () => {

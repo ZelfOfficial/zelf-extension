@@ -7,6 +7,11 @@ type TxLike = {
     from?: string | string[];
     date?: string | number;
     timestamp?: string | number;
+    timeStamp?: string | number;
+    blocktime?: string | number;
+    blockTime?: string | number;
+    created_at?: string | number;
+    timestampMs?: string | number;
     traffic?: string;
     method?: string;
 };
@@ -15,7 +20,8 @@ const ZERO_HASH = /^(0x)?0+$/i;
 
 /**
  * Normalises the different date shapes the network APIs return into epoch milliseconds.
- * - numbers / numeric strings below 1e12 are unix seconds (TON, Aptos, ...), above are milliseconds
+ * - numbers / numeric strings below 1e12 are unix seconds (TON, EVM, ...),
+ *   between 1e14 and 1e17 are microseconds (Aptos), >= 1e17 are nanoseconds, otherwise milliseconds
  * - other strings go through Date.parse ("2026-09-30 19:15:09", ISO, ...)
  * Returns null for missing or unparsable values such as "N/A".
  */
@@ -26,8 +32,11 @@ export function transactionTimestampMs(value: unknown): number | null {
 
     if (Number.isFinite(numeric)) {
         if (numeric <= 0) return null;
+        if (numeric < 1e12) return Math.round(numeric * 1000);
+        if (numeric >= 1e17) return Math.round(numeric / 1e6);
+        if (numeric >= 1e14) return Math.round(numeric / 1000);
 
-        return numeric < 1e12 ? Math.round(numeric * 1000) : Math.round(numeric);
+        return Math.round(numeric);
     }
 
     if (typeof value !== "string") return null;
@@ -39,9 +48,17 @@ export function transactionTimestampMs(value: unknown): number | null {
     return Number.isFinite(parsed) ? parsed : null;
 }
 
-/** Best timestamp for a transaction: `date`, falling back to `timestamp`. */
+/** Best timestamp for a transaction: `date`, falling back across known provider timestamp fields. */
 export function transactionTime(tx: TxLike): number | null {
-    return transactionTimestampMs(tx?.date) ?? transactionTimestampMs(tx?.timestamp);
+    return (
+        transactionTimestampMs(tx?.date) ??
+        transactionTimestampMs(tx?.timestamp) ??
+        transactionTimestampMs(tx?.timeStamp) ??
+        transactionTimestampMs(tx?.blocktime) ??
+        transactionTimestampMs(tx?.blockTime) ??
+        transactionTimestampMs(tx?.created_at) ??
+        transactionTimestampMs(tx?.timestampMs)
+    );
 }
 
 /**

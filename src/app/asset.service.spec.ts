@@ -58,4 +58,36 @@ describe("AssetService Sui holdings", () => {
         expect(empty.amount).toBe(0);
         expect(empty.fiatBalance).toBe(0);
     });
+
+    it("normalizes Stellar token holdings symbols and prevents double-counting native XLM fiat", () => {
+        const svc = service() as any;
+        const result = svc._processStellarTokens({
+            balance: "10",
+            fiatBalance: "6.50",
+            account: {
+                price: "0.15",
+                fiatValue: "1.50",
+            },
+            tokenHoldings: {
+                tokens: [
+                    {
+                        asset: "USDC",
+                        amount: "5",
+                        price: "1",
+                        fiatBalance: "5.00",
+                        tokenType: "credit_alphanum4",
+                    },
+                ],
+            },
+        });
+
+        expect(result.length).toBe(2);
+        const xlm = result.find((t: any) => t.symbol === "XLM");
+        const usdc = result.find((t: any) => t.symbol === "USDC");
+        expect(xlm).toBeDefined();
+        expect(xlm.fiatBalance).toBe(1.5);
+        expect(usdc).toBeDefined();
+        expect(usdc.amount).toBe(5);
+        expect(usdc.fiatBalance).toBe(5);
+    });
 });
