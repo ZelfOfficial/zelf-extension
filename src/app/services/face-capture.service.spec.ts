@@ -1,5 +1,6 @@
 import * as angularJson from "../../../angular.json";
 import { FacingMode } from "../biometrics-general/sdk.models";
+import { CaptureSignalsService } from "./capture-signals.service";
 import { FaceCaptureService } from "./face-capture.service";
 
 describe("FaceCaptureService (#93)", () => {
@@ -13,7 +14,8 @@ describe("FaceCaptureService (#93)", () => {
 
         service = new FaceCaptureService(
             { encryptMessage: encryptMessageSpy } as any,
-            { stopAllStreams: stopAllStreamsSpy } as any
+            { stopAllStreams: stopAllStreamsSpy } as any,
+            new CaptureSignalsService()
         );
     });
 

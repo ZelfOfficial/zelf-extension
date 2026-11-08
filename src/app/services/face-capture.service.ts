@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import * as faceapi from "@vladmandic/face-api";
 
 import { HttpWrapperService } from "app/http-wrapper.service";
+import { CaptureSignalReport, CaptureSignalsService, VideoInputSummary } from "app/services/capture-signals.service";
 import { MediaStreamService } from "app/services/media-stream.service";
 import { isDevBiometricsBypassEnabled, loadDevBiometricsFixtureBase64 } from "app/utils/dev-biometrics-bypass.util";
 import { FacingMode, OvalData } from "../biometrics-general/sdk.models";
@@ -32,10 +33,33 @@ export class FaceCaptureService {
     static readonly DEFAULT_ASPECT_RATIO = 0.75;
     static readonly CAPTURE_JPEG_QUALITY = 0.92;
 
+    lastSignalReport: CaptureSignalReport | null = null;
+
     constructor(
         private _httpWrapperService: HttpWrapperService,
-        private _mediaStreamService: MediaStreamService
+        private _mediaStreamService: MediaStreamService,
+        private _captureSignalsService: CaptureSignalsService
     ) {}
+
+    /**
+     * Collect capture risk signals for a live MediaStream or HTMLVideoElement and cache the report.
+     */
+    async inspectStream(streamOrVideo?: MediaStream | HTMLVideoElement | null): Promise<CaptureSignalReport> {
+        const stream =
+            streamOrVideo && "srcObject" in streamOrVideo
+                ? (streamOrVideo.srcObject as MediaStream | null)
+                : (streamOrVideo as MediaStream | null);
+        const report = await this._captureSignalsService.collectSignals(stream);
+        this.lastSignalReport = report;
+        return report;
+    }
+
+    /**
+     * List available video input devices for camera selection.
+     */
+    async listVideoInputs(): Promise<VideoInputSummary[]> {
+        return this._captureSignalsService.listVideoInputs();
+    }
 
     /**
      * Build standard camera MediaTrackConstraints used across all face capture flows.

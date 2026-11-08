@@ -14,6 +14,7 @@ export interface CameraData {
 		frameRate: { ideal: number; max: number };
 		height?: { ideal: number };
 		width?: { ideal: number };
+		deviceId?: { exact: string };
 	};
 	dimensions: {
 		real?: {

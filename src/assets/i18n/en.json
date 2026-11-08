@@ -1211,7 +1211,9 @@
         "get_closer_subtitle": "Please come a bit closer for better face recognition.",
         "get_closer": "Get closer",
         "liveness_error_message": "The liveness check has failed with the following error:<br><strong>{{error}}</strong><br>Do you want to try again?",
-        "liveness_failed": "Liveness detection failed"
+        "liveness_failed": "Liveness detection failed",
+        "virtual_camera_warning": "It looks like you are using a virtual camera; please select your real camera.",
+        "select_camera": "Select camera"
     },
     "errors": {
         "address_too_long": "Address is too long",
