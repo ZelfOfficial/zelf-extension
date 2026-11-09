@@ -1,10 +1,11 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { ethers } from "ethers";
-import { firstValueFrom, Observable, of } from "rxjs";
+import { firstValueFrom, from, Observable, of } from "rxjs";
 import { catchError, map } from "rxjs/operators";
 
 import { RpcProviderService } from "app/services/rpc-provider.service";
+import { lifiBucketKeyToNetwork, lifiChainIdForNetwork, lifiTokenCatalogChainIds, lifiWalletSymbolForChainKey } from "app/services/lifi-chains";
 import { allowDirectFallbackForChainId } from "@shared/utils/evm-chain-key.util";
 import { SolanaService } from "app/solana.service";
 import { TokenData } from "@shared/types/wallet.types";
@@ -53,19 +54,20 @@ export class LifiService {
     }
 
     get chainIdToSymbol(): Record<string, string> {
-        return {
-            "1": "ETH",
-            "10": "OP",
-            "137": "POL",
-            "8453": "BASE",
-            "42161": "ARB",
-            "43114": "AVAX",
-            "56": "BNB",
-        };
+        const symbols: Record<string, string> = {};
+
+        for (const chainId of lifiTokenCatalogChainIds()) {
+            const symbol = lifiWalletSymbolForChainKey(chainId);
+
+            if (symbol) symbols[chainId] = symbol;
+        }
+
+        return symbols;
     }
 
+    /** Numeric LI.FI chain ids for the token catalog (not chain keys such as `BNB`). */
     get lifiChainSymbols(): string[] {
-        return ["eth", "ava", "sol", "pol", "bsc", "opt", "arb", "bas"];
+        return lifiTokenCatalogChainIds();
     }
 
     /**
@@ -73,65 +75,7 @@ export class LifiService {
      * to internal lowercase network slugs (settings `id`, `NetworkName` without casing quirks).
      */
     chainBucketKeyToInternalNetwork(bucketKey: string | number): string {
-        const raw = String(bucketKey).trim();
-
-        if (!raw) return "unknown";
-
-        const byChainId: Record<string, string> = {
-            "1": "ethereum",
-            "10": "optimism",
-            "56": "binance",
-            "137": "polygon",
-            "8453": "base",
-            "43114": "avalanche",
-            "42161": "arbitrum",
-        };
-
-        if (/^\d+$/.test(raw) && byChainId[raw]) return byChainId[raw];
-
-        const upper = raw.toUpperCase();
-
-        const bySymbol: Record<string, string> = {
-            ETH: "ethereum",
-            AVA: "avalanche",
-            AVAX: "avalanche",
-            BSC: "binance",
-            BNB: "binance",
-            POL: "polygon",
-            MATIC: "polygon",
-            OPT: "optimism",
-            OP: "optimism",
-            ARB: "arbitrum",
-            BAS: "base",
-            BASE: "base",
-            SOL: "solana",
-            SUI: "sui",
-        };
-
-        if (bySymbol[upper]) return bySymbol[upper];
-
-        const lower = raw.toLowerCase();
-
-        const byLower: Record<string, string> = {
-            eth: "ethereum",
-            ava: "avalanche",
-            avax: "avalanche",
-            bsc: "binance",
-            bnb: "binance",
-            pol: "polygon",
-            matic: "polygon",
-            opt: "optimism",
-            op: "optimism",
-            arb: "arbitrum",
-            bas: "base",
-            base: "base",
-            sol: "solana",
-            sui: "sui",
-        };
-
-        if (byLower[lower]) return byLower[lower];
-
-        return "unknown";
+        return lifiBucketKeyToNetwork(bucketKey);
     }
 
     /**
@@ -146,92 +90,24 @@ export class LifiService {
     }
 
     /**
-     * LiFi `/tokens` chain keys we request via the EVM-style query (no chainTypes).
-     * Solana is always a separate request with chainTypes=SVM.
-     */
-    private _lifiEvmTokensChainParam(internalNetworkLower: string): string | null {
-        const id = this.getChainIdentifier(internalNetworkLower);
-        const supported = new Set(["ETH", "AVA", "SUI", "POL", "BNB", "OPT", "ARB", "BAS"]);
-
-        if (id === "SOL") return null;
-
-        if (supported.has(id)) return id;
-
-        return null;
-    }
-
-    /**
      * Loads trusted tokens from the LiFi proxy.
-     * @param lockedInternalNetwork Optional lowercase network id (e.g. `avalanche`). When set, only that chain is fetched (no Solana call for EVM/Sui locks). Omit or pass null for the full multi-chain catalog.
+     * Chain filters are numeric LI.FI ids. One rejected chain is retried alone so the rest of the catalog still loads.
+     * @param lockedInternalNetwork Optional lowercase network id (e.g. `avalanche`). When set, only that chain is fetched. An unsupported lock returns no LI.FI tokens.
      */
     async requestTokens(lockedInternalNetwork?: string | null): Promise<{ tokens: { [chainId: string]: LifiToken[] } }> {
-        const defaultResponse = { data: { tokens: {} } };
-
         const lock = lockedInternalNetwork?.trim().toLowerCase() || null;
-
-        let fetchEvmChains = "ETH,AVA,POL,BNB,OPT,ARB,BAS,SUI";
-        let fetchSolana = true;
+        let chainIds = lifiTokenCatalogChainIds();
 
         if (lock) {
-            if (lock === "solana") {
-                fetchEvmChains = "";
-                fetchSolana = true;
-            } else {
-                fetchSolana = false;
-                const single = this._lifiEvmTokensChainParam(lock);
+            const single = lifiChainIdForNetwork(lock);
 
-                if (single) fetchEvmChains = single;
-                else {
-                    fetchEvmChains = "ETH,AVA,POL,BNB,OPT,ARB,BAS,SUI";
-                    fetchSolana = true;
-                }
-            }
+            if (!single) return { tokens: {} };
+
+            chainIds = [single];
         }
 
         try {
-            const result = { tokens: {} as { [chainId: string]: LifiToken[] } };
-
-            if (fetchEvmChains) {
-                const { data: standardResponse } = await firstValueFrom<LifiTokensResponse>(
-                    this._http
-                        .get<LifiTokensResponse>(`${this.LIFI_API_URL}/tokens`, {
-                            params: { chains: fetchEvmChains, minPriceUSD: this.MIN_PRICE_USD },
-                        })
-                        .pipe(
-                            catchError((err) => {
-                                console.warn("Failed to fetch standard tokens:", err);
-
-                                return of(defaultResponse);
-                            })
-                        )
-                );
-
-                Object.assign(result.tokens, standardResponse.tokens || {});
-            }
-
-            if (fetchSolana) {
-                const { data: solanaResponse } = await firstValueFrom<LifiTokensResponse>(
-                    this._http
-                        .get<LifiTokensResponse>(`${this.LIFI_API_URL}/tokens`, {
-                            params: { chains: "SOL", chainTypes: "SVM", minPriceUSD: this.MIN_PRICE_USD },
-                        })
-                        .pipe(
-                            catchError((err) => {
-                                console.warn("Failed to fetch Solana tokens:", err);
-
-                                return of(defaultResponse);
-                            })
-                        )
-                );
-
-                if (solanaResponse?.tokens) {
-                    result.tokens.SOL = solanaResponse.tokens?.SOL || solanaResponse.tokens?.sol || [];
-
-                    if (!result.tokens.SOL.length) result.tokens.SOL = Object.values(solanaResponse.tokens).flat();
-                }
-            }
-
-            return result;
+            return { tokens: await this._fetchTokensResilient(chainIds) };
         } catch (error) {
             console.error("Error in requestTokens:", error);
 
@@ -239,95 +115,90 @@ export class LifiService {
         }
     }
 
-    /** Maps LiFi `chains` query keys (eth, pol, bsc, …) to wallet token bucket symbols. */
-    private _lifiQueryKeyToWalletSymbol(key: string): string | null {
-        const k = String(key).toLowerCase();
+    /**
+     * One bad chain id makes LI.FI reject the whole `chains` query. Fall back to one request per chain.
+     */
+    private async _fetchTokensResilient(chainIds: string[]): Promise<{ [chainId: string]: LifiToken[] }> {
+        if (!chainIds.length) return {};
 
-        const map: Record<string, string> = {
-            eth: "ETH",
-            ava: "AVAX",
-            pol: "POL",
-            bsc: "BNB",
-            opt: "OP",
-            arb: "ARB",
-            bas: "BASE",
-            sol: "SOL",
-        };
+        const batch = await this._fetchTokenBatch(chainIds);
 
-        return map[k] ?? null;
+        if (batch) return batch;
+
+        if (chainIds.length === 1) return {};
+
+        const merged: { [chainId: string]: LifiToken[] } = {};
+        const parts = await Promise.all(chainIds.map((chainId) => this._fetchTokenBatch([chainId])));
+
+        for (const part of parts) {
+            if (!part) continue;
+
+            Object.assign(merged, part);
+        }
+
+        return merged;
+    }
+
+    /** `null` means the request failed. An empty map is a successful response with no tokens. */
+    private async _fetchTokenBatch(chainIds: string[]): Promise<{ [chainId: string]: LifiToken[] } | null> {
+        try {
+            const response = await firstValueFrom(
+                this._http.get<LifiTokensResponse>(`${this.LIFI_API_URL}/tokens`, {
+                    params: { chains: chainIds.join(","), minPriceUSD: this.MIN_PRICE_USD },
+                })
+            );
+
+            return response?.data?.tokens ?? {};
+        } catch (err) {
+            console.warn("Failed to fetch LiFi tokens:", chainIds.join(","), err);
+
+            return null;
+        }
     }
 
     getTokens(): Observable<Record<string, LifiToken[]>> {
         const chains = this.lifiChainSymbols;
-        const combined: Record<string, LifiToken[]> = {};
 
-        return this._http
-            .get<LifiTokensResponse>(`${this.LIFI_API_URL}/tokens`, { params: { chains: chains.join(","), minPriceUSD: this.MIN_PRICE_USD } })
-            .pipe(
-                map((result) => {
-                    if (!result?.data?.tokens) return combined;
+        return from(this._fetchTokensResilient(chains)).pipe(
+            map((tokens) => {
+                const combined: Record<string, LifiToken[]> = {};
 
-                    chains.forEach((chain) => {
-                        const chainSymbol = this._lifiQueryKeyToWalletSymbol(chain);
+                Object.entries(tokens).forEach(([chain, list]) => {
+                    const chainSymbol = lifiWalletSymbolForChainKey(chain);
 
-                        if (!chainSymbol) return;
+                    if (!chainSymbol) return;
 
-                        combined[chainSymbol] = result.data.tokens[chain] || [];
-                    });
+                    combined[chainSymbol] = list || [];
+                });
 
-                    return combined;
-                }),
-                catchError((error) => {
-                    console.error("Error in combined token request:", error);
+                return combined;
+            }),
+            catchError((error) => {
+                console.error("Error in combined token request:", error);
 
-                    return of(combined);
-                })
-            );
+                return of({} as Record<string, LifiToken[]>);
+            })
+        );
     }
 
     /**
-     * Get the chain identifier for LiFi API
+     * Numeric LI.FI chain id for quotes and token queries. Unsupported networks return an empty string
+     * so they are not sent as a chain key that would fail the request.
      */
     getChainIdentifier(network: string): string {
-        switch (network.toLowerCase()) {
-            case "ethereum":
-                return "ETH";
-            case "polygon":
-                return "POL";
-            case "optimism":
-                return "OPT";
-            case "arbitrum":
-                return "ARB";
-            case "base":
-                return "BAS";
-            case "binance":
-                return "BNB";
-            case "avalanche":
-                return "AVA";
-            case "solana":
-                return "SOL";
-            default:
-                return network.toUpperCase();
-        }
+        return lifiChainIdForNetwork(network) || "";
     }
 
-    /** LiFi `fromChain` query symbols for numeric chain IDs used in stepTransaction bodies. */
+    /** LI.FI `fromChain` value. Known chains stay numeric (`56`, not `BNB`). */
     getChainIdentifierFromChainId(chainId: number | string): string {
-        const id = Number(chainId);
+        const raw = String(chainId ?? "").trim();
+        const fromNetwork = lifiChainIdForNetwork(raw);
 
-        const map: Record<number, string> = {
-            1: "ETH",
-            10: "OPT",
-            56: "BNB",
-            137: "POL",
-            8453: "BAS",
-            42161: "ARB",
-            43114: "AVA",
-        };
+        if (fromNetwork) return fromNetwork;
 
-        if (map[id]) return map[id];
+        if (/^\d+$/.test(raw)) return raw;
 
-        return String(chainId);
+        return "";
     }
 
     /**
