@@ -17,6 +17,9 @@ import { AuthService } from "app/services/auth.service";
 import { SettingsService } from "app/services/settings.service";
 import { TagModel, TagsService } from "app/tags.service";
 import { WalletService } from "app/wallet.service";
+import { ZelfKeysService } from "app/services/zelf-keys.service";
+import { ZelfIdsService } from "app/zelf-ids.service";
+import { resolveHomeSubscriptionTier } from "./home-subscription-plan";
 import { HomeHubHeaderComponent } from "./home-hub-header/home-hub-header.component";
 import { HomeProfilePanelComponent } from "./home-profile-panel/home-profile-panel.component";
 import { WalletBalanceTopCardComponent } from "app/zelf-wallet/wallet-balance-top-card/wallet-balance-top-card.component";
@@ -105,6 +108,12 @@ export class HomeComponent implements OnInit, OnDestroy {
     private _blockdagNoticeDismissed = false;
     private _noticeTokens: any[] = [];
 
+    /** Plan from GET /api/zelf-keys/limits. Null until that call succeeds. */
+    private _limitsPlan: string | null = null;
+    /** Plan from GET /api/zelf-ids/my-plan. */
+    private _myPlan: string | null = null;
+    private _planRequest = 0;
+
     constructor(
         public readonly navService: FooterNavigationService,
         private readonly _router: Router,
@@ -117,7 +126,9 @@ export class HomeComponent implements OnInit, OnDestroy {
         private readonly _blockchainTransactionsService: BlockchainTransactionsService,
         private readonly _settingsService: SettingsService,
         private readonly _tagsService: TagsService,
-        private readonly _walletBalanceCache: WalletBalanceCacheService
+        private readonly _walletBalanceCache: WalletBalanceCacheService,
+        private readonly _zelfKeys: ZelfKeysService,
+        private readonly _zelfIds: ZelfIdsService
     ) {
         const hub = this.navService.getHubDestinations();
         this.quickDestinations = QUICK_HUB_IDS.map((id) => hub.find((d) => d.id === id)).filter((d): d is FooterNavDestination => !!d);
@@ -392,7 +403,30 @@ export class HomeComponent implements OnInit, OnDestroy {
         this._refreshBlockdagNotice();
         this._syncSubscriptionDhms();
         this._startSubscriptionCountdown();
+        await this._refreshSubscriptionPlan();
         this._changeDetectorRef.detectChanges();
+    }
+
+    /**
+     * Reads the account plan from /api/zelf-keys/limits and /api/zelf-ids/my-plan.
+     * `publicData.plan` is applied by the getters without waiting for these calls.
+     */
+    private async _refreshSubscriptionPlan(): Promise<void> {
+        const request = ++this._planRequest;
+        const zelfName = this.walletName || this._wallet?.name || "";
+
+        this._limitsPlan = null;
+        this._myPlan = null;
+
+        const [limitsResult, myPlan] = await Promise.all([
+            this._zelfKeys.getVaultLimits().catch(() => ({ status: "error" as const })),
+            this._zelfIds.getMyPlan(zelfName || null).catch(() => null),
+        ]);
+
+        if (request !== this._planRequest) return;
+
+        this._limitsPlan = limitsResult.status === "ok" ? limitsResult.limits.plan : null;
+        this._myPlan = myPlan?.plan ?? null;
     }
 
     async toggleHideBalances(): Promise<void> {
@@ -409,6 +443,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         await this._refreshWallets(true);
         this._syncSubscriptionDhms();
         this._startSubscriptionCountdown();
+        await this._refreshSubscriptionPlan();
         this._changeDetectorRef.detectChanges();
     }
 
@@ -427,12 +462,26 @@ export class HomeComponent implements OnInit, OnDestroy {
         return w as TagModel;
     }
 
+    /** Paid plan from the limits API, my-plan, or the Zelf ID license. Mainnet registration is not a plan. */
     get isPremium(): boolean {
-        return this._subscriptionWallet?.isMainnet === true;
+        return this.subscriptionTier === "paid";
+    }
+
+    /** Reported free plan, or a hold name that has no paid plan. */
+    get isFreePlan(): boolean {
+        return !this.isPremium && (this.subscriptionTier === "free" || this.isFreeHold);
     }
 
     get isFreeHold(): boolean {
         return this._subscriptionWallet?.isHold === true;
+    }
+
+    get subscriptionTier(): "free" | "paid" | "unknown" {
+        return resolveHomeSubscriptionTier({
+            limitsPlan: this._limitsPlan,
+            myPlan: this._myPlan,
+            licensePlan: this._subscriptionWallet?.publicData?.plan,
+        });
     }
 
     /** Same day math as `home-banners` (ceil, floor at 0). */

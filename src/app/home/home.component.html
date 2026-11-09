@@ -40,9 +40,9 @@
                             </svg>
                         </div>
                         <div class="home-hub__subscription-copy">
-                            <p *ngIf="isFreeHold" class="home-hub__subscription-title">{{ t("home_hub.subscription_title_free") }}</p>
+                            <p *ngIf="isFreePlan" class="home-hub__subscription-title">{{ t("home_hub.subscription_title_free") }}</p>
                             <p *ngIf="isPremium" class="home-hub__subscription-title">{{ t("home_hub.subscription_title_premium") }}</p>
-                            <p *ngIf="!isFreeHold && !isPremium" class="home-hub__subscription-title">{{ t("home_hub.subscription_title") }}</p>
+                            <p *ngIf="!isFreePlan && !isPremium" class="home-hub__subscription-title">{{ t("home_hub.subscription_title") }}</p>
                             <p *ngIf="isFreeHold" class="home-hub__subscription-sub">{{ t("home_hub.subscription_subtitle_free", { zelfId: subscriptionZelfIdDisplay }) }}</p>
                             <p *ngIf="!isFreeHold && !isPremium" class="home-hub__subscription-sub">{{ t("home_hub.subscription_subtitle") }}</p>
                         </div>
