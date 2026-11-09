@@ -61,6 +61,14 @@ Notes:
     async ngOnInit(): Promise<void> {
         this.isNewNote = true;
 
+        const urlTree = this._router.parseUrl(this._router.url);
+        const initialFolder = (urlTree.queryParams?.["folder"] || "").trim();
+
+        if (initialFolder) {
+            this.noteData.folder = initialFolder;
+            this.noteData.insideFolder = true;
+        }
+
         await this._setWallet();
 
         this.checkFormValidity();

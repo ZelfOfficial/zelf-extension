@@ -70,6 +70,14 @@ export class ZelfKeysPaymentCardFormComponent implements OnInit {
     async ngOnInit(): Promise<void> {
         this.isNewCard = true;
 
+        const urlTree = this.router.parseUrl(this.router.url);
+        const initialFolder = (urlTree.queryParams?.["folder"] || "").trim();
+
+        if (initialFolder) {
+            this.cardData.folder = initialFolder;
+            this.cardData.insideFolder = true;
+        }
+
         await this._setWallet();
 
         setTimeout(() => {

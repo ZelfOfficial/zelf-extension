@@ -287,17 +287,25 @@ export class SwapCurrencyComponent implements OnInit, OnChanges {
 
             if (!sym || !this._assetService.canSwap[sym as keyof NetworkPermissions]) continue;
 
+            const w = wallet as TokenData & { address_token?: string };
+            const resolvedContractAddress = this._lifiService.getTokenAddress(
+                String(wallet.network),
+                wallet.symbol,
+                wallet.contractAddress ?? w.address_token ?? ""
+            );
+
+            if (!resolvedContractAddress) continue;
+
             seen.add(id);
 
             const priceNum =
                 typeof wallet.price === "number" ? wallet.price : parseFloat(String(wallet.price ?? 0)) || 0;
-            const w = wallet as TokenData & { address_token?: string };
 
             allTokens.push({
                 amount: wallet.amount ?? "0",
                 balance: (wallet as TokenData & { balance?: string }).balance ?? String(wallet.amount ?? "0"),
                 balanceUsd: (wallet as TokenData & { balanceUsd?: string }).balanceUsd ?? "0",
-                contractAddress: wallet.contractAddress ?? w.address_token ?? "",
+                contractAddress: resolvedContractAddress,
                 decimals: wallet.decimals,
                 fiatBalance: wallet.fiatBalance ?? "0",
                 image: wallet.image ?? "",

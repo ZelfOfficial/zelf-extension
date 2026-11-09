@@ -1,100 +1,288 @@
-<div class="vault" *transloco="let t">
-    <div *ngIf="error && !loading" class="vault__state vault__state--error">
-        <span class="material-symbols-outlined vault__state-symbol">cloud_off</span>
+<div class="zotp-home" *transloco="let t">
+    <h1 class="zotp-home__title">{{ t("common.zelf_authenticator") }}</h1>
+
+    <label class="zotp-home__search">
+        <input
+            [formControl]="searchControl"
+            [placeholder]="t('zotp.search')"
+            [attr.aria-label]="t('zotp.search')"
+            autocomplete="off"
+            class="zotp-home__search-input"
+            type="search"
+        />
+        <span class="zotp-home__search-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" class="zotp-home__search-icon">
+                <path
+                    fill="currentColor"
+                    d="M11,2c4.968,0 9,4.032 9,9s-4.032,9 -9,9 -9,-4.032 -9,-9 4.032,-9 9,-9zM11,18c3.867,0 7,-3.133 7,-7s-3.133,-7 -7,-7 -7,3.133 -7,7 3.133,7 7,7zM19.485,18.071l2.829,2.828 -1.415,1.415 -2.828,-2.829 1.414,-1.414z"
+                />
+            </svg>
+        </span>
+    </label>
+
+    <div class="zotp-home__usage" *ngIf="!showLoadingState && !error">
+        <zelf-keys-plan-usage kind="zotp"></zelf-keys-plan-usage>
+    </div>
+
+    <!-- Error state -->
+    <div *ngIf="error && !loading" class="zotp-home__error">
+        <span class="material-symbols-outlined zotp-home__error-icon">cloud_off</span>
         <strong>{{ t("zelf_keys.vault.load_error") }}</strong>
-        <p class="vault__state-text">{{ error }}</p>
-        <button type="button" class="zelf-button zelf-button--primary" (click)="onRefresh()">
+        <button type="button" class="zotp-home__cta-btn" (click)="onRefresh()">
             {{ t("zelf_keys.vault.retry") }}
         </button>
     </div>
 
-    <div *ngIf="!error || zotps.length > 0" class="vault__content">
-        <header class="vault__header">
-            <p class="vault__eyebrow">{{ t("zotp.vault_eyebrow") }}</p>
-            <h1>{{ t("common.zelf_authenticator") }}</h1>
-            <p class="vault__subtitle">{{ t("zelf_keys.vault.subtitle") }}</p>
-            <p class="vault__trust">
-                <span class="material-symbols-outlined">verified_user</span>
-                {{ t("zelf_keys.vault.trust") }}
-            </p>
-        </header>
+    <!-- Loading state -->
+    <div *ngIf="showLoadingState" class="zotp-home__loading" role="status" [attr.aria-label]="t('zotp.loading_list')">
+        <span class="zotp-home__spinner" aria-hidden="true"></span>
+        <p class="zotp-home__loading-text">{{ t("zotp.loading_list") }}</p>
+    </div>
 
-        <zelf-keys-plan-usage kind="zotp"></zelf-keys-plan-usage>
-
-        <div class="vault__stats" role="list" [attr.aria-label]="t('zelf_keys.vault.stats_label')">
-            <div class="vault__stat vault__stat--total" role="listitem">
-                <strong>{{ showLoadingState ? "–" : zotpCount }}</strong>
-                <span>{{ t("zelf_keys.vault.stat_total") }}</span>
-            </div>
-        </div>
-
-        <div class="vault__actions">
-            <button type="button" class="vault__add-btn" (click)="onAddZotp()">
-                <span class="material-symbols-outlined">add</span>
-                {{ t("zotp.add_zotp") }}
+    <!-- Populated list state -->
+    <div class="zotp-home__list-section" *ngIf="!showLoadingState && !error && filteredZotps.length > 0">
+        <div class="zotp-home__list-header">
+            <span class="zotp-home__account-count">
+                {{
+                    filteredZotps.length === 1
+                        ? t("zotp.account_count_one")
+                        : t("zotp.account_count_other", { count: filteredZotps.length })
+                }}
+            </span>
+            <button
+                type="button"
+                class="zotp-home__toggle-codes"
+                [disabled]="isAnyUnlocking"
+                (click)="onToggleAllCodes()"
+            >
+                <svg *ngIf="!allShownCodesRevealed" viewBox="0 0 24 24" class="zotp-home__toggle-icon" aria-hidden="true">
+                    <path
+                        fill="currentColor"
+                        d="M17.882,19.297A10.949,10.949 0,0 1,12 21c-5.392,0 -9.878,-3.88 -10.819,-9a10.982,10.982 0,0 1,3.34 -6.066L1.392,2.808l1.415,-1.415 19.799,19.8 -1.415,1.414 -3.31,-3.31zM5.935,7.35A8.965,8.965 0,0 0,3.223 12a9.005,9.005 0,0 0,13.201 5.838l-2.028,-2.028A4.5,4.5 0,0 1,8.19 9.604L5.935,7.35zM12.914,14.328L9.672,11.086a2.5,2.5 0,0 0,3.242 3.242zM18.928,16.1l-1.431,-1.43A6.979,6.979 0,0 0,20.777 12,9.005 9.005,0 0,0 9.552,5.338L7.974,3.76C9.221,3.27 10.58,3 12,3c5.392,0 9.878,3.88 10.819,9a10.947,10.947 0,0 1,-2.012 4.592L18.928,16.1zM12,7.5a4.5,4.5 0,0 1,4.492 4.77l-2.043,-2.043A2.501,2.501 0,0 0,11.773 9.55L9.73,7.508A4.54,4.54 0,0 1,12 7.5z"
+                    />
+                </svg>
+                <svg *ngIf="allShownCodesRevealed" viewBox="0 0 24 24" class="zotp-home__toggle-icon" aria-hidden="true">
+                    <path
+                        fill="currentColor"
+                        d="M12,3c5.392,0 9.878,3.88 10.819,9 -0.94,5.12 -5.427,9 -10.819,9 -5.392,0 -9.878,-3.88 -10.819,-9C2.121,6.88 6.608,3 12,3zM12,19a9.005,9.005 0,0 0,8.777 -7,9.005 9.005,0 0,0 -17.554,0A9.005,9.005 0,0 0,12 19zM12,16.5a4.5,4.5 0,1 1,0 -9,4.5 4.5,0 0,1 0,9zM12,14.5a2.5,2.5 0,1 0,0 -5,2.5 2.5,0 0,0 0,5z"
+                    />
+                </svg>
+                <span>{{ allShownCodesRevealed ? t("zotp.hide_codes") : t("zotp.show_codes") }}</span>
             </button>
         </div>
 
-        <div class="vault__browser">
-            <div class="vault__toolbar">
-                <label class="vault__search">
-                    <span class="material-symbols-outlined vault__search-icon">search</span>
-                    <input
-                        [formControl]="searchControl"
-                        [placeholder]="t('zelf_keys.vault.search')"
-                        autocomplete="off"
-                        class="vault__search-input"
-                        type="search"
-                    />
-                </label>
-                <button
-                    type="button"
-                    class="vault__icon-btn"
-                    (click)="onRefresh()"
-                    [attr.aria-label]="t('zotp.refresh_list')"
-                    [title]="t('zotp.refresh_list')"
-                >
-                    <span class="material-symbols-outlined">refresh</span>
-                </button>
-            </div>
-
-            <div class="vault__skeletons" *ngIf="showLoadingState" role="status" [attr.aria-label]="t('zotp.loading_list')">
-                <p class="vault__state-text">{{ t("zotp.loading_list") }}</p>
-                <div class="vault__skeleton" *ngFor="let row of skeletonRows">
-                    <span class="vault__skeleton-mark"></span>
-                    <span class="vault__skeleton-lines">
-                        <span class="vault__skeleton-line vault__skeleton-line--title"></span>
-                        <span class="vault__skeleton-line"></span>
-                    </span>
+        <div class="zotp-home__card-list">
+            <div
+                class="zotp-row"
+                *ngFor="let zotp of filteredZotps; trackBy: trackByZotp"
+                (click)="onRowMainClick(zotp, $event)"
+            >
+                <div class="zotp-row__mark">
+                    <span *ngIf="isUnlocking(zotp)" class="zotp-row__spinner" aria-hidden="true"></span>
+                    <span *ngIf="!isUnlocking(zotp)" class="zotp-row__initial">{{ getItemMark(zotp) }}</span>
                 </div>
-            </div>
 
-            <div class="vault__list" *ngIf="filteredZotps.length > 0 && !showLoadingState">
+                <div class="zotp-row__body">
+                    <strong class="zotp-row__title">{{ getDisplayTitle(zotp) }}</strong>
+                    <span class="zotp-row__subtitle" *ngIf="hasIssuer(zotp)">{{ zotp.name }}</span>
+                    <div class="zotp-row__code-line">
+                        <span class="zotp-row__code" [class.zotp-row__code--unlocked]="isUnlocked(zotp)">
+                            {{ getDisplayCode(zotp) }}
+                        </span>
+                        <button
+                            type="button"
+                            class="zotp-row__copy-btn"
+                            [attr.aria-label]="t('common.copy')"
+                            (click)="onCopyCode(zotp, $event)"
+                        >
+                            <svg viewBox="0 0 24 24" class="zotp-row__copy-icon" aria-hidden="true">
+                                <path
+                                    fill="currentColor"
+                                    d="M7,6V3a1,1 0,0 1,1 -1h12a1,1 0,0 1,1 1v14a1,1 0,0 1,-1 1h-3v3c0,0.552 -0.45,1 -1.007,1H4.007A1.001,1.001 0,0 1,3 21l0.003,-14c0,-0.552 0.45,-1 1.006,-1H7zM5.002,8L5,20h10V8H5.002zM9,6h8v10h2V4H9v2z"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="zotp-row__ring" aria-hidden="true">
+                    <svg viewBox="0 0 36 36" class="zotp-row__ring-svg">
+                        <circle class="zotp-row__ring-track" cx="18" cy="18" [attr.r]="RING_RADIUS" />
+                        <circle
+                            class="zotp-row__ring-progress"
+                            cx="18"
+                            cy="18"
+                            [attr.r]="RING_RADIUS"
+                            [attr.stroke-dasharray]="RING_CIRCUMFERENCE"
+                            [attr.stroke-dashoffset]="getRingDashOffset(zotp)"
+                        />
+                    </svg>
+                    <span class="zotp-row__ring-text">{{ getRemainingSeconds(zotp) }}</span>
+                </div>
+
                 <button
                     type="button"
-                    class="vault__row"
-                    *ngFor="let zotp of filteredZotps; trackBy: trackByZotp"
-                    (click)="onZotpClick(zotp)"
+                    class="zotp-row__menu-btn"
+                    [matMenuTriggerFor]="zotpRowMenu"
+                    [attr.aria-label]="t('zelf_keys.vault.more_options')"
+                    (click)="$event.stopPropagation()"
                 >
-                    <span class="vault__row-mark">{{ getItemMark(zotp) }}</span>
-                    <span class="vault__row-info">
-                        <strong class="vault__row-title">{{ zotp.name }}</strong>
-                        <span class="vault__row-subtitle">{{ zotp.issuer || t("zotp.issuer_placeholder") }}</span>
+                    <span class="material-symbols-outlined">more_vert</span>
+                </button>
+
+                <mat-menu #zotpRowMenu="matMenu" xPosition="before">
+                    <button mat-menu-item type="button" (click)="onSeeDetails(zotp)">
+                        <span>{{ t("zotp.see_details") }}</span>
+                    </button>
+                    <button mat-menu-item type="button" (click)="onExportZotp(zotp)">
+                        <span>{{ t("zotp.export") }}</span>
+                    </button>
+                    <button mat-menu-item type="button" (click)="onShareZotp(zotp)">
+                        <span>{{ t("zotp.share_zotp") }}</span>
+                    </button>
+                    <button mat-menu-item type="button" *ngIf="isUnlocked(zotp)" (click)="onHideSecret(zotp)">
+                        <span>{{ t("zotp.hide_secret") }}</span>
+                    </button>
+                    <button mat-menu-item type="button" *ngIf="isUnlocked(zotp)" (click)="onCopyCode(zotp)">
+                        <span>{{ t("common.copy") }}</span>
+                    </button>
+                    <button mat-menu-item type="button" (click)="onDeleteZotp(zotp)">
+                        <span>{{ t("zotp.delete_zotp") }}</span>
+                    </button>
+                </mat-menu>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search no results -->
+    <div class="zotp-home__no-results" *ngIf="!showLoadingState && !error && zotps.length > 0 && filteredZotps.length === 0">
+        {{ t("zotp.no_results") }}
+    </div>
+
+    <!-- Empty state (Android ZotpEmptyState) -->
+    <div class="zotp-home__empty" *ngIf="showEmptyState">
+        <div class="zotp-home__empty-circle" aria-hidden="true">
+            <svg viewBox="0 0 24 24" class="zotp-home__empty-icon">
+                <path
+                    fill="currentColor"
+                    d="M19,10h1a1,1 0,0 1,1 1v10a1,1 0,0 1,-1 1H4a1,1 0,0 1,-1 -1V11a1,1 0,0 1,1 -1h1V9a7,7 0,0 1,14 0v1zM5,12v8h14v-8H5zm6,2h2v4h-2v-4zm6,-4V9A5,5 0,0 0,7 9v1h10z"
+                />
+            </svg>
+        </div>
+        <strong class="zotp-home__empty-title">{{ t("zotp.empty_title") }}</strong>
+        <p class="zotp-home__empty-subtitle">{{ t("zotp.empty_subtitle") }}</p>
+        <button type="button" class="zotp-home__cta-btn" (click)="onAddZotp()">
+            <svg viewBox="0 0 24 24" class="zotp-home__cta-icon" aria-hidden="true">
+                <path
+                    fill="currentColor"
+                    d="M12,22C6.477,22 2,17.523 2,12S6.477,2 12,2s10,4.477 10,10 -4.477,10 -10,10zM11,11H7v2h4v4h2v-4h4v-2h-4V7h-2v4z"
+                />
+            </svg>
+            <span>{{ t("zotp.add_zotp") }}</span>
+        </button>
+
+        <button type="button" class="zotp-home__recover-link" (click)="onRecoverVault()">
+            <span class="zotp-home__recover-top">{{ t("zotp.first_step_vault_2fa") }}</span>
+            <span class="zotp-home__recover-bottom">{{ t("zotp.first_step_recover") }}</span>
+        </button>
+    </div>
+
+    <!-- Bottom-right + FAB (Android ZelfKeysAddMenuButton) -->
+    <button
+        *ngIf="showFab"
+        type="button"
+        class="zotp-home__fab"
+        [attr.aria-label]="t('zotp.add_zotp')"
+        (click)="onOpenAddMenu()"
+    >
+        <span class="material-symbols-outlined">add</span>
+    </button>
+
+    <!-- Bottom Action Sheet for + FAB -->
+    <div class="zotp-sheet-backdrop" *ngIf="showAddMenuSheet" (click)="onCloseAddMenu()">
+        <div class="zotp-sheet" (click)="$event.stopPropagation()">
+            <div class="zotp-sheet__handle" aria-hidden="true"></div>
+            <button type="button" class="zotp-sheet__action" (click)="onAddZotp()">
+                <span class="zotp-sheet__action-badge" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" class="zotp-sheet__action-icon">
+                        <path
+                            fill="currentColor"
+                            d="M4,8V4a1,1 0,0 1,1 -1h10l5,5v13a1,1 0,0 1,-1 1H5a1,1 0,0 1,-1 -1v-4h2v3h12V9h-4V5H6v3H4zm5,3V8l5,4 -5,4v-3H2v-2h7z"
+                        />
+                    </svg>
+                </span>
+                <span class="zotp-sheet__action-label">{{ t("zotp.add_zotp") }}</span>
+            </button>
+            <button type="button" class="zotp-sheet__action" (click)="onRecoverZotpShares()">
+                <span class="zotp-sheet__action-badge" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" class="zotp-sheet__action-icon">
+                        <path
+                            fill="currentColor"
+                            d="M12,4a8,8 0,1 1,-6.929 12H2.71c1.384,3.493 4.789,6 9.29,6 5.523,0 10,-4.477 10,-10S17.523,2 12,2C8.627,2 5.643,3.67 3.829,6.229L2,4.4v6.6h6.6L6.22,8.62A7.974,7.974 0,0 1,12 4z"
+                        />
+                    </svg>
+                </span>
+                <span class="zotp-sheet__action-label">{{ t("zotp.recover_zotp") }}</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Master Password Modal for face_password ZOTPs -->
+    <div class="zotp-modal-backdrop" *ngIf="awaitingUnlockPassword" (click)="onCancelUnlock()">
+        <div class="zotp-modal" (click)="$event.stopPropagation()">
+            <h2 class="zotp-modal__title">{{ t("zotp.protection.decrypt_prompt.title") }}</h2>
+            <p class="zotp-modal__desc">{{ t("zotp.protection.decrypt_prompt.description") }}</p>
+            <div class="zotp-modal__field">
+                <input
+                    [(ngModel)]="unlockMasterPassword"
+                    [type]="showUnlockMasterPassword ? 'text' : 'password'"
+                    [placeholder]="t('zotp.master_password_placeholder')"
+                    class="zotp-modal__input"
+                    (keyup.enter)="onContinueUnlockPassword()"
+                />
+                <button
+                    type="button"
+                    class="zotp-modal__eye"
+                    (click)="toggleUnlockMasterPasswordVisibility()"
+                    [attr.aria-label]="t('zotp.master_password')"
+                >
+                    <span class="material-symbols-outlined">
+                        {{ showUnlockMasterPassword ? "visibility_off" : "visibility" }}
                     </span>
-                    <span class="material-symbols-outlined vault__row-chevron">chevron_right</span>
                 </button>
             </div>
-
-            <div class="vault__empty" *ngIf="showEmptyState">
-                <span class="material-symbols-outlined vault__empty-icon">phonelink_lock</span>
-                <strong>{{ t("zotp.no_zotps_added") }}</strong>
-                <p>{{ t("zotp.empty_add_hint") }}</p>
-                <button type="button" class="vault__empty-action" (click)="onAddZotp()">{{ t("zotp.add_zotp") }}</button>
+            <p class="zotp-modal__error" *ngIf="unlockError">{{ unlockError }}</p>
+            <div class="zotp-modal__actions">
+                <button type="button" class="zotp-modal__btn zotp-modal__btn--ghost" (click)="onCancelUnlock()">
+                    {{ t("common.cancel") }}
+                </button>
+                <button
+                    type="button"
+                    class="zotp-modal__btn zotp-modal__btn--primary"
+                    [disabled]="!unlockMasterPassword.trim()"
+                    (click)="onContinueUnlockPassword()"
+                >
+                    {{ t("zotp.protection.decrypt_prompt.continue") }}
+                </button>
             </div>
+        </div>
+    </div>
 
-            <div class="vault__empty" *ngIf="zotps.length > 0 && filteredZotps.length === 0">
-                <strong>{{ t("common.no_results_found") }}</strong>
+    <!-- Biometrics Modal for inline code unlock -->
+    <div class="zotp-modal-backdrop" *ngIf="showBiometrics" (click)="onCancelUnlock()">
+        <div class="zotp-modal zotp-modal--biometrics" (click)="$event.stopPropagation()">
+            <div class="zotp-modal__head">
+                <h2 class="zotp-modal__title">{{ t("zotp.unlock_zotp") }}</h2>
+                <button type="button" class="zotp-modal__close" (click)="onCancelUnlock()">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
             </div>
+            <biometrics-general
+                [isModal]="true"
+                [itemType]="'zotp'"
+                (biometricsSuccess)="onBiometricsScanned($event)"
+                (biometricsFailed)="onBiometricsFailed($event)"
+            ></biometrics-general>
         </div>
     </div>
 </div>
