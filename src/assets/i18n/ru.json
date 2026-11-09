@@ -661,7 +661,26 @@
             "untitled_note": "Заметка без названия",
             "card_holder": "ДЕРЖАТЕЛЬ КАРТЫ",
             "card_holder_default": "Держатель карты",
-            "expires": "ИСТЕКАЕТ"
+            "expires": "ИСТЕКАЕТ",
+            "add_menu": "Добавить",
+            "add_new_card": "Добавить новую карту",
+            "add_new_note": "Добавить новую заметку",
+            "add_new_password": "Добавить новый пароль",
+            "cancel": "Отмена",
+            "empty_secure_card": "Безопасно храните платёжные карты.",
+            "empty_secure_note": "Безопасно храните заметки.",
+            "empty_secure_password": "Безопасно храните пароли.",
+            "export_csv": "Экспорт CSV",
+            "import_csv": "Импорт CSV",
+            "item": "элемент",
+            "items": "элементы",
+            "locked_title_cards": "Ваши платёжные карты заблокированы",
+            "locked_title_notes": "Ваши заметки заблокированы",
+            "locked_title_passwords": "Ваши пароли заблокированы",
+            "na": "Н/Д",
+            "no_items": "Нет элементов",
+            "qr_code": "QR-код",
+            "unknown": "Неизвестно"
         }
     },
     "cancel": "Отмена",
@@ -2199,7 +2218,8 @@
         "first_step_recover": "Восстановите его по лицу.",
         "code_copied": "Код скопирован в буфер обмена",
         "code_revealed": "Код показан",
-        "no_results": "Результатов не найдено"
+        "no_results": "Результатов не найдено",
+        "refresh": "Обновить"
     },
     "rewards": {
         "title": "Награды",

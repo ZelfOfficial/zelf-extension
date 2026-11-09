@@ -661,7 +661,26 @@
             "untitled_note": "Untitled Note",
             "card_holder": "CARD HOLDER",
             "card_holder_default": "Card Holder",
-            "expires": "EXPIRES"
+            "expires": "EXPIRES",
+            "add_menu": "เพิ่ม",
+            "add_new_card": "เพิ่มบัตรใหม่",
+            "add_new_note": "เพิ่มบันทึกใหม่",
+            "add_new_password": "เพิ่มรหัสผ่านใหม่",
+            "cancel": "ยกเลิก",
+            "empty_secure_card": "จัดเก็บบัตรชำระเงินอย่างปลอดภัย",
+            "empty_secure_note": "จัดเก็บบันทึกอย่างปลอดภัย",
+            "empty_secure_password": "จัดเก็บรหัสผ่านอย่างปลอดภัย",
+            "export_csv": "ส่งออก CSV",
+            "import_csv": "นำเข้า CSV",
+            "item": "รายการ",
+            "items": "รายการ",
+            "locked_title_cards": "บัตรชำระเงินของคุณถูกล็อก",
+            "locked_title_notes": "บันทึกของคุณถูกล็อก",
+            "locked_title_passwords": "รหัสผ่านของคุณถูกล็อก",
+            "na": "ไม่มี",
+            "no_items": "ไม่มีรายการ",
+            "qr_code": "คิวอาร์โค้ด",
+            "unknown": "ไม่ทราบ"
         }
     },
     "cancel": "ยกเลิก",
@@ -2199,7 +2218,8 @@
         "first_step_recover": "Recover with your face.",
         "code_copied": "Code copied to clipboard",
         "code_revealed": "Code revealed",
-        "no_results": "No results found"
+        "no_results": "No results found",
+        "refresh": "รีเฟรช"
     },
     "rewards": {
         "title": "รางวัล",

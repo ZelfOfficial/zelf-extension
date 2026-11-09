@@ -661,7 +661,26 @@
             "untitled_note": "शीर्षकहीन नोट",
             "card_holder": "कार्ड धारक",
             "card_holder_default": "कार्ड धारक",
-            "expires": "समाप्त"
+            "expires": "समाप्त",
+            "add_menu": "जोड़ें",
+            "add_new_card": "नया कार्ड जोड़ें",
+            "add_new_note": "नया नोट जोड़ें",
+            "add_new_password": "नया पासवर्ड जोड़ें",
+            "cancel": "रद्द करें",
+            "empty_secure_card": "अपने भुगतान कार्ड सुरक्षित रूप से सहेजें।",
+            "empty_secure_note": "अपने नोट सुरक्षित रूप से सहेजें।",
+            "empty_secure_password": "अपने पासवर्ड सुरक्षित रूप से सहेजें।",
+            "export_csv": "CSV निर्यात करें",
+            "import_csv": "CSV आयात करें",
+            "item": "आइटम",
+            "items": "आइटम",
+            "locked_title_cards": "आपके भुगतान कार्ड लॉक हैं",
+            "locked_title_notes": "आपके नोट लॉक हैं",
+            "locked_title_passwords": "आपके पासवर्ड लॉक हैं",
+            "na": "लागू नहीं",
+            "no_items": "कोई आइटम नहीं",
+            "qr_code": "QR कोड",
+            "unknown": "अज्ञात"
         }
     },
     "cancel": "रद्द करें",
@@ -2199,7 +2218,8 @@
         "first_step_recover": "अपने चेहरे से इसे वापस पाएँ।",
         "code_copied": "कोड क्लिपबोर्ड पर कॉपी किया गया",
         "code_revealed": "कोड प्रकट किया गया",
-        "no_results": "कोई परिणाम नहीं मिला"
+        "no_results": "कोई परिणाम नहीं मिला",
+        "refresh": "रिफ्रेश करें"
     },
     "rewards": {
         "title": "पुरस्कार",

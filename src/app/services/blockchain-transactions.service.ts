@@ -99,25 +99,36 @@ export class BlockchainTransactionsService {
             transactions.push(
                 ...ethRows.map((tx: any) => ({
                     ...tx,
-                    image: ethImage,
+                    network: tx.network || "ethereum",
+                    asset: tx.asset || "ETH",
+                    image: ethImage || tx.image,
                 }))
             );
         }
 
-        const pushRows = (response: any): void => {
+        const pushRows = (response: any, network: string, defaultAsset?: string): void => {
             const rows = extractHistoryTransactions(response);
-            if (rows.length) transactions.push(...rows);
+            if (!rows.length) return;
+            transactions.push(
+                ...rows.map((tx: any) => ({
+                    ...tx,
+                    network: tx.network || network,
+                    ...(defaultAsset && !tx.asset ? { asset: defaultAsset } : {}),
+                    ...(tx.amount === undefined && tx.value !== undefined ? { amount: tx.value } : {}),
+                    ...(tx.fiatAmount === undefined && tx.fiatValue !== undefined ? { fiatAmount: tx.fiatValue } : {}),
+                }))
+            );
         };
 
-        pushRows(responses.avalanche);
-        pushRows(responses.binance);
-        pushRows(responses.bitcoin);
-        pushRows(responses.blockdag);
-        pushRows(responses.polygon);
-        pushRows(responses.optimism);
-        pushRows(responses.arbitrum);
-        pushRows(responses.base);
-        pushRows(responses.solana);
+        pushRows(responses.avalanche, "avalanche", "AVAX");
+        pushRows(responses.binance, "binance", "BNB");
+        pushRows(responses.bitcoin, "bitcoin", "BTC");
+        pushRows(responses.blockdag, "blockdag", "BDAG");
+        pushRows(responses.polygon, "polygon", "POL");
+        pushRows(responses.optimism, "optimism", "ETH");
+        pushRows(responses.arbitrum, "arbitrum", "ETH");
+        pushRows(responses.base, "base", "ETH");
+        pushRows(responses.solana, "solana", "SOL");
 
         const stellarRows = extractHistoryTransactions(responses.stellar);
         if (stellarRows.length) {
@@ -132,7 +143,7 @@ export class BlockchainTransactionsService {
             );
         }
 
-        pushRows(responses.sui);
+        pushRows(responses.sui, "sui", "SUI");
 
         const tonRows = extractHistoryTransactions(responses.ton);
         if (tonRows.length) {
@@ -439,12 +450,20 @@ export class BlockchainTransactionsService {
                 observable = forkJoin({ optimism: from(this._optimismService.getWalletDetails(wallet.publicData?.ethAddress)) });
             } else if (token === "ARB") {
                 observable = forkJoin({ arbitrum: from(this._arbitrumService.getWalletDetails(wallet.publicData?.ethAddress)) });
+            } else if (token === "BASE") {
+                observable = forkJoin({ base: from(this._baseService.getWalletDetails(wallet.publicData?.ethAddress)) });
+            }
+        }
+
+        if (wallet.publicData?.btcAddress) {
+            if (token === "BTC") {
+                observable = forkJoin({ bitcoin: from(this._bitcoinService.getWalletDetails(wallet.publicData?.btcAddress, false)) });
             }
         }
 
         if (wallet.publicData?.solanaAddress) {
             if (token === "SOL") {
-                observable = forkJoin({ ethereum: from(this._solanaService.getWalletDetails(wallet.publicData?.solanaAddress)) });
+                observable = forkJoin({ solana: from(this._solanaService.getWalletDetails(wallet.publicData?.solanaAddress)) });
             }
         }
 
@@ -494,6 +513,7 @@ export class BlockchainTransactionsService {
                           polygon: responses.polygon,
                           optimism: responses.optimism,
                           arbitrum: responses.arbitrum,
+                          base: responses.base,
                           solana: responses.solana,
                           stellar: responses.stellar,
                           sui: responses.sui,

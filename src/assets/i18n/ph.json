@@ -661,7 +661,26 @@
             "untitled_note": "Walang pamagat na tala",
             "card_holder": "May-hawak ng Card",
             "card_holder_default": "May-hawak ng Card",
-            "expires": "Mag-eexpire"
+            "expires": "Mag-eexpire",
+            "add_menu": "Magdagdag",
+            "add_new_card": "Magdagdag ng bagong card",
+            "add_new_note": "Magdagdag ng bagong tala",
+            "add_new_password": "Magdagdag ng bagong password",
+            "cancel": "Kanselahin",
+            "empty_secure_card": "Ligtas na mag-imbak ng mga payment card.",
+            "empty_secure_note": "Ligtas na mag-imbak ng mga tala.",
+            "empty_secure_password": "Ligtas na mag-imbak ng mga password.",
+            "export_csv": "I-export ang CSV",
+            "import_csv": "I-import ang CSV",
+            "item": "item",
+            "items": "mga item",
+            "locked_title_cards": "Naka-lock ang iyong mga payment card",
+            "locked_title_notes": "Naka-lock ang iyong mga tala",
+            "locked_title_passwords": "Naka-lock ang iyong mga password",
+            "na": "N/A",
+            "no_items": "Walang mga item",
+            "qr_code": "QR Code",
+            "unknown": "Hindi Kilala"
         }
     },
     "cancel": "Kanselahin",
@@ -2199,7 +2218,8 @@
         "first_step_recover": "Bawiin ito gamit ang iyong mukha.",
         "code_copied": "Nakopya ang code sa clipboard",
         "code_revealed": "Ipinakita ang code",
-        "no_results": "Walang natagpuang resulta"
+        "no_results": "Walang natagpuang resulta",
+        "refresh": "I-refresh"
     },
     "rewards": {
         "title": "Mga Reward",

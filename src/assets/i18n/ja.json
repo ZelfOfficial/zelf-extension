@@ -661,7 +661,26 @@
             "untitled_note": "無題のメモ",
             "card_holder": "カード名義人",
             "card_holder_default": "カード名義人",
-            "expires": "有効期限"
+            "expires": "有効期限",
+            "add_menu": "追加",
+            "add_new_card": "新しいカードを追加",
+            "add_new_note": "新しいメモを追加",
+            "add_new_password": "新しいパスワードを追加",
+            "cancel": "キャンセル",
+            "empty_secure_card": "支払いカードを安全に保存できます。",
+            "empty_secure_note": "メモを安全に保存できます。",
+            "empty_secure_password": "パスワードを安全に保存できます。",
+            "export_csv": "CSVを書き出す",
+            "import_csv": "CSVを読み込む",
+            "item": "件",
+            "items": "件",
+            "locked_title_cards": "支払いカードはロックされています",
+            "locked_title_notes": "メモはロックされています",
+            "locked_title_passwords": "パスワードはロックされています",
+            "na": "なし",
+            "no_items": "項目がありません",
+            "qr_code": "QRコード",
+            "unknown": "不明"
         }
     },
     "cancel": "キャンセル",
@@ -2199,7 +2218,8 @@
         "first_step_recover": "顔認証で復元できます。",
         "code_copied": "コードをクリップボードにコピーしました",
         "code_revealed": "コードを表示しました",
-        "no_results": "結果が見つかりません"
+        "no_results": "結果が見つかりません",
+        "refresh": "更新"
     },
     "rewards": {
         "title": "報酬",
