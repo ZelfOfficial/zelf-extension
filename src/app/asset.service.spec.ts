@@ -90,4 +90,9 @@ describe("AssetService Sui holdings", () => {
         expect(usdc.amount).toBe(5);
         expect(usdc.fiatBalance).toBe(5);
     });
+
+    it("disables Swap for Stellar (XLM) since LI.FI does not support Stellar (#146)", () => {
+        expect(service().canSwap.XLM).toBeFalse();
+        expect(service().canSend.XLM).toBeTrue();
+    });
 });

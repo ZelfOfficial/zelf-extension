@@ -12,6 +12,7 @@ import { WebcamComponent, WebcamImage, WebcamInitError, WebcamModule } from "ngx
 import { Observable, Subject, takeUntil } from "rxjs";
 
 import { HttpWrapperService } from "app/http-wrapper.service";
+import { FaceCaptureService } from "app/services/face-capture.service";
 import { ZelfKeysService } from "app/services/zelf-keys.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { WalletService } from "../../../wallet.service";
@@ -91,7 +92,8 @@ export class ZelfKeysPasswordBiometricsComponent implements OnInit, OnDestroy {
         private _httpWrapperService: HttpWrapperService,
         private _router: Router,
         private _walletService: WalletService,
-        private _zelfKeysService: ZelfKeysService
+        private _zelfKeysService: ZelfKeysService,
+        private _faceCaptureService: FaceCaptureService
     ) {}
 
     async ngOnInit(): Promise<void> {
@@ -360,7 +362,7 @@ export class ZelfKeysPasswordBiometricsComponent implements OnInit, OnDestroy {
         }
 
         try {
-            const detection = await faceapi.detectAllFaces(videoNgx, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.2 })).withFaceLandmarks();
+            const detection = await this._faceCaptureService.detectFacesWithLandmarks(videoNgx, 0.2);
 
             const context = this.maskResultCanvasRef?.nativeElement.getContext("2d", { willReadFrequently: true });
             if (!context) return;
@@ -448,7 +450,7 @@ export class ZelfKeysPasswordBiometricsComponent implements OnInit, OnDestroy {
                 this.onBiometricsSuccess(base64Data);
             } else {
                 // In create mode, store the new password
-                const encryptedFace = await this._httpWrapperService.encryptMessage(base64Data);
+                const encryptedFace = await this._faceCaptureService.encryptCapturePayload(base64Data);
                 const payload = {
                     website: this.passwordData.url,
                     username: this.passwordData.email,

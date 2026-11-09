@@ -80,13 +80,14 @@ export class PasswordFormComponent implements OnInit {
 
     private _initializeForm(): void {
         const useSampleDefaults = !environment.production;
+        const initialFolder = (this._activatedRoute.snapshot.queryParamMap.get("folder") || "").trim();
 
         this.passwordForm = this._formBuilder.group({
             alias: [""],
             email: [useSampleDefaults ? "a@a.com" : "", [Validators.required]],
-            folder: [""],
+            folder: [initialFolder],
             masterPassword: [""],
-            insideFolder: [false],
+            insideFolder: [Boolean(initialFolder)],
             password: [useSampleDefaults ? "password_field" : "", [Validators.required]],
             url: [useSampleDefaults ? "https://www.google.com" : "", [Validators.required]],
         });
