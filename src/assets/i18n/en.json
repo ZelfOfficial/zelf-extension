@@ -114,7 +114,26 @@
             "untitled_note": "Untitled Note",
             "card_holder": "CARD HOLDER",
             "card_holder_default": "Card Holder",
-            "expires": "EXPIRES"
+            "expires": "EXPIRES",
+            "add_menu": "Add",
+            "add_new_card": "Add new card",
+            "add_new_note": "Add new note",
+            "add_new_password": "Add new password",
+            "cancel": "Cancel",
+            "empty_secure_card": "Securely store payment cards.",
+            "empty_secure_note": "Securely store notes.",
+            "empty_secure_password": "Securely store passwords.",
+            "export_csv": "Export CSV",
+            "import_csv": "Import CSV",
+            "item": "item",
+            "items": "items",
+            "locked_title_cards": "Your payment cards are locked",
+            "locked_title_notes": "Your notes are locked",
+            "locked_title_passwords": "Your passwords are locked",
+            "na": "N/A",
+            "no_items": "No items",
+            "qr_code": "QR code",
+            "unknown": "Unknown"
         },
         "common": {
             "qr_code": "QR Code",
@@ -2286,7 +2305,8 @@
         "first_step_recover": "Recover with your face.",
         "code_copied": "Code copied to clipboard",
         "code_revealed": "Code revealed",
-        "no_results": "No results found"
+        "no_results": "No results found",
+        "refresh": "Refresh"
     },
     "rewards": {
         "title": "Rewards",

@@ -661,7 +661,26 @@
             "untitled_note": "无标题笔记",
             "card_holder": "持卡人",
             "card_holder_default": "持卡人",
-            "expires": "过期"
+            "expires": "过期",
+            "add_menu": "添加",
+            "add_new_card": "添加新卡",
+            "add_new_note": "添加新笔记",
+            "add_new_password": "添加新密码",
+            "cancel": "取消",
+            "empty_secure_card": "安全存储支付卡。",
+            "empty_secure_note": "安全存储笔记。",
+            "empty_secure_password": "安全存储密码。",
+            "export_csv": "导出 CSV",
+            "import_csv": "导入 CSV",
+            "item": "项",
+            "items": "项",
+            "locked_title_cards": "支付卡已锁定",
+            "locked_title_notes": "笔记已锁定",
+            "locked_title_passwords": "密码已锁定",
+            "na": "不适用",
+            "no_items": "无项目",
+            "qr_code": "二维码",
+            "unknown": "未知"
         }
     },
     "cancel": "取消",
@@ -2199,7 +2218,8 @@
         "first_step_recover": "用你的面部恢复。",
         "code_copied": "代码已复制到剪贴板",
         "code_revealed": "代码已显示",
-        "no_results": "未找到结果"
+        "no_results": "未找到结果",
+        "refresh": "刷新"
     },
     "rewards": {
         "title": "奖励",

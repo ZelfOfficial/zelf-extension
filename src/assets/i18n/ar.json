@@ -661,7 +661,26 @@
             "untitled_note": "ملاحظة بدون عنوان",
             "card_holder": "حامل البطاقة",
             "card_holder_default": "حامل البطاقة",
-            "expires": "ينتهي"
+            "expires": "ينتهي",
+            "add_menu": "إضافة",
+            "add_new_card": "أضف بطاقة جديدة",
+            "add_new_note": "أضف ملاحظة جديدة",
+            "add_new_password": "أضف كلمة مرور جديدة",
+            "cancel": "إلغاء",
+            "empty_secure_card": "خزّن بطاقات الدفع بأمان.",
+            "empty_secure_note": "خزّن ملاحظاتك بأمان.",
+            "empty_secure_password": "خزّن كلمات مرورك بأمان.",
+            "export_csv": "تصدير CSV",
+            "import_csv": "استيراد CSV",
+            "item": "عنصر",
+            "items": "عناصر",
+            "locked_title_cards": "بطاقات الدفع مقفلة",
+            "locked_title_notes": "ملاحظاتك مقفلة",
+            "locked_title_passwords": "كلمات مرورك مقفلة",
+            "na": "غير متاح",
+            "no_items": "لا توجد عناصر",
+            "qr_code": "رمز QR",
+            "unknown": "غير معروف"
         }
     },
     "cancel": "إلغاء",
@@ -2199,7 +2218,8 @@
         "first_step_recover": "استعده باستخدام وجهك.",
         "code_copied": "تم نسخ الرمز إلى الحافظة",
         "code_revealed": "تم عرض الرمز",
-        "no_results": "لم يتم العثور على نتائج"
+        "no_results": "لم يتم العثور على نتائج",
+        "refresh": "تحديث"
     },
     "rewards": {
         "title": "المكافآت",
