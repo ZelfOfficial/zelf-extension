@@ -1261,7 +1261,9 @@
         "get_closer_subtitle": "Por favor acércate un poco para una mejor reconocimiento facial.",
         "get_closer": "Acércate",
         "liveness_error_message": "La verificación de autenticidad ha fallado con el siguiente error:<br><strong>{{error}}</strong><br>¿Quieres intentarlo de nuevo?",
-        "liveness_failed": "Detección de autenticidad fallida"
+        "liveness_failed": "Detección de autenticidad fallida",
+        "virtual_camera_warning": "Parece que estás usando una cámara virtual; por favor selecciona tu cámara real.",
+        "select_camera": "Seleccionar cámara"
     },
     "errors": {
         "address_too_long": "La dirección es demasiado larga",

@@ -176,12 +176,35 @@
 
             <!-- Face Detection Status - Glass pill overlay -->
             <div *ngIf="errorFace" class="password-decryptor__status" role="status" aria-live="polite">
-                <span class="material-symbols-outlined password-decryptor__status-icon">
+                <span class="material-symbols-outlined password-decryptor__status-icon" aria-hidden="true">
                     {{ errorFace?.icon || "face" }}
                 </span>
                 <div class="password-decryptor__status-content">
                     <span class="password-decryptor__status-title">{{ errorFace?.title }}</span>
                     <span class="password-decryptor__status-subtitle">{{ errorFace?.subtitle }}</span>
+                </div>
+            </div>
+
+            <!-- Virtual Camera Warning -->
+            <div *ngIf="signalReport?.virtualCamera && !response.isLoading" class="password-decryptor__vcam-warning" role="status" aria-live="polite">
+                <span class="material-symbols-outlined password-decryptor__vcam-warning-icon" aria-hidden="true">videocam_off</span>
+                <div class="password-decryptor__vcam-warning-body">
+                    <span class="password-decryptor__vcam-warning-text">{{ t("liveness.virtual_camera_warning") }}</span>
+                    <div *ngIf="videoInputs.length > 1" class="password-decryptor__vcam-warning-select-row">
+                        <label for="popout-camera-select" class="password-decryptor__vcam-warning-label">
+                            {{ t("liveness.select_camera") }}
+                        </label>
+                        <select
+                            id="popout-camera-select"
+                            class="password-decryptor__vcam-warning-select"
+                            [value]="selectedDeviceId"
+                            (change)="onCameraChange($any($event.target).value)"
+                        >
+                            <option *ngFor="let cam of videoInputs" [value]="cam.deviceId">
+                                {{ cam.label }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
             </div>
 

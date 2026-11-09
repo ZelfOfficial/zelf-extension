@@ -39,10 +39,37 @@
                 role="status"
                 aria-live="polite"
             >
-                <span class="material-symbols-outlined biometric__status-icon">{{ errorFace.icon || "face" }}</span>
+                <span class="material-symbols-outlined biometric__status-icon" aria-hidden="true">{{ errorFace.icon || "face" }}</span>
                 <div class="biometric__status-content">
                     <span class="biometric__status-title">{{ errorFace.title }}</span>
                     <span class="biometric__status-subtitle">{{ errorFace.subtitle }}</span>
+                </div>
+            </div>
+
+            <div
+                *ngIf="signalReport?.virtualCamera && !response.isLoading"
+                class="biometric__vcam-warning"
+                role="status"
+                aria-live="polite"
+            >
+                <span class="material-symbols-outlined biometric__vcam-warning-icon" aria-hidden="true">videocam_off</span>
+                <div class="biometric__vcam-warning-body">
+                    <span class="biometric__vcam-warning-text">{{ "liveness.virtual_camera_warning" | transloco }}</span>
+                    <div *ngIf="videoInputs.length > 1" class="biometric__vcam-warning-select-row">
+                        <label for="biometric-camera-select" class="biometric__vcam-warning-label">
+                            {{ "liveness.select_camera" | transloco }}
+                        </label>
+                        <select
+                            id="biometric-camera-select"
+                            class="biometric__vcam-warning-select"
+                            [value]="selectedDeviceId"
+                            (change)="onCameraChange($any($event.target).value)"
+                        >
+                            <option *ngFor="let cam of videoInputs" [value]="cam.deviceId">
+                                {{ cam.label }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
             </div>
 

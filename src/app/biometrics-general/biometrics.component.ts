@@ -13,6 +13,7 @@ import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 
 import { HttpWrapperService } from "app/http-wrapper.service";
+import { CaptureSignalReport, VideoInputSummary } from "app/services/capture-signals.service";
 import { FaceCaptureService } from "app/services/face-capture.service";
 import { MediaStreamService } from "app/services/media-stream.service";
 import { isDevBiometricsBypassEnabled, loadDevBiometricsFixtureBase64 } from "app/utils/dev-biometrics-bypass.util";
@@ -77,6 +78,9 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
     marginX!: number;
     marginY!: number;
     response!: ResponseData;
+    signalReport: CaptureSignalReport | null = null;
+    videoInputs: VideoInputSummary[] = [];
+    selectedDeviceId = "";
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
@@ -208,12 +212,14 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         if (videoNgx.readyState >= 2) {
             this._startFaceDetectionInterval();
             this.canNavigate.emit(true);
+            void this._inspectActiveStream(videoNgx);
         } else {
             videoNgx.addEventListener(
                 "loadeddata",
                 () => {
                     this._startFaceDetectionInterval();
                     this.canNavigate.emit(true);
+                    void this._inspectActiveStream(videoNgx);
 
                     this._setVideoDimensions(videoNgx);
                     this._drawOvalCenterAndMask();
@@ -225,6 +231,23 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         this._setVideoDimensions(videoNgx);
         this._drawOvalCenterAndMask();
     };
+
+    private async _inspectActiveStream(videoElement: HTMLVideoElement): Promise<void> {
+        const report = await this._faceCaptureService.inspectStream(videoElement);
+        this.signalReport = report;
+        this.videoInputs = report.videoInputs || [];
+        if (report.deviceId && !this.selectedDeviceId) {
+            this.selectedDeviceId = report.deviceId;
+        }
+        this._changeDetectorRef.markForCheck();
+    }
+
+    async onCameraChange(deviceId: string): Promise<void> {
+        if (!deviceId || deviceId === this.selectedDeviceId) return;
+        this.selectedDeviceId = deviceId;
+        await this._setMaxVideoDimensions();
+        this._startNgxVideoInterval();
+    }
 
     private _detectFace = () => {
         if (this.response.base64Image) {
@@ -586,6 +609,7 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         return this._faceCaptureService.buildCameraConfiguration({
             isLandscape,
             displayMode: this.displayMode,
+            deviceId: this.selectedDeviceId || undefined,
         });
     }
 

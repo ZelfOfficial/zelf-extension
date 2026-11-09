@@ -14,6 +14,7 @@ import { Observable, Subject, takeUntil } from "rxjs";
 import { ChromeService } from "app/chrome.service";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { AuthService } from "app/services/auth.service";
+import { CaptureSignalReport, VideoInputSummary } from "app/services/capture-signals.service";
 import { ErrorService } from "app/services/error.service";
 import { FaceCaptureService } from "app/services/face-capture.service";
 import { ZelfKeysService } from "app/services/zelf-keys.service";
@@ -78,11 +79,14 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
             facingMode: "user",
             width: { ideal: 1920 },
             height: { ideal: 1080 },
-        },
+        } as Record<string, any>,
     };
 
     error: string | null = null;
     errorFace: any = null;
+    signalReport: CaptureSignalReport | null = null;
+    videoInputs: VideoInputSummary[] = [];
+    selectedDeviceId = "";
 
     face = {
         video: { center: { x: 0, y: 0 }, radius: { x: 0, y: 0 }, margin: { x: 0, y: 0 } },
@@ -343,12 +347,38 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
                 this._startFaceDetectionInterval();
                 this._setVideoDimensions(videoNgx);
                 this._drawOvalCenterAndMask();
+                void this._inspectActiveStream(videoNgx);
             },
             { once: true }
         );
 
+        if (videoNgx.readyState >= 2) {
+            void this._inspectActiveStream(videoNgx);
+        }
+
         this._setVideoDimensions(videoNgx);
         this._drawOvalCenterAndMask();
+    }
+
+    private async _inspectActiveStream(videoElement: HTMLVideoElement): Promise<void> {
+        const report = await this._faceCaptureService.inspectStream(videoElement);
+        this.signalReport = report;
+        this.videoInputs = report.videoInputs || [];
+        if (report.deviceId && !this.selectedDeviceId) {
+            this.selectedDeviceId = report.deviceId;
+        }
+        this._changeDetectorRef.markForCheck();
+    }
+
+    async onCameraChange(deviceId: string): Promise<void> {
+        if (!deviceId || deviceId === this.selectedDeviceId) return;
+        this.selectedDeviceId = deviceId;
+        this.camera.configuration = this._faceCaptureService.buildCameraConfiguration({
+            displayMode: "portrait",
+            deviceId,
+        });
+        this._changeDetectorRef.markForCheck();
+        this._startNgxVideoInterval();
     }
 
     private _closeDecryptor(): void {
