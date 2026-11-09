@@ -88,7 +88,7 @@ export class AssetService {
             SOL: true,
             SUI: true,
             TON: false,
-            XLM: true,
+            XLM: false,
         };
     }
 

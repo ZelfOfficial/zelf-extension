@@ -55,14 +55,17 @@ export class LifiService {
     get chainIdToSymbol(): Record<string, string> {
         return {
             "1": "ETH",
+            "10": "OP",
             "137": "POL",
+            "8453": "BASE",
+            "42161": "ARB",
             "43114": "AVAX",
             "56": "BNB",
         };
     }
 
     get lifiChainSymbols(): string[] {
-        return ["eth", "ava", "sol", "pol", "bsc"];
+        return ["eth", "ava", "sol", "pol", "bsc", "opt", "arb", "bas"];
     }
 
     /**
@@ -96,6 +99,11 @@ export class LifiService {
             BNB: "binance",
             POL: "polygon",
             MATIC: "polygon",
+            OPT: "optimism",
+            OP: "optimism",
+            ARB: "arbitrum",
+            BAS: "base",
+            BASE: "base",
             SOL: "solana",
             SUI: "sui",
         };
@@ -112,6 +120,11 @@ export class LifiService {
             bnb: "binance",
             pol: "polygon",
             matic: "polygon",
+            opt: "optimism",
+            op: "optimism",
+            arb: "arbitrum",
+            bas: "base",
+            base: "base",
             sol: "solana",
             sui: "sui",
         };
@@ -138,7 +151,7 @@ export class LifiService {
      */
     private _lifiEvmTokensChainParam(internalNetworkLower: string): string | null {
         const id = this.getChainIdentifier(internalNetworkLower);
-        const supported = new Set(["ETH", "AVA", "SUI", "POL", "BNB"]);
+        const supported = new Set(["ETH", "AVA", "SUI", "POL", "BNB", "OPT", "ARB", "BAS"]);
 
         if (id === "SOL") return null;
 
@@ -156,7 +169,7 @@ export class LifiService {
 
         const lock = lockedInternalNetwork?.trim().toLowerCase() || null;
 
-        let fetchEvmChains = "ETH,AVA,POL,BNB,SUI";
+        let fetchEvmChains = "ETH,AVA,POL,BNB,OPT,ARB,BAS,SUI";
         let fetchSolana = true;
 
         if (lock) {
@@ -169,7 +182,7 @@ export class LifiService {
 
                 if (single) fetchEvmChains = single;
                 else {
-                    fetchEvmChains = "ETH,AVA,POL,BNB,SUI";
+                    fetchEvmChains = "ETH,AVA,POL,BNB,OPT,ARB,BAS,SUI";
                     fetchSolana = true;
                 }
             }
@@ -235,6 +248,9 @@ export class LifiService {
             ava: "AVAX",
             pol: "POL",
             bsc: "BNB",
+            opt: "OP",
+            arb: "ARB",
+            bas: "BASE",
             sol: "SOL",
         };
 
@@ -279,8 +295,11 @@ export class LifiService {
             case "polygon":
                 return "POL";
             case "optimism":
+                return "OPT";
             case "arbitrum":
-                return "ETH";
+                return "ARB";
+            case "base":
+                return "BAS";
             case "binance":
                 return "BNB";
             case "avalanche":
@@ -298,10 +317,11 @@ export class LifiService {
 
         const map: Record<number, string> = {
             1: "ETH",
-            10: "ETH",
+            10: "OPT",
             56: "BNB",
             137: "POL",
-            42161: "ETH",
+            8453: "BAS",
+            42161: "ARB",
             43114: "AVA",
         };
 
@@ -590,6 +610,8 @@ export class LifiService {
             avalanche: "43114",
             binance: "56",
             polygon: "137",
+            base: "8453",
+            arbitrum: "42161",
         };
 
         const id = /^\d+$/.test(raw) ? raw : slugToId[raw.toLowerCase()];
