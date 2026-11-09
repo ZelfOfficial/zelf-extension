@@ -278,10 +278,9 @@
                 </button>
             </div>
             <biometrics-general
-                [isModal]="true"
-                [itemType]="'zotp'"
-                (biometricsSuccess)="onBiometricsScanned($event)"
-                (biometricsFailed)="onBiometricsFailed($event)"
+                displayMode="portrait"
+                (error)="onBiometricsFailed($event)"
+                (imageCaptured)="onBiometricsScanned($event)"
             ></biometrics-general>
         </div>
     </div>
