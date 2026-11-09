@@ -558,7 +558,7 @@ export class AssetService {
 
     private _processStellarTokens(stellarData: any, tokens: any[], permissions?: NetworkPermissions): any[] {
         const xlmBalance = parseFloat(stellarData.balance || "0") || 0;
-        const xlmFiat = parseFloat(stellarData.fiatBalance || stellarData.account?.fiatValue || "0") || 0;
+        const xlmFiat = parseFloat(stellarData.account?.fiatValue ?? stellarData.fiatBalance ?? "0") || 0;
         const xlmPrice = parseFloat(stellarData.account?.price || "0") || 0;
 
         const xlmToken = {
@@ -573,7 +573,13 @@ export class AssetService {
 
         let result = this.processTokens("Stellar", [xlmToken], tokens, permissions);
         if (stellarData.tokenHoldings?.tokens?.length) {
-            result = this.processTokens("Stellar", stellarData.tokenHoldings.tokens, result, permissions);
+            const normalizedTokens = stellarData.tokenHoldings.tokens.map((t: any) => ({
+                ...t,
+                symbol: t.symbol || t.asset,
+                name: t.name || t.asset,
+                decimals: t.decimals ?? 7,
+            }));
+            result = this.processTokens("Stellar", normalizedTokens, result, permissions);
         }
         return result;
     }

@@ -46,6 +46,7 @@ type ProcessedTransaction = {
     from: Signee;
     to: Signee;
     type: TransactionType;
+    _timestampMs?: number;
 };
 
 @Component({
@@ -254,6 +255,21 @@ export class ZelfHistoryComponent implements OnInit, OnDestroy {
         }
     }
 
+    private _matchesTokenFilter(asset: string | undefined): boolean {
+        if (!this.token) return true;
+
+        const target = this.token.trim().toUpperCase();
+        const actual = (asset || "").trim().toUpperCase();
+
+        if (!target) return true;
+        if (target === actual) return true;
+
+        const polygonNativeAliases = new Set(["POL", "MATIC"]);
+        if (polygonNativeAliases.has(target) && polygonNativeAliases.has(actual)) return true;
+
+        return false;
+    }
+
     private async _processTransactions(transactions: Transaction[], isPagination = false): Promise<void> {
         if (!transactions || !transactions.length) return;
 
@@ -261,15 +277,22 @@ export class ZelfHistoryComponent implements OnInit, OnDestroy {
         transactions = transactions.filter((tx) => isDisplayableTransaction(tx as any));
         transactions.sort((a, b) => (transactionTime(b as any) ?? 0) - (transactionTime(a as any) ?? 0));
 
-        const groupedByDate: Record<string, any[]> = isPagination ? { ...this.history } : {};
+        const groupedByDate: Record<string, ProcessedTransaction[]> = {};
+        if (isPagination && this.history) {
+            for (const [k, v] of Object.entries(this.history)) {
+                groupedByDate[k] = [...v];
+            }
+        }
         const wallet = await this._walletService.getCurrentWallet();
+        const touchedDates = new Set<string>();
 
         transactions.forEach((tx) => {
             if (this.transactionHashMap[tx.hash] || !wallet) return;
 
-            if (this.token && tx.asset !== this.token) return;
+            if (!this._matchesTokenFilter(tx.asset)) return;
 
-            const dateStr = new Date(transactionTime(tx as any) as number).toLocaleDateString("en-US");
+            const ts = transactionTime(tx as any) as number;
+            const dateStr = new Date(ts).toLocaleDateString("en-US");
 
             if (!groupedByDate[dateStr]) groupedByDate[dateStr] = [];
 
@@ -280,11 +303,12 @@ export class ZelfHistoryComponent implements OnInit, OnDestroy {
             const toAddress = tx.to != null ? (Array.isArray(tx.to) ? tx.to[0] : tx.to) : "";
             const toAmount = tx.amount ?? 0;
 
-            const processedTx = {
+            const processedTx: ProcessedTransaction = {
                 fiatAmount: tx.fiatAmount ?? 0,
                 hash: tx.hash,
                 network: tx.network,
                 type,
+                _timestampMs: ts,
                 from: {
                     address: Array.isArray(tx.from) ? tx.from[0] : tx.from,
                     amount: tx.amount ?? 0,
@@ -302,9 +326,14 @@ export class ZelfHistoryComponent implements OnInit, OnDestroy {
             };
 
             groupedByDate[dateStr].push(processedTx);
+            touchedDates.add(dateStr);
 
             this.transactionHashMap[tx.hash] = true;
         });
+
+        for (const dateStr of touchedDates) {
+            groupedByDate[dateStr].sort((a, b) => (b._timestampMs ?? 0) - (a._timestampMs ?? 0));
+        }
 
         this.history = Object.keys(groupedByDate).length ? groupedByDate : null;
     }
