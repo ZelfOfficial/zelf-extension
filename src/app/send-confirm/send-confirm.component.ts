@@ -84,6 +84,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
         { id: "solana", name: "Solana", symbol: "SOL" },
         { id: "stellar", name: "Stellar", symbol: "XLM" },
         { id: "sui", name: "Sui", symbol: "SUI" },
+        { id: "aptos", name: "Aptos", symbol: "APT" },
         { id: "polkadot", name: "Polkadot", symbol: "DOT" },
         { id: "kusama", name: "Kusama", symbol: "KSM" },
     ];
@@ -868,9 +869,9 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
     private async _handleStandardTransaction(cleanMnemonic: string, normalizedAmount: number, amountText?: string): Promise<void> {
         const exactAmount = (amountText || String(normalizedAmount)).replace(/,/g, "").trim();
         const transactionParams: TransactionParams = {
-            from: "",
+            from: this.transactionData.sender.address || "",
             to: this.transactionData.receiver.address,
-            value: this.transactionData.network === "sui" ? exactAmount : String(normalizedAmount),
+            value: this.transactionData.network === "sui" || this.transactionData.network === "aptos" ? exactAmount : String(normalizedAmount),
             network: this.transactionData.network,
             mnemonic: cleanMnemonic,
             tokenAddress:

@@ -95,4 +95,9 @@ describe("AssetService Sui holdings", () => {
         expect(service().canSwap.XLM).toBeFalse();
         expect(service().canSend.XLM).toBeTrue();
     });
+
+    it("enables Aptos (APT) in canSend permissions (#152)", () => {
+        expect(service().canSend.APT).toBeTrue();
+        expect(service().canSwap.APT).toBeFalse();
+    });
 });
