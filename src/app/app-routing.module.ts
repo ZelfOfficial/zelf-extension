@@ -17,6 +17,7 @@ import { PopoutOnlyGuard } from "./guards/popout-only.guard";
 import { WelcomeCompleteWalletGuard } from "./guards/welcome-complete-wallet.guard";
 import { WelcomeZelfidCompleteWalletGuard } from "./guards/welcome-zelfid-complete-wallet.guard";
 import { ZelfAuthenticatorZotpGuard } from "./guards/zelf-authenticator-zotp.guard";
+import { ZelfKeysNoteGuard } from "./guards/zelf-keys-note.guard";
 import { ZelfKeysPasswordGuard } from "./guards/zelf-keys-password.guard";
 import { ZelfKeysPaymentCardGuard } from "./guards/zelf-keys-payment-card.guard";
 import { ZelfKeysResultGuard } from "./guards/zelf-keys-result.guard";
@@ -209,7 +210,31 @@ const routes: Routes = [
                         loadComponent: () => import("./zelf-keys/zelf-keys-vault/zelf-keys-vault.component").then((m) => m.ZelfKeysVaultComponent),
                     },
                     { path: "passwords", pathMatch: "full", redirectTo: "vault" },
+                    { path: "notes", pathMatch: "full", redirectTo: "vault" },
                     { path: "payment-cards", pathMatch: "full", redirectTo: "vault" },
+                    {
+                        path: "notes/new",
+                        loadComponent: () =>
+                            import("./zelf-keys/zelf-keys-notes/zelf-keys-note-form/zelf-keys-note-form.component").then(
+                                (m) => m.NoteFormComponent
+                            ),
+                    },
+                    {
+                        path: "notes/result",
+                        loadComponent: () =>
+                            import("./zelf-keys/zelf-keys-notes/zelf-keys-note-result/zelf-keys-note-result.component").then(
+                                (m) => m.ZelfKeysNoteResultComponent
+                            ),
+                        canActivate: [ZelfKeysResultGuard],
+                    },
+                    {
+                        path: "notes/detail",
+                        loadComponent: () =>
+                            import("./zelf-keys/zelf-keys-notes/zelf-keys-note-detail/zelf-keys-note-detail.component").then(
+                                (m) => m.ZelfKeysNoteDetailComponent
+                            ),
+                        canActivate: [ZelfKeysNoteGuard],
+                    },
                     {
                         path: "passwords/new",
                         loadComponent: () =>

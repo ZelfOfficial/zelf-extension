@@ -21,7 +21,7 @@ describe("zelfKeysRouteAfterList", () => {
         ).toBeNull();
     });
 
-    it("still sends a genuinely empty vault to the start screen", () => {
+    it("keeps an empty vault on /zelf-keys/vault so the Android empty state renders in-place", () => {
         expect(
             zelfKeysRouteAfterList({
                 path: "/zelf-keys/vault",
@@ -29,6 +29,15 @@ describe("zelfKeysRouteAfterList", () => {
                 paymentCardCount: 0,
                 needsReverify: false,
             })
-        ).toBe("/zelf-keys/start");
+        ).toBeNull();
+
+        expect(
+            zelfKeysRouteAfterList({
+                path: "/zelf-keys/start",
+                passwordCount: 0,
+                paymentCardCount: 0,
+                needsReverify: false,
+            })
+        ).toBe("/zelf-keys/vault");
     });
 });
