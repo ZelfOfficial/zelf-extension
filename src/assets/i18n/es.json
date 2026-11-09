@@ -114,7 +114,26 @@
             "untitled_note": "Nota Sin Título",
             "card_holder": "TITULAR DE TARJETA",
             "card_holder_default": "Titular de Tarjeta",
-            "expires": "EXPIRA"
+            "expires": "EXPIRA",
+            "add_menu": "Añadir",
+            "add_new_card": "Añadir nueva tarjeta",
+            "add_new_note": "Añadir nueva nota",
+            "add_new_password": "Añadir nueva contraseña",
+            "cancel": "Cancelar",
+            "empty_secure_card": "Guarda tus tarjetas de pago de forma segura.",
+            "empty_secure_note": "Guarda tus notas de forma segura.",
+            "empty_secure_password": "Guarda tus contraseñas de forma segura.",
+            "export_csv": "Exportar CSV",
+            "import_csv": "Importar CSV",
+            "item": "elemento",
+            "items": "elementos",
+            "locked_title_cards": "Tus tarjetas de pago están bloqueadas",
+            "locked_title_notes": "Tus notas están bloqueadas",
+            "locked_title_passwords": "Tus contraseñas están bloqueadas",
+            "na": "N/D",
+            "no_items": "No hay elementos",
+            "qr_code": "Código QR",
+            "unknown": "Desconocido"
         },
         "common": {
             "qr_code": "Código QR",
@@ -2291,7 +2310,8 @@
         "first_step_recover": "Recupéralo con tu cara.",
         "code_copied": "Código copiado al portapapeles",
         "code_revealed": "Código mostrado",
-        "no_results": "No hay resultados"
+        "no_results": "No hay resultados",
+        "refresh": "Actualizar"
     },
     "rewards": {
         "title": "Recompensas",

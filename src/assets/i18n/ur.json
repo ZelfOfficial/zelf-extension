@@ -661,7 +661,26 @@
             "untitled_note": "Untitled Note",
             "card_holder": "CARD HOLDER",
             "card_holder_default": "Card Holder",
-            "expires": "EXPIRES"
+            "expires": "EXPIRES",
+            "add_menu": "شامل کریں",
+            "add_new_card": "نیا کارڈ شامل کریں",
+            "add_new_note": "نیا نوٹ شامل کریں",
+            "add_new_password": "نیا پاس ورڈ شامل کریں",
+            "cancel": "منسوخ کریں",
+            "empty_secure_card": "ادائیگی کارڈز محفوظ طریقے سے محفوظ کریں۔",
+            "empty_secure_note": "نوٹس محفوظ طریقے سے محفوظ کریں۔",
+            "empty_secure_password": "پاس ورڈز محفوظ طریقے سے محفوظ کریں۔",
+            "export_csv": "CSV برآمد کریں",
+            "import_csv": "CSV درآمد کریں",
+            "item": "شے",
+            "items": "اشیاء",
+            "locked_title_cards": "آپ کے ادائیگی کارڈز مقفل ہیں",
+            "locked_title_notes": "آپ کے نوٹس مقفل ہیں",
+            "locked_title_passwords": "آپ کے پاس ورڈز مقفل ہیں",
+            "na": "دستیاب نہیں",
+            "no_items": "کوئی اشیاء نہیں",
+            "qr_code": "کیو آر کوڈ",
+            "unknown": "نامعلوم"
         }
     },
     "cancel": "منسوخ کریں",
@@ -2199,7 +2218,8 @@
         "first_step_recover": "Recover with your face.",
         "code_copied": "Code copied to clipboard",
         "code_revealed": "Code revealed",
-        "no_results": "No results found"
+        "no_results": "No results found",
+        "refresh": "ریفریش"
     },
     "rewards": {
         "title": "انعامات",

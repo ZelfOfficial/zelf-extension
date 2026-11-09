@@ -19,10 +19,10 @@
         "i18n:find": "transloco-keys-manager find",
         "i18n:sync": "node scripts/sync-translations.js",
         "start": "ng serve",
-        "test:ci": "ng test --browsers ChromeHeadlessCI --watch=false",
+        "test:ci": "node scripts/check-vault-i18n-keys.js && ng test --browsers ChromeHeadlessCI --watch=false",
         "test:coverage": "ng test --code-coverage",
         "test:run": "ng test --browsers ChromeHeadless --watch=false",
-        "test": "npm run test:run",
+        "test": "node scripts/check-vault-i18n-keys.js && npm run test:run",
         "transloco:optimize": "transloco-optimize dist/prod/assets/i18n",
         "watch": "ng run zelf-extension:builder:dev_chrome --watch"
     },

@@ -661,7 +661,26 @@
             "untitled_note": "Nota Sem Título",
             "card_holder": "TITULAR DO CARTÃO",
             "card_holder_default": "Titular do cartão",
-            "expires": "EXPIRA"
+            "expires": "EXPIRA",
+            "add_menu": "Adicionar",
+            "add_new_card": "Adicionar novo cartão",
+            "add_new_note": "Adicionar nova nota",
+            "add_new_password": "Adicionar nova senha",
+            "cancel": "Cancelar",
+            "empty_secure_card": "Armazene seus cartões de pagamento com segurança.",
+            "empty_secure_note": "Armazene suas notas com segurança.",
+            "empty_secure_password": "Armazene suas senhas com segurança.",
+            "export_csv": "Exportar CSV",
+            "import_csv": "Importar CSV",
+            "item": "item",
+            "items": "itens",
+            "locked_title_cards": "Seus cartões de pagamento estão bloqueados",
+            "locked_title_notes": "Suas notas estão bloqueadas",
+            "locked_title_passwords": "Suas senhas estão bloqueadas",
+            "na": "N/D",
+            "no_items": "Nenhum item",
+            "qr_code": "QR Code",
+            "unknown": "Desconhecido"
         }
     },
     "cancel": "Cancelar",
@@ -2199,7 +2218,8 @@
         "first_step_recover": "Recupere com seu rosto.",
         "code_copied": "Código copiado para a área de transferência",
         "code_revealed": "Código revelado",
-        "no_results": "Nenhum resultado encontrado"
+        "no_results": "Nenhum resultado encontrado",
+        "refresh": "Atualizar"
     },
     "rewards": {
         "title": "Recompensas",
