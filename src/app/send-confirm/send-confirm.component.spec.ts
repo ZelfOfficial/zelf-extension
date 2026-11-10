@@ -381,6 +381,21 @@ describe("SendConfirmComponent Aptos review (#166)", () => {
         expect(picked.component.confirmAmountLabel).toBe("ALL");
     });
 
+    it("allows max when the balance is above the fee even if the field still holds the full balance", () => {
+        const { component } = aptReview({ balance: 2, amountInput: "2", amount: "2", sendAll: true, fee: 0.0001 });
+
+        expect(component.hasBalance).toBeTrue();
+        expect(component.aptosSendErrorKey).toBeNull();
+        expect(component.confirmAmountLabel).toBe("ALL");
+    });
+
+    it("blocks max on review when the balance is not above the fee", () => {
+        const { component } = aptReview({ balance: 0.0001, amountInput: "0.0001", sendAll: true, fee: 0.0002 });
+
+        expect(component.hasBalance).toBeFalse();
+        expect(component.aptosSendErrorKey).toBe("send.aptos_amount_plus_fee");
+    });
+
     it("disables send when the amount plus the estimated fee is above the balance", () => {
         const { component } = aptReview({ balance: 0.001, amountInput: "0.001", fee: 0.0002 });
 
@@ -404,5 +419,46 @@ describe("SendConfirmComponent Aptos review (#166)", () => {
         expect(component.transactionData.sendAll).toBeFalse();
         expect(component.confirmAmountLabel).toBe("0.001");
         expect(component.transactionData.fee).toBe(0.0002);
+        expect(component.feeError).toBeNull();
+    });
+
+    it("sets the max transfer to balance minus fee and keeps the ALL label", async () => {
+        const { component } = aptReview({ balance: 2, amountInput: "2", amount: "2", sendAll: true, fee: 0 });
+        (component as any)._blockchainTransactionsService = {
+            calculateTransactionFees: jasmine.createSpy("calculateTransactionFees").and.resolveTo({
+                fee: 0.0001,
+                fiatFee: 0,
+                total: 0,
+                adjustedAmount: "ALL",
+            }),
+        };
+
+        await (component as any)._calculateTransactionFee();
+
+        expect(component.transactionData.sendAll).toBeTrue();
+        expect(component.transactionData.amountInput).toBe("2");
+        expect(component.transactionData.amount).toBe("1.9999");
+        expect(component.confirmAmountLabel).toBe("ALL");
+        expect(component.hasBalance).toBeTrue();
+    });
+
+    it("shows the network error and disables send when the Aptos fee quote is 0", async () => {
+        const { component, sendTransaction } = aptReview({ balance: 2, amountInput: "0.001", fee: 0 });
+        (component as any)._blockchainTransactionsService = {
+            calculateTransactionFees: jasmine.createSpy("calculateTransactionFees").and.resolveTo({
+                fee: 0,
+                fiatFee: 0,
+                total: 0,
+            }),
+        };
+
+        await (component as any)._calculateTransactionFee();
+
+        expect(component.feeError).toBe("errors.send_transaction_network_error");
+        expect(component.hasBalance).toBeFalse();
+
+        await component.confirmTransaction();
+
+        expect(sendTransaction).not.toHaveBeenCalled();
     });
 });

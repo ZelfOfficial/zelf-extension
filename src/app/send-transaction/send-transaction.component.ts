@@ -31,7 +31,14 @@ import { AddressBook, TransactionData } from "@shared/types/wallet.types";
 import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { TagModel, TagsService } from "app/tags.service";
-import { aptosSendBlockReason, aptosSendErrorKey as aptosSendErrorTranslationKey, readAptBalance, readAptSendAmount } from "../core/utils/aptos-send.util";
+import {
+    aptosFeeQuoteFailed,
+    aptosSendBlockReason,
+    aptosSendErrorKey as aptosSendErrorTranslationKey,
+    aptRemainder,
+    readAptBalance,
+    readAptSendAmount,
+} from "../core/utils/aptos-send.util";
 import { formatDisplayAmount } from "../core/utils/display-number.util";
 import { DisplayFiatPipe } from "../pipes/display-number.pipe";
 
@@ -70,6 +77,8 @@ export class SendTransactionComponent implements OnDestroy {
     private _stellarReservePlusFeeXlm: number = STELLAR_DEFAULT_MIN_RESERVE_XLM + STELLAR_DEFAULT_BASE_FEE_XLM;
     /** Latest Aptos fee quote from the amount step. 0 until a quote is needed. */
     private _aptosEstimatedFee = 0;
+    /** The last quote threw or returned 0. That is not a free transfer. */
+    private _aptosQuoteFailed = false;
 
 
     constructor(
@@ -201,7 +210,7 @@ export class SendTransactionComponent implements OnDestroy {
     }
 
     onWithdrawPrimaryClick(): void {
-        if (this.isConfirmationDisabled()) {
+        if (this.isConfirmationDisabled() && !this._aptosQuoteFailed) {
             this.form.get("amount")?.markAsTouched();
             return;
         }
@@ -211,6 +220,8 @@ export class SendTransactionComponent implements OnDestroy {
 
     /** Translated Aptos block, or null when this send can leave the amount step. */
     get aptosSendErrorKey(): string | null {
+        if (this.transactionData?.isAptToken && this._aptosQuoteFailed) return "errors.send_transaction_network_error";
+
         return aptosSendErrorTranslationKey(this._aptosBlockReason());
     }
 
@@ -735,11 +746,18 @@ export class SendTransactionComponent implements OnDestroy {
         try {
             if (this.withdrawStep) {
                 const raw = String(this.form.get("amount")?.value ?? "").trim();
-                const amount = Number(raw.replace(/,/g, ""));
+                const sendAll = this._sendAll === true;
 
                 this.transactionData.amountInput = raw;
-                this.transactionData.amount = Number.isFinite(amount) ? amount : raw;
-                this.transactionData.sendAll = this._sendAll === true;
+                this.transactionData.sendAll = sendAll;
+
+                if (sendAll && this.transactionData.isAptToken) {
+                    this.transactionData.amount = aptRemainder(readAptBalance(this.transactionData.token), this._aptosEstimatedFee) ?? raw;
+                } else {
+                    const amount = Number(raw.replace(/,/g, ""));
+
+                    this.transactionData.amount = Number.isFinite(amount) ? amount : raw;
+                }
             }
 
             const memoCtrl = this.form.get("memo");
@@ -876,7 +894,17 @@ export class SendTransactionComponent implements OnDestroy {
         }
 
         if (this.transactionData.isAptToken) {
-            this._aptosEstimatedFee = await this._estimateAptosFee();
+            const quote = await this._estimateAptosFee();
+
+            if (!quote.ok) {
+                this._aptosQuoteFailed = true;
+                this._aptosEstimatedFee = 0;
+                this._changeDetectionRef.markForCheck();
+                return;
+            }
+
+            this._aptosQuoteFailed = false;
+            this._aptosEstimatedFee = quote.fee;
 
             if (this._aptosBlockReason()) {
                 this._changeDetectionRef.markForCheck();
@@ -893,12 +921,13 @@ export class SendTransactionComponent implements OnDestroy {
         if (!this.transactionData?.isAptToken) return null;
 
         const balance = readAptBalance(this.transactionData.token);
-        const amount = readAptSendAmount(this.form?.get("amount")?.value, this.transactionData.amount);
+        const sendAll = this._sendAll === true;
+        const amount = readAptSendAmount(this.form?.get("amount")?.value, this.transactionData.amount, sendAll);
 
-        return aptosSendBlockReason(balance, amount, this._aptosEstimatedFee);
+        return aptosSendBlockReason(balance, amount, this._aptosEstimatedFee, sendAll);
     }
 
-    private async _estimateAptosFee(): Promise<number> {
+    private async _estimateAptosFee(): Promise<{ ok: true; fee: number } | { ok: false }> {
         const amount = readAptSendAmount(this.form?.get("amount")?.value, this.transactionData.amount);
         const toAddress = this.foundAddress?.publicData?.[this.addressKey] || this.form?.get("toAddress")?.value || "";
 
@@ -910,12 +939,12 @@ export class SendTransactionComponent implements OnDestroy {
                 Number(this.transactionData.token?.price) || this.price || 0
             );
 
-            const fee = Number(quote?.fee);
+            if (aptosFeeQuoteFailed(quote?.fee)) return { ok: false };
 
-            return Number.isFinite(fee) && fee > 0 ? fee : 0;
+            return { ok: true, fee: Number(quote.fee) };
         } catch (error) {
             console.error("Error estimating Aptos fee:", error);
-            return 0;
+            return { ok: false };
         }
     }
 
@@ -949,6 +978,7 @@ export class SendTransactionComponent implements OnDestroy {
         this.transactionData.sendAll = false;
         this._sendAll = false;
         this._aptosEstimatedFee = 0;
+        this._aptosQuoteFailed = false;
         this.transactionData.receiver.address = "";
         this.transactionData.receiver.tagName = "";
         this.transactionData.memo = undefined;
@@ -975,6 +1005,7 @@ export class SendTransactionComponent implements OnDestroy {
 
     isConfirmationDisabled(): boolean {
         if (!this.foundAddress || this.searching || this.form.invalid || this.form.get("amount")?.invalid) return true;
+        if (this.transactionData?.isAptToken && this._aptosQuoteFailed) return true;
         if (this._aptosBlockReason()) return true;
 
         return false;
@@ -1122,6 +1153,7 @@ export class SendTransactionComponent implements OnDestroy {
         this.form.get("amount")?.setValue(sanitized, { emitEvent: true });
         this._sendAll = false;
         this._aptosEstimatedFee = 0;
+        this._aptosQuoteFailed = false;
     }
 
     onAmountPaste(event: ClipboardEvent): void {
@@ -1134,6 +1166,7 @@ export class SendTransactionComponent implements OnDestroy {
         this.form.get("amount")?.markAsTouched();
         this._sendAll = false;
         this._aptosEstimatedFee = 0;
+        this._aptosQuoteFailed = false;
     }
 
     private _sendAll = false;
@@ -1143,6 +1176,8 @@ export class SendTransactionComponent implements OnDestroy {
         c?.patchValue(this._getMaxSendableAmount());
         c?.markAsTouched();
         this._sendAll = true;
+        this._aptosEstimatedFee = 0;
+        this._aptosQuoteFailed = false;
     }
 
     private _sanitizeAmountValue(value: string): string {

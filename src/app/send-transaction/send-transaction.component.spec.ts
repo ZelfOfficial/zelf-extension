@@ -96,15 +96,54 @@ describe("SendTransactionComponent Aptos amount step (#166)", () => {
         expect(saved.sendAll).not.toBeTrue();
     });
 
-    it("records max only when the user picked ALL", async () => {
-        const t = setup(3, "2");
+    it("allows max when the balance covers a positive fee and stores balance minus fee", async () => {
+        const t = setup(2, "2");
         (t.component as any)._sendAll = true;
         t.calculateTransactionFees.and.resolveTo({ fee: 0.0001, fiatFee: 0, total: 0 });
 
         await t.component.continueToConfirmation();
 
+        expect(t.navigate).toHaveBeenCalledWith(["/send/confirmation"]);
         const saved = t.setCurrentTransactionData.calls.mostRecent().args[0];
         expect(saved.sendAll).toBeTrue();
         expect(saved.amountInput).toBe("2");
+        expect(saved.amount).toBe("1.9999");
+    });
+
+    it("blocks max when the balance is not above the fee", async () => {
+        const t = setup(0.0001, "0.0001");
+        (t.component as any)._sendAll = true;
+        t.calculateTransactionFees.and.resolveTo({ fee: 0.0002, fiatFee: 0, total: 0 });
+
+        await t.component.continueToConfirmation();
+
+        expect(t.navigate).not.toHaveBeenCalled();
+        expect(t.component.aptosSendErrorKey).toBe("send.aptos_amount_plus_fee");
+    });
+
+    it("does not treat a zero fee quote as free", async () => {
+        const t = setup(2);
+        t.calculateTransactionFees.and.resolveTo({ fee: 0, fiatFee: 0, total: 0 });
+
+        await t.component.continueToConfirmation();
+
+        expect(t.navigate).not.toHaveBeenCalled();
+        expect(t.component.aptosSendErrorKey).toBe("errors.send_transaction_network_error");
+        expect(t.component.isConfirmationDisabled()).toBeTrue();
+    });
+
+    it("keeps continue disabled when the fee quote throws, and a later quote can proceed", async () => {
+        const t = setup(2);
+        t.calculateTransactionFees.and.rejectWith(new Error("network"));
+
+        await t.component.continueToConfirmation();
+
+        expect(t.navigate).not.toHaveBeenCalled();
+        expect(t.component.isConfirmationDisabled()).toBeTrue();
+
+        t.calculateTransactionFees.and.resolveTo({ fee: 0.0001, fiatFee: 0, total: 0 });
+        await t.component.continueToConfirmation();
+
+        expect(t.navigate).toHaveBeenCalledWith(["/send/confirmation"]);
     });
 });

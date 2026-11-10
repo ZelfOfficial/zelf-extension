@@ -13,7 +13,15 @@ import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 
 import { AssetService } from "app/asset.service";
 import { ChromeService } from "app/chrome.service";
-import { aptosSendBlockReason, aptosSendErrorKey as aptosSendErrorTranslationKey, readAptBalance, readAptSendAmount, reviewSendAmountLabel } from "app/core/utils/aptos-send.util";
+import {
+    aptosFeeQuoteFailed,
+    aptosSendBlockReason,
+    aptosSendErrorKey as aptosSendErrorTranslationKey,
+    aptRemainder,
+    readAptBalance,
+    readAptSendAmount,
+    reviewSendAmountLabel,
+} from "app/core/utils/aptos-send.util";
 import { areSendAddressesSame } from "app/core/utils/same-wallet-address.util";
 import { isNativeSuiHolding, sendConfirmNetworkLabel } from "app/core/utils/sui-coin.util";
 import { mapTransactionErrorToTranslationKey } from "app/core/utils/user-facing-transaction-error.util";
@@ -306,14 +314,15 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
         if (this.transactionData?.network !== "aptos") return null;
 
         const balance = readAptBalance(this.transactionData.token);
-        const amount = readAptSendAmount(this.transactionData.amountInput, this.transactionData.amount);
+        const sendAll = this.transactionData.sendAll === true;
+        const amount = readAptSendAmount(sendAll ? undefined : this.transactionData.amountInput, this.transactionData.amount, sendAll);
         const fee = Number(this.transactionData.fee) || 0;
 
-        return aptosSendBlockReason(balance, amount, fee);
+        return aptosSendBlockReason(balance, amount, fee, sendAll);
     }
 
     get hasBalance(): boolean {
-        if (this._aptosBlockReason()) return false;
+        if (this.transactionData?.network === "aptos") return !this.feeError && this._aptosBlockReason() === null;
 
         const tokenBalance = Number(this.transactionData.token.balance) || 0;
         const tokenAmount = Number(this.transactionData.token.amount) || 0;
@@ -429,17 +438,15 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
             this.transactionData.fiatFee = feeEstimate.fiatFee;
             this.transactionData.total = feeEstimate.total;
 
-            if (feeEstimate.adjustedAmount) {
-                const userPickedMax = this.transactionData.sendAll === true;
+            if (this.transactionData.network === "aptos" && aptosFeeQuoteFailed(feeEstimate.fee)) {
+                this.feeError = this._translocoService.translate("errors.send_transaction_network_error");
+            } else if (feeEstimate.adjustedAmount && this.transactionData.network !== "aptos") {
+                this.transactionData.amount = feeEstimate.adjustedAmount;
+                this.transactionData.sendAll = true;
+            } else if (this.transactionData.network === "aptos" && this.transactionData.sendAll === true) {
+                const delivered = aptRemainder(readAptBalance(this.transactionData.token), feeEstimate.fee);
 
-                if (this.transactionData.network === "aptos") {
-                    const adjusted = Number(String(feeEstimate.adjustedAmount).replace(/,/g, ""));
-
-                    if (userPickedMax && Number.isFinite(adjusted)) this.transactionData.amount = feeEstimate.adjustedAmount;
-                } else {
-                    this.transactionData.amount = feeEstimate.adjustedAmount;
-                    this.transactionData.sendAll = true;
-                }
+                if (delivered) this.transactionData.amount = delivered;
             }
 
             if (feeEstimate.networkPrice !== undefined) {
@@ -457,6 +464,11 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
             }
             if (this.transactionData?.network === "sui") {
                 this.feeError = error instanceof Error && error.message ? error.message : "Sui fee estimate failed";
+                this.transactionData.fee = 0;
+                this.transactionData.fiatFee = 0;
+            }
+            if (this.transactionData?.network === "aptos") {
+                this.feeError = this._translocoService.translate("errors.send_transaction_network_error");
                 this.transactionData.fee = 0;
                 this.transactionData.fiatFee = 0;
             }
