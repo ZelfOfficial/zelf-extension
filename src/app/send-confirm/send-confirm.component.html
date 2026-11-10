@@ -41,7 +41,7 @@
                     <div class="zelf-chip">{{ t("common.amount") }}</div>
 
                     <div class="send-confirm__price-amount-container">
-                        <h2 class="send-confirm__price">{{ transactionData.amount | displayAmount:0:'floor' }}</h2>
+                        <h2 class="send-confirm__price">{{ reviewAmountText }}</h2>
 
                         <p class="send-confirm__price-currency">{{ transactionData.symbol }}</p>
                     </div>
@@ -129,7 +129,12 @@
                 <p>{{ feeError }}</p>
             </div>
 
-            <div class="zelf-message zelf-message--error" *ngIf="!hasBalance && !feeError">
+            <div class="zelf-message zelf-message--error" *ngIf="aptosSendErrorKey && !feeError">
+                <ng-container *ngTemplateOutlet="cross"></ng-container>
+                <p>{{ t(aptosSendErrorKey) }}</p>
+            </div>
+
+            <div class="zelf-message zelf-message--error" *ngIf="!hasBalance && !feeError && !aptosSendErrorKey">
                 <ng-container *ngTemplateOutlet="cross"></ng-container>
                 <p>{{ t("errors.insufficient_funds") }}</p>
             </div>

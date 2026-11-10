@@ -715,6 +715,8 @@
     "send": {
         "address_found": "تم العثور على العنوان",
         "available_balance": "المتوفر {{balance}} {{symbol}}",
+        "aptos_zero_balance": "رصيد APT لديك هو 0. أضف APT قبل الإرسال.",
+        "aptos_amount_plus_fee": "المبلغ مع رسوم الشبكة التقديرية أكبر من رصيد APT.",
         "average": "متوسط",
         "cannot_continue_process": "لا يمكنك متابعة العملية",
         "confirmations": "تأكيدات",

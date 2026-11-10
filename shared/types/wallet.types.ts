@@ -934,6 +934,8 @@ export type Receiver = {
 
 export interface TransactionData {
     amount?: number | string;
+    /** Exact text typed on the amount step. Review uses this unless the user picked Max/ALL. */
+    amountInput?: string;
     fee?: number | string;
     fiatAmount?: number | string;
     fiatFee?: number | string;
@@ -943,12 +945,13 @@ export interface TransactionData {
     total?: number | string;
     /** Optional Stellar memo (text). */
     memo?: string;
-    /** User tapped Max/ALL for this Sui send. */
+    /** User tapped Max/ALL for this send. */
     sendAll?: boolean;
 }
 
 export class TransactionData implements TransactionData {
     amount?: number | string = 0;
+    amountInput?: string;
     fee?: number | string = 0;
     fiatAmount?: number | string = 0;
     fiatFee?: number | string = 0;
@@ -961,6 +964,7 @@ export class TransactionData implements TransactionData {
 
     constructor(data: any = {}) {
         this.amount = data.amount || 0;
+        this.amountInput = typeof data.amountInput === "string" ? data.amountInput : undefined;
         this.fee = data.fee || 0;
         this.fiatAmount = data.fiatAmount || 0;
         this.fiatFee = data.fiatFee || 0;

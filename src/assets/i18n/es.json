@@ -715,6 +715,8 @@
     "send": {
         "address_found": "Dirección encontrada",
         "available_balance": "Disponible {{balance}} {{symbol}}",
+        "aptos_zero_balance": "Tu saldo de APT es 0. Agrega APT antes de enviar.",
+        "aptos_amount_plus_fee": "El monto más la comisión estimada de la red supera tu saldo de APT.",
         "average": "Promedio",
         "cannot_continue_process": "No puedes continuar con el proceso",
         "confirmations": "Confirmaciones",

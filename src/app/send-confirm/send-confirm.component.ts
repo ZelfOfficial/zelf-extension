@@ -13,6 +13,7 @@ import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 
 import { AssetService } from "app/asset.service";
 import { ChromeService } from "app/chrome.service";
+import { aptosSendBlockReason, aptosSendErrorKey as aptosSendErrorTranslationKey, readAptBalance, readAptSendAmount, reviewSendAmountLabel } from "app/core/utils/aptos-send.util";
 import { areSendAddressesSame } from "app/core/utils/same-wallet-address.util";
 import { isNativeSuiHolding, sendConfirmNetworkLabel } from "app/core/utils/sui-coin.util";
 import { mapTransactionErrorToTranslationKey } from "app/core/utils/user-facing-transaction-error.util";
@@ -33,6 +34,7 @@ import { TagModel } from "app/tags.service";
 import { TagsService } from "app/tags.service";
 import { StellarFeeBreakdown } from "app/services/stellar-send.types";
 import { StellarSendSummaryComponent } from "app/stellar-send-summary/stellar-send-summary.component";
+import { formatDisplayAmount } from "../core/utils/display-number.util";
 import { DisplayAmountPipe, DisplayFiatPipe } from "../pipes/display-number.pipe";
 import { previewProofSecurity, proofRequiresPassword } from "app/onboarding-stack";
 import { ZelfIdsService } from "app/zelf-ids.service";
@@ -280,7 +282,39 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
         return amount * fiatPrice || amount * Number(this.transactionData.token.price || 0) || 0;
     }
 
+    /** Aptos review headline. ALL only when the user picked max. */
+    get confirmAmountLabel(): string {
+        return reviewSendAmountLabel({
+            amount: this.transactionData?.amount,
+            amountInput: this.transactionData?.amountInput,
+            sendAll: this.transactionData?.sendAll === true,
+            allLabel: String(this._translocoService.translate("common.all") || "All").toUpperCase(),
+        });
+    }
+
+    get reviewAmountText(): string {
+        if (this.transactionData?.network === "aptos") return this.confirmAmountLabel;
+
+        return formatDisplayAmount(this.transactionData?.amount, { minDecimals: 0, rounding: "floor" });
+    }
+
+    get aptosSendErrorKey(): string | null {
+        return aptosSendErrorTranslationKey(this._aptosBlockReason());
+    }
+
+    private _aptosBlockReason() {
+        if (this.transactionData?.network !== "aptos") return null;
+
+        const balance = readAptBalance(this.transactionData.token);
+        const amount = readAptSendAmount(this.transactionData.amountInput, this.transactionData.amount);
+        const fee = Number(this.transactionData.fee) || 0;
+
+        return aptosSendBlockReason(balance, amount, fee);
+    }
+
     get hasBalance(): boolean {
+        if (this._aptosBlockReason()) return false;
+
         const tokenBalance = Number(this.transactionData.token.balance) || 0;
         const tokenAmount = Number(this.transactionData.token.amount) || 0;
         const sendAmount = Number(this.transactionData.amount) || 0;
@@ -396,8 +430,16 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
             this.transactionData.total = feeEstimate.total;
 
             if (feeEstimate.adjustedAmount) {
-                this.transactionData.amount = feeEstimate.adjustedAmount;
-                this.transactionData.sendAll = true;
+                const userPickedMax = this.transactionData.sendAll === true;
+
+                if (this.transactionData.network === "aptos") {
+                    const adjusted = Number(String(feeEstimate.adjustedAmount).replace(/,/g, ""));
+
+                    if (userPickedMax && Number.isFinite(adjusted)) this.transactionData.amount = feeEstimate.adjustedAmount;
+                } else {
+                    this.transactionData.amount = feeEstimate.adjustedAmount;
+                    this.transactionData.sendAll = true;
+                }
             }
 
             if (feeEstimate.networkPrice !== undefined) {
@@ -746,7 +788,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
     }
 
     async confirmTransaction() {
-        if (this.sending || this.feeError) return;
+        if (this.sending || this.feeError || this._aptosBlockReason()) return;
 
         // #88 signing rule: see core/security/signing-gate.util.ts.
         const gate = resolveSigningGate(await this._signingGateInput());
@@ -825,7 +867,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
     }
 
     async goToBiometrics(): Promise<void> {
-        if (!this.wallet) return;
+        if (!this.wallet || this._aptosBlockReason()) return;
 
         if (!this.isFaceOnly && !this._passwordForFaceStep()) {
             await this._refreshSigningGate();

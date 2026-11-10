@@ -715,6 +715,8 @@
     "send": {
         "address_found": "پتہ مل گیا",
         "available_balance": "دستیاب {{balance}} {{symbol}}",
+        "aptos_zero_balance": "آپ کا APT بیلنس 0 ہے۔ بھیجنے سے پہلے APT شامل کریں۔",
+        "aptos_amount_plus_fee": "رقم اور تخمینی نیٹ ورک فیس آپ کے APT بیلنس سے زیادہ ہے۔",
         "average": "اوسط",
         "cannot_continue_process": "آپ اس عمل کو جاری نہیں رکھ سکتے",
         "confirmations": "تصدیقات",

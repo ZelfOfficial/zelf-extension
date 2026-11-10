@@ -715,6 +715,8 @@
     "send": {
         "address_found": "アドレスが見つかりました",
         "available_balance": "利用可能 {{balance}} {{symbol}}",
+        "aptos_zero_balance": "APTの残高は0です。送る前にAPTを追加してください。",
+        "aptos_amount_plus_fee": "金額と見積もりのネットワーク手数料の合計がAPT残高を超えています。",
         "average": "平均",
         "cannot_continue_process": "プロセスを続行できません",
         "confirmations": "確認",

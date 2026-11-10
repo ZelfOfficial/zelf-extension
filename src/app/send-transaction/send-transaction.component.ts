@@ -31,6 +31,7 @@ import { AddressBook, TransactionData } from "@shared/types/wallet.types";
 import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { TagModel, TagsService } from "app/tags.service";
+import { aptosSendBlockReason, aptosSendErrorKey as aptosSendErrorTranslationKey, readAptBalance, readAptSendAmount } from "../core/utils/aptos-send.util";
 import { formatDisplayAmount } from "../core/utils/display-number.util";
 import { DisplayFiatPipe } from "../pipes/display-number.pipe";
 
@@ -67,6 +68,8 @@ export class SendTransactionComponent implements OnDestroy {
     transactionData!: TransactionData;
     withdrawStep: boolean = false;
     private _stellarReservePlusFeeXlm: number = STELLAR_DEFAULT_MIN_RESERVE_XLM + STELLAR_DEFAULT_BASE_FEE_XLM;
+    /** Latest Aptos fee quote from the amount step. 0 until a quote is needed. */
+    private _aptosEstimatedFee = 0;
 
 
     constructor(
@@ -204,6 +207,11 @@ export class SendTransactionComponent implements OnDestroy {
         }
 
         void this.continueToConfirmation();
+    }
+
+    /** Translated Aptos block, or null when this send can leave the amount step. */
+    get aptosSendErrorKey(): string | null {
+        return aptosSendErrorTranslationKey(this._aptosBlockReason());
     }
 
     get filteredAddresses(): AddressBook[] {
@@ -726,9 +734,11 @@ export class SendTransactionComponent implements OnDestroy {
     private async _setToCurrentTransactionData(): Promise<void> {
         try {
             if (this.withdrawStep) {
-                const amount = Number(String(this.form.get("amount")?.value || "0").replace(",", "."));
+                const raw = String(this.form.get("amount")?.value ?? "").trim();
+                const amount = Number(raw.replace(/,/g, ""));
 
-                this.transactionData.amount = amount;
+                this.transactionData.amountInput = raw;
+                this.transactionData.amount = Number.isFinite(amount) ? amount : raw;
                 this.transactionData.sendAll = this._sendAll === true;
             }
 
@@ -820,6 +830,8 @@ export class SendTransactionComponent implements OnDestroy {
     }
 
     async continueToConfirmation(): Promise<void> {
+        if (this._aptosBlockReason()) return;
+
         if (!this.form.valid) return;
 
         const address = this.form.get("toAddress")?.value;
@@ -863,9 +875,48 @@ export class SendTransactionComponent implements OnDestroy {
             return;
         }
 
+        if (this.transactionData.isAptToken) {
+            this._aptosEstimatedFee = await this._estimateAptosFee();
+
+            if (this._aptosBlockReason()) {
+                this._changeDetectionRef.markForCheck();
+                return;
+            }
+        }
+
         await this._setToCurrentTransactionData();
 
         this._router.navigate(["/send/confirmation"]);
+    }
+
+    private _aptosBlockReason() {
+        if (!this.transactionData?.isAptToken) return null;
+
+        const balance = readAptBalance(this.transactionData.token);
+        const amount = readAptSendAmount(this.form?.get("amount")?.value, this.transactionData.amount);
+
+        return aptosSendBlockReason(balance, amount, this._aptosEstimatedFee);
+    }
+
+    private async _estimateAptosFee(): Promise<number> {
+        const amount = readAptSendAmount(this.form?.get("amount")?.value, this.transactionData.amount);
+        const toAddress = this.foundAddress?.publicData?.[this.addressKey] || this.form?.get("toAddress")?.value || "";
+
+        try {
+            const quote = await this._aptosService.calculateTransactionFees(
+                this.transactionData.sender?.address || "",
+                String(toAddress),
+                amount,
+                Number(this.transactionData.token?.price) || this.price || 0
+            );
+
+            const fee = Number(quote?.fee);
+
+            return Number.isFinite(fee) && fee > 0 ? fee : 0;
+        } catch (error) {
+            console.error("Error estimating Aptos fee:", error);
+            return 0;
+        }
     }
 
     getTimeDiff(lastUsed: Date | string | undefined): string {
@@ -894,6 +945,10 @@ export class SendTransactionComponent implements OnDestroy {
 
     goBack(): void {
         this.transactionData.amount = 0;
+        this.transactionData.amountInput = undefined;
+        this.transactionData.sendAll = false;
+        this._sendAll = false;
+        this._aptosEstimatedFee = 0;
         this.transactionData.receiver.address = "";
         this.transactionData.receiver.tagName = "";
         this.transactionData.memo = undefined;
@@ -920,6 +975,7 @@ export class SendTransactionComponent implements OnDestroy {
 
     isConfirmationDisabled(): boolean {
         if (!this.foundAddress || this.searching || this.form.invalid || this.form.get("amount")?.invalid) return true;
+        if (this._aptosBlockReason()) return true;
 
         return false;
     }
@@ -1065,6 +1121,7 @@ export class SendTransactionComponent implements OnDestroy {
         }
         this.form.get("amount")?.setValue(sanitized, { emitEvent: true });
         this._sendAll = false;
+        this._aptosEstimatedFee = 0;
     }
 
     onAmountPaste(event: ClipboardEvent): void {
@@ -1076,6 +1133,7 @@ export class SendTransactionComponent implements OnDestroy {
         this.form.get("amount")?.setValue(sanitized, { emitEvent: true });
         this.form.get("amount")?.markAsTouched();
         this._sendAll = false;
+        this._aptosEstimatedFee = 0;
     }
 
     private _sendAll = false;

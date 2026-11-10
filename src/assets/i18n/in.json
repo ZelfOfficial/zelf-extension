@@ -715,6 +715,8 @@
     "send": {
         "address_found": "पता मिल गया",
         "available_balance": "उपलब्ध {{balance}} {{symbol}}",
+        "aptos_zero_balance": "आपका APT बैलेंस 0 है. भेजने से पहले APT जोड़ें.",
+        "aptos_amount_plus_fee": "राशि और अनुमानित नेटवर्क शुल्क आपके APT बैलेंस से अधिक है.",
         "average": "औसत",
         "cannot_continue_process": "आप प्रक्रिया जारी नहीं रख सकते",
         "confirmations": "पुष्टिकरण",

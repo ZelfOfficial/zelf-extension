@@ -715,6 +715,8 @@
     "send": {
         "address_found": "주소를 찾았습니다",
         "available_balance": "사용 가능 {{balance}} {{symbol}}",
+        "aptos_zero_balance": "APT 잔액이 0입니다. 보내기 전에 APT를 추가하세요.",
+        "aptos_amount_plus_fee": "금액과 예상 네트워크 수수료의 합이 APT 잔액보다 큽니다.",
         "average": "평균",
         "cannot_continue_process": "프로세스를 계속할 수 없습니다",
         "confirmations": "확인",

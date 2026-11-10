@@ -715,6 +715,8 @@
     "send": {
         "address_found": "พบที่อยู่แล้ว",
         "available_balance": "ยอดคงเหลือ {{balance}} {{symbol}}",
+        "aptos_zero_balance": "ยอด APT ของคุณคือ 0 โปรดเพิ่ม APT ก่อนส่ง",
+        "aptos_amount_plus_fee": "จำนวนเงินบวกค่าธรรมเนียมเครือข่ายโดยประมาณมากกว่ายอด APT ของคุณ",
         "average": "ปานกลาง",
         "cannot_continue_process": "คุณไม่สามารถดำเนินการต่อได้",
         "confirmations": "การยืนยัน",

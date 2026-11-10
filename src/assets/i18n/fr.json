@@ -715,6 +715,8 @@
     "send": {
         "address_found": "Adresse trouvée",
         "available_balance": "Disponible {{balance}} {{symbol}}",
+        "aptos_zero_balance": "Votre solde APT est de 0. Ajoutez de l'APT avant d'envoyer.",
+        "aptos_amount_plus_fee": "Le montant plus les frais de réseau estimés dépasse votre solde APT.",
         "average": "Moyenne",
         "cannot_continue_process": "Vous ne pouvez pas continuer le processus",
         "confirmations": "Confirmations",
