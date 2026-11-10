@@ -9,14 +9,21 @@ describe("CaptureSignalsService (#94)", () => {
     });
 
     it("classifies standard physical cameras as neither virtual nor phone bridge", () => {
-        expect(service.classifyDeviceLabel("FaceTime HD Camera (Built-in)")).toEqual({
-            virtualCamera: false,
-            phoneCamera: false,
-        });
-        expect(service.classifyDeviceLabel("Logitech BRIO 4K Stream Edition")).toEqual({
-            virtualCamera: false,
-            phoneCamera: false,
-        });
+        for (const label of ["FaceTime HD Camera (Built-in)", "FaceTime HD Camera", "Integrated Webcam", "Logitech C920", "Logitech BRIO 4K Stream Edition"]) {
+            expect(service.classifyDeviceLabel(label)).toEqual({
+                virtualCamera: false,
+                phoneCamera: false,
+            });
+        }
+    });
+
+    it("does not flag ordinary names that only contain virtual-camera letters inside another word", () => {
+        for (const label of ["Observation Camera", "Robson HD Camera", "My Webcam"]) {
+            expect(service.classifyDeviceLabel(label)).toEqual({
+                virtualCamera: false,
+                phoneCamera: false,
+            });
+        }
     });
 
     it("allowlists Continuity and phone-bridge cameras without flagging virtualCamera", () => {
@@ -37,6 +44,7 @@ describe("CaptureSignalsService (#94)", () => {
     it("flags known virtual camera drivers as virtualCamera = true", () => {
         for (const label of [
             "OBS Virtual Camera",
+            "ManyCam",
             "ManyCam Virtual Webcam",
             "Snap Camera",
             "XSplit VCam",
@@ -44,6 +52,10 @@ describe("CaptureSignalsService (#94)", () => {
             "CamTwist",
             "mmhmm Camera",
             "Dummy video device (0x0000)",
+            "fake_device_0",
+            "Fake-Camera",
+            "fakecam",
+            "OBSCamera",
         ]) {
             expect(service.classifyDeviceLabel(label)).toEqual({
                 virtualCamera: true,

@@ -44,10 +44,81 @@ export interface CaptureSignalReport {
     reasons: string[];
 }
 
-const PHONE_BRIDGE_CAMERA_REGEX = /\b(continuity|iphone|ipad|camo|droidcam|epoccam|iriun)\b/i;
+const PHONE_BRIDGE_KEYWORDS = ["continuity", "iphone", "ipad", "camo", "droidcam", "epoccam", "iriun"] as const;
 
-const VIRTUAL_CAMERA_REGEX =
-    /\b(virtual|obs|manycam|xsplit|snap\s*camera|vcam|e2esoft|altercam|splitcam|camtwist|mmhmm|fake|dummy|loopback|avatarcam|youcam)\b/i;
+const VIRTUAL_CAMERA_KEYWORDS = [
+    "virtual",
+    "obs",
+    "manycam",
+    "xsplit",
+    "vcam",
+    "e2esoft",
+    "altercam",
+    "splitcam",
+    "camtwist",
+    "mmhmm",
+    "fake",
+    "dummy",
+    "loopback",
+    "avatarcam",
+    "youcam",
+] as const;
+
+/** Short keywords may prefix these camera compounds (obscamera) and still not match inside observation. */
+const GLUED_CAMERA_TAILS = ["cam", "camera", "device", "video", "webcam", "virtual"];
+
+function cameraLabelForms(label: string): { spaced: string; tokens: string[] } {
+    const spaced = label
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    return { spaced, tokens: spaced ? spaced.split(" ") : [] };
+}
+
+function hasWholeWord(spaced: string, word: string): boolean {
+    return new RegExp(`(?:^|\\s)${word}(?:\\s|$)`).test(spaced);
+}
+
+/**
+ * Keyword glued to other letters after separators are removed (fakecam, fakedevice0).
+ * Letters sitting inside an unrelated word (obs in observation or Robson) do not match.
+ * Keywords shorter than 4 characters match as a whole word, or as the prefix of a camera compound.
+ */
+function tokenHasGluedKeyword(token: string, keyword: string): boolean {
+    if (!token.startsWith(keyword) || token.length <= keyword.length) {
+        return keyword.length >= 4 && token.endsWith(keyword) && token.length > keyword.length;
+    }
+
+    if (keyword.length >= 4) return true;
+
+    const rest = token.slice(keyword.length);
+
+    return GLUED_CAMERA_TAILS.some((tail) => rest === tail || rest.startsWith(tail));
+}
+
+function matchesWholeWords(label: string, keywords: readonly string[]): boolean {
+    const { spaced } = cameraLabelForms(label);
+
+    if (!spaced) return false;
+
+    return keywords.some((keyword) => hasWholeWord(spaced, keyword));
+}
+
+function matchesVirtualKeywords(label: string): boolean {
+    const { spaced, tokens } = cameraLabelForms(label);
+
+    if (!spaced) return false;
+
+    if (VIRTUAL_CAMERA_KEYWORDS.some((keyword) => hasWholeWord(spaced, keyword) || tokens.some((token) => tokenHasGluedKeyword(token, keyword)))) {
+        return true;
+    }
+
+    if (/(?:^|\s)snap\s+camera(?:\s|$)/.test(spaced)) return true;
+
+    return tokens.some((token) => token === "snapcamera" || token.startsWith("snapcamera"));
+}
 
 const HARDWARE_CAPABILITY_KEYS = [
     "exposureMode",
@@ -80,11 +151,11 @@ export class CaptureSignalsService {
             return { virtualCamera: false, phoneCamera: false };
         }
 
-        if (PHONE_BRIDGE_CAMERA_REGEX.test(normalized)) {
+        if (matchesWholeWords(normalized, PHONE_BRIDGE_KEYWORDS)) {
             return { virtualCamera: false, phoneCamera: true };
         }
 
-        if (VIRTUAL_CAMERA_REGEX.test(normalized)) {
+        if (matchesVirtualKeywords(normalized)) {
             return { virtualCamera: true, phoneCamera: false };
         }
 
