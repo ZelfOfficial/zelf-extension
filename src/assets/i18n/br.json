@@ -1231,7 +1231,9 @@
         "get_closer_subtitle": "Por favor, aproxime-se um pouco para melhor reconhecimento facial.",
         "get_closer": "Aproxime-se",
         "liveness_error_message": "A verificação de vivacidade falhou com o seguinte erro:<br><strong>{{error}}</strong><br>Deseja tentar novamente?",
-        "liveness_failed": "Falha na detecção de vivacidade"
+        "liveness_failed": "Falha na detecção de vivacidade",
+        "virtual_camera_warning": "Parece que você está usando uma câmera virtual; selecione sua câmera real.",
+        "select_camera": "Selecionar câmera"
     },
     "errors": {
         "address_too_long": "Endereço muito longo",

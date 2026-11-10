@@ -1231,7 +1231,9 @@
         "get_closer_subtitle": "请靠近一点以获得更好的面部识别。",
         "get_closer": "靠近",
         "liveness_error_message": "活体检测失败，出现以下错误：<br><strong>{{error}}</strong><br>您要重试吗？",
-        "liveness_failed": "活体检测失败"
+        "liveness_failed": "活体检测失败",
+        "virtual_camera_warning": "您似乎正在使用虚拟摄像头，请选择真实摄像头。",
+        "select_camera": "选择摄像头"
     },
     "errors": {
         "address_too_long": "地址太长",

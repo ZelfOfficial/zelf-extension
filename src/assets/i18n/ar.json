@@ -1231,7 +1231,9 @@
         "get_closer_subtitle": "يرجى الاقتراب قليلاً لتحسين التعرف على الوجه.",
         "get_closer": "اقترب أكثر",
         "liveness_error_message": "فشل فحص الحيوية بالخطأ التالي:<br><strong>{{error}}</strong><br>هل تريد المحاولة مرة أخرى؟",
-        "liveness_failed": "فشل الكشف عن الحيوية"
+        "liveness_failed": "فشل الكشف عن الحيوية",
+        "virtual_camera_warning": "يبدو أنك تستخدم كاميرا افتراضية؛ يرجى اختيار كاميرتك الحقيقية.",
+        "select_camera": "اختيار الكاميرا"
     },
     "errors": {
         "address_too_long": "العنوان طويل جداً",

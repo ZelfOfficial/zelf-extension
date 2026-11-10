@@ -1,5 +1,21 @@
+import * as ar from "../../assets/i18n/ar.json";
+import * as br from "../../assets/i18n/br.json";
+import * as cn from "../../assets/i18n/cn.json";
+import * as en from "../../assets/i18n/en.json";
+import * as es from "../../assets/i18n/es.json";
+import * as fr from "../../assets/i18n/fr.json";
+import * as hindi from "../../assets/i18n/in.json";
+import * as ja from "../../assets/i18n/ja.json";
+import * as kr from "../../assets/i18n/kr.json";
+import * as ph from "../../assets/i18n/ph.json";
+import * as ru from "../../assets/i18n/ru.json";
+import * as th from "../../assets/i18n/th.json";
+import * as ur from "../../assets/i18n/ur.json";
+
 import { CaptureSignalsService } from "./capture-signals.service";
 import { FaceCaptureService } from "./face-capture.service";
+
+const LOCALES: Record<string, any> = { ar, br, cn, en, es, fr, in: hindi, ja, kr, ph, ru, th, ur };
 
 describe("CaptureSignalsService (#94)", () => {
     let service: CaptureSignalsService;
@@ -9,14 +25,21 @@ describe("CaptureSignalsService (#94)", () => {
     });
 
     it("classifies standard physical cameras as neither virtual nor phone bridge", () => {
-        expect(service.classifyDeviceLabel("FaceTime HD Camera (Built-in)")).toEqual({
-            virtualCamera: false,
-            phoneCamera: false,
-        });
-        expect(service.classifyDeviceLabel("Logitech BRIO 4K Stream Edition")).toEqual({
-            virtualCamera: false,
-            phoneCamera: false,
-        });
+        for (const label of ["FaceTime HD Camera (Built-in)", "FaceTime HD Camera", "Integrated Webcam", "Logitech C920", "Logitech BRIO 4K Stream Edition"]) {
+            expect(service.classifyDeviceLabel(label)).toEqual({
+                virtualCamera: false,
+                phoneCamera: false,
+            });
+        }
+    });
+
+    it("does not flag ordinary names that only contain virtual-camera letters inside another word", () => {
+        for (const label of ["Observation Camera", "Robson HD Camera", "My Webcam"]) {
+            expect(service.classifyDeviceLabel(label)).toEqual({
+                virtualCamera: false,
+                phoneCamera: false,
+            });
+        }
     });
 
     it("allowlists Continuity and phone-bridge cameras without flagging virtualCamera", () => {
@@ -37,6 +60,7 @@ describe("CaptureSignalsService (#94)", () => {
     it("flags known virtual camera drivers as virtualCamera = true", () => {
         for (const label of [
             "OBS Virtual Camera",
+            "ManyCam",
             "ManyCam Virtual Webcam",
             "Snap Camera",
             "XSplit VCam",
@@ -44,6 +68,10 @@ describe("CaptureSignalsService (#94)", () => {
             "CamTwist",
             "mmhmm Camera",
             "Dummy video device (0x0000)",
+            "fake_device_0",
+            "Fake-Camera",
+            "fakecam",
+            "OBSCamera",
         ]) {
             expect(service.classifyDeviceLabel(label)).toEqual({
                 virtualCamera: true,
@@ -154,5 +182,20 @@ describe("CaptureSignalsService (#94)", () => {
         expect(report.reasons).toContain("missing_hardware_capabilities");
         expect(report.reasons).toContain("suspicious_resolution");
         expect(faceCaptureService.lastSignalReport).toEqual(report);
+    });
+});
+
+describe("virtual camera copy (#167)", () => {
+    it("has the warning and camera selector in every locale", () => {
+        for (const [name, mod] of Object.entries(LOCALES)) {
+            const root = mod?.liveness ? mod : mod?.default;
+            const warning = root?.liveness?.virtual_camera_warning;
+            const select = root?.liveness?.select_camera;
+
+            expect(typeof warning === "string" && warning.trim().length > 0).withContext(`${name} warning`).toBeTrue();
+            expect(typeof select === "string" && select.trim().length > 0).withContext(`${name} select`).toBeTrue();
+            expect(warning).not.toBe("liveness.virtual_camera_warning");
+            expect(select).not.toBe("liveness.select_camera");
+        }
     });
 });
