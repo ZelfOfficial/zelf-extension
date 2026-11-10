@@ -715,6 +715,8 @@
     "send": {
         "address_found": "Address found",
         "available_balance": "Available {{balance}} {{symbol}}",
+        "aptos_zero_balance": "Your APT balance is 0. Add APT before sending.",
+        "aptos_amount_plus_fee": "The amount plus the estimated network fee is higher than your APT balance.",
         "average": "Average",
         "cannot_continue_process": "You cannot continue with the process",
         "confirmations": "Confirmations",

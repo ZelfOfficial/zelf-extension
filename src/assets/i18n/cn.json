@@ -715,6 +715,8 @@
     "send": {
         "address_found": "找到地址",
         "available_balance": "可用 {{balance}} {{symbol}}",
+        "aptos_zero_balance": "您的 APT 余额为 0。发送前请先添加 APT。",
+        "aptos_amount_plus_fee": "金额加上预估网络费用超过了您的 APT 余额。",
         "average": "平均",
         "cannot_continue_process": "您无法继续此过程",
         "confirmations": "确认数",

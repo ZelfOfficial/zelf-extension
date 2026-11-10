@@ -146,6 +146,11 @@
                         {{ t("send.available_balance", { symbol: transactionData.symbol, balance: displaySendableBalance }) }}
                     </p>
 
+                    <div class="zelf-message zelf-message--error" *ngIf="aptosSendErrorKey">
+                        <ng-container *ngTemplateOutlet="cross"></ng-container>
+                        <p>{{ t(aptosSendErrorKey) }}</p>
+                    </div>
+
                     <ng-container *ngIf="transactionData.isXlmToken">
                         <p class="send-transaction__input-label send-transaction__input-label--mt-8">
                             <span class="send-transaction__input-label-text">{{ t("send.memo_optional") }}:</span>

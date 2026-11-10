@@ -13,6 +13,15 @@ import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 
 import { AssetService } from "app/asset.service";
 import { ChromeService } from "app/chrome.service";
+import {
+    aptosFeeQuoteFailed,
+    aptosSendBlockReason,
+    aptosSendErrorKey as aptosSendErrorTranslationKey,
+    aptRemainder,
+    readAptBalance,
+    readAptSendAmount,
+    reviewSendAmountLabel,
+} from "app/core/utils/aptos-send.util";
 import { areSendAddressesSame } from "app/core/utils/same-wallet-address.util";
 import { isNativeSuiHolding, sendConfirmNetworkLabel } from "app/core/utils/sui-coin.util";
 import { mapTransactionErrorToTranslationKey } from "app/core/utils/user-facing-transaction-error.util";
@@ -33,6 +42,7 @@ import { TagModel } from "app/tags.service";
 import { TagsService } from "app/tags.service";
 import { StellarFeeBreakdown } from "app/services/stellar-send.types";
 import { StellarSendSummaryComponent } from "app/stellar-send-summary/stellar-send-summary.component";
+import { formatDisplayAmount } from "../core/utils/display-number.util";
 import { DisplayAmountPipe, DisplayFiatPipe } from "../pipes/display-number.pipe";
 import { previewProofSecurity, proofRequiresPassword } from "app/onboarding-stack";
 import { ZelfIdsService } from "app/zelf-ids.service";
@@ -280,7 +290,40 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
         return amount * fiatPrice || amount * Number(this.transactionData.token.price || 0) || 0;
     }
 
+    /** Aptos review headline. ALL only when the user picked max. */
+    get confirmAmountLabel(): string {
+        return reviewSendAmountLabel({
+            amount: this.transactionData?.amount,
+            amountInput: this.transactionData?.amountInput,
+            sendAll: this.transactionData?.sendAll === true,
+            allLabel: String(this._translocoService.translate("common.all") || "All").toUpperCase(),
+        });
+    }
+
+    get reviewAmountText(): string {
+        if (this.transactionData?.network === "aptos") return this.confirmAmountLabel;
+
+        return formatDisplayAmount(this.transactionData?.amount, { minDecimals: 0, rounding: "floor" });
+    }
+
+    get aptosSendErrorKey(): string | null {
+        return aptosSendErrorTranslationKey(this._aptosBlockReason());
+    }
+
+    private _aptosBlockReason() {
+        if (this.transactionData?.network !== "aptos") return null;
+
+        const balance = readAptBalance(this.transactionData.token);
+        const sendAll = this.transactionData.sendAll === true;
+        const amount = readAptSendAmount(sendAll ? undefined : this.transactionData.amountInput, this.transactionData.amount, sendAll);
+        const fee = Number(this.transactionData.fee) || 0;
+
+        return aptosSendBlockReason(balance, amount, fee, sendAll);
+    }
+
     get hasBalance(): boolean {
+        if (this.transactionData?.network === "aptos") return !this.feeError && this._aptosBlockReason() === null;
+
         const tokenBalance = Number(this.transactionData.token.balance) || 0;
         const tokenAmount = Number(this.transactionData.token.amount) || 0;
         const sendAmount = Number(this.transactionData.amount) || 0;
@@ -395,9 +438,15 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
             this.transactionData.fiatFee = feeEstimate.fiatFee;
             this.transactionData.total = feeEstimate.total;
 
-            if (feeEstimate.adjustedAmount) {
+            if (this.transactionData.network === "aptos" && aptosFeeQuoteFailed(feeEstimate.fee)) {
+                this.feeError = this._translocoService.translate("errors.send_transaction_network_error");
+            } else if (feeEstimate.adjustedAmount && this.transactionData.network !== "aptos") {
                 this.transactionData.amount = feeEstimate.adjustedAmount;
                 this.transactionData.sendAll = true;
+            } else if (this.transactionData.network === "aptos" && this.transactionData.sendAll === true) {
+                const delivered = aptRemainder(readAptBalance(this.transactionData.token), feeEstimate.fee);
+
+                if (delivered) this.transactionData.amount = delivered;
             }
 
             if (feeEstimate.networkPrice !== undefined) {
@@ -415,6 +464,11 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
             }
             if (this.transactionData?.network === "sui") {
                 this.feeError = error instanceof Error && error.message ? error.message : "Sui fee estimate failed";
+                this.transactionData.fee = 0;
+                this.transactionData.fiatFee = 0;
+            }
+            if (this.transactionData?.network === "aptos") {
+                this.feeError = this._translocoService.translate("errors.send_transaction_network_error");
                 this.transactionData.fee = 0;
                 this.transactionData.fiatFee = 0;
             }
@@ -746,7 +800,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
     }
 
     async confirmTransaction() {
-        if (this.sending || this.feeError) return;
+        if (this.sending || this.feeError || this._aptosBlockReason()) return;
 
         // #88 signing rule: see core/security/signing-gate.util.ts.
         const gate = resolveSigningGate(await this._signingGateInput());
@@ -825,7 +879,7 @@ export class SendConfirmComponent implements OnInit, OnDestroy {
     }
 
     async goToBiometrics(): Promise<void> {
-        if (!this.wallet) return;
+        if (!this.wallet || this._aptosBlockReason()) return;
 
         if (!this.isFaceOnly && !this._passwordForFaceStep()) {
             await this._refreshSigningGate();

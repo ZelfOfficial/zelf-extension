@@ -715,6 +715,8 @@
     "send": {
         "address_found": "Nahanap ang address",
         "available_balance": "Available na {{balance}} {{symbol}}",
+        "aptos_zero_balance": "Ang APT balance mo ay 0. Magdagdag ng APT bago magpadala.",
+        "aptos_amount_plus_fee": "Ang halaga kasama ang tinatayang network fee ay higit sa APT balance mo.",
         "average": "Karaniwan",
         "cannot_continue_process": "Hindi ka maaaring magpatuloy sa proseso",
         "confirmations": "Mga Kumpirmasyon",

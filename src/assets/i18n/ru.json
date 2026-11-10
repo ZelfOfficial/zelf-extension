@@ -715,6 +715,8 @@
     "send": {
         "address_found": "Адрес найден",
         "available_balance": "Доступно {{balance}} {{symbol}}",
+        "aptos_zero_balance": "Ваш баланс APT равен 0. Пополните APT перед отправкой.",
+        "aptos_amount_plus_fee": "Сумма вместе с оценочной комиссией сети превышает ваш баланс APT.",
         "average": "Средний",
         "cannot_continue_process": "Вы не можете продолжить процесс",
         "confirmations": "Подтверждения",
