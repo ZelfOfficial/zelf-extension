@@ -1231,7 +1231,9 @@
         "get_closer_subtitle": "顔認識をより良くするために、もう少し近づいてください。",
         "get_closer": "近づく",
         "liveness_error_message": "ライブネスチェックが以下のエラーで失敗しました：<br><strong>{{error}}</strong><br>再試行しますか？",
-        "liveness_failed": "ライブネス検出に失敗しました"
+        "liveness_failed": "ライブネス検出に失敗しました",
+        "virtual_camera_warning": "仮想カメラを使用しているようです。実カメラを選択してください。",
+        "select_camera": "カメラを選択"
     },
     "errors": {
         "address_too_long": "アドレスが長すぎます",

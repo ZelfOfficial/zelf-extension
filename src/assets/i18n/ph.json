@@ -1231,7 +1231,9 @@
         "get_closer_subtitle": "Mangyaring lumapit nang kaunti para sa mas magandang pagkilala ng mukha.",
         "get_closer": "Lumapit",
         "liveness_error_message": "Ang liveness check ay nabigo sa sumusunod na error:<br><strong>{{error}}</strong><br>Gusto mo bang subukan muli?",
-        "liveness_failed": "Nabigo ang pag-detect ng liveness"
+        "liveness_failed": "Nabigo ang pag-detect ng liveness",
+        "virtual_camera_warning": "Mukhang virtual camera ang ginagamit mo; piliin ang totoong camera.",
+        "select_camera": "Pumili ng camera"
     },
     "errors": {
         "address_too_long": "Masyadong mahaba ang address",

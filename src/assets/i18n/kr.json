@@ -1231,7 +1231,9 @@
         "get_closer_subtitle": "더 나은 얼굴 인식을 위해 조금 더 가까이 와주세요.",
         "get_closer": "가까이 오세요",
         "liveness_error_message": "생체 검증에 실패했습니다. 오류 내용:<br><strong>{{error}}</strong><br>다시 시도하시겠습니까?",
-        "liveness_failed": "생체 감지 실패"
+        "liveness_failed": "생체 감지 실패",
+        "virtual_camera_warning": "가상 카메라를 사용 중인 것 같습니다. 실제 카메라를 선택해 주세요.",
+        "select_camera": "카메라 선택"
     },
     "errors": {
         "address_too_long": "주소가 너무 깁니다",

@@ -1231,7 +1231,9 @@
         "get_closer_subtitle": "Veuillez vous rapprocher un peu pour une meilleure reconnaissance faciale.",
         "get_closer": "Rapprochez-vous",
         "liveness_error_message": "La vérification de vivacité a échoué avec l'erreur suivante :<br><strong>{{error}}</strong><br>Voulez-vous réessayer ?",
-        "liveness_failed": "La détection de vivacité a échoué"
+        "liveness_failed": "La détection de vivacité a échoué",
+        "virtual_camera_warning": "Il semble que vous utilisiez une caméra virtuelle ; veuillez sélectionner votre vraie caméra.",
+        "select_camera": "Sélectionner la caméra"
     },
     "errors": {
         "address_too_long": "L'adresse est trop longue",

@@ -1231,7 +1231,9 @@
         "get_closer_subtitle": "बेहतर चेहरा पहचान के लिए कृपया थोड़ा करीब आएं।",
         "get_closer": "करीब आएं",
         "liveness_error_message": "लाइवनेस जांच निम्नलिखित त्रुटि के साथ विफल हुई है:<br><strong>{{error}}</strong><br>क्या आप पुनः प्रयास करना चाहते हैं?",
-        "liveness_failed": "लाइवनेस पहचान विफल"
+        "liveness_failed": "लाइवनेस पहचान विफल",
+        "virtual_camera_warning": "लगता है कि आप वर्चुअल कैमरा इस्तेमाल कर रहे हैं; कृपया अपना असली कैमरा चुनें।",
+        "select_camera": "कैमरा चुनें"
     },
     "errors": {
         "address_too_long": "पता बहुत लंबा है",
