@@ -259,6 +259,13 @@ const routes: Routes = [
                         canActivate: [ZelfKeysPasswordGuard],
                     },
                     {
+                        path: "shares",
+                        loadComponent: () =>
+                            import("./zelf-keys/zelf-keys-passwords/password-share/password-shares-list.component").then(
+                                (m) => m.PasswordSharesListComponent
+                            ),
+                    },
+                    {
                         path: "payment-cards/new",
                         loadComponent: () =>
                             import("./zelf-keys/zelf-keys-payment-cards/zelf-keys-payment-card-form/zelf-keys-payment-card-form.component").then(
@@ -528,6 +535,13 @@ if (environment.production) {
     routes.push({
         path: "e2e-test",
         loadChildren: () => import("./testing/e2e-test-helpers/e2e-test-helpers.module").then((m) => m.E2ETestHelpersModule),
+    });
+}
+
+if (!environment.production) {
+    routes.push({
+        path: "qa/password-share",
+        loadComponent: () => import("./qa/password-share-preview.component").then((m) => m.PasswordSharePreviewComponent),
     });
 }
 
