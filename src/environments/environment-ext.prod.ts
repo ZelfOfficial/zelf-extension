@@ -2,6 +2,8 @@ export const environment = {
     apiUrl: "https://v4.zelf.world",
     v4ApiUrl: "https://v4.zelf.world",
     appUrl: "https://zelf.world",
+    /** Public Zelf landing site. Share links are `${landingUrl}/share/<id>#<key>`. */
+    landingUrl: "https://zelf.world",
     baseUrl: "/",
     captchaKey: "",
     includeNonPaidDomains: false,

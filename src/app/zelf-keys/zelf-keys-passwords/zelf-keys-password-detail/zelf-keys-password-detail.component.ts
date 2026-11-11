@@ -54,6 +54,7 @@ interface DecryptedPasswordData {
 
 import { MatDialog, MatDialogModule } from "@angular/material/dialog";
 import { ExportKeyModalComponent } from "../../shared/export-key-modal/export-key-modal.component";
+import { PasswordShareSheetComponent } from "../password-share/password-share-sheet.component";
 
 @Component({
     imports: [CommonModule, FormsModule, TranslocoModule, RouterModule, PopoutDecryptorComponent, MatDialogModule],
@@ -76,6 +77,7 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
     showBiometrics = false;
     showPassword = false;
     showPopoutDecryptor = false;
+    private _shareAfterDecrypt = false;
     hasMasterPassword = false;
     zelfKeyPasswordRecord: ZelfKeyPasswordRecord | null = null;
 
@@ -249,12 +251,19 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
             password: payload.password || "",
             timestamp: this.zelfKeyPasswordRecord.publicData?.timestamp,
             type: "password",
+            notes: typeof payload.notes === "string" ? payload.notes : "",
             username: payload.username || this.zelfKeyPasswordRecord.publicData?.username || "",
             website: payload.website || this.zelfKeyPasswordRecord.publicData?.website || "",
             zelfName: this.zelfKeyPasswordRecord.publicData?.zelfName,
         };
 
         this._changeDetectorRef.detectChanges();
+
+        if (this._shareAfterDecrypt) {
+            this._shareAfterDecrypt = false;
+            this._openShareSheet();
+            return;
+        }
 
         setTimeout(() => {
             this._scrollToSectionService.scrollToSection("password-decrypted-content", "password");
@@ -263,6 +272,44 @@ export class ZelfKeysPasswordDetailComponent extends CopyToClipboardBase impleme
 
     onPopoutDecryptorClose(): void {
         this.showPopoutDecryptor = false;
+        if (!this.decryptedData) this._shareAfterDecrypt = false;
+    }
+
+    async onShareClick(): Promise<void> {
+        if (this.decryptedData) {
+            if (!this.decryptedData.password) {
+                this._snackBar.open(this._translocoService.translate("billing.passwords.share.missing_password"), this._translocoService.translate("common.close"), {
+                    duration: 4000,
+                });
+                return;
+            }
+
+            this._openShareSheet();
+            return;
+        }
+
+        this._shareAfterDecrypt = true;
+        await this.onDecryptClick();
+    }
+
+    onOpenSharedLinks(): void {
+        void this._router.navigate(["/zelf-keys/shares"]);
+    }
+
+    private _openShareSheet(): void {
+        if (!this.decryptedData?.password) return;
+
+        this._bottomSheet.open(PasswordShareSheetComponent, {
+            data: {
+                title: this.displayTitle,
+                username: this.decryptedData.username || this.zelfKeyPasswordRecord?.publicData?.username || "",
+                password: this.decryptedData.password,
+                url: this.decryptedData.website || this.zelfKeyPasswordRecord?.publicData?.website || "",
+                notes: this.decryptedData.notes || "",
+            },
+            backdropClass: "zelf-backdrop",
+            panelClass: "zelf-bottom-sheet",
+        });
     }
 
     onBackToList(): void {
