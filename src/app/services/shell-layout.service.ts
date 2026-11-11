@@ -8,6 +8,7 @@ import { filter, map, Observable, startWith } from "rxjs";
  */
 export const DEEP_SHELL_PATH_MATCHERS: ReadonlyArray<(path: string) => boolean> = [
     (path) => path.startsWith("/zelf-keys/passwords/detail"),
+    (path) => path.startsWith("/zelf-keys/shares"),
     (path) => path.startsWith("/zelf-keys/passwords/new"),
     (path) => path.startsWith("/zelf-keys/passwords/result"),
     (path) => path.startsWith("/zelf-keys/notes/detail"),

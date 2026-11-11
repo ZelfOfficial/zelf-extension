@@ -13,6 +13,11 @@ import { generateUserFingerprint } from "../utils/fingerprint.util";
  * to prevent conflicts
  */
 async function initializeSessionAndPublicKey(): Promise<void> {
+    // Dev-only preview of the password share sheet. It has no session and no secrets.
+    if (!environment.production && typeof location !== "undefined" && location.hash.includes("/qa/password-share")) {
+        return;
+    }
+
     const authService = inject(AuthService);
     const httpWrapperService = inject(HttpWrapperService);
     const chromeService = inject(ChromeService);
