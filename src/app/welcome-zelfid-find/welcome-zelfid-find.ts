@@ -310,7 +310,7 @@ export class WelcomeZelfidFindComponent implements OnInit, OnDestroy {
     async _queryZNS(key: string, value: string, domain: string): Promise<any> {
         try {
             const response = await this._zelfIdsService.searchTag(
-                key === "tagName" ? { tagName: value, domain, os: "DESKTOP" } : { [key]: value, domain, os: "DESKTOP" }
+                key === "tagName" ? { tagName: value, domain, os: "DESKTOP" } : { key, value, domain, os: "DESKTOP" }
             );
 
             if (!response.data) return null;
