@@ -732,6 +732,8 @@
         "used": "{{days}}일 전에 사용됨",
         "withdrawal_amount": "보낼 금액",
         "zelf_name_not_registered": "Zelf ID가 등록되지 않음",
+        "zelf_name_lookup_failed": "조회에 실패했습니다. 다시 시도하세요",
+        "zelf_name_no_network_address": "이 Zelf ID에는 이 네트워크의 주소가 없습니다",
         "zelf_name_registered": "Zelf ID가 등록됨",
         "from_address": "보내는 주소",
         "private_transaction": "프라이빗 트랜잭션",

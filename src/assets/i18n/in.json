@@ -732,6 +732,8 @@
         "used": "{{days}} पहले उपयोग किया गया",
         "withdrawal_amount": "भेजने की राशि",
         "zelf_name_not_registered": "Zelf ID पंजीकृत नहीं है",
+        "zelf_name_lookup_failed": "खोज विफल रही, फिर से कोशिश करें",
+        "zelf_name_no_network_address": "इस Zelf ID का इस नेटवर्क पर कोई पता नहीं है",
         "zelf_name_registered": "Zelf ID पंजीकृत है",
         "from_address": "प्रेषक पता",
         "private_transaction": "निजी लेन-देन",

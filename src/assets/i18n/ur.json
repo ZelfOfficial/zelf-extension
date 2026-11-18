@@ -732,6 +732,8 @@
         "used": "{{days}} پہلے استعمال کیا گیا",
         "withdrawal_amount": "بھیجنے کی رقم",
         "zelf_name_not_registered": "زیلف نام رجسٹرڈ نہیں ہے",
+        "zelf_name_lookup_failed": "تلاش ناکام ہو گئی، دوبارہ کوشش کریں",
+        "zelf_name_no_network_address": "اس Zelf ID کا اس نیٹ ورک پر کوئی پتہ نہیں ہے",
         "zelf_name_registered": "زیلف نام رجسٹرڈ ہے",
         "from_address": "ایڈریس سے",
         "private_transaction": "نجی لین دین",

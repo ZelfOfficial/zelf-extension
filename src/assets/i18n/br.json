@@ -732,6 +732,8 @@
         "used": "Usado há {{days}} dias",
         "withdrawal_amount": "Valor a enviar",
         "zelf_name_not_registered": "Zelf ID não registrado",
+        "zelf_name_lookup_failed": "A consulta falhou, tente novamente",
+        "zelf_name_no_network_address": "Este Zelf ID não tem endereço nesta rede",
         "zelf_name_registered": "Zelf ID registrado",
         "from_address": "Do endereço",
         "private_transaction": "Transação privada",

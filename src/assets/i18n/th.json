@@ -732,6 +732,8 @@
         "used": "ใช้เมื่อ {{days}} ที่แล้ว",
         "withdrawal_amount": "จำนวนเงินที่ส่ง",
         "zelf_name_not_registered": "Zelf ID ยังไม่ได้ลงทะเบียน",
+        "zelf_name_lookup_failed": "ค้นหาไม่สำเร็จ โปรดลองอีกครั้ง",
+        "zelf_name_no_network_address": "Zelf ID นี้ไม่มีที่อยู่บนเครือข่ายนี้",
         "zelf_name_registered": "Zelf ID ลงทะเบียนแล้ว",
         "from_address": "จากที่อยู่",
         "private_transaction": "ธุรกรรมส่วนตัว",

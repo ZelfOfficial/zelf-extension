@@ -732,6 +732,8 @@
         "used": "{{days}} 天前使用",
         "withdrawal_amount": "发送金额",
         "zelf_name_not_registered": "Zelf ID未注册",
+        "zelf_name_lookup_failed": "查询失败，请重试",
+        "zelf_name_no_network_address": "此 Zelf ID 在此网络上没有地址",
         "zelf_name_registered": "Zelf ID已注册",
         "from_address": "发件人地址",
         "private_transaction": "私人交易",

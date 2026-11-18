@@ -103,4 +103,45 @@ describe("AuthService Zelf name", () => {
         expect(post.calls.mostRecent().args[1].killSession).toBe(1);
         expect(service.keepingVerifiedSession).toBeTrue();
     });
+
+    it("creates a new session when the kept token is no longer valid", async () => {
+        const token = jwt({ identifier: "stale-session", tagName: "alice.zelf", domain: "zelf" });
+        const wallet = {
+            getCurrentWallet: async () => ({
+                tagName: "alice.zelf",
+                publicData: { domain: "zelf", ethAddress: "0xabc" },
+            }),
+        };
+        const storage = {
+            getItem: async (key: string) => {
+                if (key === "accessToken") return token;
+                if (key === "accessTokenExpiresAt") return moment().subtract(1, "minute").unix();
+                return null;
+            },
+            setItem: async () => undefined,
+            removeItem: async () => undefined,
+        };
+
+        const checkPost = jasmine.createSpy("post").and.returnValue({
+            toPromise: () => Promise.resolve({ data: { token: "fresh", expiresAt: moment().add(1, "hour").unix() } }),
+        });
+        const checkService = new AuthService(storage as any, { post: checkPost } as any, wallet as any);
+
+        checkService.keepVerifiedSession();
+
+        await expectAsync(checkService.checkAccessToken()).toBeResolvedTo("fresh");
+        expect(checkPost.calls.mostRecent().args[1].killSession).toBeUndefined();
+        expect(checkService.keepingVerifiedSession).toBeTrue();
+
+        const reauthPost = jasmine.createSpy("post").and.returnValue({
+            toPromise: () => Promise.resolve({ data: { token: "fresh", expiresAt: moment().add(1, "hour").unix() } }),
+        });
+        const reauthService = new AuthService(storage as any, { post: reauthPost } as any, wallet as any);
+
+        reauthService.keepVerifiedSession();
+
+        await expectAsync(reauthService.reauthenticateSession()).toBeResolvedTo("fresh");
+        expect(reauthPost.calls.mostRecent().args[1].killSession).toBe(1);
+        expect(reauthService.keepingVerifiedSession).toBeTrue();
+    });
 });
