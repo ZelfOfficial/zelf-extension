@@ -732,6 +732,8 @@
         "used": "{{days}}日前に使用",
         "withdrawal_amount": "送金額",
         "zelf_name_not_registered": "Zelf IDが登録されていません",
+        "zelf_name_lookup_failed": "検索に失敗しました。もう一度お試しください",
+        "zelf_name_no_network_address": "この Zelf ID にはこのネットワークのアドレスがありません",
         "zelf_name_registered": "Zelf IDが登録されています",
         "from_address": "送信元アドレス",
         "private_transaction": "プライベート・トランザクション",

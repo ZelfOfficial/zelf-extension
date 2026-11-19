@@ -732,6 +732,8 @@
         "used": "تم الاستخدام منذ {{days}} يوم",
         "withdrawal_amount": "مبلغ الإرسال",
         "zelf_name_not_registered": "Zelf ID غير مسجل",
+        "zelf_name_lookup_failed": "فشل البحث، حاول مرة أخرى",
+        "zelf_name_no_network_address": "لا يملك Zelf ID هذا عنوانًا على هذه الشبكة",
         "zelf_name_registered": "Zelf ID مسجل",
         "from_address": "من العنوان",
         "private_transaction": "معاملة خاصة",

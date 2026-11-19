@@ -207,8 +207,6 @@ export class AuthService {
             return this._accessToken;
         }
 
-        if (this._keepVerifiedSession && this._accessToken) return this._accessToken;
-
         return this._mintSession(false);
     }
 
@@ -218,7 +216,7 @@ export class AuthService {
             this._accessTokenExpiresAt = (await this._chromeService.getItem("accessTokenExpiresAt")) || 0;
         }
 
-        if (this._keepVerifiedSession && this._accessToken) return this._accessToken;
+        if (this._keepVerifiedSession && this._isValidToken()) return this._accessToken;
 
         return this._mintSession(true);
     }

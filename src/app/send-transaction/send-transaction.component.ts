@@ -30,7 +30,9 @@ import { VaultService } from "app/vault.service";
 import { AddressBook, TransactionData } from "@shared/types/wallet.types";
 import { WalletService } from "app/wallet.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
-import { TagModel, TagsService } from "app/tags.service";
+import { TagModel, TagSearchResponse, TagsService } from "app/tags.service";
+import { AuthService } from "app/services/auth.service";
+import { readPublicDataAptosAddress, readPublicDataDotAddress, readPublicDataKsmAddress, readPublicDataXlmAddress } from "@shared/types/tag.types";
 import {
     aptosFeeQuoteFailed,
     aptosSendBlockReason,
@@ -68,6 +70,8 @@ export class SendTransactionComponent implements OnDestroy {
     foundAddress?: TagModel;
     isFromRecentAddress: boolean = false;
     isZelfNameNotFound: boolean = false;
+    /** Shown with the lookup chip: not registered, no address on this network, or the lookup failed. */
+    tagLookupMessageKey = "send.zelf_name_not_registered";
     loading: boolean = true;
     price: number = 0;
     recentAddresses: AddressBook[] = [];
@@ -100,7 +104,8 @@ export class SendTransactionComponent implements OnDestroy {
         private _transactionService: TransactionService,
         private _translocoService: TranslocoService,
         private _vaultService: VaultService,
-        private _walletService: WalletService
+        private _walletService: WalletService,
+        private _authService: AuthService
     ) {
         this.loading = true;
 
@@ -493,7 +498,7 @@ export class SendTransactionComponent implements OnDestroy {
         this.isFromRecentAddress = false;
 
         if (!text || !text.trim()) {
-            this.isZelfNameNotFound = false;
+            this._clearTagLookup();
             this.foundAddress = undefined;
 
             return;
@@ -501,7 +506,7 @@ export class SendTransactionComponent implements OnDestroy {
 
         this.searching = true;
         this._syncToAddressControlDisabledState();
-        this.isZelfNameNotFound = false;
+        this._clearTagLookup();
 
         const isEVM =
             this.transactionData.isEthToken ||
@@ -567,7 +572,7 @@ export class SendTransactionComponent implements OnDestroy {
 
             if (this.foundAddress) return;
 
-            this.isZelfNameNotFound = true;
+            this._showTagLookupFailure();
         } catch (error) {
             if (this.transactionData.isSuiToken && this._suiService.isValidSuiAddress(text)) {
                 this._setRawAddressToFoundAddress(text, "suiAddress");
@@ -586,8 +591,9 @@ export class SendTransactionComponent implements OnDestroy {
             } else if (this.transactionData.isKsmToken && this._substrateRelayService.isValidAddress(text)) {
                 this._setRawAddressToFoundAddress(text, "ksmAddress");
             } else {
-                this.isZelfNameNotFound = true;
                 this.foundAddress = undefined;
+                if (!this.tagLookupMessageKey) this.tagLookupMessageKey = "send.zelf_name_lookup_failed";
+                this.isZelfNameNotFound = true;
             }
         } finally {
             this.searching = false;
@@ -630,7 +636,7 @@ export class SendTransactionComponent implements OnDestroy {
 
             if (!value || !value.trim() || this.form.get("toAddress")?.invalid) {
                 this.foundAddress = undefined;
-                this.isZelfNameNotFound = false;
+                this._clearTagLookup();
                 this._setToCurrentTransactionData();
 
                 return;
@@ -696,31 +702,109 @@ export class SendTransactionComponent implements OnDestroy {
 
     async _searchTag(key: string, value: string, domain: string = "zelf"): Promise<void> {
         try {
-            const response = await this._tagsService.searchTag(
-                key === "tagName" ? { tagName: value, domain, os: "DESKTOP" } : { key, value, domain, os: "DESKTOP" }
-            );
+            const response = await this._searchTagOnce(key, value, domain);
 
-            if (!response.data) {
-                this.foundAddress = undefined;
-
-                return;
-            }
-
-            const foundAddress = new TagModel(response.data.tagObject || (key !== "tagName" ? { publicData: { [this.addressKey]: value } } : {}));
-
-            const zelfObjectContainsAddress = !!foundAddress.publicData[this.addressKey];
-
-            this.foundAddress = zelfObjectContainsAddress ? foundAddress : undefined;
+            this._applyTagLookup(response, key, value);
         } catch (error) {
             console.error("Error querying ZNS:", error);
             this.foundAddress = undefined;
+            this.tagLookupMessageKey = "send.zelf_name_lookup_failed";
         }
+    }
+
+    private async _searchTagOnce(key: string, value: string, domain: string): Promise<{ data: TagSearchResponse }> {
+        const request = key === "tagName" ? { tagName: value, domain, os: "DESKTOP" as const } : { key, value, domain, os: "DESKTOP" as const };
+
+        try {
+            return await this._tagsService.searchTag(request);
+        } catch (error) {
+            if (this._httpStatus(error) !== 401) throw error;
+
+            await this._authService.refreshAfterUnauthorized();
+
+            return await this._tagsService.searchTag(request);
+        }
+    }
+
+    private _applyTagLookup(response: { data?: TagSearchResponse } | null | undefined, key: string, value: string): void {
+        const data = response?.data;
+
+        if (!data || (key === "tagName" && (data.available === true || !data.tagObject))) {
+            this.foundAddress = undefined;
+            if (key === "tagName") this.tagLookupMessageKey = "send.zelf_name_not_registered";
+
+            return;
+        }
+
+        const foundAddress = new TagModel(data.tagObject || (key !== "tagName" ? { publicData: { [this.addressKey]: value } } : {}));
+        const publicData = data.tagObject?.publicData as Record<string, unknown> | undefined;
+        const networkAddress = this._networkAddress(publicData) || String(foundAddress.publicData?.[this.addressKey] || "").trim();
+
+        if (!networkAddress) {
+            this.foundAddress = undefined;
+            if (key === "tagName") this.tagLookupMessageKey = "send.zelf_name_no_network_address";
+
+            return;
+        }
+
+        this.foundAddress = foundAddress;
+        this.tagLookupMessageKey = "";
+    }
+
+    /** Canonical `publicData[addressKey]`, then the packed short key for networks that store one. */
+    private _networkAddress(publicData: Record<string, unknown> | null | undefined): string {
+        if (!publicData) return "";
+
+        const canonical = publicData[this.addressKey];
+        if (typeof canonical === "string" && canonical.trim()) return canonical.trim();
+
+        switch (this.addressKey) {
+            case "aptosAddress":
+                return readPublicDataAptosAddress(publicData);
+            case "dotAddress":
+                return readPublicDataDotAddress(publicData);
+            case "ksmAddress":
+                return readPublicDataKsmAddress(publicData);
+            case "xlmAddress":
+                return readPublicDataXlmAddress(publicData);
+            default:
+                return "";
+        }
+    }
+
+    private _httpStatus(error: unknown): number | undefined {
+        if (!error || typeof error !== "object") return undefined;
+
+        const record = error as {
+            status?: unknown;
+            statusCode?: unknown;
+            error?: { status?: unknown; statusCode?: unknown };
+        };
+        const candidates = [record.status, record.statusCode, record.error?.status, record.error?.statusCode];
+
+        for (const candidate of candidates) {
+            if (typeof candidate === "number" && Number.isFinite(candidate)) return candidate;
+        }
+
+        return undefined;
+    }
+
+    private _clearTagLookup(): void {
+        this.isZelfNameNotFound = false;
+        this.tagLookupMessageKey = "";
+    }
+
+    private _showTagLookupFailure(): void {
+        if (!this.tagLookupMessageKey) this.tagLookupMessageKey = "send.zelf_name_not_registered";
+
+        this.isZelfNameNotFound = true;
+        this.foundAddress = undefined;
     }
 
     private _setRawAddressToFoundAddress(text: string, addressKey: string): void {
         this.searching = false;
         this._syncToAddressControlDisabledState();
-        this.isZelfNameNotFound = false;
+        this._clearTagLookup();
 
         this.foundAddress = new TagModel({
             publicData: {
@@ -826,9 +910,13 @@ export class SendTransactionComponent implements OnDestroy {
                     const btcBalance = await this._bitcoinService.getBitcoinBalance(btcAddress);
 
                     if (btcBalance.balance < parseFloat(this.form.get("amount")?.value || "0")) {
-                        this._snackBar.open(this._translocoService.translate("errors.insufficient_funds"), this._translocoService.translate("common.close"), {
-                            duration: 5000,
-                        });
+                        this._snackBar.open(
+                            this._translocoService.translate("errors.insufficient_funds"),
+                            this._translocoService.translate("common.close"),
+                            {
+                                duration: 5000,
+                            }
+                        );
                         return;
                     }
                 }
@@ -1053,7 +1141,7 @@ export class SendTransactionComponent implements OnDestroy {
             this.form.get("toAddress")?.patchValue("", { emitEvent: false });
             this.foundAddress = undefined;
             this.isFromRecentAddress = false;
-            this.isZelfNameNotFound = false;
+            this._clearTagLookup();
             this._setToCurrentTransactionData();
             return;
         }

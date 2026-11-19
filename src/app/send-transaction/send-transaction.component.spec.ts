@@ -32,6 +32,7 @@ describe("SendTransactionComponent Aptos amount step (#166)", () => {
             { setCurrentTransactionData } as any,
             { translate: (key: string) => key } as any,
             {} as any,
+            {} as any,
             {} as any
         );
 
@@ -145,5 +146,184 @@ describe("SendTransactionComponent Aptos amount step (#166)", () => {
         await t.component.continueToConfirmation();
 
         expect(t.navigate).toHaveBeenCalledWith(["/send/confirmation"]);
+    });
+});
+
+describe("SendTransactionComponent Aptos Zelf ID lookup (#186)", () => {
+    const aptosAddress = "0x8d086543389b6eefb431f07f54ea5625b2f8e4ba1d7848ee4b3051fbeeea6a77";
+
+    function setup() {
+        const searchTag = jasmine.createSpy("searchTag");
+        const refreshAfterUnauthorized = jasmine.createSpy("refreshAfterUnauthorized").and.resolveTo("next");
+        const setCurrentTransactionData = jasmine.createSpy("setCurrentTransactionData").and.resolveTo();
+        const component = new SendTransactionComponent(
+            {} as any,
+            {} as any,
+            { isValidAddress: () => false } as any,
+            {} as any,
+            {} as any,
+            { markForCheck: () => undefined, detectChanges: () => undefined } as any,
+            {} as any,
+            new FormBuilder(),
+            {} as any,
+            { open: jasmine.createSpy("open") } as any,
+            {} as any,
+            {} as any,
+            {} as any,
+            {} as any,
+            {
+                searchTag,
+                parseTagName: (tagName: string) => {
+                    const parts = tagName.split(".");
+                    if (parts.length < 2) return { name: tagName, domain: "" };
+                    const domain = parts.pop() || "";
+                    return { name: parts.join("."), domain };
+                },
+            } as any,
+            { setCurrentTransactionData } as any,
+            { translate: (key: string) => key } as any,
+            {} as any,
+            {
+                TagRegex: /^[a-zA-Z][a-zA-Z0-9]*\.[a-zA-Z0-9-]+$/i,
+                TagRegexNoPostfix: /^[a-zA-Z][a-zA-Z0-9]*$/i,
+            } as any,
+            { refreshAfterUnauthorized } as any
+        );
+
+        component.transactionData = new TransactionData({
+            token: {
+                symbol: "APT",
+                tokenType: "APT",
+                network: "Aptos",
+                name: "Aptos",
+                amount: 1,
+                balance: 1,
+                price: 1,
+                fiatBalance: 0,
+                image: "",
+            },
+            sender: { address: "0xabc", tagName: "sender", domain: "zelf" },
+            receiver: {},
+        });
+        component.withdrawStep = false;
+        component.form = new FormBuilder().group({
+            amount: ["0.1"],
+            toAddress: ["qa"],
+            fromAddress: ["0xabc"],
+        });
+
+        return { component, searchTag, refreshAfterUnauthorized, setCurrentTransactionData };
+    }
+
+    async function lookUpQa(component: SendTransactionComponent): Promise<void> {
+        await (component as unknown as { _handleToAddressChange(text: string): Promise<void> })._handleToAddressChange("qa");
+    }
+
+    it("resolves qa.zelf after a 401 and a successful retry", async () => {
+        const t = setup();
+        let calls = 0;
+
+        t.searchTag.and.callFake(async () => {
+            calls += 1;
+            if (calls === 1) throw Object.assign(new Error("unauthorized"), { status: 401 });
+
+            return {
+                data: {
+                    available: false,
+                    tagName: "qa.zelf",
+                    tagObject: {
+                        tagName: "qa.zelf",
+                        publicData: { aptosAddress, domain: "zelf", tagName: "qa.zelf" },
+                    },
+                },
+            };
+        });
+
+        await lookUpQa(t.component);
+
+        expect(t.refreshAfterUnauthorized).toHaveBeenCalledTimes(1);
+        expect(t.searchTag).toHaveBeenCalledTimes(2);
+        expect(t.searchTag.calls.argsFor(0)[0]).toEqual({ tagName: "qa", domain: "zelf", os: "DESKTOP" });
+        expect(t.searchTag.calls.argsFor(1)[0]).toEqual({ tagName: "qa", domain: "zelf", os: "DESKTOP" });
+        expect(t.component.foundAddress?.publicData.aptosAddress).toBe(aptosAddress);
+        expect(t.component.isZelfNameNotFound).toBeFalse();
+        expect(t.setCurrentTransactionData.calls.mostRecent().args[0].receiver.address).toBe(aptosAddress);
+    });
+
+    it("resolves a packed aptos short key", async () => {
+        const t = setup();
+
+        t.searchTag.and.resolveTo({
+            data: {
+                available: false,
+                tagObject: {
+                    publicData: { addresses2: JSON.stringify({ aptos: aptosAddress }), domain: "zelf", tagName: "qa.zelf" },
+                },
+            },
+        });
+
+        await lookUpQa(t.component);
+
+        expect(t.component.foundAddress?.publicData.aptosAddress).toBe(aptosAddress);
+        expect(t.component.isZelfNameNotFound).toBeFalse();
+        expect(t.component.tagLookupMessageKey).not.toBe("send.zelf_name_no_network_address");
+    });
+
+    it("shows that the Zelf ID has no address on this network", async () => {
+        const t = setup();
+
+        t.searchTag.and.resolveTo({
+            data: {
+                available: false,
+                tagObject: {
+                    publicData: { ethAddress: "0x1111111111111111111111111111111111111111", domain: "zelf", tagName: "qa.zelf" },
+                },
+            },
+        });
+
+        await lookUpQa(t.component);
+
+        expect(t.refreshAfterUnauthorized).not.toHaveBeenCalled();
+        expect(t.component.foundAddress).toBeUndefined();
+        expect(t.component.isZelfNameNotFound).toBeTrue();
+        expect(t.component.tagLookupMessageKey).toBe("send.zelf_name_no_network_address");
+    });
+
+    it("shows not registered only when the name is available or missing", async () => {
+        const available = setup();
+
+        available.searchTag.and.resolveTo({ data: { available: true, tagName: "qa", ipfs: [], arweave: [] } });
+        await lookUpQa(available.component);
+        expect(available.component.tagLookupMessageKey).toBe("send.zelf_name_not_registered");
+        expect(available.component.isZelfNameNotFound).toBeTrue();
+
+        const missing = setup();
+
+        missing.searchTag.and.resolveTo({ data: { available: false, tagName: "qa" } });
+        await lookUpQa(missing.component);
+        expect(missing.component.tagLookupMessageKey).toBe("send.zelf_name_not_registered");
+        expect(missing.component.isZelfNameNotFound).toBeTrue();
+    });
+
+    it("shows lookup failed when the search errors, including a second 401", async () => {
+        const network = setup();
+
+        network.searchTag.and.rejectWith(new Error("network"));
+        await lookUpQa(network.component);
+
+        expect(network.refreshAfterUnauthorized).not.toHaveBeenCalled();
+        expect(network.component.foundAddress).toBeUndefined();
+        expect(network.component.isZelfNameNotFound).toBeTrue();
+        expect(network.component.tagLookupMessageKey).toBe("send.zelf_name_lookup_failed");
+
+        const unauthorized = setup();
+
+        unauthorized.searchTag.and.rejectWith(Object.assign(new Error("unauthorized"), { status: 401 }));
+        await lookUpQa(unauthorized.component);
+
+        expect(unauthorized.searchTag).toHaveBeenCalledTimes(2);
+        expect(unauthorized.refreshAfterUnauthorized).toHaveBeenCalledTimes(1);
+        expect(unauthorized.component.tagLookupMessageKey).toBe("send.zelf_name_lookup_failed");
+        expect(unauthorized.component.tagLookupMessageKey).not.toBe("send.zelf_name_not_registered");
     });
 });

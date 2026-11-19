@@ -732,6 +732,8 @@
         "used": "Использовано {{days}} назад",
         "withdrawal_amount": "Сумма отправки",
         "zelf_name_not_registered": "Zelf ID не зарегистрирован",
+        "zelf_name_lookup_failed": "Не удалось выполнить поиск, попробуйте снова",
+        "zelf_name_no_network_address": "У этого Zelf ID нет адреса в этой сети",
         "zelf_name_registered": "Zelf ID зарегистрирован",
         "from_address": "С адреса",
         "private_transaction": "Приватная транзакция",

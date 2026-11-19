@@ -732,6 +732,8 @@
         "used": "Ginamit {{days}} na ang nakalipas",
         "withdrawal_amount": "Halaga na ipapadala",
         "zelf_name_not_registered": "Hindi pa nare-rehistro ang Zelf ID",
+        "zelf_name_lookup_failed": "Nabigo ang paghahanap, subukan muli",
+        "zelf_name_no_network_address": "Walang address ang Zelf ID na ito sa network na ito",
         "zelf_name_registered": "Nare-rehistro na ang Zelf ID",
         "from_address": "Mula sa address",
         "private_transaction": "Pribadong Transaksyon",
