@@ -36,7 +36,8 @@ export type FaceApiAction =
     | "store-notes"
     | "store-credit-card"
     | "purchase-slot"
-    | "daily-reward";
+    | "daily-reward"
+    | "first-transaction";
 
 export interface FaceRequestContext {
     action: FaceApiAction | string;

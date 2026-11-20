@@ -2345,7 +2345,20 @@
             "instruction_action": "Enviar tokens ZNS",
             "instruction_desc": "Realiza tu primera transacción de tokens ZNS para desbloquear esta recompensa",
             "error_no_wallet": "No se encontró ninguna billetera",
-            "error_invalid_config": "Configuración de billetera no válida"
+            "error_invalid_config": "Configuración de billetera no válida",
+            "identity_required": "Se necesita verificar tu identidad para reclamar esta recompensa.",
+            "error_generic": "No pudimos completar esta recompensa. Inténtalo de nuevo.",
+            "error_verification_failed": "Tu rostro no coincide con este Zelf ID. Centra tu rostro e inténtalo de nuevo.",
+            "error_missing_password": "Este Zelf ID necesita su contraseña para reclamar esta recompensa.",
+            "error_invalid_password": "La contraseña es incorrecta. Revísala e inténtalo de nuevo.",
+            "error_password_required": "Este Zelf ID requiere una contraseña. Escríbela e inténtalo de nuevo.",
+            "error_owner_mismatch": "La identidad verificada no corresponde a esta recompensa.",
+            "verify_face_title": "Verifica tu rostro",
+            "verify_face_subtitle": "Hace falta una verificación facial para reclamar esta recompensa. La foto no se guarda.",
+            "verify_password_title": "Ingresa tu contraseña",
+            "verify_password_subtitle": "Este Zelf ID usa una contraseña. Escríbela para reclamar esta recompensa.",
+            "verify_pin_title": "Ingresa tu PIN",
+            "verify_pin_subtitle": "Este Zelf ID usa un PIN. Escríbelo para reclamar esta recompensa."
         },
         "tasks": {
             "invite_first_friend": {

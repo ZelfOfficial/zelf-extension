@@ -2340,7 +2340,20 @@
             "instruction_action": "Send ZNS tokens",
             "instruction_desc": "Make your first ZNS token transaction to unlock this reward",
             "error_no_wallet": "No wallet found",
-            "error_invalid_config": "Invalid wallet configuration"
+            "error_invalid_config": "Invalid wallet configuration",
+            "identity_required": "Identity verification is required to claim this reward.",
+            "error_generic": "We couldn't complete this reward. Please try again.",
+            "error_verification_failed": "Your face did not match this Zelf ID. Center your face and try again.",
+            "error_missing_password": "This Zelf ID needs its password before this reward can be claimed.",
+            "error_invalid_password": "That password is incorrect. Check it and try again.",
+            "error_password_required": "This Zelf ID requires a password. Enter it and try again.",
+            "error_owner_mismatch": "The verified identity does not match this reward.",
+            "verify_face_title": "Verify your face",
+            "verify_face_subtitle": "A face check is required to claim this reward. The photo is not stored.",
+            "verify_password_title": "Enter your password",
+            "verify_password_subtitle": "This Zelf ID uses a password. Enter it to claim this reward.",
+            "verify_pin_title": "Enter your PIN",
+            "verify_pin_subtitle": "This Zelf ID uses a PIN. Enter it to claim this reward."
         },
         "tasks": {
             "invite_first_friend": {

@@ -5,6 +5,7 @@ import { HttpWrapperService } from "../http-wrapper.service";
 import { encryptWalletMasterPassword } from "../zelf-authenticator/zotp-master-password.util";
 import { FaceApiService } from "./face-api/face-api.service";
 import { DAILY_REWARD_FACE_ACTION, DailyRewardClaimRequest } from "../rewards/daily-reward-identity";
+import { FIRST_TRANSACTION_FACE_ACTION, FirstTransactionClaimRequest } from "../rewards/first-transaction-identity";
 
 export interface WheelSegment {
     value: number;
@@ -165,12 +166,51 @@ export class RewardsService {
     }
 
     /**
-     * Claim first transaction reward
-     * User gets a random 1-100 ZNS reward for their first ZNS transaction
+     * Claim the first-transaction reward.
+     * A face (and the Zelf ID password, when the ID has one) proves ownership.
+     * Secrets are dropped after the request returns; nothing is written to storage.
      */
-    async claimFirstTransaction(params: { tagName: string; domain: string }): Promise<any> {
-        const body = { tagName: params.tagName, domain: params.domain };
-        const response = await this._httpWrapper.sendRequest<any>("post", `${this.baseUrl}/api/rewards/first-transaction`, body);
-        return response;
+    async claimFirstTransaction(input: FirstTransactionClaimRequest): Promise<any> {
+        const body: Record<string, string> = {
+            tagName: input.tagName,
+            domain: input.domain,
+        };
+        const secret = {
+            faceBase64: input.faceBase64 || "",
+            masterPassword: input.masterPassword || "",
+        };
+
+        input.faceBase64 = "";
+        input.masterPassword = undefined;
+
+        try {
+            if (secret.faceBase64) {
+                body.faceBase64 = secret.faceBase64;
+                secret.faceBase64 = "";
+            }
+
+            if (secret.masterPassword) {
+                const plain = secret.masterPassword;
+                secret.masterPassword = "";
+                const encrypted = await encryptWalletMasterPassword(this._httpWrapper, plain);
+
+                if (encrypted) {
+                    body.masterPassword = encrypted;
+                }
+            }
+
+            if (body.faceBase64) {
+                return await this._faceApi.sendWithFace<any>("post", `${this.baseUrl}/api/rewards/first-transaction`, body, {
+                    action: FIRST_TRANSACTION_FACE_ACTION,
+                });
+            }
+
+            return await this._httpWrapper.sendRequest<any>("post", `${this.baseUrl}/api/rewards/first-transaction`, body);
+        } finally {
+            secret.faceBase64 = "";
+            secret.masterPassword = "";
+            body.faceBase64 = "";
+            body.masterPassword = "";
+        }
     }
 }
