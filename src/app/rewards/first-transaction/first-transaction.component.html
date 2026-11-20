@@ -22,8 +22,63 @@
         <div class="first-transaction__col3"></div>
     </div>
 
+    <section class="first-transaction__verify" *ngIf="verificationStep !== 'none'" aria-live="polite">
+        <h2 class="first-transaction__verify-title">
+            {{
+                verificationStep === "face"
+                    ? t("rewards.first_transaction.verify_face_title")
+                    : isPinUnlock
+                      ? t("rewards.first_transaction.verify_pin_title")
+                      : t("rewards.first_transaction.verify_password_title")
+            }}
+        </h2>
+        <p class="first-transaction__verify-subtitle">
+            {{
+                verificationStep === "face"
+                    ? t("rewards.first_transaction.verify_face_subtitle")
+                    : isPinUnlock
+                      ? t("rewards.first_transaction.verify_pin_subtitle")
+                      : t("rewards.first_transaction.verify_password_subtitle")
+            }}
+        </p>
+
+        <div class="first-transaction__preview" *ngIf="verificationStep === 'face'">
+            <biometrics-general displayMode="portrait" (imageCaptured)="onFaceCaptured($event)"></biometrics-general>
+        </div>
+        <p class="first-transaction__hint" *ngIf="verificationStep === 'face'">{{ t("liveness.center_your_face_subtitle") }}</p>
+
+        <form *ngIf="verificationStep === 'password'" class="first-transaction__password" (ngSubmit)="submitMasterPassword()">
+            <div class="zelf-input zelf-input--wide">
+                <input
+                    [type]="showMasterPassword ? 'text' : 'password'"
+                    class="zelf-input__control zelf-input__control--floating-label"
+                    [(ngModel)]="masterPassword"
+                    id="firstTransactionMasterPassword"
+                    name="firstTransactionMasterPassword"
+                    autocomplete="current-password"
+                    [attr.aria-label]="isPinUnlock ? t('security.pin_title') : t('common.password')"
+                    placeholder=" "
+                    required
+                />
+                <label class="zelf-input__floating-label" for="firstTransactionMasterPassword">
+                    {{ isPinUnlock ? t("security.pin_title") : t("common.password") }}
+                </label>
+            </div>
+            <button type="button" class="first-transaction__ghost" (click)="showMasterPassword = !showMasterPassword">
+                {{ t(showMasterPassword ? "common.hide_password" : "common.show_password") }}
+            </button>
+            <button type="submit" class="first-transaction__action-btn first-transaction__action-btn--primary" [disabled]="!masterPassword.trim()">
+                {{ t("common.continue") }}
+            </button>
+        </form>
+
+        <button type="button" class="first-transaction__cancel" (click)="cancelVerification()">
+            {{ t("common.cancel") }}
+        </button>
+    </section>
+
     <!-- Scrollable Content -->
-    <div class="first-transaction__app-content">
+    <div class="first-transaction__app-content" *ngIf="verificationStep === 'none'">
         <div class="first-transaction__container">
             <!-- Hero Section -->
             <div class="first-transaction__hero" [ngClass]="{ 'first-transaction__hero--claimed': state === 'already_claimed' }">

@@ -32,7 +32,7 @@ export function dailyRewardErrorTranslationKey(code: string | null | undefined):
  * Read `{ message, code }` from a claim error. Prefers an explicit `ERR_*` token
  * over a generic HTTP status so a 400 validation failure is not shown as a face error.
  */
-export function resolveDailyRewardErrorCode(error: unknown): string | null {
+export function resolveDailyRewardErrorCode(error: unknown, keys: Record<string, string> = DAILY_REWARD_ERROR_KEYS): string | null {
     if (!error || typeof error !== "object") return null;
 
     const err = error as Record<string, unknown>;
@@ -53,7 +53,7 @@ export function resolveDailyRewardErrorCode(error: unknown): string | null {
 
     for (const text of texts) {
         const normalized = text.replace(/^\d{3}:/, "").trim();
-        if (DAILY_REWARD_ERROR_KEYS[normalized]) return normalized;
+        if (keys[normalized]) return normalized;
     }
 
     const status = typeof err["status"] === "number" ? err["status"] : undefined;
