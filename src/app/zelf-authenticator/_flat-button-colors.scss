@@ -1,0 +1,14 @@
+// mat-flat-button paints from --mat-button-filled-* (label falls back to on-primary).
+// A plain `color` does not win against that rule, so a light hover fill hides the label.
+@mixin zelf-flat-button-colors($background, $label) {
+    --mat-button-filled-container-color: #{$background} !important;
+    --mat-button-filled-label-text-color: #{$label} !important;
+    --mat-button-filled-disabled-container-color: #{$background} !important;
+    --mat-button-filled-disabled-label-text-color: #{$label} !important;
+    --mat-button-filled-state-layer-color: #{$label} !important;
+    --mat-button-filled-ripple-color: #{$label} !important;
+    --mdc-filled-button-container-color: #{$background} !important;
+    --mdc-filled-button-label-text-color: #{$label} !important;
+    background-color: $background !important;
+    color: $label !important;
+}

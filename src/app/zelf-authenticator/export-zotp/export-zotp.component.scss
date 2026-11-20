@@ -1,4 +1,5 @@
 @use "../../../styles/variables";
+@use "../flat-button-colors" as flat;
 
 .export-zotp {
     display: flex;
@@ -427,22 +428,31 @@
         font-family: variables.$themeBodyFamily;
         font-weight: 600;
         font-size: calc(14px * var(--zns-font-scale, 1));
-        background-color: variables.$themeText;
-        color: variables.$themeBackground;
         border-radius: calc(8px * var(--zns-space-scale, 1));
         display: flex;
         align-items: center;
         justify-content: center;
         gap: calc(8px * var(--zns-space-scale, 1));
-        transition: background-color 0.2s variables.$smoothBezier;
+        transition:
+            color 0.2s variables.$smoothBezier,
+            background-color 0.2s variables.$smoothBezier;
+        @include flat.zelf-flat-button-colors(variables.$themeText, variables.$themeBackground);
 
         @media (max-width: 400px) {
             padding: calc(10px * var(--zns-space-scale, 1)) calc(20px * var(--zns-space-scale, 1));
             font-size: calc(12px * var(--zns-font-scale, 1));
         }
 
-        &:hover {
-            background-color: variables.$themeTextMuted;
+        &:hover:not(:disabled),
+        &:focus-visible:not(:disabled),
+        &:active:not(:disabled) {
+            // Muted gray is too light for a white label. $black stays readable in both themes.
+            @include flat.zelf-flat-button-colors(variables.$themeTextMuted, variables.$black);
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         svg {
