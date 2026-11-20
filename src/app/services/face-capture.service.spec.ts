@@ -1,7 +1,8 @@
 import * as angularJson from "../../../angular.json";
+import * as faceapi from "@vladmandic/face-api";
 import { FacingMode } from "../biometrics-general/sdk.models";
 import { CaptureSignalsService } from "./capture-signals.service";
-import { FaceCaptureService } from "./face-capture.service";
+import { detectionFrameSize, FaceCaptureService, faceDetectorOptions, scaledDetectionMinPixels } from "./face-capture.service";
 
 describe("FaceCaptureService (#93)", () => {
     let service: FaceCaptureService;
@@ -22,16 +23,16 @@ describe("FaceCaptureService (#93)", () => {
     it("builds standard camera configuration for landscape, portrait, and specific deviceId", () => {
         const landscapeCfg = service.buildCameraConfiguration({ isLandscape: true, displayMode: "auto" });
         expect(landscapeCfg.facingMode).toBe(FacingMode.USER);
-        expect(landscapeCfg.width).toEqual({ ideal: 1920 });
-        expect(landscapeCfg.height).toEqual({ ideal: 1080 });
+        expect(landscapeCfg.width).toEqual({ ideal: 1280 });
+        expect(landscapeCfg.height).toEqual({ ideal: 720 });
 
         const portraitAutoCfg = service.buildCameraConfiguration({ isLandscape: false, displayMode: "auto" });
-        expect(portraitAutoCfg.width).toEqual({ ideal: 1080 });
-        expect(portraitAutoCfg.height).toEqual({ ideal: 1920 });
+        expect(portraitAutoCfg.width).toEqual({ ideal: 720 });
+        expect(portraitAutoCfg.height).toEqual({ ideal: 1280 });
 
         const portraitModeCfg = service.buildCameraConfiguration({ isLandscape: false, displayMode: "portrait", deviceId: "cam-1" });
-        expect(portraitModeCfg.width).toEqual({ ideal: 1920 });
-        expect(portraitModeCfg.height).toEqual({ ideal: 1080 });
+        expect(portraitModeCfg.width).toEqual({ ideal: 1280 });
+        expect(portraitModeCfg.height).toEqual({ ideal: 720 });
         expect(portraitModeCfg.deviceId).toEqual({ exact: "cam-1" });
     });
 
@@ -106,5 +107,38 @@ describe("FaceCaptureService (#93)", () => {
         const srcAssetsEntry = prodAssets.find((entry: any) => typeof entry === "object" && entry.input === "src/assets");
         expect(srcAssetsEntry).toBeDefined();
         expect(srcAssetsEntry.ignore).toContain("dev/**");
+    });
+});
+
+describe("detection frame size", () => {
+    it("downscales a 1080p frame and keeps a smaller frame unchanged", () => {
+        const hd = detectionFrameSize(1920, 1080, 640);
+        expect(hd).not.toBeNull();
+        expect(hd!.width).toBe(640);
+        expect(hd!.height).toBe(360);
+        expect(hd!.scale).toBeCloseTo(640 / 1920, 5);
+
+        const small = detectionFrameSize(640, 480, 640);
+        expect(small).toEqual({ width: 640, height: 480, scale: 1 });
+        expect(detectionFrameSize(0, 720, 640)).toBeNull();
+    });
+
+    it("scales the pixel floor only when the detection frame is smaller than the camera frame", () => {
+        expect(scaledDetectionMinPixels(240, 1)).toBe(240);
+        expect(scaledDetectionMinPixels(240, 640 / 1920)).toBeCloseTo(80, 5);
+        expect(scaledDetectionMinPixels(240, 0)).toBe(240);
+    });
+
+    it("keeps the confidence floor and uses the tiny net only when it is loaded", () => {
+        const ssd = faceDetectorOptions(0.2, "ssd", true);
+        expect(ssd instanceof faceapi.SsdMobilenetv1Options).toBeTrue();
+
+        const fallback = faceDetectorOptions(0.2, "tiny", false);
+        expect(fallback instanceof faceapi.SsdMobilenetv1Options).toBeTrue();
+
+        const tiny = faceDetectorOptions(0.2, "tiny", true) as faceapi.TinyFaceDetectorOptions;
+        expect(tiny instanceof faceapi.TinyFaceDetectorOptions).toBeTrue();
+        expect(tiny.inputSize).toBe(416);
+        expect(tiny.scoreThreshold).toBe(0.2);
     });
 });

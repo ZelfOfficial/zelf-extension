@@ -134,9 +134,16 @@ export class ZelfKeysPasswordBiometricsComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         if (this._intervals.detectFace) {
             clearInterval(this._intervals.detectFace);
+            this._intervals.detectFace = null;
         }
         if (this._intervals.checkNgxVideo) {
             clearInterval(this._intervals.checkNgxVideo);
+            this._intervals.checkNgxVideo = null;
+        }
+        try {
+            void this._faceCaptureService.stopCameraStream(this.webcamRef?.nativeVideoElement);
+        } catch {
+            /* webcam view already torn down */
         }
         this.unsubscriber$.next();
         this.unsubscriber$.complete();

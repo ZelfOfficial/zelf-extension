@@ -14,7 +14,7 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { CaptureSignalReport, VideoInputSummary } from "app/services/capture-signals.service";
-import { FaceCaptureService } from "app/services/face-capture.service";
+import { FaceCaptureService, scaledDetectionMinPixels } from "app/services/face-capture.service";
 import { MediaStreamService } from "app/services/media-stream.service";
 import { isDevBiometricsBypassEnabled, loadDevBiometricsFixtureBase64 } from "app/utils/dev-biometrics-bypass.util";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
@@ -60,6 +60,9 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
     private _intervals: Intervals = {};
     private _takePicture: Subject<void> = new Subject<void>();
     private unsubscriber$: Subject<void> = new Subject<void>();
+    private _released = false;
+    private _detecting = false;
+    private _detectionCanvas?: HTMLCanvasElement;
 
     //ACTIVE DEBUG GRAPHIC MODE
     debugIndex!: number;
@@ -95,6 +98,8 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         this.deviceData = this._walletService.getDeviceData();
 
         this._debounceWindowResize = debounce(async () => {
+            if (this._released) return;
+
             this.canNavigate.emit(false);
 
             await this._setMaxVideoDimensions();
@@ -123,6 +128,8 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         }
 
         this._walletService.faceapi$.pipe(takeUntil(this.unsubscriber$)).subscribe(async (isLoaded) => {
+            if (this._released) return;
+
             this.canNavigate.emit(false);
 
             this.camera.isLoading = !isLoaded;
@@ -135,16 +142,12 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         });
     }
 
-    async ngOnDestroy(): Promise<void> {
-        await this._mediaStreamService.stopAllStreams();
+    ngOnDestroy(): void {
+        this._releaseCamera();
 
         this.canNavigate.emit(true);
 
-        this._resizeObserver?.disconnect();
-        this._resizeUnlisten();
-        this._killIntervals();
-
-        this._debounceWindowResize.cancel();
+        if (this.unsubscriber$.closed) return;
 
         this.unsubscriber$.next();
         this.unsubscriber$.complete();
@@ -201,6 +204,8 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
     }
 
     private _checkVideoStreamReady = () => {
+        if (this._released) return;
+
         const videoNgx = this.webcamRef?.nativeVideoElement;
 
         if (!videoNgx) return;
@@ -249,14 +254,66 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         this._startNgxVideoInterval();
     }
 
-    private _detectFace = () => {
-        if (this.response.base64Image) {
-            this._intervals.detectFace = clearInterval(this._intervals.detectFace);
+    private _detectionIntervalMs(): number {
+        const time = Number(this.deviceData?.time);
 
-            return;
+        return Number.isFinite(time) && time >= 100 ? time : 250;
+    }
+
+    private _detectFace = async (): Promise<void> => {
+        if (this._released || this.response?.base64Image || this._detecting) return;
+
+        const video = this.webcamRef?.nativeVideoElement;
+        if (!video || video.readyState < 2) return;
+
+        this._detecting = true;
+
+        try {
+            const frame = this._faceCaptureService.copyFrameForDetection(
+                video,
+                this._detectionCanvas || (this._detectionCanvas = document.createElement("canvas"))
+            );
+
+            if (!frame || this._released || this.response?.base64Image) return;
+
+            const detection = await this._faceCaptureService.detectFacesWithLandmarks(frame.canvas, 0.2, "tiny");
+
+            if (this._released || this.response?.base64Image) return;
+
+            if (detection.length > 0) {
+                this.lastFace = detection[0];
+                this.errorFace = null;
+
+                this.camera.dimensions.real = { height: 0, width: 0, offsetX: 0, offsetY: 0 };
+                this._setResultDimensions("real", frame.canvas.height, frame.canvas.width);
+                this.face.real = this._getCenterAndRadius(frame.canvas.height, frame.canvas.width);
+
+                this._drawOvalCenterAndMask();
+                this._isFaceCentered(this.lastFace.landmarks.getNose()[3]);
+                this._isFaceClose(this.lastFace.landmarks, scaledDetectionMinPixels(this.face.minPixels, frame.scale));
+
+                const context = this.maskResultCanvasRef?.nativeElement?.getContext("2d", { willReadFrequently: true });
+                if (context) this._drawStatusOval(context, !this.errorFace);
+
+                if (!this.errorFace) {
+                    this.face.successPosition += 1;
+                } else {
+                    this.face.successPosition = 0;
+                }
+
+                if (!this.errorFace && this.face.successPosition > 2) {
+                    this.face.successPosition = 0;
+                    this._captureCurrentFrame(video);
+                    return;
+                }
+            }
+
+            this._changeDetectorRef.markForCheck();
+        } catch {
+            console.error("Face detection failed");
+        } finally {
+            this._detecting = false;
         }
-
-        this._takePicture.next();
     };
 
     private _drawOvalCenterAndMask(): void {
@@ -405,13 +462,13 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         };
     }
 
-    private _isFaceClose(landmarks: faceapi.FaceLandmarks68): void {
+    private _isFaceClose(landmarks: faceapi.FaceLandmarks68, minPixels = this.face.minPixels): void {
         const realDim = this.camera.dimensions.real || { center: { x: 0, y: 0 }, margin: { x: 0, y: 0 }, height: 0, width: 0, offsetX: 0 };
         const totalFaceArea = landmarks.imageHeight * landmarks.imageWidth;
         const totalImageArea = Math.floor(realDim.height * (realDim.width - realDim.offsetX));
         const faceProportion = totalFaceArea / totalImageArea;
 
-        if (faceProportion < this.face.threshold || landmarks.imageHeight < this.face.minPixels || landmarks.imageWidth < this.face.minPixels) {
+        if (faceProportion < this.face.threshold || landmarks.imageHeight < minPixels || landmarks.imageWidth < minPixels) {
             this.errorFace = {
                 icon: "zoom_in",
                 title: this._translocoService.translate("liveness.get_closer"),
@@ -437,23 +494,29 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
     }
 
     private _startFaceDetectionInterval = (): void => {
+        if (this._released) return;
+
         if (this._intervals.detectFace) {
             clearInterval(this._intervals.detectFace);
 
             this._intervals.detectFace = null;
         }
 
-        this._intervals.detectFace = setInterval(this._detectFace, this.deviceData.time);
+        this._intervals.detectFace = setInterval(() => {
+            void this._detectFace();
+        }, this._detectionIntervalMs());
     };
 
     private _startNgxVideoInterval = (): void => {
+        if (this._released) return;
+
         if (this._intervals.checkNgxVideo) {
             clearInterval(this._intervals.checkNgxVideo);
 
             this._intervals.checkNgxVideo = null;
         }
 
-        this._intervals.checkNgxVideo = setInterval(this._checkVideoStreamReady, this.deviceData.time);
+        this._intervals.checkNgxVideo = setInterval(this._checkVideoStreamReady, this._detectionIntervalMs());
     };
 
     private _setDefaultCamera = () => {
@@ -507,29 +570,6 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
             isLoading: false,
             isFailed: false,
         };
-    };
-
-    private _setImageOnCanvas = (canvas: any, inputImg: any, originalDim: any, resizeDim: any) => {
-        canvas.width = resizeDim.width;
-        canvas.height = resizeDim.height;
-        canvas.style.marginLeft = `${resizeDim.offsetX || 0}px`;
-        canvas.style.marginTop = `${resizeDim.offsetY || 0}px`;
-
-        const ctx = canvas.getContext("2d");
-
-        ctx.clearRect(0, 0, originalDim.width, originalDim.height);
-
-        ctx.drawImage(
-            inputImg,
-            originalDim.offsetX,
-            originalDim.offsetY,
-            originalDim.width,
-            originalDim.height,
-            0,
-            0,
-            resizeDim.width,
-            resizeDim.height
-        );
     };
 
     private async _setMaxVideoDimensions(): Promise<void> {
@@ -604,7 +644,7 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         };
     }
 
-    /** 720p or higher when the camera can provide it. Portrait previews cover this landscape frame. */
+    /** 720p is enough for the still that is encrypted and sent. Framing runs on a smaller copy of the same frame. */
     private _cameraConfiguration(isLandscape: boolean): CameraData["configuration"] {
         return this._faceCaptureService.buildCameraConfiguration({
             isLandscape,
@@ -641,22 +681,97 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         this._changeDetectorRef.markForCheck();
     }
 
-    private _takePictureLiveness(img: any) {
+    private _captureCurrentFrame(video: HTMLVideoElement): void {
+        if (this._released || this.response?.base64Image) return;
+
+        const height = video.videoHeight || 0;
+        const width = video.videoWidth || 0;
+        if (!height || !width) return;
+
+        if (height < this.face.minHeight) {
+            this.camera.isLowQuality = true;
+            this.canNavigate.emit(true);
+            this.error.emit({ error: "low_quality" });
+            this._releaseCamera();
+            return;
+        }
+
+        this._killIntervals();
+        this.camera.dimensions.real = { height: 0, width: 0, offsetX: 0, offsetY: 0 };
+        this._setResultDimensions("real", height, width);
+        this._takePictureLiveness(video);
+        this._releaseCamera();
+    }
+
+    private _takePictureLiveness(img: CanvasImageSource) {
         const maskResultCanvas = this.maskResultCanvasRef?.nativeElement;
         const toSendCanvas = this.ToSendCanvasRef?.nativeElement;
+        const real = this.camera?.dimensions?.real;
 
-        this._setImageOnCanvas(maskResultCanvas, img, this.camera.dimensions.real, this.camera.dimensions.result);
-        this._setImageOnCanvas(toSendCanvas, img, this.camera.dimensions.real, this.camera.dimensions.real);
+        if (!maskResultCanvas || !toSendCanvas || !real?.width || !real?.height) return;
+
+        const src = { x: real.offsetX || 0, y: real.offsetY || 0, width: real.width, height: real.height };
+        const preview = this.camera.dimensions.result;
+
+        if (preview?.width && preview?.height) {
+            this._faceCaptureService.drawCrop(maskResultCanvas, img, src, {
+                width: preview.width,
+                height: preview.height,
+                offsetX: preview.offsetX,
+                offsetY: preview.offsetY,
+            });
+        }
+
+        const capped = this._faceCaptureService.capRect({ x: 0, y: 0, width: src.width, height: src.height }, 1080);
+        this._faceCaptureService.drawCrop(toSendCanvas, img, src, { width: capped.width, height: capped.height });
 
         this.response.base64Image = toSendCanvas.toDataURL("image/jpeg", BiometricsGeneralComponent.CAPTURE_JPEG_QUALITY);
 
-        this._emitBiometricCapture();
+        this._releaseCamera();
+        void this._emitBiometricCapture();
+    }
+
+    /**
+     * Stop tracks, detach the video, and ignore any stream ngx-webcam attaches after this returns.
+     * Safe to call on success, failure, cancel, and destroy.
+     */
+    private _releaseCamera(): void {
+        this._released = true;
+        this._detecting = false;
+        this._killIntervals();
+        this._debounceWindowResize?.cancel();
+        this._resizeObserver?.disconnect();
+        this._resizeObserver = undefined;
+        this._resizeUnlisten();
+        this._resizeUnlisten = () => {};
+
+        const videos = new Set<HTMLVideoElement>();
+
+        try {
+            const direct = this.webcamRef?.nativeVideoElement;
+            if (direct) videos.add(direct);
+        } catch {
+            /* webcam view already torn down */
+        }
+
+        this._host?.nativeElement?.querySelectorAll("video").forEach((node) => {
+            videos.add(node as HTMLVideoElement);
+        });
+
+        videos.forEach((video) => {
+            this._faceCaptureService.releaseVideo(video);
+            this._faceCaptureService.sealVideo(video);
+        });
+
+        void this._mediaStreamService.stopAllStreams();
     }
 
     cameraError(error: WebcamInitError): void {
+        this._releaseCamera();
         this.canNavigate.emit(true);
         this.error.emit(error);
 
+        if (!this.camera) return;
         if (!error.mediaStreamError || error.mediaStreamError.name !== "NotAllowedError") return;
 
         this._loading({ isLoading: false, start: true });
@@ -664,56 +779,6 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
     }
 
     processImage(webcamImage: WebcamImage): void {
-        if (!this._intervals.detectFace || this.response.base64Image) return;
-
-        const img = new Image();
-
-        img.src = webcamImage.imageAsDataUrl;
-
-        img.onload = async () => {
-            if (img.height < this.face.minHeight) {
-                this.camera.isLowQuality = true;
-
-                this.canNavigate.emit(true);
-
-                this.error.emit({ error: "low_quality" });
-
-                return;
-            }
-
-            try {
-                this.camera.dimensions.real = { height: 0, width: 0, offsetX: 0, offsetY: 0 };
-
-                this._setResultDimensions("real", img.height, img.width);
-
-                this.face.real = this._getCenterAndRadius(img.height, img.width);
-
-                const detection = await this._faceCaptureService.detectFacesWithLandmarks(img, 0.2);
-                const context = this.maskResultCanvasRef?.nativeElement.getContext("2d", { willReadFrequently: true });
-
-                if (detection.length > 0) {
-                    this.lastFace = detection[0];
-                    this.errorFace = null;
-
-                    this._drawOvalCenterAndMask();
-                    this._isFaceCentered(this.lastFace.landmarks.getNose()[3]);
-                    this._isFaceClose(this.lastFace.landmarks);
-                    this._drawStatusOval(context, !this.errorFace);
-
-                    !this.errorFace ? ++this.face.successPosition : (this.face.successPosition = 0);
-
-                    if (!this.errorFace && this.face.successPosition > 2) {
-                        this.face.successPosition = 0;
-                        this._takePictureLiveness(img);
-
-                        return;
-                    }
-                }
-
-                this._changeDetectorRef.markForCheck();
-            } catch (error: any) {
-                alert(error.message);
-            }
-        };
+        if (this._released || this.response?.base64Image || !webcamImage) return;
     }
 }

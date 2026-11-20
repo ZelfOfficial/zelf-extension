@@ -43,6 +43,7 @@ export class WalletService {
 
     private _assetImageMap: Map<string, string> = new Map();
     private _faceapi: BehaviorSubject<any> = new BehaviorSubject(null);
+    private _faceModelsPromise: Promise<void> | null = null;
     private _userFingerPrint!: UserFingerPrint;
 
     private _BTC_REGEX = /^(?:(?:bc1|tb1|1|32)[a-zA-HJ-NP-Z0-9]{25,59})$/;
@@ -327,14 +328,26 @@ export class WalletService {
     }
 
     async loadModels(): Promise<void> {
-        const promises = [];
+        const ssd = faceapi.nets.ssdMobilenetv1;
+        const landmarks = faceapi.nets.faceLandmark68Net;
+        const tiny = faceapi.nets.tinyFaceDetector;
 
-        promises.push(faceapi.nets.ssdMobilenetv1.loadFromUri("assets/models"));
-        promises.push(faceapi.nets.faceLandmark68Net.loadFromUri("assets/models"));
+        if (ssd.isLoaded && landmarks.isLoaded && tiny.isLoaded) {
+            if (this._faceapi.value !== true) this._faceapi.next(true);
+            return;
+        }
 
-        await Promise.allSettled(promises);
+        if (!this._faceModelsPromise) {
+            this._faceModelsPromise = Promise.allSettled([
+                ssd.loadFromUri("assets/models"),
+                landmarks.loadFromUri("assets/models"),
+                tiny.loadFromUri("assets/models"),
+            ]).then(() => {
+                this._faceapi.next(true);
+            });
+        }
 
-        this._faceapi.next(true);
+        await this._faceModelsPromise;
     }
 
     detectOS() {

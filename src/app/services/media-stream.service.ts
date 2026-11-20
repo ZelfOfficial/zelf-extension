@@ -24,39 +24,54 @@ export class MediaStreamService {
         this._activeStreams = this._activeStreams.filter((activeStream) => activeStream !== stream);
     }
 
+    /**
+     * Stop every camera we already have.
+     * Do not call getUserMedia here: opening a new stream turns the camera back on,
+     * and Chrome can leave the indicator lit if that stream is stopped without a video element.
+     */
     async stopAllStreams(): Promise<void> {
-        this._activeStreams.forEach((stream) => {
-            stream?.getTracks().forEach((track) => track.stop());
+        const streams = this._activeStreams.splice(0);
+
+        streams.forEach((stream) => {
+            stream?.getTracks().forEach((track) => {
+                try {
+                    track.stop();
+                } catch {
+                    /* already ended */
+                }
+            });
         });
 
-        this._activeStreams = [];
+        if (typeof document === "undefined") return;
 
         document.querySelectorAll("video").forEach((video) => {
-            if (!(video.srcObject instanceof MediaStream)) return;
+            if (video.srcObject instanceof MediaStream) this._releaseVideoElement(video);
+        });
+    }
 
-            const stream = video.srcObject as MediaStream;
+    private _releaseVideoElement(video: HTMLVideoElement): void {
+        const stream = video.srcObject;
 
-            if (!stream) return;
+        try {
+            video.pause();
+        } catch {
+            /* ignore */
+        }
 
-            stream.getTracks().forEach((track) => track.stop());
+        if (stream instanceof MediaStream) {
+            stream.getTracks().forEach((track) => {
+                try {
+                    track.stop();
+                } catch {
+                    /* already ended */
+                }
+            });
+        }
 
+        try {
             video.srcObject = null;
-        });
-
-        document.querySelectorAll("canvas").forEach((canvas) => {
-            const context = canvas.getContext("2d");
-
-            if (!context) return;
-
-            const stream = canvas.captureStream?.();
-
-            if (!stream) return;
-
-            stream.getTracks().forEach((track) => track.stop());
-        });
-
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-
-        stream?.getTracks().forEach((track) => track.stop());
+        } catch {
+            /* ignore */
+        }
     }
 }
