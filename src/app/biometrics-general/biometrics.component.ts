@@ -14,7 +14,7 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { CaptureSignalReport, VideoInputSummary } from "app/services/capture-signals.service";
-import { FaceCaptureService, scaledDetectionMinPixels } from "app/services/face-capture.service";
+import { FaceCaptureService } from "app/services/face-capture.service";
 import { MediaStreamService } from "app/services/media-stream.service";
 import { isDevBiometricsBypassEnabled, loadDevBiometricsFixtureBase64 } from "app/utils/dev-biometrics-bypass.util";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
@@ -48,6 +48,9 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
 
     /** JPEG quality used by the other face flows (`canvas.toDataURL("image/jpeg")` default). */
     private static readonly CAPTURE_JPEG_QUALITY = 0.92;
+    /** One SsdMobilenetv1 pass at a time, then wait this long before the next. */
+    private static readonly DETECTION_INTERVAL_MS = 1000;
+    private static readonly VIDEO_READY_POLL_MS = 250;
 
     @Output() canNavigate: EventEmitter<boolean> = new EventEmitter<boolean>();
     @Output() error: EventEmitter<any> = new EventEmitter<any>();
@@ -62,7 +65,6 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
     private unsubscriber$: Subject<void> = new Subject<void>();
     private _released = false;
     private _detecting = false;
-    private _detectionCanvas?: HTMLCanvasElement;
 
     //ACTIVE DEBUG GRAPHIC MODE
     debugIndex!: number;
@@ -254,29 +256,29 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         this._startNgxVideoInterval();
     }
 
-    private _detectionIntervalMs(): number {
-        const time = Number(this.deviceData?.time);
+    private _scheduleNextDetection(): void {
+        if (this._released || this.response?.base64Image || this._detecting) return;
 
-        return Number.isFinite(time) && time >= 100 ? time : 250;
+        clearTimeout(this._intervals.detectFace);
+        this._intervals.detectFace = setTimeout(() => {
+            this._intervals.detectFace = null;
+            void this._detectFace();
+        }, BiometricsGeneralComponent.DETECTION_INTERVAL_MS);
     }
 
     private _detectFace = async (): Promise<void> => {
         if (this._released || this.response?.base64Image || this._detecting) return;
 
         const video = this.webcamRef?.nativeVideoElement;
-        if (!video || video.readyState < 2) return;
+        if (!video || video.readyState < 2 || !video.videoWidth || !video.videoHeight) {
+            this._scheduleNextDetection();
+            return;
+        }
 
         this._detecting = true;
 
         try {
-            const frame = this._faceCaptureService.copyFrameForDetection(
-                video,
-                this._detectionCanvas || (this._detectionCanvas = document.createElement("canvas"))
-            );
-
-            if (!frame || this._released || this.response?.base64Image) return;
-
-            const detection = await this._faceCaptureService.detectFacesWithLandmarks(frame.canvas, 0.2, "tiny");
+            const detection = await this._faceCaptureService.detectFacesWithLandmarks(video, 0.2);
 
             if (this._released || this.response?.base64Image) return;
 
@@ -285,12 +287,12 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
                 this.errorFace = null;
 
                 this.camera.dimensions.real = { height: 0, width: 0, offsetX: 0, offsetY: 0 };
-                this._setResultDimensions("real", frame.canvas.height, frame.canvas.width);
-                this.face.real = this._getCenterAndRadius(frame.canvas.height, frame.canvas.width);
+                this._setResultDimensions("real", video.videoHeight, video.videoWidth);
+                this.face.real = this._getCenterAndRadius(video.videoHeight, video.videoWidth);
 
                 this._drawOvalCenterAndMask();
                 this._isFaceCentered(this.lastFace.landmarks.getNose()[3]);
-                this._isFaceClose(this.lastFace.landmarks, scaledDetectionMinPixels(this.face.minPixels, frame.scale));
+                this._isFaceClose(this.lastFace.landmarks);
 
                 const context = this.maskResultCanvasRef?.nativeElement?.getContext("2d", { willReadFrequently: true });
                 if (context) this._drawStatusOval(context, !this.errorFace);
@@ -313,6 +315,9 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
             console.error("Face detection failed");
         } finally {
             this._detecting = false;
+            if (!this._released && !this.response?.base64Image) {
+                this._scheduleNextDetection();
+            }
         }
     };
 
@@ -479,6 +484,7 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
 
     private _killIntervals(): void {
         clearInterval(this._intervals.checkNgxVideo);
+        clearTimeout(this._intervals.detectFace);
         clearInterval(this._intervals.detectFace);
 
         this._intervals = {};
@@ -494,17 +500,9 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
     }
 
     private _startFaceDetectionInterval = (): void => {
-        if (this._released) return;
+        if (this._released || this._detecting || this._intervals.detectFace) return;
 
-        if (this._intervals.detectFace) {
-            clearInterval(this._intervals.detectFace);
-
-            this._intervals.detectFace = null;
-        }
-
-        this._intervals.detectFace = setInterval(() => {
-            void this._detectFace();
-        }, this._detectionIntervalMs());
+        void this._detectFace();
     };
 
     private _startNgxVideoInterval = (): void => {
@@ -516,7 +514,7 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
             this._intervals.checkNgxVideo = null;
         }
 
-        this._intervals.checkNgxVideo = setInterval(this._checkVideoStreamReady, this._detectionIntervalMs());
+        this._intervals.checkNgxVideo = setInterval(this._checkVideoStreamReady, BiometricsGeneralComponent.VIDEO_READY_POLL_MS);
     };
 
     private _setDefaultCamera = () => {

@@ -330,19 +330,14 @@ export class WalletService {
     async loadModels(): Promise<void> {
         const ssd = faceapi.nets.ssdMobilenetv1;
         const landmarks = faceapi.nets.faceLandmark68Net;
-        const tiny = faceapi.nets.tinyFaceDetector;
 
-        if (ssd.isLoaded && landmarks.isLoaded && tiny.isLoaded) {
+        if (ssd.isLoaded && landmarks.isLoaded) {
             if (this._faceapi.value !== true) this._faceapi.next(true);
             return;
         }
 
         if (!this._faceModelsPromise) {
-            this._faceModelsPromise = Promise.allSettled([
-                ssd.loadFromUri("assets/models"),
-                landmarks.loadFromUri("assets/models"),
-                tiny.loadFromUri("assets/models"),
-            ]).then(() => {
+            this._faceModelsPromise = Promise.allSettled([ssd.loadFromUri("assets/models"), landmarks.loadFromUri("assets/models")]).then(() => {
                 this._faceapi.next(true);
             });
         }

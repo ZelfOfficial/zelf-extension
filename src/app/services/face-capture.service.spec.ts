@@ -1,8 +1,7 @@
 import * as angularJson from "../../../angular.json";
-import * as faceapi from "@vladmandic/face-api";
 import { FacingMode } from "../biometrics-general/sdk.models";
 import { CaptureSignalsService } from "./capture-signals.service";
-import { detectionFrameSize, FaceCaptureService, faceDetectorOptions, scaledDetectionMinPixels } from "./face-capture.service";
+import { detectionFrameSize, FaceCaptureService, scaledDetectionMinPixels } from "./face-capture.service";
 
 describe("FaceCaptureService (#93)", () => {
     let service: FaceCaptureService;
@@ -127,18 +126,5 @@ describe("detection frame size", () => {
         expect(scaledDetectionMinPixels(240, 1)).toBe(240);
         expect(scaledDetectionMinPixels(240, 640 / 1920)).toBeCloseTo(80, 5);
         expect(scaledDetectionMinPixels(240, 0)).toBe(240);
-    });
-
-    it("keeps the confidence floor and uses the tiny net only when it is loaded", () => {
-        const ssd = faceDetectorOptions(0.2, "ssd", true);
-        expect(ssd instanceof faceapi.SsdMobilenetv1Options).toBeTrue();
-
-        const fallback = faceDetectorOptions(0.2, "tiny", false);
-        expect(fallback instanceof faceapi.SsdMobilenetv1Options).toBeTrue();
-
-        const tiny = faceDetectorOptions(0.2, "tiny", true) as faceapi.TinyFaceDetectorOptions;
-        expect(tiny instanceof faceapi.TinyFaceDetectorOptions).toBeTrue();
-        expect(tiny.inputSize).toBe(416);
-        expect(tiny.scoreThreshold).toBe(0.2);
     });
 });

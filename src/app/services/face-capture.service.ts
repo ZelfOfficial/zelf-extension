@@ -26,28 +26,8 @@ export interface FaceFrameDetectionResult {
     evaluation: FaceFramingEvaluation | null;
 }
 
-/** Longest edge used for on-device framing. The detector resizes again to its own input. */
+/** Longest edge used when a caller copies a frame for measurement. Framing itself stays on SsdMobilenetv1. */
 export const DETECTION_MAX_EDGE = 640;
-
-/** Tiny Face Detector input. 416 keeps the same score threshold and 68-point landmarks as the heavy net, at a fraction of the frame time. */
-export const TINY_DETECTOR_INPUT_SIZE = 416;
-
-export type FaceDetectorKind = "ssd" | "tiny";
-
-export function faceDetectorOptions(
-    minConfidence: number,
-    detector: FaceDetectorKind,
-    tinyLoaded: boolean
-): faceapi.SsdMobilenetv1Options | faceapi.TinyFaceDetectorOptions {
-    if (detector === "tiny" && tinyLoaded) {
-        return new faceapi.TinyFaceDetectorOptions({
-            inputSize: TINY_DETECTOR_INPUT_SIZE,
-            scoreThreshold: minConfidence,
-        });
-    }
-
-    return new faceapi.SsdMobilenetv1Options({ minConfidence });
-}
 
 export interface DetectionFrameSize {
     width: number;
@@ -246,16 +226,13 @@ export class FaceCaptureService {
     }
 
     /**
-     * Detect faces and 68 landmarks.
-     * `tiny` is the framing detector (same score threshold). It falls back to SsdMobilenetv1 when that net is not loaded.
+     * Detect faces with SsdMobilenetv1 and 68-point landmarks.
      */
     async detectFacesWithLandmarks(
         input: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement,
-        minConfidence = 0.2,
-        detector: FaceDetectorKind = "ssd"
+        minConfidence = 0.2
     ): Promise<any[]> {
-        const options = faceDetectorOptions(minConfidence, detector, faceapi.nets.tinyFaceDetector.isLoaded);
-        return faceapi.detectAllFaces(input as any, options).withFaceLandmarks();
+        return faceapi.detectAllFaces(input as any, new faceapi.SsdMobilenetv1Options({ minConfidence })).withFaceLandmarks();
     }
 
     /**

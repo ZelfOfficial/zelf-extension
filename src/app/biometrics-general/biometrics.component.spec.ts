@@ -125,13 +125,13 @@ describe("BiometricsGeneralComponent camera release", () => {
         const pending = new Promise<any[]>((resolve) => {
             finish = resolve;
         });
-        spyOn(faceCapture, "copyFrameForDetection").and.returnValue({ canvas: document.createElement("canvas"), scale: 1 });
         const detect = spyOn(faceCapture, "detectFacesWithLandmarks").and.returnValue(pending);
         component.webcamRef = { nativeVideoElement: { readyState: 4, videoWidth: 1280, videoHeight: 720 } } as any;
 
         const first = (component as any)._detectFace();
         const second = (component as any)._detectFace();
         expect(detect).toHaveBeenCalledTimes(1);
+        expect(detect).toHaveBeenCalledWith(jasmine.anything(), 0.2);
 
         component.ngOnDestroy();
         finish!([]);
@@ -140,5 +140,20 @@ describe("BiometricsGeneralComponent camera release", () => {
 
         expect(component.response.base64Image).toBeUndefined();
         expect(detect).toHaveBeenCalledTimes(1);
+    });
+
+    it("schedules the next SsdMobilenetv1 pass 1000ms after the current one finishes", async () => {
+        const delays: number[] = [];
+        spyOn(window, "setTimeout").and.callFake(((handler: TimerHandler, timeout?: number) => {
+            delays.push(timeout ?? 0);
+            return 1;
+        }) as any);
+        const detect = spyOn(faceCapture, "detectFacesWithLandmarks").and.resolveTo([]);
+        component.webcamRef = { nativeVideoElement: { readyState: 4, videoWidth: 1280, videoHeight: 720 } } as any;
+
+        await (component as any)._detectFace();
+
+        expect(detect).toHaveBeenCalledTimes(1);
+        expect(delays).toEqual([1000]);
     });
 });
