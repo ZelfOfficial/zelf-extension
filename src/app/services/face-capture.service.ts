@@ -26,6 +26,38 @@ export interface FaceFrameDetectionResult {
     evaluation: FaceFramingEvaluation | null;
 }
 
+/** Longest edge used when a caller copies a frame for measurement. Framing itself stays on SsdMobilenetv1. */
+export const DETECTION_MAX_EDGE = 640;
+
+export interface DetectionFrameSize {
+    width: number;
+    height: number;
+    scale: number;
+}
+
+/**
+ * Uniform scale so the longest edge is at most maxEdge. Never upscales.
+ * `scale` is detectionWidth / sourceWidth and is how absolute pixel floors stay equivalent.
+ */
+export function detectionFrameSize(srcWidth: number, srcHeight: number, maxEdge = DETECTION_MAX_EDGE): DetectionFrameSize | null {
+    if (!srcWidth || !srcHeight || srcWidth < 1 || srcHeight < 1) return null;
+
+    const scale = Math.min(1, maxEdge / Math.max(srcWidth, srcHeight));
+
+    return {
+        width: Math.max(1, Math.round(srcWidth * scale)),
+        height: Math.max(1, Math.round(srcHeight * scale)),
+        scale,
+    };
+}
+
+/** Full-frame captures keep the original pixel floor. Downscaled frames use the same physical size. */
+export function scaledDetectionMinPixels(minPixels: number, scale: number): number {
+    if (!Number.isFinite(scale) || scale <= 0 || scale >= 1) return minPixels;
+
+    return minPixels * scale;
+}
+
 @Injectable({
     providedIn: "root",
 })
@@ -79,16 +111,16 @@ export class FaceCaptureService {
         const isLandscape = options?.isLandscape ?? true;
 
         const baseConfig =
-            displayMode === "portrait"
+            displayMode === "portrait" || isLandscape
                 ? {
-                      width: { ideal: 1920 },
-                      height: { ideal: 1080 },
+                      width: { ideal: 1280 },
+                      height: { ideal: 720 },
                       facingMode: FacingMode.USER,
                       frameRate: { ideal: 30, max: 30 },
                   }
                 : {
-                      height: { ideal: isLandscape ? 1080 : 1920 },
-                      width: { ideal: isLandscape ? 1920 : 1080 },
+                      width: { ideal: 720 },
+                      height: { ideal: 1280 },
                       facingMode: FacingMode.USER,
                       frameRate: { ideal: 30, max: 30 },
                   };
@@ -194,13 +226,35 @@ export class FaceCaptureService {
     }
 
     /**
-     * Detect faces on an HTMLImageElement or HTMLVideoElement using SsdMobilenetv1 + 68 landmarks.
+     * Detect faces with SsdMobilenetv1 and 68-point landmarks.
      */
     async detectFacesWithLandmarks(
         input: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement,
         minConfidence = 0.2
     ): Promise<any[]> {
         return faceapi.detectAllFaces(input as any, new faceapi.SsdMobilenetv1Options({ minConfidence })).withFaceLandmarks();
+    }
+
+    /**
+     * Copy the current video frame into `canvas` with the longest edge capped at maxEdge.
+     * Returns the scale versus the camera frame so pixel thresholds can stay equivalent.
+     */
+    copyFrameForDetection(
+        video: HTMLVideoElement,
+        canvas: HTMLCanvasElement,
+        maxEdge = DETECTION_MAX_EDGE
+    ): { canvas: HTMLCanvasElement; scale: number } | null {
+        const sized = detectionFrameSize(video?.videoWidth || 0, video?.videoHeight || 0, maxEdge);
+        if (!sized) return null;
+
+        const context = canvas.getContext("2d", { willReadFrequently: true });
+        if (!context) return null;
+
+        canvas.width = sized.width;
+        canvas.height = sized.height;
+        context.drawImage(video, 0, 0, sized.width, sized.height);
+
+        return { canvas, scale: sized.scale };
     }
 
     /**
@@ -264,7 +318,7 @@ export class FaceCaptureService {
      */
     drawCrop(
         canvas: HTMLCanvasElement,
-        img: HTMLImageElement,
+        img: CanvasImageSource,
         src: FaceCaptureRect,
         dst: { width: number; height: number; offsetX?: number; offsetY?: number }
     ): void {
@@ -320,15 +374,85 @@ export class FaceCaptureService {
     }
 
     /**
+     * Stop every track on a video element and detach it. Does not open a new camera.
+     */
+    releaseVideo(video?: HTMLVideoElement | null): void {
+        if (!video) return;
+
+        let stream: unknown = null;
+        try {
+            stream = video.srcObject;
+        } catch {
+            stream = null;
+        }
+
+        try {
+            video.pause();
+        } catch {
+            /* ignore */
+        }
+
+        if (stream instanceof MediaStream) {
+            this._mediaStreamService.stopStream(stream);
+        }
+
+        try {
+            video.srcObject = null;
+        } catch {
+            /* ignore */
+        }
+    }
+
+    /**
+     * After release, drop any MediaStream assigned later (ngx-webcam can resolve getUserMedia after destroy).
+     * The element is not reused for a new capture.
+     */
+    sealVideo(video?: HTMLVideoElement | null): void {
+        if (!video || !(video instanceof HTMLVideoElement)) return;
+
+        const sealed = video as HTMLVideoElement & { __zelfCameraSealed?: boolean };
+        if (sealed.__zelfCameraSealed) return;
+
+        const descriptor = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, "srcObject");
+        if (!descriptor?.set || !descriptor.get) return;
+
+        sealed.__zelfCameraSealed = true;
+        const stopStream = this._mediaStreamService.stopStream.bind(this._mediaStreamService);
+
+        Object.defineProperty(video, "srcObject", {
+            configurable: true,
+            enumerable: true,
+            get: () => {
+                try {
+                    return descriptor.get?.call(video) ?? null;
+                } catch {
+                    return null;
+                }
+            },
+            set: (value: unknown) => {
+                if (value instanceof MediaStream) {
+                    try {
+                        stopStream(value);
+                    } catch {
+                        /* ignore */
+                    }
+                }
+
+                try {
+                    descriptor.set?.call(video, null);
+                } catch {
+                    /* ignore */
+                }
+            },
+        });
+    }
+
+    /**
      * Stop camera tracks on a specific video element or stop all active media streams.
      */
     async stopCameraStream(videoElement?: HTMLVideoElement | null, stopAll = false): Promise<void> {
         try {
-            if (videoElement?.srcObject instanceof MediaStream) {
-                const stream = videoElement.srcObject as MediaStream;
-                stream.getTracks().forEach((track) => track.stop());
-                videoElement.srcObject = null;
-            }
+            this.releaseVideo(videoElement);
             if (stopAll) {
                 await this._mediaStreamService.stopAllStreams();
             }
