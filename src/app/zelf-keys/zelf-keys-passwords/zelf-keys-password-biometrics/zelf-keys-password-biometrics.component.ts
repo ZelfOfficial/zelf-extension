@@ -13,6 +13,7 @@ import { Observable, Subject, takeUntil } from "rxjs";
 
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { FaceCaptureService } from "app/services/face-capture.service";
+import { isCameraAbortError } from "app/services/media-stream.service";
 import { ZelfKeysService } from "app/services/zelf-keys.service";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { WalletService } from "../../../wallet.service";
@@ -49,6 +50,10 @@ export class ZelfKeysPasswordBiometricsComponent implements OnInit, OnDestroy {
     private unsubscriber$: Subject<void> = new Subject<void>();
     private _takePicture: Subject<void> = new Subject<void>();
     private _intervals: any = {};
+    private _previewClosed = false;
+    private _unbindPreview: () => void = () => undefined;
+
+    cameraAttached = true;
 
     // Camera and face detection properties
     camera = {
@@ -107,6 +112,10 @@ export class ZelfKeysPasswordBiometricsComponent implements OnInit, OnDestroy {
             }
         });
 
+        this._unbindPreview = this._faceCaptureService.watchPreviewLifecycle({
+            onHidden: () => this._pausePreview(),
+            onResume: () => this._resumePreview(),
+        });
         this._initializeBiometrics();
     }
 
@@ -126,31 +135,61 @@ export class ZelfKeysPasswordBiometricsComponent implements OnInit, OnDestroy {
      * Handle biometrics cancellation in decrypt mode
      */
     onBiometricsCancel(): void {
+        this._closePreview();
+
         if (this.isDecryptMode) {
             this.biometricsCancel.emit();
         }
     }
 
     ngOnDestroy(): void {
-        if (this._intervals.detectFace) {
-            clearInterval(this._intervals.detectFace);
-            this._intervals.detectFace = null;
-        }
-        if (this._intervals.checkNgxVideo) {
-            clearInterval(this._intervals.checkNgxVideo);
-            this._intervals.checkNgxVideo = null;
-        }
-        try {
-            void this._faceCaptureService.stopCameraStream(this.webcamRef?.nativeVideoElement);
-        } catch {
-            /* webcam view already torn down */
-        }
+        this._clearIntervals();
+        this._unbindPreview();
+        this._previewClosed = true;
+        this._faceCaptureService.releaseCamera(this._previewVideo());
         this.unsubscriber$.next();
         this.unsubscriber$.complete();
     }
 
     get takePicture$(): Observable<void> {
         return this._takePicture.asObservable();
+    }
+
+    private _closePreview(): void {
+        this._previewClosed = true;
+        this._clearIntervals();
+        void this._faceCaptureService.stopCameraStream(this._previewVideo(), true);
+    }
+
+    private _pausePreview(): void {
+        if (this._previewClosed) return;
+
+        this._clearIntervals();
+    }
+
+    private _resumePreview(): void {
+        if (this._previewClosed || this.response?.base64Image || this.camera.isLowQuality || !this.camera.hasPermissions) return;
+
+        this._clearIntervals();
+        this.cameraAttached = false;
+        this._changeDetectorRef.detectChanges();
+        this.cameraAttached = true;
+        this._changeDetectorRef.detectChanges();
+        this._startNgxVideoInterval();
+    }
+
+    private _clearIntervals(): void {
+        if (this._intervals.detectFace) clearInterval(this._intervals.detectFace);
+        if (this._intervals.checkNgxVideo) clearInterval(this._intervals.checkNgxVideo);
+        this._intervals = {};
+    }
+
+    private _previewVideo(): HTMLVideoElement | null {
+        try {
+            return this.webcamRef?.nativeVideoElement ?? null;
+        } catch {
+            return null;
+        }
     }
 
     private async _initializeBiometrics(): Promise<void> {
@@ -444,6 +483,7 @@ export class ZelfKeysPasswordBiometricsComponent implements OnInit, OnDestroy {
 
         this.response.base64Image = toSendCanvas.toDataURL("image/jpeg");
         this.response.isLoading = true;
+        this._closePreview();
 
         this._emitBiometricCapture();
     }
@@ -485,7 +525,10 @@ export class ZelfKeysPasswordBiometricsComponent implements OnInit, OnDestroy {
     }
 
     cameraError(error: WebcamInitError): void {
+        if (isCameraAbortError(error)) return;
+
         console.error("Camera error:", error);
+        this._closePreview();
         this.canNavigate.emit(true);
         this.error.emit(error);
 
@@ -507,6 +550,7 @@ export class ZelfKeysPasswordBiometricsComponent implements OnInit, OnDestroy {
                 this.camera.isLowQuality = true;
                 this.canNavigate.emit(true);
                 this.error.emit({ error: "low_quality" });
+                this._closePreview();
                 return;
             }
 
@@ -516,6 +560,8 @@ export class ZelfKeysPasswordBiometricsComponent implements OnInit, OnDestroy {
     }
 
     onBack(): void {
+        this._closePreview();
+
         if (this.isDecryptMode) {
             // In decrypt mode, emit cancel event
             this.onBiometricsCancel();

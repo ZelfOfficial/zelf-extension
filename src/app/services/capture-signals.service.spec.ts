@@ -14,6 +14,7 @@ import * as ur from "../../assets/i18n/ur.json";
 
 import { CaptureSignalsService } from "./capture-signals.service";
 import { FaceCaptureService } from "./face-capture.service";
+import { installCameraRelease, resetCameraReleaseForTests, underlyingGetUserMedia } from "./media-stream.service";
 
 const LOCALES: Record<string, any> = { ar, br, cn, en, es, fr, in: hindi, ja, kr, ph, ru, th, ur };
 
@@ -169,7 +170,7 @@ describe("CaptureSignalsService (#94)", () => {
 
         const faceCaptureService = new FaceCaptureService(
             { encryptMessage: async (m: string) => m } as any,
-            { stopAllStreams: async () => {} } as any,
+            { stopAllStreams: async () => {}, releaseAll: () => undefined, bindPreviewLifecycle: () => () => undefined } as any,
             service
         );
 
@@ -182,6 +183,17 @@ describe("CaptureSignalsService (#94)", () => {
         expect(report.reasons).toContain("missing_hardware_capabilities");
         expect(report.reasons).toContain("suspicious_resolution");
         expect(faceCaptureService.lastSignalReport).toEqual(report);
+    });
+
+    it("does not treat the camera release wrapper as a tampered getUserMedia", async () => {
+        resetCameraReleaseForTests();
+        installCameraRelease();
+
+        const report = await service.checkEnvironmentIntegrity();
+
+        expect(service.isNativeFunction(underlyingGetUserMedia(navigator.mediaDevices.getUserMedia))).toBeTrue();
+        expect(report.tamperedApis).not.toContain("navigator.mediaDevices.getUserMedia");
+        resetCameraReleaseForTests();
     });
 });
 

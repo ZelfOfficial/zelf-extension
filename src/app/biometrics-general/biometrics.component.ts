@@ -15,7 +15,7 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { CaptureSignalReport, VideoInputSummary } from "app/services/capture-signals.service";
 import { FaceCaptureService } from "app/services/face-capture.service";
-import { MediaStreamService } from "app/services/media-stream.service";
+import { isCameraAbortError, MediaStreamService } from "app/services/media-stream.service";
 import { isDevBiometricsBypassEnabled, loadDevBiometricsFixtureBase64 } from "app/utils/dev-biometrics-bypass.util";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { WalletService } from "../wallet.service";
@@ -65,6 +65,10 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
     private unsubscriber$: Subject<void> = new Subject<void>();
     private _released = false;
     private _detecting = false;
+    private _unbindPreview: () => void = () => undefined;
+
+    /** Toggled to remount ngx-webcam after the camera was released and the screen is still open. */
+    cameraAttached = true;
 
     //ACTIVE DEBUG GRAPHIC MODE
     debugIndex!: number;
@@ -117,6 +121,11 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         }
 
         await this._startDefaultValues();
+
+        this._unbindPreview = this._mediaStreamService.bindPreviewLifecycle({
+            onHidden: () => this._pausePreview(),
+            onResume: () => this._resumePreview(),
+        });
 
         this._resizeUnlisten = this._renderer.listen("window", "resize", this._debounceWindowResize);
 
@@ -733,9 +742,28 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
      * Stop tracks, detach the video, and ignore any stream ngx-webcam attaches after this returns.
      * Safe to call on success, failure, cancel, and destroy.
      */
+    private _pausePreview(): void {
+        if (this._released) return;
+
+        this._killIntervals();
+    }
+
+    private _resumePreview(): void {
+        if (this._released || this.response?.base64Image) return;
+
+        this._killIntervals();
+        this.cameraAttached = false;
+        this._changeDetectorRef.detectChanges();
+        this.cameraAttached = true;
+        this._changeDetectorRef.detectChanges();
+        this._startNgxVideoInterval();
+    }
+
     private _releaseCamera(): void {
         this._released = true;
         this._detecting = false;
+        this._unbindPreview();
+        this._unbindPreview = () => undefined;
         this._killIntervals();
         this._debounceWindowResize?.cancel();
         this._resizeObserver?.disconnect();
@@ -761,10 +789,12 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
             this._faceCaptureService.sealVideo(video);
         });
 
-        void this._mediaStreamService.stopAllStreams();
+        this._mediaStreamService.releaseAll();
     }
 
     cameraError(error: WebcamInitError): void {
+        if (isCameraAbortError(error)) return;
+
         this._releaseCamera();
         this.canNavigate.emit(true);
         this.error.emit(error);

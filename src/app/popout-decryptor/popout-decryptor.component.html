@@ -155,6 +155,7 @@
             <!-- Webcam Component -->
             <div class="password-decryptor__webcam-container">
                 <webcam
+                    *ngIf="cameraAttached"
                     (imageCapture)="processImage($event)"
                     (initError)="cameraError($event)"
                     [allowCameraSwitch]="false"

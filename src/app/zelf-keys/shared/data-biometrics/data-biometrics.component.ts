@@ -11,6 +11,7 @@ import { Observable, Subject, takeUntil } from "rxjs";
 
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { FaceCaptureService } from "app/services/face-capture.service";
+import { isCameraAbortError } from "app/services/media-stream.service";
 import { ZelfKeysService } from "app/services/zelf-keys.service";
 import { isDevBiometricsBypassEnabled, loadDevBiometricsFixtureBase64 } from "app/utils/dev-biometrics-bypass.util";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
@@ -53,6 +54,10 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
     private unsubscriber$: Subject<void> = new Subject<void>();
     private _takePicture: Subject<void> = new Subject<void>();
     private _intervals: any = {};
+    private _previewClosed = false;
+    private _unbindPreview: () => void = () => undefined;
+
+    cameraAttached = true;
 
     // Camera and face detection properties
     camera = {
@@ -134,14 +139,19 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
             this.masterPassword = this.itemData.masterPassword;
         }
 
+        this._unbindPreview = this._faceCaptureService.watchPreviewLifecycle({
+            onHidden: () => this._pausePreview(),
+            onResume: () => this._resumePreview(),
+        });
+
         this._initializeBiometrics();
     }
 
     ngOnDestroy(): void {
-        if (this._intervals.detectFace) clearInterval(this._intervals.detectFace);
-        if (this._intervals.checkNgxVideo) clearInterval(this._intervals.checkNgxVideo);
-
-        this._stopCamera();
+        this._clearIntervals();
+        this._unbindPreview();
+        this._previewClosed = true;
+        this._faceCaptureService.releaseCamera(this._previewVideo());
 
         this.unsubscriber$.next();
         this.unsubscriber$.complete();
@@ -155,16 +165,53 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
      * Handle biometrics cancellation in both decrypt and create modes
      */
     onBiometricsCancel(): void {
-        this._stopCamera();
+        this._closePreview();
 
         this.biometricsCancel.emit();
     }
 
     /**
-     * Stop camera stream and cleanup
+     * Stop camera stream and cleanup. The element can be used again if the session stays open.
      */
     private _stopCamera(): void {
-        void this._faceCaptureService.stopCameraStream(this.webcamRef?.nativeVideoElement);
+        void this._faceCaptureService.stopCameraStream(this._previewVideo(), true);
+    }
+
+    private _closePreview(): void {
+        this._previewClosed = true;
+        this._clearIntervals();
+        this._stopCamera();
+    }
+
+    private _pausePreview(): void {
+        if (this._previewClosed) return;
+
+        this._clearIntervals();
+    }
+
+    private _resumePreview(): void {
+        if (this._previewClosed || this.response?.base64Image || this.camera.isLowQuality || !this.camera.hasPermissions) return;
+
+        this._clearIntervals();
+        this.cameraAttached = false;
+        this._changeDetectorRef.detectChanges();
+        this.cameraAttached = true;
+        this._changeDetectorRef.detectChanges();
+        this._startNgxVideoInterval();
+    }
+
+    private _clearIntervals(): void {
+        if (this._intervals.detectFace) clearInterval(this._intervals.detectFace);
+        if (this._intervals.checkNgxVideo) clearInterval(this._intervals.checkNgxVideo);
+        this._intervals = {};
+    }
+
+    private _previewVideo(): HTMLVideoElement | null {
+        try {
+            return this.webcamRef?.nativeVideoElement ?? null;
+        } catch {
+            return null;
+        }
     }
 
     /**
@@ -598,6 +645,7 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
 
         this.response.base64Image = toSendCanvas.toDataURL("image/jpeg");
         this.response.isLoading = true;
+        this._closePreview();
 
         this._emitBiometricCapture();
     }
@@ -636,13 +684,17 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
             console.error("Error in biometric capture:", error);
             this.response.isLoading = false;
             this.response.base64Image = "";
-
+            this._previewClosed = false;
+            this._resumePreview();
             this._changeDetectorRef.markForCheck();
         }
     }
 
     cameraError(error: WebcamInitError): void {
+        if (isCameraAbortError(error)) return;
+
         console.error("Camera error:", error);
+        this._closePreview();
 
         if (!error.mediaStreamError || error.mediaStreamError.name !== "NotAllowedError") return;
 
@@ -659,6 +711,7 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
         img.onload = async () => {
             if (img.height < this.face.minHeight) {
                 this.camera.isLowQuality = true;
+                this._closePreview();
                 return;
             }
 

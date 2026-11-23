@@ -9,6 +9,7 @@ import { Subject } from "rxjs";
 import { ZOTP } from "app/models/zotp.model";
 import { ZelfKeysService } from "app/services/zelf-keys.service";
 import { BiometricsGeneralComponent } from "app/biometrics-general/biometrics.component";
+import { releaseAllCameraStreams } from "app/services/media-stream.service";
 import { HttpWrapperService } from "app/http-wrapper.service";
 
 export interface DeleteZOTPData {
@@ -47,6 +48,7 @@ export class DeleteZotpComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        releaseAllCameraStreams();
         this.unsubscriber$.next();
         this.unsubscriber$.complete();
     }

@@ -29,6 +29,7 @@ import { WelcomeErrorComponent } from "app/welcome-error/welcome-error.component
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { syncDevFaceBypassFromQueryParams } from "app/utils/dev-biometrics-bypass.util";
 import { BiometricsGeneralComponent } from "../biometrics-general/biometrics.component";
+import { releaseAllCameraStreams } from "app/services/media-stream.service";
 
 @Component({
     imports: [
@@ -129,6 +130,7 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        releaseAllCameraStreams();
         this._clearFaceLockTimer();
         this.unsubscriber$.next();
         this.unsubscriber$.complete();
@@ -329,6 +331,7 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
 
     goBack(): void {
         this._canNavigate = true;
+        releaseAllCameraStreams();
         this._signingAuthorization.revoke();
         this.errorTitle = "";
         this.errorMessage = "";

@@ -7,6 +7,7 @@ import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 
 import { previewProofSecurity, type ProofPreview } from "app/onboarding-stack";
 import { BiometricsGeneralComponent } from "app/biometrics-general/biometrics.component";
+import { releaseAllCameraStreams } from "app/services/media-stream.service";
 import { ZelfIdsService } from "app/zelf-ids.service";
 
 import { RewardsService, WheelSegment, RouletteWheelResponse, DailyRewardResponse } from "../../services/rewards.service";
@@ -75,6 +76,7 @@ export class DailyRewardsComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        releaseAllCameraStreams();
         this.stopCountdown();
         this.stopContinuousSpin();
         this._clearFinalizeInterval();
@@ -293,6 +295,7 @@ export class DailyRewardsComponent implements OnInit, OnDestroy {
     }
 
     cancelVerification(): void {
+        releaseAllCameraStreams();
         this._wipeSecrets();
         this._submitting = false;
         this.verificationStep = "none";

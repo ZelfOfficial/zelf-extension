@@ -9,6 +9,7 @@ import { AutofillDataService } from "./services/autofill-data.service";
 import { AutofillIntegrationService } from "./services/autofill-integration.service";
 import { PopoutCommunicationService } from "./services/popout-communication.service";
 import { AppLoadingService } from "./services/app-loading.service";
+import { MediaStreamService } from "./services/media-stream.service";
 import { WalletService } from "./wallet.service";
 
 @Component({
@@ -41,6 +42,7 @@ export class AppComponent implements OnInit, OnDestroy {
         private _chromeService: ChromeService,
         private _injector: Injector,
         private _popoutCommunicationService: PopoutCommunicationService,
+        private _mediaStreamService: MediaStreamService,
         private _router: Router,
         private _walletService: WalletService
     ) {
@@ -63,6 +65,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        this._mediaStreamService.releaseAll();
         this.unsubscriber$.next();
         this.unsubscriber$.complete();
     }

@@ -1,6 +1,6 @@
 import { BiometricsGeneralComponent } from "./biometrics.component";
 import { FaceCaptureService } from "app/services/face-capture.service";
-import { MediaStreamService } from "app/services/media-stream.service";
+import { installCameraRelease, MediaStreamService } from "app/services/media-stream.service";
 
 describe("BiometricsGeneralComponent camera release", () => {
     let component: BiometricsGeneralComponent;
@@ -155,5 +155,30 @@ describe("BiometricsGeneralComponent camera release", () => {
 
         expect(detect).toHaveBeenCalledTimes(1);
         expect(delays).toEqual([1000]);
+    });
+
+    it("stops every track of a getUserMedia stream that resolves after unmount", async () => {
+        const tracks = ["video", "audio"].map((kind) => ({
+            kind,
+            readyState: "live",
+            stop: jasmine.createSpy(`stop-${kind}`).and.callFake(function (this: { readyState: string }) {
+                this.readyState = "ended";
+            }),
+        }));
+        const late = { getTracks: () => tracks } as unknown as MediaStream;
+        let resolveLate: (stream: MediaStream) => void = () => undefined;
+        spyOn(navigator.mediaDevices, "getUserMedia").and.callFake(() => new Promise<MediaStream>((resolve) => (resolveLate = resolve)));
+        installCameraRelease();
+
+        const opening = navigator.mediaDevices.getUserMedia({ video: true });
+        component.ngOnDestroy();
+        resolveLate(late);
+
+        await opening.then(
+            () => fail("the camera should have been cancelled"),
+            () => undefined
+        );
+
+        tracks.forEach((track) => expect(track.stop).toHaveBeenCalled());
     });
 });

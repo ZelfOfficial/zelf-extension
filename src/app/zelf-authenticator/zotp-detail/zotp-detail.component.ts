@@ -9,6 +9,7 @@ import { interval, Subject, takeUntil } from "rxjs";
 
 import { CopyToClipboardBase } from "app/base/copy-to-clipboard/copy-to-clipboard.base";
 import { BiometricsGeneralComponent } from "app/biometrics-general/biometrics.component";
+import { releaseAllCameraStreams } from "app/services/media-stream.service";
 import { ChromeService } from "app/chrome.service";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import {
@@ -97,6 +98,7 @@ export class ZotpDetailComponent extends CopyToClipboardBase implements OnInit, 
     }
 
     ngOnDestroy(): void {
+        releaseAllCameraStreams();
         this._clearDecryptedState();
         this.destroy$.next();
         this.destroy$.complete();

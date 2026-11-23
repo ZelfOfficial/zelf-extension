@@ -17,6 +17,7 @@ import { AuthService } from "app/services/auth.service";
 import { CaptureSignalReport, VideoInputSummary } from "app/services/capture-signals.service";
 import { ErrorService } from "app/services/error.service";
 import { FaceCaptureService } from "app/services/face-capture.service";
+import { isCameraAbortError } from "app/services/media-stream.service";
 import { ZelfKeysService } from "app/services/zelf-keys.service";
 import { TagModel } from "app/tags.service";
 import { ThemeService } from "app/theme.service";
@@ -64,6 +65,10 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
     private _takePicture$ = new Subject<void>();
     private _biometricsInitialized = false;
     private _pendingSuperappOperation: SuperappPendingKeysOperation | null = null;
+    private _previewClosed = false;
+    private _unbindPreview: () => void = () => undefined;
+
+    cameraAttached = true;
 
     aspectRatio = 0.75;
 
@@ -135,6 +140,10 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
     }
 
     async ngOnInit(): Promise<void> {
+        this._unbindPreview = this._faceCaptureService.watchPreviewLifecycle({
+            onHidden: () => this._pausePreview(),
+            onResume: () => this._resumePreview(),
+        });
         this._getRecordForDecryptingFromService();
         await this._loadPendingSuperappOperation();
 
@@ -152,12 +161,11 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
-        if (this._intervals.detectFace) clearInterval(this._intervals.detectFace);
-        if (this._intervals.checkNgxVideo) clearInterval(this._intervals.checkNgxVideo);
-
+        this._clearPreviewIntervals();
+        this._unbindPreview();
+        this._previewClosed = true;
         this._popoutCommunicationService.clearDecryptionData();
-
-        this._stopCamera();
+        this._faceCaptureService.releaseCamera(this._previewVideo());
 
         this._destroy$.next();
         this._destroy$.complete();
@@ -319,8 +327,10 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
             this.response.base64Image = "";
             this.response.isLoading = false;
             this.error = null;
+            this._previewClosed = false;
             this._biometricsInitialized = false;
             this._changeDetectorRef.detectChanges();
+            this._resumePreview();
             await this._initializeBiometrics();
 
             return true;
@@ -383,6 +393,7 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
 
     private _closeDecryptor(): void {
         try {
+            this._previewClosed = true;
             this._stopCamera();
             this.close.emit();
 
@@ -710,6 +721,7 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         const rawMessage = typeof error?.message === "string" ? error.message : "";
 
         if (rawMessage === "User cancelled decryption") {
+            this._closePreview();
             this._closeDecryptor();
             return;
         }
@@ -725,6 +737,7 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         this.camera.isLoading = false;
         this.response.isLoading = false;
         this.response.base64Image = "";
+        this._previewClosed = false;
 
         if (isLivenessError) {
             this.error = null;
@@ -735,6 +748,7 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
             };
 
             this._resetBiometricSession();
+            this._resumePreview();
             this._changeDetectorRef.detectChanges();
 
             return;
@@ -1105,7 +1119,45 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
     }
 
     private _stopCamera(): void {
-        void this._faceCaptureService.stopCameraStream(this.webcamRef?.nativeVideoElement);
+        void this._faceCaptureService.stopCameraStream(this._previewVideo(), true);
+    }
+
+    private _closePreview(): void {
+        this._previewClosed = true;
+        this._clearPreviewIntervals();
+        this._stopCamera();
+    }
+
+    private _pausePreview(): void {
+        if (this._previewClosed) return;
+
+        this._clearPreviewIntervals();
+    }
+
+    private _resumePreview(): void {
+        if (this._previewClosed || this.response?.base64Image || this.camera.isLowQuality || !this.camera.hasPermissions) return;
+
+        this._clearPreviewIntervals();
+        this.cameraAttached = false;
+        this._changeDetectorRef.detectChanges();
+        this.cameraAttached = true;
+        this._changeDetectorRef.detectChanges();
+        this._startNgxVideoInterval();
+    }
+
+    private _clearPreviewIntervals(): void {
+        if (this._intervals.detectFace) clearInterval(this._intervals.detectFace);
+        if (this._intervals.checkNgxVideo) clearInterval(this._intervals.checkNgxVideo);
+        this._intervals.detectFace = null;
+        this._intervals.checkNgxVideo = null;
+    }
+
+    private _previewVideo(): HTMLVideoElement | null {
+        try {
+            return this.webcamRef?.nativeVideoElement ?? null;
+        } catch {
+            return null;
+        }
     }
 
     private _takePictureLiveness(img: HTMLImageElement): void {
@@ -1134,6 +1186,7 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
 
         this.response.base64Image = toSendCanvas.toDataURL("image/jpeg", FaceCaptureService.CAPTURE_JPEG_QUALITY);
         this.response.isLoading = true;
+        this._closePreview();
 
         this._changeDetectorRef.detectChanges();
 
@@ -1141,6 +1194,9 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
     }
 
     cameraError(error: WebcamInitError): void {
+        if (isCameraAbortError(error)) return;
+
+        this._closePreview();
         this._handleError(error);
     }
 
@@ -1160,7 +1216,9 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
 
     onRetry(): void {
         this.error = null;
+        this._previewClosed = false;
         this._resetBiometricSession();
+        this._resumePreview();
     }
 
     processImage(webcamImage: WebcamImage): void {
@@ -1173,6 +1231,7 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         img.onload = async () => {
             if (img.height < this.face.minHeight) {
                 this.camera.isLowQuality = true;
+                this._closePreview();
 
                 return;
             }

@@ -4,7 +4,10 @@ import { enableProdMode } from "@angular/core";
 import { platformBrowserDynamic } from "@angular/platform-browser-dynamic";
 
 import { AppModule } from "./app/app.module";
+import { installCameraRelease } from "./app/services/media-stream.service";
 import { environment } from "./environments/environment";
+
+installCameraRelease();
 
 if (Storage?.prototype?.setItem && Proxy && Reflect && CustomEvent) {
     Storage.prototype.setItem = new Proxy(Storage.prototype.setItem, {
