@@ -21,7 +21,7 @@
                 [trigger]="takePicture$"
                 [videoOptions]="camera.configuration"
                 [width]="camera.dimensions.video.max.width"
-                *ngIf="!response.base64Image"
+                *ngIf="!response.base64Image && cameraAttached"
                 #webcam
                 mirrorImage="always"
             ></webcam>

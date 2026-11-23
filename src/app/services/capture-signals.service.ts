@@ -1,5 +1,7 @@
 import { Injectable } from "@angular/core";
 
+import { underlyingGetUserMedia } from "app/services/media-stream.service";
+
 export interface VideoInputSummary {
     deviceId: string;
     label: string;
@@ -304,7 +306,7 @@ export class CaptureSignalsService {
         const apiChecks: Array<{ name: string; fn: unknown }> = [
             {
                 name: "navigator.mediaDevices.getUserMedia",
-                fn: typeof navigator !== "undefined" ? navigator.mediaDevices?.getUserMedia : undefined,
+                fn: underlyingGetUserMedia(typeof navigator !== "undefined" ? navigator.mediaDevices?.getUserMedia : undefined),
             },
             {
                 name: "navigator.mediaDevices.enumerateDevices",

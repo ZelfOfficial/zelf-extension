@@ -448,16 +448,35 @@ export class FaceCaptureService {
     }
 
     /**
-     * Stop camera tracks on a specific video element or stop all active media streams.
+     * Stop one preview, or every camera when `stopAll` is set.
+     * `stopAll` also cancels a getUserMedia that has not resolved yet.
+     * The video element stays usable for a later capture.
      */
-    async stopCameraStream(videoElement?: HTMLVideoElement | null, stopAll = false): Promise<void> {
+    async stopCameraStream(videoElement?: HTMLVideoElement | null, stopAll = true): Promise<void> {
         try {
             this.releaseVideo(videoElement);
-            if (stopAll) {
-                await this._mediaStreamService.stopAllStreams();
-            }
+
+            if (stopAll) this._mediaStreamService.releaseAll();
         } catch (error) {
             console.warn("Error stopping camera stream:", error);
         }
+    }
+
+    /**
+     * Terminal release for a preview that will not capture again.
+     * Later `srcObject` assignments on this element are stopped immediately.
+     */
+    releaseCamera(videoElement?: HTMLVideoElement | null): void {
+        try {
+            this.releaseVideo(videoElement);
+            this.sealVideo(videoElement);
+            this._mediaStreamService.releaseAll();
+        } catch (error) {
+            console.warn("Error releasing camera:", error);
+        }
+    }
+
+    watchPreviewLifecycle(handlers: { onHidden?: () => void; onResume?: () => void }): () => void {
+        return this._mediaStreamService.bindPreviewLifecycle(handlers);
     }
 }

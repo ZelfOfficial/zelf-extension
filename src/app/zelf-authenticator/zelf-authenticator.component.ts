@@ -9,6 +9,7 @@ import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { debounceTime, distinctUntilChanged, filter, interval, map, skip, Subject, takeUntil } from "rxjs";
 
 import { BiometricsGeneralComponent } from "app/biometrics-general/biometrics.component";
+import { releaseAllCameraStreams } from "app/services/media-stream.service";
 import { ChromeService } from "app/chrome.service";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import {
@@ -134,6 +135,7 @@ export class ZelfAuthenticatorComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        releaseAllCameraStreams();
         this._clearAllSecrets();
         this.unsubscriber$.next();
         this.unsubscriber$.complete();

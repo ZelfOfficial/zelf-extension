@@ -29,6 +29,7 @@ import { WalletService } from "app/wallet.service";
 import { WelcomeErrorComponent } from "app/welcome-error/welcome-error.component";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { syncDevFaceBypassFromQueryParams } from "app/utils/dev-biometrics-bypass.util";
+import { releaseAllCameraStreams } from "app/services/media-stream.service";
 import { BiometricsGeneralComponent } from "../biometrics-general/biometrics.component";
 
 @Component({
@@ -131,6 +132,7 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        releaseAllCameraStreams();
         this._clearFaceLockTimer();
         this.unsubscriber$.next();
         this.unsubscriber$.complete();
@@ -338,6 +340,7 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
 
     goBack(): void {
         this._canNavigate = true;
+        releaseAllCameraStreams();
         this._signingAuthorization?.revoke();
         this.errorTitle = "";
         this.errorMessage = "";

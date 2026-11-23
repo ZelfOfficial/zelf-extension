@@ -14,7 +14,7 @@ describe("FaceCaptureService (#93)", () => {
 
         service = new FaceCaptureService(
             { encryptMessage: encryptMessageSpy } as any,
-            { stopAllStreams: stopAllStreamsSpy } as any,
+            { stopAllStreams: stopAllStreamsSpy, releaseAll: () => undefined, bindPreviewLifecycle: () => () => undefined } as any,
             new CaptureSignalsService()
         );
     });

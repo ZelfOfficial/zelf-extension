@@ -9,6 +9,7 @@ import jsQR from "jsqr";
 import { Subject, takeUntil } from "rxjs";
 
 import { BiometricsGeneralComponent } from "app/biometrics-general/biometrics.component";
+import { releaseAllCameraStreams } from "app/services/media-stream.service";
 import { DragAndDropDirective } from "app/directives/drag-and-drop.directive";
 import { HttpWrapperService } from "app/http-wrapper.service";
 import { protectionFromDecryptToggle, ZelfKeysProtection } from "app/models/zelf-keys-protection";
@@ -145,6 +146,7 @@ export class AddZotpComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        releaseAllCameraStreams();
         clearTimeout(this._setupKeyHintScroll);
         clearTimeout(this._snackbarPlace);
         this.unsubscriber$.next();
