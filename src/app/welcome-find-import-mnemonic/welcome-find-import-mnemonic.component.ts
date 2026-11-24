@@ -6,6 +6,8 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { Router, RouterModule } from "@angular/router";
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import * as bip39 from "bip39";
+import { bareOnboardingName, seedImportNextPath } from "app/core/utils/seed-import-name.util";
+import { TagsService } from "app/tags.service";
 import { VaultService } from "app/vault.service";
 import { WelcomeErrorComponent } from "app/welcome-error/welcome-error.component";
 
@@ -33,7 +35,8 @@ export class WelcomeFindImportMnemonicComponent implements OnInit {
         private _router: Router,
         private _snackbar: MatSnackBar,
         private _translocoService: TranslocoService,
-        private _vaultService: VaultService
+        private _vaultService: VaultService,
+        private _tagsService: TagsService
     ) {}
 
     async ngOnInit(): Promise<void> {
@@ -80,7 +83,7 @@ export class WelcomeFindImportMnemonicComponent implements OnInit {
         return this.formControlKeys(this.mnemonicForm).some((key) => this.isWordInvalid(key));
     }
 
-    setMnemonics(): void {
+    async setMnemonics(): Promise<void> {
         if (this.mnemonicCountForm.invalid || this.mnemonicForm.invalid) return;
 
         const words = this.formControlKeys(this.mnemonicForm)
@@ -99,7 +102,14 @@ export class WelcomeFindImportMnemonicComponent implements OnInit {
 
         this._vaultService.mnemonic = words;
 
-        this._router.navigate(["/welcome/find-import-claim"]);
+        const given = bareOnboardingName(await this._tagsService.getGivenTagName());
+
+        if (given) {
+            await this._tagsService.setNewTagName(given);
+            await this._tagsService.setFlow("import");
+        }
+
+        await this._router.navigate([seedImportNextPath("legacy", given)]);
     }
 
     toggleShowWords(): void {

@@ -13,6 +13,7 @@ import { ChromeService } from "app/chrome.service";
 import { DomainLicense } from "app/core/models/domain.type";
 import { coerceSelectableDomain, selectableNameDomains } from "app/core/blockdag-support";
 import { DomainSelectionData, DomainSelectionModalComponent } from "app/domain-selection-modal/domain-selection-modal.component";
+import { bareOnboardingName, seedImportPasswordPath } from "app/core/utils/seed-import-name.util";
 import { ZelfNamePipe } from "app/pipes/zelf-name.pipe";
 import { isV4Record, seedTakenOnboardingRecord } from "app/onboarding-stack";
 import { TagsService } from "app/tags.service";
@@ -51,6 +52,8 @@ export class WelcomeZelfidFindImportClaimComponent implements OnInit, OnDestroy,
     checkedTagName: string = "";
 
     step: number = 1;
+    /** True only while a name from earlier in this session is carried to the password step. */
+    suppressNamePrompt = false;
 
     constructor(
         private _captchaService: CaptchaService,
@@ -66,10 +69,35 @@ export class WelcomeZelfidFindImportClaimComponent implements OnInit, OnDestroy,
         private _vaultService: VaultService
     ) {
         this._initForm();
+        this.suppressNamePrompt = Boolean(bareOnboardingName(this._zelfIdsService.peekGivenTagName()));
     }
 
     async ngOnInit(): Promise<void> {
+        try {
+            const given = bareOnboardingName(await this._zelfIdsService.getGivenTagName());
+
+            if (given) {
+                this.suppressNamePrompt = true;
+                const left = await this._carryNameToPassword(given);
+
+                if (left) return;
+
+                this.suppressNamePrompt = false;
+            }
+        } catch {
+            // Show the name form if the stored name cannot be read.
+        }
+
+        this.suppressNamePrompt = false;
+
         await this._loadDomains();
+    }
+
+    private async _carryNameToPassword(given: string): Promise<boolean> {
+        await this._zelfIdsService.setNewTagName(given);
+        await this._zelfIdsService.setFlow("import");
+
+        return this._router.navigate([seedImportPasswordPath("zelfid")], { replaceUrl: true });
     }
 
     async ngAfterContentInit(): Promise<void> {
@@ -339,9 +367,13 @@ export class WelcomeZelfidFindImportClaimComponent implements OnInit, OnDestroy,
     }
 
     async continueToSecurity(): Promise<void> {
+        const given = bareOnboardingName(this.checkedTagName || this.form.value.tagName);
+
+        if (given) await this._zelfIdsService.setNewTagName(given);
+
         await this._zelfIdsService.setFlow("import");
 
-        this._router.navigate(["/security-zelfid/password"]);
+        this._router.navigate([seedImportPasswordPath("zelfid")]);
     }
 
     sanitizeZelfName(): void {
