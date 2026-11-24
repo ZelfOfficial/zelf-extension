@@ -2580,7 +2580,8 @@
         "promo_claim_reward_cta": "รับ",
         "promo_carousel_label": "โปรโมชัน",
         "promo_previous": "โปรโมชันก่อนหน้า",
-        "promo_next": "โปรโมชันถัดไป"
+        "promo_next": "โปรโมชันถัดไป",
+        "promo_claim_reward_subtitle": "รับ $ZNS ทุกวันจากภารกิจของเรา"
     },
     "welcomeZelfid": {
         "plan_free": "ฟรี {{years}} ปี",

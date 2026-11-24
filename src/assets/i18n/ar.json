@@ -2576,11 +2576,12 @@
         "add_account_aria": "إضافة حساب",
         "promo_change_logo_title": "تغيير الشعار",
         "promo_change_logo_cta": "تخصيص",
-        "promo_claim_reward_title": "المطالبة بالمكافأة",
+        "promo_claim_reward_title": "احصل على المكافآت",
         "promo_claim_reward_cta": "مطالبة",
         "promo_carousel_label": "العروض",
         "promo_previous": "العرض السابق",
-        "promo_next": "العرض التالي"
+        "promo_next": "العرض التالي",
+        "promo_claim_reward_subtitle": "احصل على $ZNS يوميًا من خلال تحدياتنا"
     },
     "welcomeZelfid": {
         "plan_free": "مجاني لمدة {{years}} سنة.",

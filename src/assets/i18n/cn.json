@@ -2580,7 +2580,8 @@
         "promo_claim_reward_cta": "领取",
         "promo_carousel_label": "推广",
         "promo_previous": "上一条推广",
-        "promo_next": "下一条推广"
+        "promo_next": "下一条推广",
+        "promo_claim_reward_subtitle": "通过我们的任务每日获得 $ZNS"
     },
     "welcomeZelfid": {
         "plan_free": "免费 {{years}} 年。",

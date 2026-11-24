@@ -2576,11 +2576,12 @@
         "add_account_aria": "Добавить аккаунт",
         "promo_change_logo_title": "Сменить логотип",
         "promo_change_logo_cta": "Настроить",
-        "promo_claim_reward_title": "Получить награду",
+        "promo_claim_reward_title": "Получить награды",
         "promo_claim_reward_cta": "Получить",
         "promo_carousel_label": "Акции",
         "promo_previous": "Предыдущая акция",
-        "promo_next": "Следующая акция"
+        "promo_next": "Следующая акция",
+        "promo_claim_reward_subtitle": "Получайте $ZNS каждый день за наши задания"
     },
     "welcomeZelfid": {
         "plan_free": "Бесплатно {{years}} лет.",

@@ -2576,11 +2576,12 @@
         "add_account_aria": "اکاؤنٹ شامل کریں",
         "promo_change_logo_title": "لوگو تبدیل کریں",
         "promo_change_logo_cta": "حسبِ ضرورت",
-        "promo_claim_reward_title": "انعام حاصل کریں",
+        "promo_claim_reward_title": "انعامات حاصل کریں",
         "promo_claim_reward_cta": "حاصل کریں",
         "promo_carousel_label": "پروموشنز",
         "promo_previous": "پچھلی پروموشن",
-        "promo_next": "اگلی پروموشن"
+        "promo_next": "اگلی پروموشن",
+        "promo_claim_reward_subtitle": "ہمارے چیلنجز سے روزانہ $ZNS حاصل کریں"
     },
     "welcomeZelfid": {
         "plan_free": "{{years}} سال کے لیے مفت۔",

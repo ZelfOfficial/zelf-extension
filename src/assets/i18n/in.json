@@ -2576,11 +2576,12 @@
         "add_account_aria": "खाता जोड़ें",
         "promo_change_logo_title": "लोगो बदलें",
         "promo_change_logo_cta": "अनुकूलित करें",
-        "promo_claim_reward_title": "इनाम लें",
+        "promo_claim_reward_title": "इनाम पाएं",
         "promo_claim_reward_cta": "लें",
         "promo_carousel_label": "प्रचार",
         "promo_previous": "पिछला प्रचार",
-        "promo_next": "अगला प्रचार"
+        "promo_next": "अगला प्रचार",
+        "promo_claim_reward_subtitle": "हमारी क्वेस्ट से रोज़ $ZNS पाएं"
     },
     "welcomeZelfid": {
         "plan_free": "{{years}} साल के लिए मुफ़्त।",

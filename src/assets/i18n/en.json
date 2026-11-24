@@ -1505,11 +1505,12 @@
         "add_account_aria": "Add account",
         "promo_change_logo_title": "Change logo",
         "promo_change_logo_cta": "Customize",
-        "promo_claim_reward_title": "Claim reward",
+        "promo_claim_reward_title": "Claim rewards",
         "promo_claim_reward_cta": "Claim",
         "promo_carousel_label": "Promotions",
         "promo_previous": "Previous promotion",
-        "promo_next": "Next promotion"
+        "promo_next": "Next promotion",
+        "promo_claim_reward_subtitle": "Get $ZNS daily with our quests"
     },
     "id_scanning": {
         "camera_not_found": "Camera not found",
