@@ -31,11 +31,14 @@
                 <button
                     (click)="onSearchZelfName($event)"
                     [disabled]="loading || form.get('referralName')?.invalid"
-                    [ngClass]="{ 'zelf-icon-button--success': zelfNameObject, 'zelf-icon-button--error': invalidReferral }"
+                    [ngClass]="{
+                        'zelf-icon-button--success': zelfNameObject,
+                        'zelf-icon-button--error': invalidReferral || referralLimitReached
+                    }"
                     class="zelf-icon-button zelf-icon-button--primary"
                     mat-icon-button
                 >
-                    <ng-container *ngIf="!loadingReferral && !zelfNameObject && !invalidReferral">
+                    <ng-container *ngIf="!loadingReferral && !zelfNameObject && !invalidReferral && !referralLimitReached">
                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path
                                 fill-rule="evenodd"
@@ -46,7 +49,9 @@
                     </ng-container>
 
                     <ng-container *ngIf="zelfNameObject"><ng-container *ngTemplateOutlet="check"></ng-container></ng-container>
-                    <ng-container *ngIf="invalidReferral"><ng-container *ngTemplateOutlet="cross"></ng-container></ng-container>
+                    <ng-container *ngIf="(invalidReferral || referralLimitReached) && !zelfNameObject"
+                        ><ng-container *ngTemplateOutlet="cross"></ng-container></ng-container
+                    >
 
                     <mat-spinner *ngIf="loadingReferral" mode="indeterminate" diameter="18"></mat-spinner>
                 </button>
@@ -57,7 +62,12 @@
                 <p>{{ t("welcome.referral_successfully_registered") }}</p>
             </div>
 
-            <div class="zelf-message zelf-message--error" *ngIf="invalidReferral">
+            <div class="zelf-message zelf-message--error" *ngIf="referralLimitReached">
+                <ng-container *ngTemplateOutlet="cross"></ng-container>
+                <p>{{ t("welcome.referral_limit_reached") }}</p>
+            </div>
+
+            <div class="zelf-message zelf-message--error" *ngIf="invalidReferral && !referralLimitReached">
                 <ng-container *ngTemplateOutlet="cross"></ng-container>
                 <p>{{ t("welcome.invalid_referral_code") }}</p>
             </div>

@@ -779,6 +779,7 @@
         "import_subtitle": "Usaremos tus palabras secretas de recuperación para validar e importar una billetera existente. Por favor, ingrésalas a continuación.",
         "import_title": "Ingresa la frase semilla",
         "invalid_referral_code": "Código de referido inválido",
+        "referral_limit_reached": "Esta wallet ha alcanzado el límite máximo de referidos permitido. Para continuar, utiliza una nueva wallet.",
         "name_expires": "El Zelf ID expira",
         "new_domain": "Nuevo dominio",
         "offline_subtitle": "Este Zelf ID QR fue creado sin conexión, por lo que utiliza un sistema de seguridad diferente. En este momento, no es compatible con la extensión. Estará disponible pronto.",

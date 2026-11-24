@@ -778,6 +778,7 @@
         "import_subtitle": "Usaremos suas palavras secretas de recuperação para validar e importar uma carteira existente. Por favor, insira-as abaixo.",
         "import_title": "Digite a frase de recuperação",
         "invalid_referral_code": "Código de indicação inválido",
+        "referral_limit_reached": "Esta carteira atingiu o limite máximo de indicações permitido. Para continuar, use uma nova carteira.",
         "name_expires": "Nome expira",
         "new_domain": "Novo domínio",
         "offline_subtitle": "Este Zelf ID QR foi criado offline, então usa um sistema de segurança diferente. No momento, não é compatível com a extensão. Estará disponível em breve.",

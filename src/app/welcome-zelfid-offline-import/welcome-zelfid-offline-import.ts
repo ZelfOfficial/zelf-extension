@@ -13,6 +13,7 @@ import { WelcomeAvailableContentComponent } from "app/welcome-available/welcome-
 import { ZelfNamePipe } from "app/pipes/zelf-name.pipe";
 import { TagModel } from "app/tags.service";
 import { ZelfIdsService } from "app/zelf-ids.service";
+import { ReferralCapacityService } from "app/referral-capacity.service";
 
 @Component({
     imports: [
@@ -39,6 +40,8 @@ export class WelcomeZelfidOfflineImportComponent {
 
     form!: UntypedFormGroup;
     invalidReferral: boolean = false;
+    referralLimitReached: boolean = false;
+    private _blockedReferralValue: string = "";
     loading: boolean = false;
     loadingReferral: boolean = false;
     qrCodeImage = "./assets/images/qr-preload.png";
@@ -53,7 +56,8 @@ export class WelcomeZelfidOfflineImportComponent {
         private _formBuilder: FormBuilder,
         private _router: Router,
         private _walletService: WalletService,
-        private _zelfIdsService: ZelfIdsService
+        private _zelfIdsService: ZelfIdsService,
+        private _referralCapacity: ReferralCapacityService
     ) {}
 
     ngOnInit(): void {
@@ -117,8 +121,15 @@ export class WelcomeZelfidOfflineImportComponent {
         this.showAvailable = true;
     }
 
+    private _setReferralLimitReached(value: string): void {
+        this.referralLimitReached = true;
+        this.invalidReferral = false;
+        this._blockedReferralValue = String(value || "").trim().toLowerCase();
+    }
+
     private _setInvalidReferral(): void {
         this.invalidReferral = true;
+        this.referralLimitReached = false;
 
         this._invalidTimeout = setTimeout(() => {
             this.invalidReferral = false;
@@ -139,6 +150,25 @@ export class WelcomeZelfidOfflineImportComponent {
         if (!sanitizedValue) control.markAsPristine();
     }
 
+    sanitizeReferralName(): void {
+        this.clearInvalidReferral();
+
+        const referralNameCtrl = this.referralForm.get("referralName");
+
+        if (!referralNameCtrl) return;
+
+        const sanitizedValue = String(referralNameCtrl.value || "")
+            .replace(/[^a-zA-Z0-9.-]|^[^a-zA-Z]+/g, "")
+            .toLowerCase()
+            .trim();
+
+        referralNameCtrl.patchValue(sanitizedValue, { emitEvent: false });
+
+        if (this.referralLimitReached && sanitizedValue !== this._blockedReferralValue) {
+            this.referralLimitReached = false;
+        }
+    }
+
     clearInvalidReferral(): void {
         clearTimeout(this._invalidTimeout);
 
@@ -146,6 +176,8 @@ export class WelcomeZelfidOfflineImportComponent {
     }
 
     async goToImport(): Promise<void> {
+        if (this.referralLimitReached) return;
+
         await this._zelfIdsService.setFlow("import");
 
         this._router.navigate(["../import"], { relativeTo: this._activatedRoute });
@@ -239,7 +271,7 @@ export class WelcomeZelfidOfflineImportComponent {
 
         this._zelfIdsService
             .searchTag({ tagName: zelfName, captchaToken: captchaToken })
-            .then((response) => {
+            .then(async (response) => {
                 if (response?.data.available) {
                     this.referralForm.patchValue({ referralName: "" });
 
@@ -254,6 +286,24 @@ export class WelcomeZelfidOfflineImportComponent {
 
                 this.referralForm.markAsPristine();
 
+                const referralParts = String(zelfName || "").toLowerCase().split(".");
+                const decision = await this._referralCapacity.linkDecision(referralParts[0], referralParts[1] || "zelf");
+
+                if (decision !== "accepted") {
+                    await this._zelfIdsService.setReferral("");
+                    this.zelfNameObject = null;
+                    this.loadingReferral = false;
+
+                    if (decision === "limit_reached") {
+                        this._setReferralLimitReached(referralNameCtrl.value);
+                        return;
+                    }
+
+                    this._setInvalidReferral();
+                    return;
+                }
+
+                this.referralLimitReached = false;
                 this.zelfNameObject = new TagModel(response.data.tagObject);
 
                 this._zelfIdsService.setReferral(this.zelfNameObject.publicData.tagName || this.zelfNameObject.publicData.zelfName);

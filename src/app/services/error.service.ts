@@ -51,6 +51,8 @@ export class ErrorService {
                     key = code;
                 } else if (code === "face_locked" || code === "pow_required" || code === "face_replay_detected") {
                     key = code;
+                } else if (code === "REFERRAL_LIMIT_REACHED" || code.toLowerCase() === "referral_limit_reached") {
+                    key = "REFERRAL_LIMIT_REACHED";
                 }
             }
 
@@ -78,6 +80,11 @@ export class ErrorService {
     translateErrorMessage(key: string, fallbackErrorKey: string = "", params?: Record<string, unknown>): string {
         const trimmed = key?.trim() || "";
         const mappedKey = this.API_MESSAGE_TO_KEY[trimmed] ?? trimmed;
+
+        if (mappedKey === "REFERRAL_LIMIT_REACHED") {
+            return this._translocoService.translate("welcome.referral_limit_reached", params ?? {});
+        }
+
         const formattedKey = `errors.${mappedKey}`;
 
         const translation = this._translocoService.translate(formattedKey, params ?? {});
@@ -121,6 +128,10 @@ export class ErrorService {
     }
 
     private _applyHttpStatusFallback(status: number | undefined, key: string): string {
+        if (key === "REFERRAL_LIMIT_REACHED" || key === "referral_limit_reached") {
+            return "REFERRAL_LIMIT_REACHED";
+        }
+
         if (!status) {
             return key;
         }

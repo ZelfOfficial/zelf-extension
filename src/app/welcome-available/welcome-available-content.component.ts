@@ -18,6 +18,7 @@ export class WelcomeAvailableContentComponent implements OnDestroy, OnChanges {
     @Input() loading: boolean = false;
     @Input() loadingReferral: boolean = false;
     @Input() invalidReferral: boolean = false;
+    @Input() referralLimitReached: boolean = false;
     @Input() zelfNameObject: any;
 
     @Output() searchZelfName = new EventEmitter<any>();
@@ -28,7 +29,7 @@ export class WelcomeAvailableContentComponent implements OnDestroy, OnChanges {
     referralExpanded: boolean = false;
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (changes["invalidReferral"]?.currentValue === true) {
+        if (changes["invalidReferral"]?.currentValue === true || changes["referralLimitReached"]?.currentValue === true) {
             this.referralExpanded = true;
         }
         this._syncReferralNameDisabledState();

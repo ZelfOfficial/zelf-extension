@@ -22,6 +22,7 @@ import { WalletService } from "app/wallet.service";
 import { WelcomeAvailableContentComponent } from "app/welcome-available/welcome-available-content.component";
 import { ZelfIdsService } from "app/zelf-ids.service";
 import { resolveZelfIdPlanCatalog, ZelfIdPlanCatalog } from "app/zelf-ids/plan-pricing";
+import { ReferralCapacityService } from "app/referral-capacity.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { TranslocoService } from "@jsverse/transloco";
 import { ErrorService } from "app/services/error.service";
@@ -65,6 +66,8 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
     // Step 2 (confirm) state — absorbed from welcome-available
     loadingReferral: boolean = false;
     invalidReferral: boolean = false;
+    referralLimitReached: boolean = false;
+    private _blockedReferralValue: string = "";
     referralTagModel: TagModel | null = null;
     catalog: ZelfIdPlanCatalog | null = null;
 
@@ -82,7 +85,8 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
         private _tagsService: TagsService,
         private _zelfIdsService: ZelfIdsService,
         private _vaultService: VaultService,
-        private _walletService: WalletService
+        private _walletService: WalletService,
+        private _referralCapacity: ReferralCapacityService
     ) {
         this._initForm();
     }
@@ -387,6 +391,8 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
     }
 
     async goToSecurity(): Promise<void> {
+        if (this.referralLimitReached) return;
+
         await this._zelfIdsService.setFlow("create");
 
         this._router.navigate(["/security-zelfid"]);
@@ -399,6 +405,8 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
     }
 
     async goToImport(): Promise<void> {
+        if (this.referralLimitReached) return;
+
         await this._zelfIdsService.setFlow("import");
 
         this._router.navigate(["/welcome-zelfid", "import"]);
@@ -406,8 +414,16 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
 
     // --- Referral logic (absorbed from welcome-available) ---
 
+    private _setReferralLimitReached(value: string): void {
+        this.referralLimitReached = true;
+        this.invalidReferral = false;
+        this.referralTagModel = null;
+        this._blockedReferralValue = String(value || "").trim().toLowerCase();
+    }
+
     private _setInvalidReferral(): void {
         this.invalidReferral = true;
+        this.referralLimitReached = false;
         this.referralTagModel = null;
 
         this._invalidTimeout = setTimeout(() => {
@@ -449,6 +465,10 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
             .trim();
 
         referralNameCtrl.patchValue(sanitizedValue, { emitEvent: false });
+
+        if (this.referralLimitReached && sanitizedValue !== this._blockedReferralValue) {
+            this.referralLimitReached = false;
+        }
 
         if (!sanitizedValue) referralNameCtrl.markAsPristine();
     }
@@ -500,7 +520,7 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
                 domain: referralDomain,
                 captchaToken: captchaToken,
             })
-            .then((response) => {
+            .then(async (response) => {
                 if (response?.data.available) {
                     this.form.patchValue({ referralName: "" });
                     this.form.markAsPristine();
@@ -516,14 +536,33 @@ export class WelcomeZelfidClaimComponent implements OnInit, OnDestroy, AfterCont
 
                 const referralTagModel = this._zelfIdsService.createTagModelFromSearchResponse(response.data);
 
-                if (referralTagModel) {
-                    this.referralTagModel = referralTagModel;
-                    const refName = referralTagModel.publicData.tagName || referralTagModel.name;
-                    this._zelfIdsService.setReferral(refName);
-                } else {
+                if (!referralTagModel) {
                     this.referralTagModel = null;
                     this._setInvalidReferral();
+                    this.loadingReferral = false;
+                    return;
                 }
+
+                const decision = await this._referralCapacity.linkDecision(referralTagName, referralDomain);
+
+                if (decision !== "accepted") {
+                    await this._zelfIdsService.setReferral("");
+                    this.referralTagModel = null;
+                    this.loadingReferral = false;
+
+                    if (decision === "limit_reached") {
+                        this._setReferralLimitReached(referralNameCtrl.value);
+                        return;
+                    }
+
+                    this._setInvalidReferral();
+                    return;
+                }
+
+                this.referralLimitReached = false;
+                this.referralTagModel = referralTagModel;
+                const refName = referralTagModel.publicData.tagName || referralTagModel.name;
+                this._zelfIdsService.setReferral(refName);
 
                 this.loadingReferral = false;
             })

@@ -778,6 +778,7 @@
         "import_subtitle": "Gagamitin namin ang iyong mga secret recovery words para i-validate at i-import ang umiiral na wallet. Pakilagay ang mga ito sa ibaba.",
         "import_title": "Ilagay ang seed phrase",
         "invalid_referral_code": "Hindi wasto ang referral code",
+        "referral_limit_reached": "Naabot na ng wallet na ito ang maximum na referral na pinapayagan. Para magpatuloy, gumamit ng bagong wallet.",
         "name_expires": "Mag-expire ang pangalan",
         "new_domain": "Bagong domain",
         "offline_subtitle": "Ang Zelf ID QR na ito ay ginawa offline, kaya gumagamit ito ng ibang security system. Sa ngayon, hindi ito compatible sa extension. Magagamit ito sa lalong madaling panahon.",

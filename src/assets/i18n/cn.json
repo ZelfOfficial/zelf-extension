@@ -778,6 +778,7 @@
         "import_subtitle": "我们将使用您的秘密恢复词来验证和导入现有钱包。请在下面输入它们。",
         "import_title": "输入助记词",
         "invalid_referral_code": "无效的推荐码",
+        "referral_limit_reached": "此钱包已达到允许的推荐人数上限。要继续，请使用一个新钱包。",
         "name_expires": "名称到期",
         "new_domain": "新域名",
         "offline_subtitle": "此Zelf ID QR是离线创建的，因此使用不同的安全系统。目前，它与扩展不兼容。很快就会可用。",

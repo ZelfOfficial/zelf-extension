@@ -71,10 +71,11 @@
             <div class="welcome-offline-import__top">
                 <welcome-available-content
                     (clearInvalidReferralEvent)="clearInvalidReferral()"
-                    (sanitizeZelfNameEvent)="sanitizeZelfName()"
+                    (sanitizeZelfNameEvent)="sanitizeReferralName()"
                     (searchZelfName)="searchReferralZelfName($event)"
                     [form]="referralForm"
                     [invalidReferral]="invalidReferral"
+                    [referralLimitReached]="referralLimitReached"
                     [loading]="loading"
                     [loadingReferral]="loadingReferral"
                     [zelfNameObject]="zelfNameObject"
@@ -94,7 +95,7 @@
 
                 <button
                     (click)="goToImport()"
-                    [disabled]="referralForm.invalid || loading || loadingReferral"
+                    [disabled]="referralForm.invalid || loading || loadingReferral || referralLimitReached"
                     class="zelf-button zelf-button--primary zelf-button--wide"
                     mat-flat-button
                 >
