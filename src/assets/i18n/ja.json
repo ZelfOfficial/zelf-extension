@@ -2580,7 +2580,8 @@
         "promo_claim_reward_cta": "受け取る",
         "promo_carousel_label": "プロモーション",
         "promo_previous": "前のプロモーション",
-        "promo_next": "次のプロモーション"
+        "promo_next": "次のプロモーション",
+        "promo_claim_reward_subtitle": "クエストで毎日 $ZNS を獲得"
     },
     "welcomeZelfid": {
         "plan_free": "{{years}}年間無料。",

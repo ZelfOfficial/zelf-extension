@@ -1,4 +1,4 @@
-<section class="home-promo" (keydown)="onKeydown($event)">
+<section class="home-promo" (keydown)="onKeydown($event)" (pointerup)="onPointerUp()" (pointercancel)="onPointerUp()">
     <div
         #viewport
         class="home-promo__viewport"
@@ -11,22 +11,25 @@
         <a
             *ngFor="let card of cards; let i = index; trackBy: trackById"
             class="home-promo__card"
+            [class.home-promo__card--leading]="card.visualAlign === 'start'"
             [routerLink]="card.route"
             [queryParams]="card.queryParams"
             [attr.aria-label]="label(card.titleKey)"
             [attr.aria-hidden]="i === activeIndex ? null : true"
             (click)="onCardClick($event)"
         >
-            <div class="home-promo__copy">
-                <p class="home-promo__title">{{ label(card.titleKey) }}</p>
-                <span class="home-promo__cta zelf-button zelf-button--thin home-hub__cta-accent home-hub__cta-compact">
-                    {{ label(card.ctaKey) }}
-                </span>
-            </div>
             <div class="home-promo__visual" aria-hidden="true">
                 <img *ngIf="card.imageUrl" [src]="card.imageUrl" alt="" class="home-promo__image" />
                 <span *ngIf="!card.imageUrl && card.icon" class="material-symbols-outlined home-promo__icon">{{ card.icon }}</span>
             </div>
+            <div class="home-promo__copy">
+                <p class="home-promo__title">{{ label(card.titleKey) }}</p>
+                <p *ngIf="card.subtitleKey" class="home-promo__subtitle">{{ label(card.subtitleKey) }}</p>
+                <span *ngIf="!card.subtitleKey" class="home-promo__cta zelf-button zelf-button--thin home-hub__cta-accent home-hub__cta-compact">
+                    {{ label(card.ctaKey) }}
+                </span>
+            </div>
+            <span *ngIf="card.chevron" class="material-symbols-outlined home-promo__chevron" aria-hidden="true">chevron_right</span>
         </a>
     </div>
 

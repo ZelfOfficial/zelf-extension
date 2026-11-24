@@ -1,9 +1,10 @@
 import { CommonModule } from "@angular/common";
-import { Component, ElementRef, Input, ViewChild } from "@angular/core";
+import { Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { RouterLink } from "@angular/router";
 import { TranslocoService } from "@jsverse/transloco";
 
 import { HOME_PROMO_CARDS, HomePromoCard } from "../home-promo-cards";
+import { nextPromoIndex, PROMO_AUTO_ADVANCE_MS } from "./home-promo-carousel.logic";
 
 @Component({
     imports: [CommonModule, RouterLink],
@@ -11,7 +12,7 @@ import { HOME_PROMO_CARDS, HomePromoCard } from "../home-promo-cards";
     styleUrls: ["./home-promo-carousel.component.scss"],
     templateUrl: "./home-promo-carousel.component.html",
 })
-export class HomePromoCarouselComponent {
+export class HomePromoCarouselComponent implements OnInit, OnChanges, OnDestroy {
     @Input() cards: HomePromoCard[] = HOME_PROMO_CARDS;
 
     constructor(private _transloco: TranslocoService) {}
@@ -25,9 +26,35 @@ export class HomePromoCarouselComponent {
     activeIndex = 0;
     private _pointerStartX = 0;
     private _pointerMoved = false;
+    private _interacting = false;
+    private _autoTimer: ReturnType<typeof setInterval> | null = null;
+    private readonly _endInteraction = (): void => this.onPointerUp();
+    private readonly _onVisibility = (): void => {
+        if (document.hidden) this._clearAuto();
+        else this._armAuto();
+    };
 
     get hasMany(): boolean {
         return this.cards.length > 1;
+    }
+
+    ngOnInit(): void {
+        document.addEventListener("pointerup", this._endInteraction);
+        document.addEventListener("pointercancel", this._endInteraction);
+        document.addEventListener("visibilitychange", this._onVisibility);
+        this._armAuto();
+    }
+
+    ngOnChanges(): void {
+        if (this.activeIndex > this.cards.length - 1) this.activeIndex = 0;
+        this._armAuto();
+    }
+
+    ngOnDestroy(): void {
+        document.removeEventListener("pointerup", this._endInteraction);
+        document.removeEventListener("pointercancel", this._endInteraction);
+        document.removeEventListener("visibilitychange", this._onVisibility);
+        this._clearAuto();
     }
 
     onScroll(): void {
@@ -38,16 +65,17 @@ export class HomePromoCarouselComponent {
         this.activeIndex = Math.max(0, Math.min(this.cards.length - 1, index));
     }
 
-    goTo(index: number): void {
+    goTo(index: number, source: "user" | "auto" = "user"): void {
         const viewport = this.viewport?.nativeElement;
+        const next = Math.max(0, Math.min(this.cards.length - 1, index));
         if (!viewport) {
-            this.activeIndex = index;
-            return;
+            this.activeIndex = next;
+        } else {
+            viewport.scrollTo({ left: next * viewport.clientWidth, behavior: this._prefersReducedMotion() ? "auto" : "smooth" });
+            this.activeIndex = next;
         }
 
-        const next = Math.max(0, Math.min(this.cards.length - 1, index));
-        viewport.scrollTo({ left: next * viewport.clientWidth, behavior: "smooth" });
-        this.activeIndex = next;
+        if (source === "user") this._armAuto();
     }
 
     previous(): void {
@@ -55,12 +83,23 @@ export class HomePromoCarouselComponent {
     }
 
     next(): void {
-        this.goTo(this.activeIndex === this.cards.length - 1 ? 0 : this.activeIndex + 1);
+        this.goTo(nextPromoIndex(this.activeIndex, this.cards.length));
     }
 
     onPointerDown(event: PointerEvent): void {
         this._pointerStartX = event.clientX;
         this._pointerMoved = false;
+        if (this._interacting) return;
+
+        this._interacting = true;
+        this._clearAuto();
+    }
+
+    onPointerUp(): void {
+        if (!this._interacting) return;
+
+        this._interacting = false;
+        this._armAuto();
     }
 
     onPointerMove(event: PointerEvent): void {
@@ -87,5 +126,30 @@ export class HomePromoCarouselComponent {
 
     trackById(_index: number, card: HomePromoCard): string {
         return card.id;
+    }
+
+    private _canAuto(): boolean {
+        return this.hasMany && !this._prefersReducedMotion() && !document.hidden && !this._interacting;
+    }
+
+    private _prefersReducedMotion(): boolean {
+        return typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    }
+
+    private _armAuto(): void {
+        this._clearAuto();
+        if (!this._canAuto()) return;
+
+        this._autoTimer = setInterval(() => {
+            if (!this._canAuto()) return;
+            this.goTo(nextPromoIndex(this.activeIndex, this.cards.length), "auto");
+        }, PROMO_AUTO_ADVANCE_MS);
+    }
+
+    private _clearAuto(): void {
+        if (!this._autoTimer) return;
+
+        clearInterval(this._autoTimer);
+        this._autoTimer = null;
     }
 }

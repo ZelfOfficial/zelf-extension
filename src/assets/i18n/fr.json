@@ -2576,11 +2576,12 @@
         "add_account_aria": "Ajouter un compte",
         "promo_change_logo_title": "Changer le logo",
         "promo_change_logo_cta": "Personnaliser",
-        "promo_claim_reward_title": "Réclamer la récompense",
+        "promo_claim_reward_title": "Réclamez des récompenses",
         "promo_claim_reward_cta": "Réclamer",
         "promo_carousel_label": "Promotions",
         "promo_previous": "Promotion précédente",
-        "promo_next": "Promotion suivante"
+        "promo_next": "Promotion suivante",
+        "promo_claim_reward_subtitle": "Gagnez des $ZNS chaque jour avec nos défis"
     },
     "welcomeZelfid": {
         "plan_free": "Gratuit pendant {{years}} ans.",

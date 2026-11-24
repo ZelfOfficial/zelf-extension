@@ -2576,11 +2576,12 @@
         "add_account_aria": "Adicionar conta",
         "promo_change_logo_title": "Alterar logo",
         "promo_change_logo_cta": "Personalizar",
-        "promo_claim_reward_title": "Resgatar recompensa",
+        "promo_claim_reward_title": "Resgate recompensas",
         "promo_claim_reward_cta": "Resgatar",
         "promo_carousel_label": "Promoções",
         "promo_previous": "Promoção anterior",
-        "promo_next": "Próxima promoção"
+        "promo_next": "Próxima promoção",
+        "promo_claim_reward_subtitle": "Ganhe $ZNS todos os dias com nossos desafios"
     },
     "welcomeZelfid": {
         "plan_free": "Grátis por {{years}} anos.",

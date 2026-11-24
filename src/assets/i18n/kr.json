@@ -2580,7 +2580,8 @@
         "promo_claim_reward_cta": "받기",
         "promo_carousel_label": "프로모션",
         "promo_previous": "이전 프로모션",
-        "promo_next": "다음 프로모션"
+        "promo_next": "다음 프로모션",
+        "promo_claim_reward_subtitle": "퀘스트로 매일 $ZNS를 받으세요"
     },
     "welcomeZelfid": {
         "plan_free": "{{years}}년 무료.",

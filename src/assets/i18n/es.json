@@ -1510,11 +1510,12 @@
         "add_account_aria": "Añadir cuenta",
         "promo_change_logo_title": "Cambiar logo",
         "promo_change_logo_cta": "Personalizar",
-        "promo_claim_reward_title": "Reclamar recompensa",
+        "promo_claim_reward_title": "Reclama recompensas",
         "promo_claim_reward_cta": "Reclamar",
         "promo_carousel_label": "Promociones",
         "promo_previous": "Promoción anterior",
-        "promo_next": "Promoción siguiente"
+        "promo_next": "Promoción siguiente",
+        "promo_claim_reward_subtitle": "Obtén $ZNS diarios con nuestros desafíos"
     },
     "id_scanning": {
         "camera_not_found": "Cámara no encontrada",

@@ -2576,11 +2576,12 @@
         "add_account_aria": "Magdagdag ng account",
         "promo_change_logo_title": "Palitan ang logo",
         "promo_change_logo_cta": "I-customize",
-        "promo_claim_reward_title": "Kunin ang gantimpala",
+        "promo_claim_reward_title": "Kunin ang mga gantimpala",
         "promo_claim_reward_cta": "Kunin",
         "promo_carousel_label": "Mga promo",
         "promo_previous": "Nakaraang promo",
-        "promo_next": "Susunod na promo"
+        "promo_next": "Susunod na promo",
+        "promo_claim_reward_subtitle": "Kumuha ng $ZNS araw-araw sa aming mga quest"
     },
     "welcomeZelfid": {
         "plan_free": "Libre sa loob ng {{years}} taon.",

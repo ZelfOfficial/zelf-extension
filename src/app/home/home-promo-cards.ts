@@ -11,6 +11,12 @@ export interface HomePromoCard {
     imageUrl?: string;
     /** Material symbol used when the card has no image. */
     icon?: string;
+    /** Secondary line. When set, the card shows this instead of the CTA pill. */
+    subtitleKey?: string;
+    /** `start` places the artwork on the left, matching the Android rewards card. */
+    visualAlign?: "start" | "end";
+    /** Trailing chevron, as on the Android promo card. */
+    chevron?: boolean;
 }
 
 export const HOME_PROMO_CARDS: HomePromoCard[] = [
@@ -32,8 +38,11 @@ export const HOME_PROMO_CARDS: HomePromoCard[] = [
     {
         id: "claim-reward",
         titleKey: "home_hub.promo_claim_reward_title",
+        subtitleKey: "home_hub.promo_claim_reward_subtitle",
         ctaKey: "home_hub.promo_claim_reward_cta",
         route: "/rewards",
-        icon: "redeem",
+        imageUrl: "assets/images/rewards-chest.svg",
+        visualAlign: "start",
+        chevron: true,
     },
 ];
