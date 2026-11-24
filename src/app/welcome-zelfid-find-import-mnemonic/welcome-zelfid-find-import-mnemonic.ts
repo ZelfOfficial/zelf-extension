@@ -6,8 +6,10 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { Router, RouterModule } from "@angular/router";
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import * as bip39 from "bip39";
+import { bareOnboardingName, seedImportNextPath } from "app/core/utils/seed-import-name.util";
 import { VaultService } from "app/vault.service";
 import { WelcomeErrorComponent } from "app/welcome-error/welcome-error.component";
+import { ZelfIdsService } from "app/zelf-ids.service";
 
 /** Valid BIP-39 mnemonic word counts */
 const VALID_MNEMONIC_LENGTHS = [12, 15, 18, 21, 24] as const;
@@ -33,7 +35,8 @@ export class WelcomeZelfidFindImportMnemonicComponent implements OnInit {
         private _router: Router,
         private _snackbar: MatSnackBar,
         private _translocoService: TranslocoService,
-        private _vaultService: VaultService
+        private _vaultService: VaultService,
+        private _zelfIdsService: ZelfIdsService
     ) {}
 
     async ngOnInit(): Promise<void> {
@@ -80,7 +83,7 @@ export class WelcomeZelfidFindImportMnemonicComponent implements OnInit {
         return this.formControlKeys(this.mnemonicForm).some((key) => this.isWordInvalid(key));
     }
 
-    setMnemonics(): void {
+    async setMnemonics(): Promise<void> {
         if (this.mnemonicCountForm.invalid || this.mnemonicForm.invalid) return;
 
         const words = this.formControlKeys(this.mnemonicForm)
@@ -99,7 +102,14 @@ export class WelcomeZelfidFindImportMnemonicComponent implements OnInit {
 
         this._vaultService.mnemonic = words;
 
-        this._router.navigate(["/welcome-zelfid/find-import-claim"]);
+        const given = bareOnboardingName(await this._zelfIdsService.getGivenTagName());
+
+        if (given) {
+            await this._zelfIdsService.setNewTagName(given);
+            await this._zelfIdsService.setFlow("import");
+        }
+
+        await this._router.navigate([seedImportNextPath("zelfid", given)]);
     }
 
     toggleShowWords(): void {

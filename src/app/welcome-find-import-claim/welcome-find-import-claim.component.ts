@@ -14,6 +14,7 @@ import { DomainLicense } from "app/core/models/domain.type";
 import { coerceSelectableDomain, selectableNameDomains } from "app/core/blockdag-support";
 import { DomainSelectionData, DomainSelectionModalComponent } from "app/domain-selection-modal/domain-selection-modal.component";
 import { DomainService } from "app/domain.service";
+import { bareOnboardingName, seedImportPasswordPath } from "app/core/utils/seed-import-name.util";
 import { ZelfNamePipe } from "app/pipes/zelf-name.pipe";
 import { isV4Record, seedTakenOnboardingRecord } from "app/onboarding-stack";
 import { TagsService } from "app/tags.service";
@@ -49,6 +50,8 @@ export class WelcomeFindImportClaimComponent implements OnInit, OnDestroy, After
     checkedTagName: string = "";
 
     step: number = 1;
+    /** True only while a name from earlier in this session is carried to the password step. */
+    suppressNamePrompt = false;
 
     constructor(
         private _captchaService: CaptchaService,
@@ -62,10 +65,35 @@ export class WelcomeFindImportClaimComponent implements OnInit, OnDestroy, After
         private _zelfIdsService: ZelfIdsService
     ) {
         this._initForm();
+        this.suppressNamePrompt = Boolean(bareOnboardingName(this._tagsService.peekGivenTagName()));
     }
 
     async ngOnInit(): Promise<void> {
+        try {
+            const given = bareOnboardingName(await this._tagsService.getGivenTagName());
+
+            if (given) {
+                this.suppressNamePrompt = true;
+                const left = await this._carryNameToPassword(given);
+
+                if (left) return;
+
+                this.suppressNamePrompt = false;
+            }
+        } catch {
+            // Show the name form if the stored name cannot be read.
+        }
+
+        this.suppressNamePrompt = false;
+
         await this._loadDomains();
+    }
+
+    private async _carryNameToPassword(given: string): Promise<boolean> {
+        await this._tagsService.setNewTagName(given);
+        await this._tagsService.setFlow("import");
+
+        return this._router.navigate([seedImportPasswordPath("legacy")], { replaceUrl: true });
     }
 
     async ngAfterContentInit(): Promise<void> {
@@ -324,9 +352,13 @@ export class WelcomeFindImportClaimComponent implements OnInit, OnDestroy, After
     }
 
     async continueToSecurity(): Promise<void> {
+        const given = bareOnboardingName(this.checkedTagName || this.form.value.tagName);
+
+        if (given) await this._tagsService.setNewTagName(given);
+
         await this._tagsService.setFlow("import");
 
-        this._router.navigate(["/security/password"]);
+        this._router.navigate([seedImportPasswordPath("legacy")]);
     }
 
     sanitizeZelfName(): void {

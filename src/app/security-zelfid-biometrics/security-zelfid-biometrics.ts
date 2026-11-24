@@ -417,7 +417,11 @@ export class SecurityZelfidBiometricsComponent implements OnInit, OnDestroy {
         const domain = await this._zelfIdsService.getDomain();
 
         const tagName =
-            this.flow === "create" || this.flow === "import" ? await this._zelfIdsService.getNewTagName() : await this._zelfIdsService.getTagName();
+            this.flow === "import"
+                ? await this._zelfIdsService.getGivenTagName()
+                : this.flow === "create"
+                  ? await this._zelfIdsService.getNewTagName()
+                  : await this._zelfIdsService.getTagName();
 
         const payload: any = {
             faceBase64: encryptedImage,

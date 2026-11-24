@@ -24,6 +24,7 @@ import {
 import { applyPreviewSecurity, type ProofPreview } from "./onboarding-stack";
 import { VaultService } from "./vault.service";
 import { FaceApiService } from "./services/face-api/face-api.service";
+import { givenOnboardingName } from "./core/utils/seed-import-name.util";
 import { withNormalizedZelfTag } from "./core/utils/zelf-name.util";
 import { parseMyPlan, resolveMyPlanZelfName, ZelfIdMyPlan } from "./zelf-keys/plan-limits/zelf-id-my-plan";
 import { resolveZelfIdPlanCatalog } from "./zelf-ids/plan-pricing";
@@ -490,6 +491,25 @@ export class ZelfIdsService {
 
     async getNewTagName(): Promise<string> {
         return (this._variables.newName as string) || (await this._chromeService.getItem(CHROME_KEYS.newName)) || "";
+    }
+
+    /**
+     * Name already chosen in this onboarding session.
+     * Does not fall back to a wallet saved on the device.
+     */
+    peekGivenTagName(): string {
+        return givenOnboardingName(String(this._variables.newName || ""), String(this._variables.name || ""));
+    }
+
+    async getGivenTagName(): Promise<string> {
+        const inMemory = this.peekGivenTagName();
+
+        if (inMemory) return inMemory;
+
+        return givenOnboardingName(
+            await this._chromeService.getItem(CHROME_KEYS.newName),
+            await this._chromeService.getItem(CHROME_KEYS.name)
+        );
     }
 
     async getFlow(): Promise<TagFlow> {

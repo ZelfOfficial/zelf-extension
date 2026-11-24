@@ -18,6 +18,7 @@ import { WalletService } from "./wallet.service";
 import { ZelfIdsService } from "./zelf-ids.service";
 import { ZaiService } from "./zai/zai.service";
 import { FaceApiService } from "./services/face-api/face-api.service";
+import { givenOnboardingName } from "./core/utils/seed-import-name.util";
 import { withNormalizedZelfTag } from "./core/utils/zelf-name.util";
 
 export type TagFlow = "create" | "import" | "unlock" | "recover" | "";
@@ -537,6 +538,22 @@ export class TagsService {
 
     async getNewTagName(): Promise<any> {
         return this.variables.newTagName || (await this._chromeService.getItem("newTagName")) || "";
+    }
+
+    /**
+     * Name already chosen in this onboarding session.
+     * Does not fall back to a wallet saved on the device.
+     */
+    peekGivenTagName(): string {
+        return givenOnboardingName(String(this.variables.newTagName || ""), String(this.variables.tagName || ""));
+    }
+
+    async getGivenTagName(): Promise<string> {
+        const inMemory = this.peekGivenTagName();
+
+        if (inMemory) return inMemory;
+
+        return givenOnboardingName(await this._chromeService.getItem("newTagName"), await this._chromeService.getItem("tagName"));
     }
 
     async getFlow(): Promise<TagFlow> {

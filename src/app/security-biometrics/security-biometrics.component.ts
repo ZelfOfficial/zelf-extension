@@ -408,7 +408,11 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
         const domain = await this._tagsService.getDomain();
 
         const tagName =
-            this.flow === "create" || this.flow === "import" ? await this._tagsService.getNewTagName() : await this._tagsService.getTagName();
+            this.flow === "import"
+                ? await this._tagsService.getGivenTagName()
+                : this.flow === "create"
+                  ? await this._tagsService.getNewTagName()
+                  : await this._tagsService.getTagName();
 
         const payload: any = {
             faceBase64: encryptedImage,
