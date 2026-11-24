@@ -13,6 +13,7 @@ import { CaptchaService } from "app/captcha.service";
 import { WelcomeAvailableContentComponent } from "app/welcome-available/welcome-available-content.component";
 import { ZelfNamePipe } from "app/pipes/zelf-name.pipe";
 import { TagModel, TagsService } from "app/tags.service";
+import { ReferralCapacityService } from "app/referral-capacity.service";
 
 @Component({
     imports: [
@@ -39,6 +40,8 @@ export class WelcomeOfflineImportComponent {
 
     form!: UntypedFormGroup;
     invalidReferral: boolean = false;
+    referralLimitReached: boolean = false;
+    private _blockedReferralValue: string = "";
     loading: boolean = false;
     loadingReferral: boolean = false;
     qrCodeImage = "./assets/images/qr-preload.png";
@@ -54,7 +57,8 @@ export class WelcomeOfflineImportComponent {
         private _router: Router,
         private _walletService: WalletService,
         private _zelfNameService: ZelfNameService,
-        private _tagsService: TagsService
+        private _tagsService: TagsService,
+        private _referralCapacity: ReferralCapacityService
     ) {}
 
     ngOnInit(): void {
@@ -118,8 +122,15 @@ export class WelcomeOfflineImportComponent {
         this.showAvailable = true;
     }
 
+    private _setReferralLimitReached(value: string): void {
+        this.referralLimitReached = true;
+        this.invalidReferral = false;
+        this._blockedReferralValue = String(value || "").trim().toLowerCase();
+    }
+
     private _setInvalidReferral(): void {
         this.invalidReferral = true;
+        this.referralLimitReached = false;
 
         this._invalidTimeout = setTimeout(() => {
             this.invalidReferral = false;
@@ -140,6 +151,25 @@ export class WelcomeOfflineImportComponent {
         if (!sanitizedValue) control.markAsPristine();
     }
 
+    sanitizeReferralName(): void {
+        this.clearInvalidReferral();
+
+        const referralNameCtrl = this.referralForm.get("referralName");
+
+        if (!referralNameCtrl) return;
+
+        const sanitizedValue = String(referralNameCtrl.value || "")
+            .replace(/[^a-zA-Z0-9.-]|^[^a-zA-Z]+/g, "")
+            .toLowerCase()
+            .trim();
+
+        referralNameCtrl.patchValue(sanitizedValue, { emitEvent: false });
+
+        if (this.referralLimitReached && sanitizedValue !== this._blockedReferralValue) {
+            this.referralLimitReached = false;
+        }
+    }
+
     clearInvalidReferral(): void {
         clearTimeout(this._invalidTimeout);
 
@@ -147,6 +177,8 @@ export class WelcomeOfflineImportComponent {
     }
 
     async goToImport(): Promise<void> {
+        if (this.referralLimitReached) return;
+
         await this._tagsService.setFlow("import");
 
         this._router.navigate(["../import"], { relativeTo: this._activatedRoute });
@@ -240,7 +272,7 @@ export class WelcomeOfflineImportComponent {
 
         this._tagsService
             .searchTag({ tagName: zelfName, captchaToken: captchaToken })
-            .then((response) => {
+            .then(async (response) => {
                 if (response?.data.available) {
                     this.referralForm.patchValue({ referralName: "" });
 
@@ -255,6 +287,24 @@ export class WelcomeOfflineImportComponent {
 
                 this.referralForm.markAsPristine();
 
+                const referralParts = String(zelfName || "").toLowerCase().split(".");
+                const decision = await this._referralCapacity.linkDecision(referralParts[0], referralParts[1] || "zelf");
+
+                if (decision !== "accepted") {
+                    await this._zelfNameService.setReferral("");
+                    this.zelfNameObject = null;
+                    this.loadingReferral = false;
+
+                    if (decision === "limit_reached") {
+                        this._setReferralLimitReached(referralNameCtrl.value);
+                        return;
+                    }
+
+                    this._setInvalidReferral();
+                    return;
+                }
+
+                this.referralLimitReached = false;
                 this.zelfNameObject = new TagModel(response.data.tagObject);
 
                 this._zelfNameService.setReferral(this.zelfNameObject.publicData.zelfName);

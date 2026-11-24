@@ -37,6 +37,13 @@ describe("ErrorService.resolveErrorKey (tags decrypt #50)", () => {
         expect(service.resolveErrorKey({ status: 409, error: { message: "failed_to_decrypt", code: "Conflict" } })).toBe("failed_to_decrypt");
     });
 
+    it("keeps a full referrer distinct from a password error (#181)", () => {
+        expect(
+            service.resolveErrorKey({ status: 409, error: { message: "REFERRAL_LIMIT_REACHED", code: "REFERRAL_LIMIT_REACHED" } })
+        ).toBe("REFERRAL_LIMIT_REACHED");
+        expect(service.translateErrorMessage("REFERRAL_LIMIT_REACHED")).toBe("welcome.referral_limit_reached");
+    });
+
     it("parses string error bodies", () => {
         expect(service.resolveErrorKey({ status: 409, error: "ERR_PASSWORD_REQUIRED" })).toBe("ERR_PASSWORD_REQUIRED");
     });

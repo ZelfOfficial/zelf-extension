@@ -778,6 +778,7 @@
         "import_subtitle": "Nous utiliserons vos mots de récupération secrets pour valider et importer un portefeuille existant. Veuillez les entrer ci-dessous.",
         "import_title": "Entrez la phrase de récupération",
         "invalid_referral_code": "Code de parrainage invalide",
+        "referral_limit_reached": "Ce wallet a atteint le nombre maximum de parrainages autorisé. Pour continuer, utilisez un nouveau wallet.",
         "name_expires": "Le nom expire",
         "new_domain": "Nouveau domaine",
         "offline_subtitle": "Ce Zelf ID QR a été créé hors ligne, il utilise donc un système de sécurité différent. Pour le moment, il n'est pas compatible avec l'extension. Il sera bientôt disponible.",

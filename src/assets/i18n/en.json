@@ -779,6 +779,7 @@
         "import_subtitle": "We will use your secret recovery words to validate and import an existing wallet. Please enter them below.",
         "import_title": "Enter the seed phrase",
         "invalid_referral_code": "Invalid referral code",
+        "referral_limit_reached": "This wallet has reached the maximum number of referrals allowed. To continue, use a new wallet.",
         "name_expires": "Name expires",
         "new_domain": "New domain",
         "offline_subtitle": "This Zelf ID QR was created offline, so it uses a different security system. At this time, it is not compatible with the extension. It will be available soon.",

@@ -778,6 +778,7 @@
         "import_subtitle": "기존 지갑을 검증하고 가져오기 위해 비밀 복구 단어를 사용합니다. 아래에 입력해 주세요.",
         "import_title": "시드 문구 입력",
         "invalid_referral_code": "잘못된 추천 코드",
+        "referral_limit_reached": "이 지갑은 허용된 추천 한도에 도달했습니다. 계속하려면 새 지갑을 사용하세요.",
         "name_expires": "이름 만료",
         "new_domain": "새 도메인",
         "offline_subtitle": "이 Zelf ID QR는 오프라인에서 생성되어 다른 보안 시스템을 사용합니다. 현재는 확장 프로그램과 호환되지 않습니다. 곧 사용 가능해질 예정입니다.",

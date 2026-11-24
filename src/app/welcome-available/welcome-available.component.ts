@@ -10,6 +10,7 @@ import { ChromeService } from "app/chrome.service";
 import { DiscountType } from "app/pipes/discount.pipe";
 import { ZelfNamePipe } from "app/pipes/zelf-name.pipe";
 import { TagsService, TagModel, TagSearchResponse } from "app/tags.service";
+import { ReferralCapacityService } from "app/referral-capacity.service";
 import { WelcomeAvailableContentComponent } from "./welcome-available-content.component";
 
 @Component({
@@ -36,6 +37,8 @@ export class WelcomeAvailableComponent implements OnInit, OnDestroy {
     loading: boolean = false;
     loadingReferral: boolean = false;
     invalidReferral: boolean = false;
+    referralLimitReached: boolean = false;
+    private _blockedReferralValue: string = "";
     tagName: string = "";
     domain: string = "";
     tagModel: TagModel | null = null;
@@ -48,7 +51,8 @@ export class WelcomeAvailableComponent implements OnInit, OnDestroy {
         private _chromeService: ChromeService,
         private _formBuilder: FormBuilder,
         private _router: Router,
-        private _tagsService: TagsService
+        private _tagsService: TagsService,
+        private _referralCapacity: ReferralCapacityService
     ) {
         this._initForm();
     }
@@ -72,8 +76,16 @@ export class WelcomeAvailableComponent implements OnInit, OnDestroy {
         });
     }
 
+    private _setReferralLimitReached(value: string): void {
+        this.referralLimitReached = true;
+        this.invalidReferral = false;
+        this.referralTagModel = null;
+        this._blockedReferralValue = String(value || "").trim().toLowerCase();
+    }
+
     private _setInvalidReferral(): void {
         this.invalidReferral = true;
+        this.referralLimitReached = false;
         this.referralTagModel = null; // Clear referral model when invalid
 
         this._invalidTimeout = setTimeout(() => {
@@ -90,12 +102,16 @@ export class WelcomeAvailableComponent implements OnInit, OnDestroy {
 
 
     async goToImport(): Promise<void> {
+        if (this.referralLimitReached) return;
+
         await this._tagsService.setFlow("import");
 
         this._router.navigate(["../import"], { relativeTo: this._activatedRoute });
     }
 
     async goToSecurity(): Promise<void> {
+        if (this.referralLimitReached) return;
+
         await this._tagsService.setFlow("create");
 
         this._router.navigate(["../../security"], { relativeTo: this._activatedRoute });
@@ -114,6 +130,10 @@ export class WelcomeAvailableComponent implements OnInit, OnDestroy {
             .trim();
 
         referralNameCtrl.patchValue(sanitizedValue, { emitEvent: false });
+
+        if (this.referralLimitReached && sanitizedValue !== this._blockedReferralValue) {
+            this.referralLimitReached = false;
+        }
 
         if (!sanitizedValue) referralNameCtrl.markAsPristine();
     }
@@ -170,7 +190,7 @@ export class WelcomeAvailableComponent implements OnInit, OnDestroy {
                 domain: referralDomain,
                 captchaToken: captchaToken,
             })
-            .then((response) => {
+            .then(async (response) => {
                 // If tag is available (not found), it's invalid as referral
                 if (response?.data.available) {
                     this.form.patchValue({ referralName: "" });
@@ -188,18 +208,33 @@ export class WelcomeAvailableComponent implements OnInit, OnDestroy {
                 // Create TagModel from the found referral tag
                 const referralTagModel = this._tagsService.createTagModelFromSearchResponse(response.data);
 
-                if (referralTagModel) {
-                    // Store the referral tag model so it can be displayed in the UI
-                    this.referralTagModel = referralTagModel;
-
-                    // Get the referral tag name from publicData (tagName or zelfName based on domain config)
-                    const referralTagName = referralTagModel.publicData.tagName || referralTagModel.name;
-                    this._tagsService.setReferral(referralTagName);
-                } else {
-                    // If model creation failed, mark as invalid
+                if (!referralTagModel) {
                     this.referralTagModel = null;
                     this._setInvalidReferral();
+                    this.loadingReferral = false;
+                    return;
                 }
+
+                const decision = await this._referralCapacity.linkDecision(referralTagName, referralDomain);
+
+                if (decision !== "accepted") {
+                    await this._tagsService.setReferral("");
+                    this.referralTagModel = null;
+                    this.loadingReferral = false;
+
+                    if (decision === "limit_reached") {
+                        this._setReferralLimitReached(referralNameCtrl.value);
+                        return;
+                    }
+
+                    this._setInvalidReferral();
+                    return;
+                }
+
+                this.referralLimitReached = false;
+                this.referralTagModel = referralTagModel;
+                const storedName = referralTagModel.publicData.tagName || referralTagModel.name;
+                this._tagsService.setReferral(storedName);
 
                 this.loadingReferral = false;
             })

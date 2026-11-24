@@ -38,6 +38,7 @@
                     (searchZelfName)="searchZelfName($event)"
                     [form]="form"
                     [invalidReferral]="invalidReferral"
+                    [referralLimitReached]="referralLimitReached"
                     [loading]="loading"
                     [loadingReferral]="loadingReferral"
                     [zelfNameObject]="referralTagModel"
@@ -58,7 +59,7 @@
 
             <button
                 (click)="goToSecurity()"
-                [disabled]="form.invalid || loading || loadingReferral"
+                [disabled]="form.invalid || loading || loadingReferral || referralLimitReached"
                 class="zelf-button zelf-button--primary zelf-button--wide"
                 mat-flat-button
                 type="button"
@@ -68,7 +69,7 @@
 
             <button
                 (click)="goToImport()"
-                [disabled]="form.invalid || loading || loadingReferral"
+                [disabled]="form.invalid || loading || loadingReferral || referralLimitReached"
                 class="zelf-button zelf-button--outlined zelf-button--wide"
                 mat-flat-button
                 type="button"

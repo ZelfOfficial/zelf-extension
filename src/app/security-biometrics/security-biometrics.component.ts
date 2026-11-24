@@ -23,6 +23,7 @@ import {
 import { SigningAuthorizationService } from "app/services/signing-authorization.service";
 import { FACE_ONLY_PASSPHRASE } from "app/core/security/signing-gate.util";
 import { TagFlow, TagModel, TagsService } from "app/tags.service";
+import { ReferralCapacityService } from "app/referral-capacity.service";
 import { VaultService } from "app/vault.service";
 import { WalletService } from "app/wallet.service";
 import { WelcomeErrorComponent } from "app/welcome-error/welcome-error.component";
@@ -83,7 +84,8 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
         private _walletService: WalletService,
         private _signingAuthorization: SigningAuthorizationService,
         private _faceApi: FaceApiService,
-        private _changeDetectorRef: ChangeDetectorRef
+        private _changeDetectorRef: ChangeDetectorRef,
+        private _referralCapacity: ReferralCapacityService
     ) {
         this.form = this._formBuilder.group({
             hideBiometricsCheckbox: [false],
@@ -368,6 +370,13 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
 
         const errorKey = this._errorService.resolveErrorKey(exception);
 
+        if (errorKey === "REFERRAL_LIMIT_REACHED") {
+            void this._tagsService.setReferral("");
+            this.errorTitle = this._translocoService.translate("errors.generic_title");
+            this.errorMessage = this._translocoService.translate("welcome.referral_limit_reached");
+            return;
+        }
+
         if (errorKey === "face_locked") {
             this._startFaceLockCountdown(parseRetryAfterSeconds(exception));
             return;
@@ -406,6 +415,18 @@ export class SecurityBiometricsComponent implements OnInit, OnDestroy {
         const referralTagName = await this._tagsService.getReferral();
 
         const domain = await this._tagsService.getDomain();
+
+        if ((this.flow === "create" || this.flow === "import") && referralTagName) {
+            const blocked = await this._referralCapacity.blocksNewReferral(referralTagName, domain);
+
+            if (blocked) {
+                await this._tagsService.setReferral("");
+                this.apiLoading = false;
+                this.errorTitle = this._translocoService.translate("errors.generic_title");
+                this.errorMessage = this._translocoService.translate("welcome.referral_limit_reached");
+                return;
+            }
+        }
 
         const tagName =
             this.flow === "create" || this.flow === "import" ? await this._tagsService.getNewTagName() : await this._tagsService.getTagName();

@@ -33,7 +33,8 @@ describe("SecurityBiometricsComponent signing authorization (#88)", () => {
             { getUserFingerprint: () => ({ hash: "fp" }), switchWallet: jasmine.createSpy().and.resolveTo() } as any,
             signingAuth,
             { verifying$: of(false), verifying: false } as FaceApiService,
-            { markForCheck: () => undefined } as any
+            { markForCheck: () => undefined } as any,
+            {} as any
         );
         spyOn(component as any, "_showSuccessAndContinue").and.callFake(async (cb: () => void) => cb());
 
@@ -108,7 +109,8 @@ describe("SecurityBiometricsComponent signing authorization (#88)", () => {
             { getUserFingerprint: () => ({ hash: "fp" }), switchWallet: jasmine.createSpy().and.resolveTo() } as any,
             signingAuth,
             { verifying$: of(false), verifying: false } as FaceApiService,
-            { markForCheck: () => undefined } as any
+            { markForCheck: () => undefined } as any,
+            {} as any
         );
         component.returnState = "/send/confirmation";
         spyOn(component, "goBack").and.callFake(goBack);

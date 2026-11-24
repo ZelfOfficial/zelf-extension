@@ -42,12 +42,18 @@ export interface DomainStorage {
     walrusEnabled: boolean;
 }
 
+/** Referral program cap from the domain license. Absent until the license JSON sets it. */
+export interface DomainReferralSettings {
+    limit?: number;
+}
+
 export interface DomainTags {
     allowedChars: Record<string, unknown>;
     customRules: unknown[];
     maxLength: number;
     minLength: number;
     payment: DomainPayment;
+    referrals?: DomainReferralSettings;
     reserved: string[];
     storage: DomainStorage;
     wallet?: DomainWallet;
