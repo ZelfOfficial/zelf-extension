@@ -60,6 +60,12 @@ export class ZelfSettingsComponent implements OnDestroy {
             queryParams: { edit: "security" },
         },
         {
+            text: "billing.passwords.share.shared_links",
+            icon: "link",
+            routerLink: ["/zelf-keys/shares"],
+            queryParams: { redirect: "/settings" },
+        },
+        {
             text: "settings.notifications_label",
             icon: "notifications",
             routerLink: ["./"],
