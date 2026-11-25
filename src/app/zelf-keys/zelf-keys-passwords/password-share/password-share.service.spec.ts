@@ -39,7 +39,20 @@ describe("PasswordShareService", () => {
             expect(body["maxViews"]).toBe(1);
             expect(body["label"]).toBe("Example Mail");
             expect(JSON.stringify(body)).not.toContain("synthetic-password");
-            for (const field of ["key", "password", "plaintext", "secret", "dek", "contentKey", "aesKey", "encryptionKey"]) {
+            for (const field of [
+                "key",
+                "password",
+                "plaintext",
+                "secret",
+                "dek",
+                "contentKey",
+                "aesKey",
+                "encryptionKey",
+                "owner",
+                "name",
+                "tagName",
+                "verifiedTagName",
+            ]) {
                 expect(Object.prototype.hasOwnProperty.call(body, field)).toBeFalse();
             }
             expect(Object.keys(body).sort()).toEqual(["ciphertext", "expiresIn", "iv", "label", "maxViews", "version"]);

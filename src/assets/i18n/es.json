@@ -2055,7 +2055,6 @@
                     "INVALID_MAX_VIEWS": "Las vistas deben estar entre 1 y 10.",
                     "INVALID_LABEL": "La etiqueta debe tener 60 caracteres o menos, sin caracteres de control.",
                     "SHARE_KEY_NOT_ACCEPTED": "La clave de cifrado permanece en el enlace y no se subió.",
-                    "SHARE_SESSION_REQUIRED": "Vuelve a iniciar sesión para gestionar los enlaces compartidos.",
                     "SHARE_FORBIDDEN": "No puedes gestionar este enlace.",
                     "SHARE_NOT_FOUND": "No se encontró este enlace.",
                     "SHARE_EXPIRED": "Este enlace ha caducado.",
@@ -2063,8 +2062,12 @@
                     "PASSWORD_SHARE_RATE_LIMITED": "Demasiadas solicitudes. Inténtalo de nuevo en {{seconds}} segundos.",
                     "PASSWORD_SHARE_RATE_LIMITED_WAIT": "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.",
                     "SHARE_UNAVAILABLE": "Compartir no está disponible ahora. Inténtalo de nuevo.",
-                    "generic": "No se pudo crear el enlace. Inténtalo de nuevo."
-                }
+                    "generic": "No se pudo crear el enlace. Inténtalo de nuevo.",
+                    "ERR_ZELF_IDENTITY_REQUIRED": "Verifica tu Zelf ID con tu rostro antes de compartir un enlace."
+                },
+                "verify_title": "Verifica tu Zelf ID",
+                "verify_password_hint": "Escribe la contraseña de tu Zelf ID y luego confirma con tu rostro.",
+                "verify_continue": "Continuar"
             },
             "shares": {
                 "title": "Enlaces compartidos",

@@ -1962,7 +1962,6 @@
                     "INVALID_MAX_VIEWS": "يجب أن تكون مرات العرض بين 1 و10.",
                     "INVALID_LABEL": "يجب ألا تتجاوز التسمية 60 حرفًا وألا تتضمن محارف تحكم.",
                     "SHARE_KEY_NOT_ACCEPTED": "يبقى مفتاح التشفير في الرابط ولم يُرفع.",
-                    "SHARE_SESSION_REQUIRED": "سجّل الدخول مرة أخرى لإدارة الروابط المشتركة.",
                     "SHARE_FORBIDDEN": "لا يمكنك إدارة هذا الرابط.",
                     "SHARE_NOT_FOUND": "لم يتم العثور على هذا الرابط.",
                     "SHARE_EXPIRED": "انتهت صلاحية هذا الرابط.",
@@ -1970,8 +1969,12 @@
                     "PASSWORD_SHARE_RATE_LIMITED": "طلبات كثيرة جدًا. أعد المحاولة بعد {{seconds}} ثانية.",
                     "PASSWORD_SHARE_RATE_LIMITED_WAIT": "طلبات كثيرة جدًا. انتظر لحظة ثم أعد المحاولة.",
                     "SHARE_UNAVAILABLE": "المشاركة غير متاحة الآن. أعد المحاولة.",
-                    "generic": "تعذر إنشاء رابط المشاركة. حاول مرة أخرى."
-                }
+                    "generic": "تعذر إنشاء رابط المشاركة. حاول مرة أخرى.",
+                    "ERR_ZELF_IDENTITY_REQUIRED": "تحقق من Zelf ID بوجهك قبل مشاركة رابط."
+                },
+                "verify_title": "تحقق من Zelf ID",
+                "verify_password_hint": "أدخل كلمة مرور Zelf ID ثم أكد بوجهك.",
+                "verify_continue": "متابعة"
             },
             "shares": {
                 "title": "الروابط المشتركة",

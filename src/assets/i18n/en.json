@@ -2050,7 +2050,6 @@
                     "INVALID_MAX_VIEWS": "Views must be between 1 and 10.",
                     "INVALID_LABEL": "The label must be 60 characters or fewer, without control characters.",
                     "SHARE_KEY_NOT_ACCEPTED": "The encryption key stays in the link and was not uploaded.",
-                    "SHARE_SESSION_REQUIRED": "Sign in again to manage shared links.",
                     "SHARE_FORBIDDEN": "You can't manage this link.",
                     "SHARE_NOT_FOUND": "This link was not found.",
                     "SHARE_EXPIRED": "This link has expired.",
@@ -2058,8 +2057,12 @@
                     "PASSWORD_SHARE_RATE_LIMITED": "Too many share requests. Try again in {{seconds}} seconds.",
                     "PASSWORD_SHARE_RATE_LIMITED_WAIT": "Too many share requests. Wait a moment and try again.",
                     "SHARE_UNAVAILABLE": "Sharing is unavailable right now. Try again.",
-                    "generic": "Couldn't create the share link. Try again."
-                }
+                    "generic": "Couldn't create the share link. Try again.",
+                    "ERR_ZELF_IDENTITY_REQUIRED": "Verify your Zelf ID with your face before sharing a link."
+                },
+                "verify_title": "Verify your Zelf ID",
+                "verify_password_hint": "Enter your Zelf ID password, then confirm with your face.",
+                "verify_continue": "Continue"
             },
             "shares": {
                 "title": "Shared links",

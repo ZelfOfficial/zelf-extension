@@ -10,6 +10,7 @@ import { ChromeService } from "app/chrome.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 
 import { PasswordShareExpiration } from "./password-share-crypto";
+import { PasswordShareIdentityService } from "./password-share-identity.service";
 import { PasswordShareService } from "./password-share.service";
 
 export interface PasswordShareSheetData {
@@ -51,6 +52,7 @@ export class PasswordShareSheetComponent extends CopyToClipboardBase {
         private _bottomSheetRef: MatBottomSheetRef<PasswordShareSheetComponent>,
         private _changeDetectorRef: ChangeDetectorRef,
         private _passwordShareService: PasswordShareService,
+        private _identity: PasswordShareIdentityService,
         private _router: Router,
         chromeService: ChromeService,
         snackBar: MatSnackBar,
@@ -105,7 +107,7 @@ export class PasswordShareSheetComponent extends CopyToClipboardBase {
         this.errorMessage = "";
 
         try {
-            const created = await this._passwordShareService.createShare({
+            const created = await this._identity.run(() => this._passwordShareService.createShare({
                 title: this.data.title,
                 password: this.data.password,
                 username: this.includeUsername ? this.data.username : undefined,
@@ -114,7 +116,7 @@ export class PasswordShareSheetComponent extends CopyToClipboardBase {
                 expiresIn: this.expiration,
                 maxViews: this.maxViews,
                 label: this.label,
-            });
+            }));
 
             this.link = created.link;
             this.expiresAt = created.expiresAt;

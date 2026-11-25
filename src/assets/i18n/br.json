@@ -1962,7 +1962,6 @@
                     "INVALID_MAX_VIEWS": "As visualizações devem ficar entre 1 e 10.",
                     "INVALID_LABEL": "O rótulo deve ter no máximo 60 caracteres, sem caracteres de controle.",
                     "SHARE_KEY_NOT_ACCEPTED": "A chave de criptografia permanece no link e não foi enviada.",
-                    "SHARE_SESSION_REQUIRED": "Entre de novo para gerenciar os links compartilhados.",
                     "SHARE_FORBIDDEN": "Você não pode gerenciar este link.",
                     "SHARE_NOT_FOUND": "Este link não foi encontrado.",
                     "SHARE_EXPIRED": "Este link expirou.",
@@ -1970,8 +1969,12 @@
                     "PASSWORD_SHARE_RATE_LIMITED": "Pedidos demais. Tente de novo em {{seconds}} segundos.",
                     "PASSWORD_SHARE_RATE_LIMITED_WAIT": "Pedidos demais. Espere um instante e tente de novo.",
                     "SHARE_UNAVAILABLE": "O compartilhamento está indisponível agora. Tente de novo.",
-                    "generic": "Não foi possível criar o link. Tente de novo."
-                }
+                    "generic": "Não foi possível criar o link. Tente de novo.",
+                    "ERR_ZELF_IDENTITY_REQUIRED": "Verifique seu Zelf ID com o rosto antes de compartilhar um link."
+                },
+                "verify_title": "Verifique seu Zelf ID",
+                "verify_password_hint": "Digite a senha do seu Zelf ID e confirme com o rosto.",
+                "verify_continue": "Continuar"
             },
             "shares": {
                 "title": "Links compartilhados",

@@ -8,6 +8,7 @@ import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { resolveBackNavigation, serializeRouterPreviousUrl } from "app/core/utils/back-navigation.util";
 import { ConfirmationDialogComponent } from "app/confirmation-dialog/confirmation-dialog.component";
 
+import { PasswordShareIdentityService } from "./password-share-identity.service";
 import { PasswordShareService, PasswordShareSummary } from "./password-share.service";
 
 @Component({
@@ -26,6 +27,7 @@ export class PasswordSharesListComponent implements OnInit {
         private _changeDetectorRef: ChangeDetectorRef,
         private _dialog: MatDialog,
         private _location: Location,
+        private _identity: PasswordShareIdentityService,
         private _passwordShareService: PasswordShareService,
         private _route: ActivatedRoute,
         private _router: Router,
@@ -41,7 +43,7 @@ export class PasswordSharesListComponent implements OnInit {
         this.errorMessage = "";
 
         try {
-            this.shares = await this._passwordShareService.listShares();
+            this.shares = await this._identity.run(() => this._passwordShareService.listShares());
         } catch (error) {
             this.shares = [];
             this.errorMessage = this._passwordShareService.translateError(error);
@@ -107,7 +109,7 @@ export class PasswordSharesListComponent implements OnInit {
         this._changeDetectorRef.detectChanges();
 
         try {
-            await this._passwordShareService.revokeShare(share.id);
+            await this._identity.run(() => this._passwordShareService.revokeShare(share.id));
             this.shares = this.shares.filter((item) => item.id !== share.id);
         } catch (error) {
             this.errorMessage = this._passwordShareService.translateError(error);

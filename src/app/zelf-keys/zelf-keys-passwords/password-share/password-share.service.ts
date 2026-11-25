@@ -24,7 +24,7 @@ export const PASSWORD_SHARE_ERROR_CODES = [
     "INVALID_MAX_VIEWS",
     "INVALID_LABEL",
     "SHARE_KEY_NOT_ACCEPTED",
-    "SHARE_SESSION_REQUIRED",
+    "ERR_ZELF_IDENTITY_REQUIRED",
     "SHARE_FORBIDDEN",
     "SHARE_NOT_FOUND",
     "SHARE_EXPIRED",
@@ -44,7 +44,7 @@ const ERROR_TRANSLATION_KEYS: Record<PasswordShareErrorCode, string> = {
     INVALID_MAX_VIEWS: "billing.passwords.share.errors.INVALID_MAX_VIEWS",
     INVALID_LABEL: "billing.passwords.share.errors.INVALID_LABEL",
     SHARE_KEY_NOT_ACCEPTED: "billing.passwords.share.errors.SHARE_KEY_NOT_ACCEPTED",
-    SHARE_SESSION_REQUIRED: "billing.passwords.share.errors.SHARE_SESSION_REQUIRED",
+    ERR_ZELF_IDENTITY_REQUIRED: "billing.passwords.share.errors.ERR_ZELF_IDENTITY_REQUIRED",
     SHARE_FORBIDDEN: "billing.passwords.share.errors.SHARE_FORBIDDEN",
     SHARE_NOT_FOUND: "billing.passwords.share.errors.SHARE_NOT_FOUND",
     SHARE_EXPIRED: "billing.passwords.share.errors.SHARE_EXPIRED",
@@ -186,17 +186,25 @@ export class PasswordShareService {
 
     translateError(error: unknown): string {
         const code = error instanceof PasswordShareRequestError ? error.code : extractPasswordShareErrorCode(error);
-        const key = code && isPasswordShareErrorCode(code) ? ERROR_TRANSLATION_KEYS[code] : "billing.passwords.share.errors.generic";
 
         if (code === "PASSWORD_SHARE_RATE_LIMITED") {
             const seconds = error instanceof PasswordShareRequestError ? error.retryAfterSeconds : extractRetryAfterSeconds(error);
             if (typeof seconds === "number") {
-                return this._transloco.translate(key, { seconds });
+                return this._transloco.translate(ERROR_TRANSLATION_KEYS.PASSWORD_SHARE_RATE_LIMITED, { seconds });
             }
             return this._transloco.translate("billing.passwords.share.errors.PASSWORD_SHARE_RATE_LIMITED_WAIT");
         }
 
-        return this._transloco.translate(key);
+        if (code && isPasswordShareErrorCode(code)) {
+            return this._transloco.translate(ERROR_TRANSLATION_KEYS[code]);
+        }
+
+        if (code) {
+            const shared = this._transloco.translate(`errors.${code}`);
+            if (shared !== `errors.${code}`) return shared;
+        }
+
+        return this._transloco.translate("billing.passwords.share.errors.generic");
     }
 }
 

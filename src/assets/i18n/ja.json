@@ -1962,7 +1962,6 @@
                     "INVALID_MAX_VIEWS": "閲覧回数は 1 から 10 の間にしてください。",
                     "INVALID_LABEL": "ラベルは制御文字を含まない 60 文字以内にしてください。",
                     "SHARE_KEY_NOT_ACCEPTED": "暗号鍵はリンクに残り、アップロードされませんでした。",
-                    "SHARE_SESSION_REQUIRED": "共有リンクを管理するには、もう一度サインインしてください。",
                     "SHARE_FORBIDDEN": "このリンクは管理できません。",
                     "SHARE_NOT_FOUND": "このリンクは見つかりませんでした。",
                     "SHARE_EXPIRED": "このリンクは期限切れです。",
@@ -1970,8 +1969,12 @@
                     "PASSWORD_SHARE_RATE_LIMITED": "リクエストが多すぎます。{{seconds}} 秒後にもう一度お試しください。",
                     "PASSWORD_SHARE_RATE_LIMITED_WAIT": "リクエストが多すぎます。しばらくしてからもう一度お試しください。",
                     "SHARE_UNAVAILABLE": "共有は現在利用できません。もう一度お試しください。",
-                    "generic": "共有リンクを作成できませんでした。やり直してください。"
-                }
+                    "generic": "共有リンクを作成できませんでした。やり直してください。",
+                    "ERR_ZELF_IDENTITY_REQUIRED": "リンクを共有する前に、顔で Zelf ID を確認してください。"
+                },
+                "verify_title": "Zelf ID を確認",
+                "verify_password_hint": "Zelf ID のパスワードを入力し、顔で確認してください。",
+                "verify_continue": "続ける"
             },
             "shares": {
                 "title": "共有リンク",

@@ -1962,7 +1962,6 @@
                     "INVALID_MAX_VIEWS": "Dapat nasa 1 hanggang 10 ang pagtingin.",
                     "INVALID_LABEL": "Ang label ay hanggang 60 character at walang control character.",
                     "SHARE_KEY_NOT_ACCEPTED": "Nanatili ang encryption key sa link at hindi ito na-upload.",
-                    "SHARE_SESSION_REQUIRED": "Mag-sign in muli para pamahalaan ang mga ibinahaging link.",
                     "SHARE_FORBIDDEN": "Hindi mo mapapamahalaan ang link na ito.",
                     "SHARE_NOT_FOUND": "Hindi nahanap ang link na ito.",
                     "SHARE_EXPIRED": "Nag-expire na ang link na ito.",
@@ -1970,8 +1969,12 @@
                     "PASSWORD_SHARE_RATE_LIMITED": "Sobrang daming request. Subukan muli sa loob ng {{seconds}} segundo.",
                     "PASSWORD_SHARE_RATE_LIMITED_WAIT": "Sobrang daming request. Maghintay sandali at subukan muli.",
                     "SHARE_UNAVAILABLE": "Hindi available ang pagbabahagi ngayon. Subukan muli.",
-                    "generic": "Hindi nagawa ang share link. Subukan muli."
-                }
+                    "generic": "Hindi nagawa ang share link. Subukan muli.",
+                    "ERR_ZELF_IDENTITY_REQUIRED": "I-verify ang Zelf ID gamit ang mukha bago magbahagi ng link."
+                },
+                "verify_title": "I-verify ang Zelf ID",
+                "verify_password_hint": "Ilagay ang password ng Zelf ID, pagkatapos kumpirmahin gamit ang mukha.",
+                "verify_continue": "Magpatuloy"
             },
             "shares": {
                 "title": "Mga ibinahaging link",

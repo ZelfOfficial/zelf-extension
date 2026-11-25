@@ -24,6 +24,7 @@ describe("PasswordShareSheetComponent", () => {
             { dismiss } as any,
             { detectChanges() {} } as any,
             { createShare, translateError } as any,
+            { run: <T>(work: () => Promise<T>) => work() } as any,
             { navigate } as any,
             {} as any,
             { open() {} } as any,

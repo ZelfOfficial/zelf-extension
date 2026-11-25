@@ -1962,7 +1962,6 @@
                     "INVALID_MAX_VIEWS": "Les consultations doivent être comprises entre 1 et 10.",
                     "INVALID_LABEL": "Le libellé doit compter 60 caractères ou moins, sans caractères de contrôle.",
                     "SHARE_KEY_NOT_ACCEPTED": "La clé de chiffrement reste dans le lien et n'a pas été envoyée.",
-                    "SHARE_SESSION_REQUIRED": "Reconnectez-vous pour gérer les liens partagés.",
                     "SHARE_FORBIDDEN": "Vous ne pouvez pas gérer ce lien.",
                     "SHARE_NOT_FOUND": "Ce lien est introuvable.",
                     "SHARE_EXPIRED": "Ce lien a expiré.",
@@ -1970,8 +1969,12 @@
                     "PASSWORD_SHARE_RATE_LIMITED": "Trop de demandes. Réessayez dans {{seconds}} secondes.",
                     "PASSWORD_SHARE_RATE_LIMITED_WAIT": "Trop de demandes. Patientez un instant et réessayez.",
                     "SHARE_UNAVAILABLE": "Le partage est indisponible pour le moment. Réessayez.",
-                    "generic": "Impossible de créer le lien de partage. Réessayez."
-                }
+                    "generic": "Impossible de créer le lien de partage. Réessayez.",
+                    "ERR_ZELF_IDENTITY_REQUIRED": "Vérifiez votre Zelf ID avec votre visage avant de partager un lien."
+                },
+                "verify_title": "Vérifiez votre Zelf ID",
+                "verify_password_hint": "Saisissez le mot de passe de votre Zelf ID, puis confirmez avec votre visage.",
+                "verify_continue": "Continuer"
             },
             "shares": {
                 "title": "Liens partagés",

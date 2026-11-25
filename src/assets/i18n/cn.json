@@ -1962,7 +1962,6 @@
                     "INVALID_MAX_VIEWS": "查看次数必须在 1 到 10 之间。",
                     "INVALID_LABEL": "标签最多 60 个字符，且不能包含控制字符。",
                     "SHARE_KEY_NOT_ACCEPTED": "加密密钥保留在链接中，没有上传。",
-                    "SHARE_SESSION_REQUIRED": "请重新登录以管理已分享的链接。",
                     "SHARE_FORBIDDEN": "你无法管理此链接。",
                     "SHARE_NOT_FOUND": "找不到此链接。",
                     "SHARE_EXPIRED": "此链接已过期。",
@@ -1970,8 +1969,12 @@
                     "PASSWORD_SHARE_RATE_LIMITED": "请求过多。请在 {{seconds}} 秒后重试。",
                     "PASSWORD_SHARE_RATE_LIMITED_WAIT": "请求过多。请稍候再试。",
                     "SHARE_UNAVAILABLE": "分享功能暂时不可用。请重试。",
-                    "generic": "无法创建分享链接。请重试。"
-                }
+                    "generic": "无法创建分享链接。请重试。",
+                    "ERR_ZELF_IDENTITY_REQUIRED": "分享链接前，请用面部验证你的 Zelf ID。"
+                },
+                "verify_title": "验证你的 Zelf ID",
+                "verify_password_hint": "输入 Zelf ID 密码，然后用面部确认。",
+                "verify_continue": "继续"
             },
             "shares": {
                 "title": "已分享的链接",

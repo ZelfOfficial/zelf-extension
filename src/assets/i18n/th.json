@@ -1962,7 +1962,6 @@
                     "INVALID_MAX_VIEWS": "จำนวนครั้งต้องอยู่ระหว่าง 1 ถึง 10",
                     "INVALID_LABEL": "ป้ายชื่อต้องไม่เกิน 60 อักขระ และไม่มีอักขระควบคุม",
                     "SHARE_KEY_NOT_ACCEPTED": "คีย์เข้ารหัสอยู่ในลิงก์ และไม่ได้อัปโหลด",
-                    "SHARE_SESSION_REQUIRED": "ลงชื่อเข้าใช้อีกครั้งเพื่อจัดการลิงก์ที่แชร์",
                     "SHARE_FORBIDDEN": "คุณจัดการลิงก์นี้ไม่ได้",
                     "SHARE_NOT_FOUND": "ไม่พบลิงก์นี้",
                     "SHARE_EXPIRED": "ลิงก์นี้หมดอายุแล้ว",
@@ -1970,8 +1969,12 @@
                     "PASSWORD_SHARE_RATE_LIMITED": "คำขอมากเกินไป ลองอีกครั้งใน {{seconds}} วินาที",
                     "PASSWORD_SHARE_RATE_LIMITED_WAIT": "คำขอมากเกินไป รอสักครู่แล้วลองอีกครั้ง",
                     "SHARE_UNAVAILABLE": "การแชร์ไม่พร้อมใช้งานในขณะนี้ ลองอีกครั้ง",
-                    "generic": "สร้างลิงก์แชร์ไม่สำเร็จ ลองอีกครั้ง"
-                }
+                    "generic": "สร้างลิงก์แชร์ไม่สำเร็จ ลองอีกครั้ง",
+                    "ERR_ZELF_IDENTITY_REQUIRED": "ยืนยัน Zelf ID ด้วยใบหน้าก่อนแชร์ลิงก์"
+                },
+                "verify_title": "ยืนยัน Zelf ID",
+                "verify_password_hint": "ใส่รหัสผ่าน Zelf ID แล้วยืนยันด้วยใบหน้า",
+                "verify_continue": "ดำเนินการต่อ"
             },
             "shares": {
                 "title": "ลิงก์ที่แชร์",
