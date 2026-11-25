@@ -1,10 +1,9 @@
 import { CommonModule } from "@angular/common";
-import { Component } from "@angular/core";
+import { Component, Injectable } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialog, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
-import { Injectable } from "@angular/core";
 import { TranslocoModule, TranslocoService } from "@jsverse/transloco";
 import { firstValueFrom } from "rxjs";
 
