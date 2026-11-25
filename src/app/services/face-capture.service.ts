@@ -29,6 +29,22 @@ export interface FaceFrameDetectionResult {
 /** Longest edge used when a caller copies a frame for measurement. Framing itself stays on SsdMobilenetv1. */
 export const DETECTION_MAX_EDGE = 640;
 
+/** Sensor request for the sharp preview. Display size is CSS; the camera stays landscape. */
+export const FACE_PREVIEW_IDEAL_WIDTH = 1920;
+export const FACE_PREVIEW_IDEAL_HEIGHT = 1080;
+
+/**
+ * Constraints passed once to getUserMedia.
+ * `ideal` lets the browser keep the camera's current mode. A bare string or `max` is mandatory and makes Chrome reopen the sensor, which leaves the preview black.
+ */
+export interface FaceCameraConfiguration {
+    facingMode: { ideal: FacingMode };
+    frameRate: { ideal: number };
+    height: { ideal: number };
+    width: { ideal: number };
+    deviceId?: { ideal: string };
+}
+
 export interface DetectionFrameSize {
     width: number;
     height: number;
@@ -94,45 +110,28 @@ export class FaceCaptureService {
     }
 
     /**
-     * Build standard camera MediaTrackConstraints used across all face capture flows.
+     * One getUserMedia request for every face screen.
+     * 1920×1080 stays ideal so the preview Miguel uses stays sharp, and nothing here is `exact` or `max`.
+     * Callers should keep the returned object for the life of the preview. Replacing it restarts the stream.
+     * `isLandscape` is accepted so older callers still compile; the sensor request does not change with the CSS box.
      */
     buildCameraConfiguration(options?: {
         isLandscape?: boolean;
         displayMode?: "auto" | "portrait";
         deviceId?: string;
-    }): {
-        facingMode: FacingMode;
-        frameRate: { ideal: number; max: number };
-        height: { ideal: number };
-        width: { ideal: number };
-        deviceId?: { exact: string };
-    } {
-        const displayMode = options?.displayMode ?? "auto";
-        const isLandscape = options?.isLandscape ?? true;
-
-        const baseConfig =
-            displayMode === "portrait" || isLandscape
-                ? {
-                      width: { ideal: 1280 },
-                      height: { ideal: 720 },
-                      facingMode: FacingMode.USER,
-                      frameRate: { ideal: 30, max: 30 },
-                  }
-                : {
-                      width: { ideal: 720 },
-                      height: { ideal: 1280 },
-                      facingMode: FacingMode.USER,
-                      frameRate: { ideal: 30, max: 30 },
-                  };
+    }): FaceCameraConfiguration {
+        const configuration: FaceCameraConfiguration = {
+            width: { ideal: FACE_PREVIEW_IDEAL_WIDTH },
+            height: { ideal: FACE_PREVIEW_IDEAL_HEIGHT },
+            facingMode: { ideal: FacingMode.USER },
+            frameRate: { ideal: 30 },
+        };
 
         if (options?.deviceId) {
-            return {
-                ...baseConfig,
-                deviceId: { exact: options.deviceId },
-            };
+            configuration.deviceId = { ideal: options.deviceId };
         }
 
-        return baseConfig;
+        return configuration;
     }
 
     /**

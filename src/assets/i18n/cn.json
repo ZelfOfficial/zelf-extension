@@ -2317,7 +2317,9 @@
             "verification_failed": "面孔与此 Zelf ID 不匹配。请将面部置于画面中央后重试。",
             "missing_password": "领取今日奖励前，此 Zelf ID 需要密码。",
             "invalid_password": "密码不正确。请核对后重试。",
-            "password_required": "此 Zelf ID 需要密码。请输入后重试。"
+            "password_required": "此 Zelf ID 需要密码。请输入后重试。",
+            "payout_failed": "今天的奖励未能送达。尚未记为已领取，可以再试一次。",
+            "claim_in_progress": "已有一笔领取正在发放。请稍候再试。不会重复支付。"
         },
         "activate_account": "激活账户",
         "verify": {

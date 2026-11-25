@@ -7,6 +7,9 @@ describe("daily reward identity", () => {
         "ERR_MISSING_PASSWORD",
         "ERR_INVALID_PASSWORD",
         "ERR_PASSWORD_REQUIRED",
+        "DAILY_REWARD_ALREADY_CLAIMED",
+        "DAILY_REWARD_PAYOUT_FAILED",
+        "DAILY_REWARD_CLAIM_IN_PROGRESS",
         "BDAG_DEPRECATED",
     ];
 
@@ -18,6 +21,17 @@ describe("daily reward identity", () => {
 
     it("does not treat a generic 400 as a missing face", () => {
         expect(resolveDailyRewardErrorCode({ status: 400, error: { message: "already claimed", code: "BadRequest" } })).toBeNull();
+    });
+
+    it("reads the new daily reward codes before the HTTP status shortcut", () => {
+        expect(
+            resolveDailyRewardErrorCode({ status: 409, error: { code: "DAILY_REWARD_ALREADY_CLAIMED", message: "already claimed" } })
+        ).toBe("DAILY_REWARD_ALREADY_CLAIMED");
+        expect(resolveDailyRewardErrorCode({ status: 502, error: { code: "DAILY_REWARD_PAYOUT_FAILED", message: "payout failed" } })).toBe(
+            "DAILY_REWARD_PAYOUT_FAILED"
+        );
+        expect(resolveDailyRewardErrorCode({ status: 503, code: "DAILY_REWARD_CLAIM_IN_PROGRESS" })).toBe("DAILY_REWARD_CLAIM_IN_PROGRESS");
+        expect(resolveDailyRewardErrorCode({ status: 409, error: { message: "conflict" } })).toBe("ERR_PASSWORD_REQUIRED");
     });
 
     it("treats a face-only public flag as no password", async () => {

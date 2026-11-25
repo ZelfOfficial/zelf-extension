@@ -9,6 +9,8 @@ const messages: Record<string, string> = {
     "rewards.error.spin_failed": "Spin failed",
     "rewards.error.already_claimed": "Already claimed",
     "rewards.error.claim_failed": "Claim failed",
+    "rewards.error.payout_failed": "Delivery failed",
+    "rewards.error.claim_in_progress": "Delivery in progress",
 };
 
 describe("DailyRewardsComponent identity claim", () => {
@@ -106,6 +108,33 @@ describe("DailyRewardsComponent identity claim", () => {
             expect(component.isSpinning).toBeFalse();
             expect(component.canRetryClaim).toBeTrue();
             expect((component as any)._secrets.faceBase64).toBe("");
+            component.ngOnDestroy();
+        });
+    }
+
+    const deliveryCases: Array<[string, number, string, boolean]> = [
+        ["DAILY_REWARD_ALREADY_CLAIMED", 409, "Already claimed", false],
+        ["DAILY_REWARD_PAYOUT_FAILED", 502, "Delivery failed", true],
+        ["DAILY_REWARD_CLAIM_IN_PROGRESS", 503, "Delivery in progress", true],
+    ];
+
+    for (const [code, status, message, canRetry] of deliveryCases) {
+        it(`${code} shows a clear message and ${canRetry ? "stays retryable" : "closes the day"}`, async () => {
+            const { component, claimDailyReward } = setup(false);
+            claimDailyReward.and.callFake(async (body: Record<string, unknown>) => {
+                body["faceBase64"] = "";
+                throw { status, error: { message: code, code } };
+            });
+
+            await component.spinWheel();
+            await component.onFaceCaptured("pgp-face");
+
+            expect(component.errorMessage).toBe(message);
+            expect(component.hasSpunToday).toBe(!canRetry);
+            expect(component.canRetryClaim).toBe(canRetry);
+            expect(component.isSpinning).toBeFalse();
+            expect(component.wonAmount).toBeNull();
+            expect(component.requiresMasterPassword).toBeFalse();
             component.ngOnDestroy();
         });
     }

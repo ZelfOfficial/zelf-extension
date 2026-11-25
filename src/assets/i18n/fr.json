@@ -2317,7 +2317,9 @@
             "verification_failed": "Votre visage ne correspond pas à ce Zelf ID. Centrez votre visage et réessayez.",
             "missing_password": "Ce Zelf ID a besoin de son mot de passe avant de réclamer la récompense du jour.",
             "invalid_password": "Ce mot de passe est incorrect. Vérifiez-le et réessayez.",
-            "password_required": "Ce Zelf ID exige un mot de passe. Saisissez-le et réessayez."
+            "password_required": "Ce Zelf ID exige un mot de passe. Saisissez-le et réessayez.",
+            "payout_failed": "La récompense du jour n'a pas pu être livrée. Elle n'a pas été marquée comme réclamée, vous pouvez réessayer.",
+            "claim_in_progress": "Une remise est déjà en cours. Patientez un instant et réessayez. Un second paiement ne sera pas envoyé."
         },
         "activate_account": "Activer le compte",
         "verify": {

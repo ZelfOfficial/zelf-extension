@@ -2410,7 +2410,9 @@
             "verification_failed": "Tu rostro no coincide con este Zelf ID. Centra tu rostro e inténtalo de nuevo.",
             "missing_password": "Este Zelf ID necesita su contraseña antes de reclamar la recompensa de hoy.",
             "invalid_password": "La contraseña es incorrecta. Revísala e inténtalo de nuevo.",
-            "password_required": "Este Zelf ID requiere una contraseña. Escríbela e inténtalo de nuevo."
+            "password_required": "Este Zelf ID requiere una contraseña. Escríbela e inténtalo de nuevo.",
+            "payout_failed": "No se pudo entregar la recompensa de hoy. No quedó marcada como reclamada, así que puedes intentarlo de nuevo.",
+            "claim_in_progress": "Ya hay una entrega en curso. Espera un momento e inténtalo de nuevo. No se enviará un segundo pago."
         },
         "activate_account": "Activar Cuenta",
         "verify": {

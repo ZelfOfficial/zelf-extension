@@ -51,6 +51,8 @@ export class ZelfKeysPasswordBiometricsComponent implements OnInit, OnDestroy {
     private _takePicture: Subject<void> = new Subject<void>();
     private _intervals: any = {};
     private _previewClosed = false;
+    private _modelsReady = false;
+    private _previewReady = false;
     private _unbindPreview: () => void = () => undefined;
 
     cameraAttached = true;
@@ -66,9 +68,10 @@ export class ZelfKeysPasswordBiometricsComponent implements OnInit, OnDestroy {
             real: { width: 0, height: 0, offsetX: 0, offsetY: 0 },
         },
         configuration: {
-            facingMode: "user",
-            width: { ideal: 800 },
-            height: { ideal: 600 },
+            facingMode: { ideal: "user" },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            frameRate: { ideal: 30 },
         },
     };
 
@@ -171,6 +174,7 @@ export class ZelfKeysPasswordBiometricsComponent implements OnInit, OnDestroy {
         if (this._previewClosed || this.response?.base64Image || this.camera.isLowQuality || !this.camera.hasPermissions) return;
 
         this._clearIntervals();
+        this._previewReady = false;
         this.cameraAttached = false;
         this._changeDetectorRef.detectChanges();
         this.cameraAttached = true;
@@ -193,14 +197,16 @@ export class ZelfKeysPasswordBiometricsComponent implements OnInit, OnDestroy {
     }
 
     private async _initializeBiometrics(): Promise<void> {
-        try {
-            // Always wait for the wallet service to load the models
-            this._walletService.faceapi$.pipe(takeUntil(this.unsubscriber$)).subscribe(async (isLoaded) => {
-                if (!isLoaded) return;
+        this.camera.configuration = this._faceCaptureService.buildCameraConfiguration();
+        this._updateDisplayDimensions();
+        this.camera.isLoading = false;
+        this._startNgxVideoInterval();
 
-                this.camera.isLoading = false;
-                await this._setMaxVideoDimensions();
-                this._startNgxVideoInterval();
+        try {
+            this._walletService.faceapi$.pipe(takeUntil(this.unsubscriber$)).subscribe((isLoaded) => {
+                this._modelsReady = !!isLoaded;
+
+                if (this._modelsReady && this._previewReady) this._startFaceDetectionInterval();
             });
         } catch (error) {
             console.error("❌ Error initializing biometrics:", error);
@@ -221,19 +227,14 @@ export class ZelfKeysPasswordBiometricsComponent implements OnInit, OnDestroy {
         // This method is no longer needed since we use the wallet service observable
     }
 
-    private async _setMaxVideoDimensions(): Promise<void> {
-        const maxWidth = 800;
-        const maxHeight = 600;
+    private _updateDisplayDimensions(): void {
+        const maxWidth = this.camera.dimensions.video.max?.width || 800;
+        const maxHeight = this.camera.dimensions.video.max?.height || 600;
 
-        // Set initial video dimensions
         this.camera.dimensions.video.width = maxWidth;
         this.camera.dimensions.video.height = maxHeight;
-
-        // Set result dimensions
         this.camera.dimensions.result.width = maxWidth;
         this.camera.dimensions.result.height = maxHeight;
-
-        // Initialize face dimensions
         this.face.video = this._getCenterAndRadius(maxHeight, maxWidth);
 
         this._changeDetectorRef.markForCheck();
@@ -391,6 +392,8 @@ export class ZelfKeysPasswordBiometricsComponent implements OnInit, OnDestroy {
     }
 
     private _startFaceDetectionInterval(): void {
+        if (!this._modelsReady || !this._previewReady || this._previewClosed) return;
+
         if (this._intervals.detectFace) {
             clearInterval(this._intervals.detectFace);
             this._intervals.detectFace = null;
@@ -582,20 +585,26 @@ export class ZelfKeysPasswordBiometricsComponent implements OnInit, OnDestroy {
 
         this._intervals.checkNgxVideo = null;
 
-        videoNgx.addEventListener(
-            "loadeddata",
-            () => {
-                this._startFaceDetectionInterval();
-                this.canNavigate.emit(true);
+        const onFirstFrame = () => {
+            if (this._previewClosed) return;
 
-                this._setVideoDimensions(videoNgx);
-                this._drawOvalCenterAndMask();
-            },
-            { once: true }
-        );
+            this._previewReady = true;
+            this.camera.isLoading = false;
+            this.canNavigate.emit(true);
+            this._setVideoDimensions(videoNgx);
+            this._drawOvalCenterAndMask();
 
-        this._setVideoDimensions(videoNgx);
-        this._drawOvalCenterAndMask();
+            if (this._modelsReady) this._startFaceDetectionInterval();
+
+            this._changeDetectorRef.markForCheck();
+        };
+
+        if (videoNgx.readyState >= 2) {
+            onFirstFrame();
+            return;
+        }
+
+        videoNgx.addEventListener("loadeddata", onFirstFrame, { once: true });
     };
 
     private _setVideoDimensions(videoElement: HTMLVideoElement) {

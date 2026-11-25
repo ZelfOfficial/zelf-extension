@@ -19,7 +19,7 @@ import { isCameraAbortError, MediaStreamService } from "app/services/media-strea
 import { isDevBiometricsBypassEnabled, loadDevBiometricsFixtureBase64 } from "app/utils/dev-biometrics-bypass.util";
 import { ZelfLoaderComponent } from "app/zelf-loader/zelf-loader.component";
 import { WalletService } from "../wallet.service";
-import { CameraData, directionImage, ErrorFace, FaceData, FacingMode, Intervals, OvalData, ResponseData } from "./sdk.models";
+import { CameraData, directionImage, ErrorFace, FaceData, Intervals, OvalData, ResponseData } from "./sdk.models";
 
 @Component({
     imports: [
@@ -65,6 +65,8 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
     private unsubscriber$: Subject<void> = new Subject<void>();
     private _released = false;
     private _detecting = false;
+    private _modelsReady = false;
+    private _previewReady = false;
     private _unbindPreview: () => void = () => undefined;
 
     /** Toggled to remount ngx-webcam after the camera was released and the screen is still open. */
@@ -108,7 +110,7 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
 
             this.canNavigate.emit(false);
 
-            await this._setMaxVideoDimensions();
+            this._updateDisplayDimensions();
 
             this._startNgxVideoInterval();
         }, 300);
@@ -120,7 +122,8 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
             return;
         }
 
-        await this._startDefaultValues();
+        this._startDefaultValues();
+        this._startNgxVideoInterval();
 
         this._unbindPreview = this._mediaStreamService.bindPreviewLifecycle({
             onHidden: () => this._pausePreview(),
@@ -138,18 +141,12 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
             }
         }
 
-        this._walletService.faceapi$.pipe(takeUntil(this.unsubscriber$)).subscribe(async (isLoaded) => {
+        this._walletService.faceapi$.pipe(takeUntil(this.unsubscriber$)).subscribe((isLoaded) => {
             if (this._released) return;
 
-            this.canNavigate.emit(false);
+            this._modelsReady = !!isLoaded;
 
-            this.camera.isLoading = !isLoaded;
-
-            if (!isLoaded) return;
-
-            await this._setMaxVideoDimensions();
-
-            this._startNgxVideoInterval();
+            if (this._modelsReady && this._previewReady) this._startFaceDetectionInterval();
         });
     }
 
@@ -225,27 +222,27 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
 
         this._intervals.checkNgxVideo = null;
 
-        if (videoNgx.readyState >= 2) {
-            this._startFaceDetectionInterval();
+        const onFirstFrame = () => {
+            if (this._released) return;
+
+            this._previewReady = true;
+            this.camera.isLoading = false;
+            this._setVideoDimensions(videoNgx);
+            this._drawOvalCenterAndMask();
             this.canNavigate.emit(true);
             void this._inspectActiveStream(videoNgx);
-        } else {
-            videoNgx.addEventListener(
-                "loadeddata",
-                () => {
-                    this._startFaceDetectionInterval();
-                    this.canNavigate.emit(true);
-                    void this._inspectActiveStream(videoNgx);
 
-                    this._setVideoDimensions(videoNgx);
-                    this._drawOvalCenterAndMask();
-                },
-                { once: true }
-            );
+            if (this._modelsReady) this._startFaceDetectionInterval();
+
+            this._changeDetectorRef.markForCheck();
+        };
+
+        if (videoNgx.readyState >= 2) {
+            onFirstFrame();
+            return;
         }
 
-        this._setVideoDimensions(videoNgx);
-        this._drawOvalCenterAndMask();
+        videoNgx.addEventListener("loadeddata", onFirstFrame, { once: true });
     };
 
     private async _inspectActiveStream(videoElement: HTMLVideoElement): Promise<void> {
@@ -259,9 +256,16 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
     }
 
     async onCameraChange(deviceId: string): Promise<void> {
-        if (!deviceId || deviceId === this.selectedDeviceId) return;
+        if (!deviceId || deviceId === this.selectedDeviceId || this._released) return;
+
         this.selectedDeviceId = deviceId;
-        await this._setMaxVideoDimensions();
+        this._applyCameraConfiguration();
+        this._previewReady = false;
+        this.camera.isLoading = true;
+        this.cameraAttached = false;
+        this._changeDetectorRef.detectChanges();
+        this.cameraAttached = true;
+        this._changeDetectorRef.detectChanges();
         this._startNgxVideoInterval();
     }
 
@@ -533,10 +537,12 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
             hasPermissions: true,
             isLoading: true,
             isLowQuality: false,
-            configuration: this._cameraConfiguration(displayDimensions.isLandscape),
+            configuration: this._cameraConfiguration(),
             dimensions: {
                 video: {
                     max: displayDimensions,
+                    width: displayDimensions.width,
+                    height: displayDimensions.height,
                 },
             },
         };
@@ -579,42 +585,56 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         };
     };
 
-    private async _setMaxVideoDimensions(): Promise<void> {
+    private _updateDisplayDimensions(): void {
+        if (this._released || !this.camera) return;
+
         const displayDimensions = this._calculateDisplayDimensions();
 
-        this.camera.isLoading = true;
+        this.camera.dimensions.video = {
+            ...this.camera.dimensions.video,
+            max: displayDimensions,
+            width: displayDimensions.width,
+            height: displayDimensions.height,
+        };
+        this.camera.dimensions.result = undefined;
+
+        this.webcamRef?.videoResize();
         this._changeDetectorRef.markForCheck();
-
-        return await new Promise((resolve) => {
-            setTimeout(() => {
-                this.camera.dimensions.video = {
-                    max: displayDimensions,
-                    ...(this.displayMode === "portrait"
-                        ? { width: displayDimensions.width, height: displayDimensions.height }
-                        : {}),
-                };
-
-                this.camera.configuration = this._cameraConfiguration(displayDimensions.isLandscape);
-
-                this.camera.dimensions.result = undefined;
-                this.camera.isLoading = false;
-
-                this.webcamRef?.videoResize();
-
-                this._changeDetectorRef.markForCheck();
-
-                resolve();
-            });
-        });
     }
 
-    private async _startDefaultValues() {
+    private _startDefaultValues(): void {
         this._setDefaultResponse();
         this._setDefaultCamera();
         this._setDefaultDirections();
         this._setDefaultFace();
+        this._updateDisplayDimensions();
+    }
 
-        await this._setMaxVideoDimensions();
+    private _applyCameraConfiguration(): void {
+        const next = this._cameraConfiguration();
+
+        if (this._sameCameraConfiguration(this.camera?.configuration, next)) return;
+
+        this.camera.configuration = next;
+    }
+
+    private _sameCameraConfiguration(
+        current: CameraData["configuration"] | undefined,
+        next: CameraData["configuration"]
+    ): boolean {
+        if (!current) return false;
+
+        const facing = (mode: CameraData["configuration"]["facingMode"]) => (typeof mode === "string" ? mode : mode?.ideal);
+
+        return (
+            current.width?.ideal === next.width?.ideal &&
+            current.height?.ideal === next.height?.ideal &&
+            current.frameRate?.ideal === next.frameRate?.ideal &&
+            current.frameRate?.max === next.frameRate?.max &&
+            facing(current.facingMode) === facing(next.facingMode) &&
+            current.deviceId?.ideal === next.deviceId?.ideal &&
+            current.deviceId?.exact === next.deviceId?.exact
+        );
     }
 
     private _setResultDimensions(key: "real" | "result", height: number, width: number) {
@@ -651,10 +671,9 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         };
     }
 
-    /** 720p is enough for the still that is encrypted and sent. Framing runs on a smaller copy of the same frame. */
-    private _cameraConfiguration(isLandscape: boolean): CameraData["configuration"] {
+    /** Sharp 1920×1080 ideal request. Display orientation does not change the sensor constraints. */
+    private _cameraConfiguration(): CameraData["configuration"] {
         return this._faceCaptureService.buildCameraConfiguration({
-            isLandscape,
             displayMode: this.displayMode,
             deviceId: this.selectedDeviceId || undefined,
         });
@@ -752,6 +771,8 @@ export class BiometricsGeneralComponent implements OnInit, OnDestroy {
         if (this._released || this.response?.base64Image) return;
 
         this._killIntervals();
+        this._previewReady = false;
+        this.camera.isLoading = true;
         this.cameraAttached = false;
         this._changeDetectorRef.detectChanges();
         this.cameraAttached = true;

@@ -1,5 +1,8 @@
+import { BehaviorSubject } from "rxjs";
+
 import { BiometricsGeneralComponent } from "./biometrics.component";
 import { FaceCaptureService } from "app/services/face-capture.service";
+import { CaptureSignalsService } from "app/services/capture-signals.service";
 import { installCameraRelease, MediaStreamService } from "app/services/media-stream.service";
 
 describe("BiometricsGeneralComponent camera release", () => {
@@ -180,5 +183,67 @@ describe("BiometricsGeneralComponent camera release", () => {
         );
 
         tracks.forEach((track) => expect(track.stop).toHaveBeenCalled());
+    });
+});
+
+describe("BiometricsGeneralComponent camera startup", () => {
+    it("arms the preview before face models load and keeps the same ideal constraints", async () => {
+        const host = document.createElement("div");
+        document.body.appendChild(host);
+        const models = new BehaviorSubject<boolean>(false);
+        const media = new MediaStreamService();
+        const faceCapture = new FaceCaptureService({ encryptMessage: async () => "pgp" } as any, media, new CaptureSignalsService());
+        spyOn(faceCapture, "inspectStream").and.resolveTo({ videoInputs: [] } as any);
+
+        const component = new BiometricsGeneralComponent(
+            { markForCheck() {}, detectChanges() {} } as any,
+            {} as any,
+            media,
+            { listen: () => () => undefined } as any,
+            { translate: (key: string) => key } as any,
+            { getDeviceData: () => ({ time: 250 }), faceapi$: models.asObservable() } as any,
+            { nativeElement: host } as any,
+            faceCapture
+        );
+        component.displayMode = "portrait";
+
+        const started = performance.now();
+        const opening = component.ngOnInit();
+        const configuration = component.camera.configuration;
+        const armedAt = performance.now();
+
+        expect(configuration.width).toEqual({ ideal: 1920 });
+        expect(configuration.height).toEqual({ ideal: 1080 });
+        expect(configuration.frameRate).toEqual({ ideal: 30 });
+        expect(JSON.stringify(configuration)).not.toContain("exact");
+        expect((component as any)._intervals.checkNgxVideo).toBeTruthy();
+        expect((component as any)._modelsReady).toBeFalse();
+        expect(armedAt - started).toBeLessThan(250);
+
+        models.next(true);
+        await opening;
+
+        expect(component.camera.configuration).toBe(configuration);
+        expect((component as any)._modelsReady).toBeTrue();
+
+        const video = document.createElement("video");
+        Object.defineProperty(video, "readyState", { get: () => 2 });
+        Object.defineProperty(video, "videoWidth", { get: () => 1920 });
+        Object.defineProperty(video, "videoHeight", { get: () => 1080 });
+        Object.defineProperty(video, "clientWidth", { get: () => 320 });
+        Object.defineProperty(video, "clientHeight", { get: () => 400 });
+        component.webcamRef = { nativeVideoElement: video } as any;
+        component.maskResultCanvasRef = { nativeElement: document.createElement("canvas") };
+        const detect = spyOn(faceCapture, "detectFacesWithLandmarks").and.resolveTo([]);
+
+        (component as any)._checkVideoStreamReady();
+        await Promise.resolve();
+
+        expect(component.camera.isLoading).toBeFalse();
+        expect(detect).toHaveBeenCalled();
+        expect(armedAt - started).toBeLessThan(250);
+
+        component.ngOnDestroy();
+        host.remove();
     });
 });

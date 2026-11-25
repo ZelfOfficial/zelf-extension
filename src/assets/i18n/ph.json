@@ -2317,7 +2317,9 @@
             "verification_failed": "Hindi tumugma ang mukha mo sa Zelf ID na ito. Igitna ang mukha at subukan muli.",
             "missing_password": "Kailangan ang password ng Zelf ID na ito bago makuha ang reward ngayong araw.",
             "invalid_password": "Mali ang password. Suriin ito at subukan muli.",
-            "password_required": "Kailangan ng password ang Zelf ID na ito. Ilagay ito at subukan muli."
+            "password_required": "Kailangan ng password ang Zelf ID na ito. Ilagay ito at subukan muli.",
+            "payout_failed": "Hindi naihatid ang reward ngayong araw. Hindi ito minarkahang nakuha na, kaya puwede mong subukan ulit.",
+            "claim_in_progress": "May claim na ipinapadala. Maghintay sandali at subukan ulit. Hindi ka babayaran nang dalawang beses."
         },
         "activate_account": "I-activate ang Account",
         "verify": {

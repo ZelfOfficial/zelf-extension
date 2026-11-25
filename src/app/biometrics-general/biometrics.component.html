@@ -5,7 +5,7 @@
     [class.biometric-shell--portrait]="displayMode === 'portrait'"
 >
     <div
-        *ngIf="!camera.isLoading && camera.hasPermissions && !camera.isLowQuality"
+        *ngIf="camera.hasPermissions && !camera.isLowQuality"
         class="justify-center w-full"
         fxLayout="column"
         fxLayoutAlign="center center"
@@ -73,6 +73,10 @@
                 </div>
             </div>
 
+            <div *ngIf="camera.isLoading && !response.base64Image" class="biometric-preview__pending">
+                <zelf-loader [diameter]="72"></zelf-loader>
+            </div>
+
             <canvas #toSend hidden="true"></canvas>
 
             <div
@@ -87,7 +91,7 @@
         </div>
     </div>
 
-    <div class="loader" fxLayout="column" fxLayoutAlign="center center" *ngIf="response.base64Image || camera.isLoading">
+    <div class="loader" fxLayout="column" fxLayoutAlign="center center" *ngIf="response.base64Image">
         <zelf-loader [diameter]="120"></zelf-loader>
     </div>
 

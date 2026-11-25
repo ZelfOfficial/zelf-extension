@@ -66,6 +66,8 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
     private _biometricsInitialized = false;
     private _pendingSuperappOperation: SuperappPendingKeysOperation | null = null;
     private _previewClosed = false;
+    private _modelsReady = false;
+    private _previewReady = false;
     private _unbindPreview: () => void = () => undefined;
 
     cameraAttached = true;
@@ -81,9 +83,10 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
             real: { width: 0, height: 0, offsetX: 0, offsetY: 0 },
         } as { [key: string]: { width: number; height: number; offsetX?: number; offsetY?: number; max?: { width: number; height: number } } },
         configuration: {
-            facingMode: "user",
+            facingMode: { ideal: "user" },
             width: { ideal: 1920 },
             height: { ideal: 1080 },
+            frameRate: { ideal: 30 },
         } as Record<string, any>,
     };
 
@@ -351,23 +354,26 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
 
         this._intervals.checkNgxVideo = null;
 
-        videoNgx.addEventListener(
-            "loadeddata",
-            () => {
-                this._startFaceDetectionInterval();
-                this._setVideoDimensions(videoNgx);
-                this._drawOvalCenterAndMask();
-                void this._inspectActiveStream(videoNgx);
-            },
-            { once: true }
-        );
+        const onFirstFrame = () => {
+            if (this._previewClosed) return;
+
+            this._previewReady = true;
+            this.camera.isLoading = false;
+            this._setVideoDimensions(videoNgx);
+            this._drawOvalCenterAndMask();
+            void this._inspectActiveStream(videoNgx);
+
+            if (this._modelsReady) this._startFaceDetectionInterval();
+
+            this._changeDetectorRef.markForCheck();
+        };
 
         if (videoNgx.readyState >= 2) {
-            void this._inspectActiveStream(videoNgx);
+            onFirstFrame();
+            return;
         }
 
-        this._setVideoDimensions(videoNgx);
-        this._drawOvalCenterAndMask();
+        videoNgx.addEventListener("loadeddata", onFirstFrame, { once: true });
     }
 
     private async _inspectActiveStream(videoElement: HTMLVideoElement): Promise<void> {
@@ -381,13 +387,18 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
     }
 
     async onCameraChange(deviceId: string): Promise<void> {
-        if (!deviceId || deviceId === this.selectedDeviceId) return;
+        if (!deviceId || deviceId === this.selectedDeviceId || this._previewClosed) return;
+
         this.selectedDeviceId = deviceId;
         this.camera.configuration = this._faceCaptureService.buildCameraConfiguration({
             displayMode: "portrait",
             deviceId,
         });
-        this._changeDetectorRef.markForCheck();
+        this._previewReady = false;
+        this.cameraAttached = false;
+        this._changeDetectorRef.detectChanges();
+        this.cameraAttached = true;
+        this._changeDetectorRef.detectChanges();
         this._startNgxVideoInterval();
     }
 
@@ -769,15 +780,16 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         if (this._biometricsInitialized) return;
         this._biometricsInitialized = true;
 
+        this.camera.configuration = this._faceCaptureService.buildCameraConfiguration({ displayMode: "portrait" });
+        this._updateDisplayDimensions();
+        this.camera.isLoading = false;
+        this._startNgxVideoInterval();
+
         try {
-            this._walletService.faceapi$.pipe(takeUntil(this._destroy$)).subscribe(async (isLoaded) => {
-                if (!isLoaded) return;
+            this._walletService.faceapi$.pipe(takeUntil(this._destroy$)).subscribe((isLoaded) => {
+                this._modelsReady = !!isLoaded;
 
-                this.camera.isLoading = false;
-
-                await this._setMaxVideoDimensions();
-
-                this._startNgxVideoInterval();
+                if (this._modelsReady && this._previewReady) this._startFaceDetectionInterval();
             });
         } catch (error) {
             console.error("Error initializing biometrics:", error);
@@ -1009,12 +1021,9 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         return this._faceCaptureService.capRect(rect, maxEdge);
     }
 
-    private async _setMaxVideoDimensions(): Promise<void> {
-        const popupWidth = 375;
-        const popupHeight = 600;
-
-        const viewportWidth = popupWidth;
-        const viewportHeight = popupHeight;
+    private _updateDisplayDimensions(): void {
+        const viewportWidth = 375;
+        const viewportHeight = 600;
 
         this.camera.dimensions.video.width = viewportWidth;
         this.camera.dimensions.video.height = viewportHeight;
@@ -1098,6 +1107,8 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
     }
 
     private _startFaceDetectionInterval(): void {
+        if (!this._modelsReady || !this._previewReady || this._previewClosed) return;
+
         if (this._intervals.detectFace) {
             clearInterval(this._intervals.detectFace);
 
@@ -1138,6 +1149,7 @@ export class PopoutDecryptorComponent implements OnInit, OnDestroy {
         if (this._previewClosed || this.response?.base64Image || this.camera.isLowQuality || !this.camera.hasPermissions) return;
 
         this._clearPreviewIntervals();
+        this._previewReady = false;
         this.cameraAttached = false;
         this._changeDetectorRef.detectChanges();
         this.cameraAttached = true;
