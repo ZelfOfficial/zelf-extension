@@ -391,17 +391,14 @@ export class DailyRewardsComponent implements OnInit, OnDestroy {
 
             if (!response.success) {
                 this.backendResponseReceived = true;
+                const code = resolveDailyRewardErrorCode({ message: response.message, error: response });
 
-                if (this._textSaysAlreadyClaimed(response?.message)) {
+                if (code === "DAILY_REWARD_ALREADY_CLAIMED" || this._textSaysAlreadyClaimed(response?.message)) {
                     this._markAlreadyClaimed();
                     return;
                 }
 
-                this._claimOutcome = "failed";
-                this.pendingWinningIndex = null;
-                this.canRetryClaim = true;
-                this.errorMessage = response.message || this._translocoService.translate("rewards.error.claim_failed");
-                this._stopSpinWithoutReward();
+                this._rejectClaim(code, response.message || this._translocoService.translate("rewards.error.claim_failed"));
                 return;
             }
 
@@ -425,24 +422,28 @@ export class DailyRewardsComponent implements OnInit, OnDestroy {
             this.backendResponseReceived = true;
             this.pendingWinningIndex = null;
 
-            if (this._textSaysAlreadyClaimed(this._errorText(error))) {
+            if (code === "DAILY_REWARD_ALREADY_CLAIMED" || this._textSaysAlreadyClaimed(this._errorText(error))) {
                 this._markAlreadyClaimed();
                 return;
             }
 
-            this._claimOutcome = "failed";
-            this.canRetryClaim = true;
-
-            if (code === "ERR_MISSING_PASSWORD" || code === "ERR_PASSWORD_REQUIRED") {
-                this.requiresMasterPassword = true;
-            }
-
-            const key = dailyRewardErrorTranslationKey(code);
-            this.errorMessage = key
-                ? this._translocoService.translate(key)
-                : this._translocoService.translate("rewards.error.spin_failed");
-            this._stopSpinWithoutReward();
+            this._rejectClaim(code, this._translocoService.translate("rewards.error.spin_failed"));
         }
+    }
+
+    /** A failed delivery stays unclaimed. Already-claimed is handled before this runs. */
+    private _rejectClaim(code: string | null, fallback: string): void {
+        this._claimOutcome = "failed";
+        this.pendingWinningIndex = null;
+        this.canRetryClaim = true;
+
+        if (code === "ERR_MISSING_PASSWORD" || code === "ERR_PASSWORD_REQUIRED") {
+            this.requiresMasterPassword = true;
+        }
+
+        const key = dailyRewardErrorTranslationKey(code);
+        this.errorMessage = key ? this._translocoService.translate(key) : fallback;
+        this._stopSpinWithoutReward();
     }
 
     /** A rejected claim never lands on a segment or counts as today's reward. */
@@ -681,6 +682,7 @@ export class DailyRewardsComponent implements OnInit, OnDestroy {
         this.canRetryClaim = false;
         this.hasSpunToday = true;
         this.errorMessage = this._translocoService.translate("rewards.error.already_claimed");
+        this._stopSpinWithoutReward();
     }
 
     private _textSaysAlreadyClaimed(value: unknown): boolean {

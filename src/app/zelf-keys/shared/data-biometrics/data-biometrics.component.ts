@@ -55,6 +55,8 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
     private _takePicture: Subject<void> = new Subject<void>();
     private _intervals: any = {};
     private _previewClosed = false;
+    private _modelsReady = false;
+    private _previewReady = false;
     private _unbindPreview: () => void = () => undefined;
 
     cameraAttached = true;
@@ -70,9 +72,10 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
             real: { width: 0, height: 0, offsetX: 0, offsetY: 0 },
         } as { [key: string]: { width: number; height: number; offsetX?: number; offsetY?: number; max?: { width: number; height: number } } },
         configuration: {
-            facingMode: "user",
+            facingMode: { ideal: "user" },
             width: { ideal: 1920 },
             height: { ideal: 1080 },
+            frameRate: { ideal: 30 },
         },
     };
 
@@ -193,6 +196,7 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
         if (this._previewClosed || this.response?.base64Image || this.camera.isLowQuality || !this.camera.hasPermissions) return;
 
         this._clearIntervals();
+        this._previewReady = false;
         this.cameraAttached = false;
         this._changeDetectorRef.detectChanges();
         this.cameraAttached = true;
@@ -234,16 +238,17 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
             return;
         }
 
+        this.camera.configuration = this._faceCaptureService.buildCameraConfiguration({ displayMode: "portrait" });
+        this._updateDisplayDimensions();
+        this.camera.isLoading = false;
+        this._setupResizeListener();
+        this._startNgxVideoInterval();
+
         try {
-            // Always wait for the wallet service to load the models
-            this._walletService.faceapi$.pipe(takeUntil(this.unsubscriber$)).subscribe(async (isLoaded) => {
-                this.camera.isLoading = !isLoaded;
+            this._walletService.faceapi$.pipe(takeUntil(this.unsubscriber$)).subscribe((isLoaded) => {
+                this._modelsReady = !!isLoaded;
 
-                if (!isLoaded) return;
-
-                await this._setMaxVideoDimensions();
-                this._setupResizeListener();
-                this._startNgxVideoInterval();
+                if (this._modelsReady && this._previewReady) this._startFaceDetectionInterval();
             });
         } catch (error) {
             console.error("❌ Error initializing biometrics:", error);
@@ -255,8 +260,8 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
         let resizeTimeout: any;
         window.addEventListener("resize", () => {
             clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(async () => {
-                await this._setMaxVideoDimensions();
+            resizeTimeout = setTimeout(() => {
+                this._updateDisplayDimensions();
                 this._startNgxVideoInterval();
             }, 300);
         });
@@ -281,18 +286,25 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
 
         this._intervals.checkNgxVideo = null;
 
-        videoNgx.addEventListener(
-            "loadeddata",
-            () => {
-                this._startFaceDetectionInterval();
-                this._setVideoDimensions(videoNgx);
-                this._drawOvalCenterAndMask();
-            },
-            { once: true }
-        );
+        const onFirstFrame = () => {
+            if (this._previewClosed) return;
 
-        this._setVideoDimensions(videoNgx);
-        this._drawOvalCenterAndMask();
+            this._previewReady = true;
+            this.camera.isLoading = false;
+            this._setVideoDimensions(videoNgx);
+            this._drawOvalCenterAndMask();
+
+            if (this._modelsReady) this._startFaceDetectionInterval();
+
+            this._changeDetectorRef.markForCheck();
+        };
+
+        if (videoNgx.readyState >= 2) {
+            onFirstFrame();
+            return;
+        }
+
+        videoNgx.addEventListener("loadeddata", onFirstFrame, { once: true });
     };
 
     private _setVideoDimensions(videoElement: HTMLVideoElement) {
@@ -353,38 +365,18 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
         };
     }
 
-    private async _setMaxVideoDimensions(): Promise<void> {
+    private _updateDisplayDimensions(): void {
         const displayDimensions = this._calculateDisplayDimensions();
+        const width = displayDimensions.width || this.camera.dimensions.video.width || 360;
+        const height = displayDimensions.height || this.camera.dimensions.video.height || 480;
 
-        this.camera.isLoading = true;
+        this.camera.dimensions.video.width = width;
+        this.camera.dimensions.video.height = height;
+        this.camera.dimensions.video.max = { width, height };
+        this.camera.dimensions.result = { height: 0, width: 0, offsetX: 0, offsetY: 0 };
+
+        this.webcamRef?.videoResize();
         this._changeDetectorRef.markForCheck();
-
-        return await new Promise((resolve) => {
-            setTimeout(() => {
-                // Set the video dimensions directly
-                this.camera.dimensions.video.width = displayDimensions.width;
-                this.camera.dimensions.video.height = displayDimensions.height;
-                this.camera.dimensions.video.max = {
-                    width: displayDimensions.width,
-                    height: displayDimensions.height,
-                };
-
-                this.camera.configuration = {
-                    height: { ideal: 1080 }, // Always use landscape height
-                    width: { ideal: 1920 }, // Always use landscape width
-                    facingMode: "user",
-                };
-
-                this.camera.dimensions.result = { height: 0, width: 0, offsetX: 0, offsetY: 0 };
-                this.camera.isLoading = false;
-
-                this.webcamRef?.videoResize();
-
-                this._changeDetectorRef.markForCheck();
-
-                resolve();
-            });
-        });
     }
 
     private _getCenterAndRadius(
@@ -515,6 +507,8 @@ export class DataBiometricsComponent implements OnInit, OnDestroy {
     }
 
     private _startFaceDetectionInterval(): void {
+        if (!this._modelsReady || !this._previewReady || this._previewClosed) return;
+
         if (this._intervals.detectFace) {
             clearInterval(this._intervals.detectFace);
             this._intervals.detectFace = null;

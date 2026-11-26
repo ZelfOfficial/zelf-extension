@@ -2480,7 +2480,9 @@
             "verification_failed": "Your face did not match this Zelf ID. Center your face and try again.",
             "missing_password": "This Zelf ID needs its password before today's reward can be claimed.",
             "invalid_password": "That password is incorrect. Check it and try again.",
-            "password_required": "This Zelf ID requires a password. Enter it and try again."
+            "password_required": "This Zelf ID requires a password. Enter it and try again.",
+            "payout_failed": "Today's reward could not be delivered. It was not marked as claimed, so you can try again.",
+            "claim_in_progress": "A claim is already being delivered. Wait a moment and try again. You will not be paid twice."
         },
         "activate_account": "Activate Account",
         "verify": {

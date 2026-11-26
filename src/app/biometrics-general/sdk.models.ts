@@ -10,11 +10,11 @@ export interface CameraData {
 	isLoading: boolean;
 	isLowQuality?: boolean;
 	configuration: {
-		facingMode: FacingMode;
-		frameRate: { ideal: number; max: number };
+		facingMode: FacingMode | { ideal: FacingMode };
+		frameRate?: { ideal: number; max?: number };
 		height?: { ideal: number };
 		width?: { ideal: number };
-		deviceId?: { exact: string };
+		deviceId?: { exact?: string; ideal?: string };
 	};
 	dimensions: {
 		real?: {

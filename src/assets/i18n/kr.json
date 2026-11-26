@@ -2392,7 +2392,9 @@
             "verification_failed": "얼굴이 이 Zelf ID와 일치하지 않습니다. 얼굴을 가운데에 두고 다시 시도하세요.",
             "missing_password": "오늘 보상을 받으려면 이 Zelf ID의 비밀번호가 필요합니다.",
             "invalid_password": "비밀번호가 올바르지 않습니다. 확인한 뒤 다시 시도하세요.",
-            "password_required": "이 Zelf ID에는 비밀번호가 필요합니다. 입력한 뒤 다시 시도하세요."
+            "password_required": "이 Zelf ID에는 비밀번호가 필요합니다. 입력한 뒤 다시 시도하세요.",
+            "payout_failed": "오늘 보상을 전달하지 못했습니다. 수령으로 표시되지 않았으니 다시 시도할 수 있습니다.",
+            "claim_in_progress": "보상 전달이 이미 진행 중입니다. 잠시 후 다시 시도하세요. 두 번 지급되지 않습니다."
         },
         "activate_account": "계정 활성화",
         "verify": {

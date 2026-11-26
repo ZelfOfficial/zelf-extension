@@ -1,5 +1,16 @@
 @use "../../styles/variables";
 
+.biometric-preview__pending {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #111;
+    pointer-events: none;
+}
+
 .biometric__status {
     position: absolute;
     top: calc(14px * var(--zns-space-scale, 1));

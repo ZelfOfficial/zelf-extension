@@ -19,20 +19,24 @@ describe("FaceCaptureService (#93)", () => {
         );
     });
 
-    it("builds standard camera configuration for landscape, portrait, and specific deviceId", () => {
+    it("builds one ideal 1920×1080 request and does not use exact or max constraints", () => {
         const landscapeCfg = service.buildCameraConfiguration({ isLandscape: true, displayMode: "auto" });
-        expect(landscapeCfg.facingMode).toBe(FacingMode.USER);
-        expect(landscapeCfg.width).toEqual({ ideal: 1280 });
-        expect(landscapeCfg.height).toEqual({ ideal: 720 });
+        expect(landscapeCfg.facingMode).toEqual({ ideal: FacingMode.USER });
+        expect(landscapeCfg.width).toEqual({ ideal: 1920 });
+        expect(landscapeCfg.height).toEqual({ ideal: 1080 });
+        expect(landscapeCfg.frameRate).toEqual({ ideal: 30 });
+        expect("max" in landscapeCfg.frameRate).toBeFalse();
+        expect(JSON.stringify(landscapeCfg)).not.toContain("exact");
 
         const portraitAutoCfg = service.buildCameraConfiguration({ isLandscape: false, displayMode: "auto" });
-        expect(portraitAutoCfg.width).toEqual({ ideal: 720 });
-        expect(portraitAutoCfg.height).toEqual({ ideal: 1280 });
+        expect(portraitAutoCfg.width).toEqual({ ideal: 1920 });
+        expect(portraitAutoCfg.height).toEqual({ ideal: 1080 });
 
         const portraitModeCfg = service.buildCameraConfiguration({ isLandscape: false, displayMode: "portrait", deviceId: "cam-1" });
-        expect(portraitModeCfg.width).toEqual({ ideal: 1280 });
-        expect(portraitModeCfg.height).toEqual({ ideal: 720 });
-        expect(portraitModeCfg.deviceId).toEqual({ exact: "cam-1" });
+        expect(portraitModeCfg.width).toEqual({ ideal: 1920 });
+        expect(portraitModeCfg.height).toEqual({ ideal: 1080 });
+        expect(portraitModeCfg.deviceId).toEqual({ ideal: "cam-1" });
+        expect("max" in portraitModeCfg.frameRate).toBeFalse();
     });
 
     it("computes oval center, radius, and margins consistently", () => {

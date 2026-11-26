@@ -2392,7 +2392,9 @@
             "verification_failed": "顔がこの Zelf ID と一致しません。顔を中央に合わせて再度お試しください。",
             "missing_password": "今日の報酬を受け取るには、この Zelf ID のパスワードが必要です。",
             "invalid_password": "パスワードが正しくありません。確認してもう一度お試しください。",
-            "password_required": "この Zelf ID にはパスワードが必要です。入力してもう一度お試しください。"
+            "password_required": "この Zelf ID にはパスワードが必要です。入力してもう一度お試しください。",
+            "payout_failed": "今日の報酬を届けられませんでした。未受け取りのままなので、もう一度試せます。",
+            "claim_in_progress": "受け取り処理が進行中です。少し待ってからもう一度試してください。二重に支払われることはありません。"
         },
         "activate_account": "アカウントを有効化",
         "verify": {

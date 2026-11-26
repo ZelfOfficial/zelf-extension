@@ -4,13 +4,20 @@ import { readPublicDataHasPassword } from "@shared/types/tag.types";
 /** Face-security action for POST /api/rewards/daily. */
 export const DAILY_REWARD_FACE_ACTION = "daily-reward";
 
-/** Server `{ message, code }` values that must stay unclaimed and retryable. */
+/**
+ * Server `{ message, code }` values.
+ * `DAILY_REWARD_ALREADY_CLAIMED` is the only one that closes the day.
+ * Payout and in-progress failures stay retryable.
+ */
 export const DAILY_REWARD_ERROR_KEYS: Record<string, string> = {
     ERR_IDENTITY_VERIFICATION_REQUIRED: "rewards.error.identity_required",
     ERR_VERIFICATION_FAILED: "rewards.error.verification_failed",
     ERR_MISSING_PASSWORD: "rewards.error.missing_password",
     ERR_INVALID_PASSWORD: "rewards.error.invalid_password",
     ERR_PASSWORD_REQUIRED: "rewards.error.password_required",
+    DAILY_REWARD_ALREADY_CLAIMED: "rewards.error.already_claimed",
+    DAILY_REWARD_PAYOUT_FAILED: "rewards.error.payout_failed",
+    DAILY_REWARD_CLAIM_IN_PROGRESS: "rewards.error.claim_in_progress",
     BDAG_DEPRECATED: "errors.BDAG_DEPRECATED",
 };
 
@@ -29,8 +36,8 @@ export function dailyRewardErrorTranslationKey(code: string | null | undefined):
 }
 
 /**
- * Read `{ message, code }` from a claim error. Prefers an explicit `ERR_*` token
- * over a generic HTTP status so a 400 validation failure is not shown as a face error.
+ * Read `{ message, code }` from a claim error. Prefers an explicit code
+ * over a generic HTTP status so a 409 already-claimed response is not shown as a password error.
  */
 export function resolveDailyRewardErrorCode(error: unknown, keys: Record<string, string> = DAILY_REWARD_ERROR_KEYS): string | null {
     if (!error || typeof error !== "object") return null;
@@ -38,6 +45,8 @@ export function resolveDailyRewardErrorCode(error: unknown, keys: Record<string,
     const err = error as Record<string, unknown>;
     const texts: string[] = [];
     const body = err["error"];
+
+    if (typeof err["code"] === "string") texts.push(err["code"]);
 
     if (typeof body === "string") {
         texts.push(body);
