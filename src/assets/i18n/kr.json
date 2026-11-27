@@ -2347,7 +2347,7 @@
         "tasks": {
             "invite_first_friend": {
                 "title": "첫 친구를 초대하세요",
-                "reward": "10 ~ 100 $ZNS 획득"
+                "reward": "초대당 10 $ZNS 획득 (최대 3명 / 30 $ZNS)"
             },
             "first_transaction": {
                 "title": "첫 거래",
@@ -2356,15 +2356,15 @@
             },
             "join_discord": {
                 "title": "디스코드에 참여하기",
-                "reward": "10 ~ 100 $ZNS 획득"
+                "reward": "10 $ZNS 획득"
             },
             "join_telegram": {
                 "title": "텔레그램 커뮤니티에 참여하기",
-                "reward": "10 ~ 100 $ZNS 획득"
+                "reward": "10 $ZNS 획득"
             },
             "join_x": {
                 "title": "X에서 팔로우하기",
-                "reward": "10 ~ 100 $ZNS 획득"
+                "reward": "10 $ZNS 획득"
             }
         },
         "alreadyClaimedToday": "오늘의 일일 보상을 이미 받으셨습니다!",

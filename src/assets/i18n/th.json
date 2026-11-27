@@ -2347,7 +2347,7 @@
         "tasks": {
             "invite_first_friend": {
                 "title": "เชิญเพื่อนคนแรกของคุณ",
-                "reward": "ลุ้นรับ 10 ถึง 100 $ZNS"
+                "reward": "ลุ้นรับ 10 $ZNS ต่อคำเชิญ (สูงสุด 3 เพื่อน / 30 $ZNS)"
             },
             "first_transaction": {
                 "title": "การทำธุรกรรมครั้งแรก",
@@ -2356,15 +2356,15 @@
             },
             "join_discord": {
                 "title": "เข้าร่วม Discord ของเรา",
-                "reward": "ลุ้นรับ 10 ถึง 100 $ZNS"
+                "reward": "ลุ้นรับ 10 $ZNS"
             },
             "join_telegram": {
                 "title": "เข้าร่วมชุมชน Telegram ของเรา",
-                "reward": "ลุ้นรับ 10 ถึง 100 $ZNS"
+                "reward": "ลุ้นรับ 10 $ZNS"
             },
             "join_x": {
                 "title": "ติดตามเราบน X",
-                "reward": "ลุ้นรับ 10 ถึง 100 $ZNS"
+                "reward": "ลุ้นรับ 10 $ZNS"
             }
         },
         "alreadyClaimedToday": "คุณได้รับรางวัลประจำวันแล้ว!",

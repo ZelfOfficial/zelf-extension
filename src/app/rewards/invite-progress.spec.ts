@@ -10,7 +10,7 @@ describe("inviteProgress (#45)", () => {
     it("uses the server limit", () => {
         expect(inviteProgress(7, 5)).toEqual({ counted: 5, extra: 2, percent: 100 });
     });
-    it("falls back to 10 for a bad limit", () => {
-        expect(inviteProgress(4, 0).percent).toBe(40);
+    it("falls back to 3 for a bad limit", () => {
+        expect(inviteProgress(4, 0)).toEqual({ counted: 3, extra: 1, percent: 100 });
     });
 });

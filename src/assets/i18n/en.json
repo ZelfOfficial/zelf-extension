@@ -2435,7 +2435,7 @@
         "tasks": {
             "invite_first_friend": {
                 "title": "Invite your first friend",
-                "reward": "Win 10 to 100 $ZNS"
+                "reward": "Win 10 $ZNS per invite (up to 3 friends / 30 $ZNS)"
             },
             "first_transaction": {
                 "title": "First transaction",
@@ -2444,15 +2444,15 @@
             },
             "join_discord": {
                 "title": "Join our Discord",
-                "reward": "Win 25 $ZNS"
+                "reward": "Win 10 $ZNS"
             },
             "join_telegram": {
                 "title": "Join our telegram community",
-                "reward": "Win 25 $ZNS"
+                "reward": "Win 10 $ZNS"
             },
             "join_x": {
                 "title": "Join us on X",
-                "reward": "Win 5 $ZNS"
+                "reward": "Win 10 $ZNS"
             }
         },
         "alreadyClaimedToday": "You've already claimed your daily reward!",

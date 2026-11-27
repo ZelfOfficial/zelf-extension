@@ -2347,7 +2347,7 @@
         "tasks": {
             "invite_first_friend": {
                 "title": "邀请您的第一位朋友",
-                "reward": "赢取 10 到 100 $ZNS"
+                "reward": "每次邀请赢取 10 $ZNS（最多 3 位朋友 / 30 $ZNS）"
             },
             "first_transaction": {
                 "title": "首次交易",
@@ -2356,15 +2356,15 @@
             },
             "join_discord": {
                 "title": "加入我们的 Discord",
-                "reward": "赢取 10 到 100 $ZNS"
+                "reward": "赢取 10 $ZNS"
             },
             "join_telegram": {
                 "title": "加入我们的 Telegram 社区",
-                "reward": "赢取 10 到 100 $ZNS"
+                "reward": "赢取 10 $ZNS"
             },
             "join_x": {
                 "title": "在 X 上加入我们",
-                "reward": "赢取 10 到 100 $ZNS"
+                "reward": "赢取 10 $ZNS"
             }
         },
         "alreadyClaimedToday": "您今天已经领取了每日奖励！",

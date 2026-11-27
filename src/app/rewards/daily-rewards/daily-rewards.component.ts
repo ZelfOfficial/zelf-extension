@@ -101,12 +101,13 @@ export class DailyRewardsComponent implements OnInit, OnDestroy {
     private updateCountdown(): void {
         if (!this.nextClaimAvailable) return;
 
-        const now = new Date().getTime();
+        const now = Date.now();
         const target = new Date(this.nextClaimAvailable).getTime();
         const diff = target - now;
 
-        if (diff <= 0) {
-            // Countdown finished - wait for backend to explicitly enable reward
+        // `nextClaimAvailable` is an absolute timestamp. A rolling 24-hour window
+        // reads as 24:00:00 and counts down in total hours, not a 3-hour clock.
+        if (!Number.isFinite(diff) || diff <= 0) {
             this.stopCountdown();
             this.countdownHours = 0;
             this.countdownMinutes = 0;
@@ -215,22 +216,16 @@ export class DailyRewardsComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * Get segments for a specific type (for pre-population)
+     * Instant 11–20 ZNS wheel while the roulette config loads.
+     * Hold and mainnet share these ten slots. Server `segments` replace them.
      */
     private _getSegmentsForType(type: "hold" | "mainnet"): WheelSegment[] {
-        if (type === "mainnet") {
-            // Purchased domains: 2, 4, 6, ... 24
-            return Array.from({ length: 12 }, (_, i) => ({
-                value: (i + 1) * 2,
-                label: ((i + 1) * 2).toString(),
-                color: i === 0 ? "#FF8622" : "#FF5721",
-            }));
-        }
-        // .hold domains: 1-12
-        return Array.from({ length: 12 }, (_, i) => ({
-            value: i + 1,
-            label: (i + 1).toString(),
-            color: i === 0 ? "#FF8622" : "#FF5721",
+        const values = type === "hold" || type === "mainnet" ? [11, 12, 13, 14, 15, 16, 17, 18, 19, 20] : [];
+
+        return values.map((value, index) => ({
+            value,
+            label: value.toString(),
+            color: index === 0 ? "#FF8622" : "#FF5721",
         }));
     }
 
@@ -588,23 +583,17 @@ export class DailyRewardsComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * Map segment value to a tier 0–3 (0 = lowest, 3 = highest / most appealing).
+     * Map a segment value to gradient tier 0–3 (0 = lowest, 3 = highest).
+     * The 11–20 wheel splits as 11–13, 14–15, 16–17, 18–20. Other server
+     * values still pick a tier from the same bands.
      */
     private getSegmentTier(index: number): number {
         const seg = this.segments[index];
         if (!seg) return 0;
         const v = seg.value;
-        if (this.tagType === "hold") {
-            // 1–12: tier 0 = 1–3, 1 = 4–6, 2 = 7–9, 3 = 10–12
-            if (v <= 3) return 0;
-            if (v <= 6) return 1;
-            if (v <= 9) return 2;
-            return 3;
-        }
-        // Mainnet 2–24: tier 0 = 2–8, 1 = 10–14, 2 = 16–20, 3 = 22–24
-        if (v <= 8) return 0;
-        if (v <= 14) return 1;
-        if (v <= 20) return 2;
+        if (v <= 13) return 0;
+        if (v <= 15) return 1;
+        if (v <= 17) return 2;
         return 3;
     }
 

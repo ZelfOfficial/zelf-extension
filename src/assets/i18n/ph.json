@@ -2347,7 +2347,7 @@
         "tasks": {
             "invite_first_friend": {
                 "title": "Mag-imbita ng iyong unang kaibigan",
-                "reward": "Manalo ng 10 hanggang 100 $ZNS"
+                "reward": "Manalo ng 10 $ZNS bawat imbitasyon (hanggang 3 kaibigan / 30 $ZNS)"
             },
             "first_transaction": {
                 "title": "Unang transaksyon",
@@ -2356,15 +2356,15 @@
             },
             "join_discord": {
                 "title": "Sumali sa aming Discord",
-                "reward": "Manalo ng 10 hanggang 100 $ZNS"
+                "reward": "Manalo ng 10 $ZNS"
             },
             "join_telegram": {
                 "title": "Sumali sa aming komunidad ng Telegram",
-                "reward": "Manalo ng 10 hanggang 100 $ZNS"
+                "reward": "Manalo ng 10 $ZNS"
             },
             "join_x": {
                 "title": "Sumali sa amin sa X",
-                "reward": "Manalo ng 10 hanggang 100 $ZNS"
+                "reward": "Manalo ng 10 $ZNS"
             }
         },
         "alreadyClaimedToday": "Na-claim mo na ang iyong daily reward!",
