@@ -24,7 +24,7 @@ export interface InvitedFriend {
     countsForReward?: boolean;
 }
 
-const MAX_INVITES = 10;
+const MAX_INVITES = 3;
 const COPY_FEEDBACK_MS = 2000;
 
 @Component({

@@ -2347,7 +2347,7 @@
         "tasks": {
             "invite_first_friend": {
                 "title": "最初の友達を招待",
-                "reward": "10〜100 $ZNSを獲得"
+                "reward": "招待ごとに10 $ZNSを獲得（最大3人 / 30 $ZNS）"
             },
             "first_transaction": {
                 "title": "初回取引",
@@ -2356,15 +2356,15 @@
             },
             "join_discord": {
                 "title": "Discordに参加",
-                "reward": "10〜100 $ZNSを獲得"
+                "reward": "10 $ZNSを獲得"
             },
             "join_telegram": {
                 "title": "Telegramコミュニティに参加",
-                "reward": "10〜100 $ZNSを獲得"
+                "reward": "10 $ZNSを獲得"
             },
             "join_x": {
                 "title": "Xでフォロー",
-                "reward": "10〜100 $ZNSを獲得"
+                "reward": "10 $ZNSを獲得"
             }
         },
         "alreadyClaimedToday": "本日のデイリー報酬はすでに受け取り済みです！",

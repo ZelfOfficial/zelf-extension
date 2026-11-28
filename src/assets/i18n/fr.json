@@ -2347,7 +2347,7 @@
         "tasks": {
             "invite_first_friend": {
                 "title": "Invitez votre premier ami",
-                "reward": "Gagnez de 10 à 100 $ZNS"
+                "reward": "Gagnez 10 $ZNS par invitation (jusqu'à 3 amis / 30 $ZNS)"
             },
             "first_transaction": {
                 "title": "Première transaction",
@@ -2356,15 +2356,15 @@
             },
             "join_discord": {
                 "title": "Rejoignez notre Discord",
-                "reward": "Gagnez de 10 à 100 $ZNS"
+                "reward": "Gagnez 10 $ZNS"
             },
             "join_telegram": {
                 "title": "Rejoignez notre communauté Telegram",
-                "reward": "Gagnez de 10 à 100 $ZNS"
+                "reward": "Gagnez 10 $ZNS"
             },
             "join_x": {
                 "title": "Suivez-nous sur X",
-                "reward": "Gagnez de 10 à 100 $ZNS"
+                "reward": "Gagnez 10 $ZNS"
             }
         },
         "alreadyClaimedToday": "Vous avez déjà réclamé votre récompense quotidienne !",

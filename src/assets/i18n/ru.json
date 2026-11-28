@@ -2347,7 +2347,7 @@
         "tasks": {
             "invite_first_friend": {
                 "title": "Пригласите первого друга",
-                "reward": "Выиграйте от 10 до 100 $ZNS"
+                "reward": "Выиграйте 10 $ZNS за приглашение (до 3 друзей / 30 $ZNS)"
             },
             "first_transaction": {
                 "title": "Первая транзакция",
@@ -2356,15 +2356,15 @@
             },
             "join_discord": {
                 "title": "Присоединяйтесь к нашему Discord",
-                "reward": "Выиграйте от 10 до 100 $ZNS"
+                "reward": "Выиграйте 10 $ZNS"
             },
             "join_telegram": {
                 "title": "Присоединяйтесь к нашему сообществу Telegram",
-                "reward": "Выиграйте от 10 до 100 $ZNS"
+                "reward": "Выиграйте 10 $ZNS"
             },
             "join_x": {
                 "title": "Подпишитесь на нас в X",
-                "reward": "Выиграйте от 10 до 100 $ZNS"
+                "reward": "Выиграйте 10 $ZNS"
             }
         },
         "alreadyClaimedToday": "Вы уже получили ежедневную награду!",

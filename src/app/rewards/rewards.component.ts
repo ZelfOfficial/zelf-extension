@@ -23,9 +23,9 @@ interface Task {
     action?: () => void;
 }
 
-export const DEFAULT_REFERRAL_LIMIT = 10;
+export const DEFAULT_REFERRAL_LIMIT = 3;
 
-/** Clamp the referral counter to the reward cap: never 11/10, never a bar past 100%. */
+/** Clamp the referral counter to the reward cap: never past the cap, never a bar past 100%. */
 export function inviteProgress(total: number, limit: number): { counted: number; extra: number; percent: number } {
     const cap = Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : DEFAULT_REFERRAL_LIMIT;
     const safeTotal = Number.isFinite(total) && total > 0 ? Math.floor(total) : 0;
@@ -44,7 +44,7 @@ export class RewardsComponent implements OnInit, OnDestroy {
     znsBalanceLoading: boolean = false;
     invitedFriends: number = 0;
     referralsLoading: boolean = false;
-    /** Reward cap, from the server (`limit` in /api/my-tags/referrals). 10 only until it answers. */
+    /** Reward cap, from the server (`limit` in /api/my-tags/referrals). 3 only until it answers. */
     maxInvites: number = DEFAULT_REFERRAL_LIMIT;
     /** Referrals past the cap: kept as history, they don't count toward the reward. */
     extraInvites: number = 0;
@@ -282,11 +282,12 @@ export class RewardsComponent implements OnInit, OnDestroy {
     private updateCountdown(): void {
         if (!this.nextClaimAvailable) return;
 
-        const now = new Date().getTime();
+        const now = Date.now();
         const target = new Date(this.nextClaimAvailable).getTime();
         const diff = target - now;
 
-        if (diff <= 0) {
+        // Same rolling timestamp as the wheel: a 24-hour window reads 24:00:00.
+        if (!Number.isFinite(diff) || diff <= 0) {
             this.stopCountdown();
             this.countdownHours = 0;
             this.countdownMinutes = 0;

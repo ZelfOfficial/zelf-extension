@@ -156,3 +156,87 @@ describe("DailyRewardsComponent identity claim", () => {
         component.ngOnDestroy();
     });
 });
+
+describe("DailyRewardsComponent wheel", () => {
+    function bare(): DailyRewardsComponent {
+        return new DailyRewardsComponent(
+            {} as any,
+            {} as any,
+            {} as any,
+            {} as any,
+            { translate: (key: string) => messages[key] ?? key } as any,
+            { navigate: jasmine.createSpy("navigate").and.resolveTo(true) } as any,
+            { markForCheck() {} } as any
+        );
+    }
+
+    it("pre-fills ten slots from 11 to 20 ZNS for hold and mainnet", () => {
+        const component = bare();
+
+        for (const type of ["hold", "mainnet"] as const) {
+            const segments = (component as any)._getSegmentsForType(type) as Array<{ value: number; label: string }>;
+            expect(segments.map((segment) => segment.value)).toEqual([11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
+            expect(segments.map((segment) => segment.label)).toEqual(["11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]);
+        }
+
+        component.ngOnDestroy();
+    });
+
+    it("colors the 11–20 wheel in four tiers and still follows server segments", () => {
+        const component = bare();
+        component.segments = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map((value) => ({
+            value,
+            label: String(value),
+            color: "#fff",
+        }));
+
+        expect(component.segments.map((_, index) => (component as any).getSegmentTier(index))).toEqual([0, 0, 0, 1, 1, 2, 2, 3, 3, 3]);
+
+        const tenSlotPath = component.getSegmentPath(0);
+        component.segments = [11, 20, 15].map((value) => ({ value, label: String(value), color: "#fff" }));
+        expect((component as any).getSegmentTier(0)).toBe(0);
+        expect((component as any).getSegmentTier(1)).toBe(3);
+        expect((component as any).getSegmentTier(2)).toBe(1);
+        expect(component.getSegmentPath(0)).not.toEqual(tenSlotPath);
+
+        component.ngOnDestroy();
+    });
+
+    it("shows a rolling 24-hour nextClaimAvailable as hours, minutes, and seconds", () => {
+        const component = bare();
+        spyOn(Date, "now").and.returnValue(Date.parse("2026-11-27T16:00:00.000Z"));
+
+        component.nextClaimAvailable = "2026-11-28T16:00:00.000Z";
+        (component as any).updateCountdown();
+        expect(component.countdownHours).toBe(24);
+        expect(component.countdownMinutes).toBe(0);
+        expect(component.countdownSeconds).toBe(0);
+
+        component.nextClaimAvailable = "2026-11-28T15:59:59.000Z";
+        (component as any).updateCountdown();
+        expect(component.countdownHours).toBe(23);
+        expect(component.countdownMinutes).toBe(59);
+        expect(component.countdownSeconds).toBe(59);
+
+        component.nextClaimAvailable = "2026-11-27T17:02:03.000Z";
+        (component as any).updateCountdown();
+        expect(component.countdownHours).toBe(1);
+        expect(component.countdownMinutes).toBe(2);
+        expect(component.countdownSeconds).toBe(3);
+
+        component.nextClaimAvailable = "2026-11-27T16:00:00.000Z";
+        (component as any).updateCountdown();
+        expect(component.countdownHours).toBe(0);
+        expect(component.countdownMinutes).toBe(0);
+        expect(component.countdownSeconds).toBe(0);
+
+        component.nextClaimAvailable = "not-a-timestamp";
+        component.countdownHours = 9;
+        (component as any).updateCountdown();
+        expect(component.countdownHours).toBe(0);
+        expect(component.countdownMinutes).toBe(0);
+        expect(component.countdownSeconds).toBe(0);
+
+        component.ngOnDestroy();
+    });
+});

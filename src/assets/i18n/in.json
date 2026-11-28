@@ -2347,7 +2347,7 @@
         "tasks": {
             "invite_first_friend": {
                 "title": "अपने पहले दोस्त को आमंत्रित करें",
-                "reward": "10 से 100 $ZNS जीतें"
+                "reward": "प्रति आमंत्रण 10 $ZNS जीतें (अधिकतम 3 मित्र / 30 $ZNS)"
             },
             "first_transaction": {
                 "title": "पहला लेन-देन",
@@ -2356,15 +2356,15 @@
             },
             "join_discord": {
                 "title": "हमारे Discord में शामिल हों",
-                "reward": "10 से 100 $ZNS जीतें"
+                "reward": "10 $ZNS जीतें"
             },
             "join_telegram": {
                 "title": "हमारे Telegram समुदाय में शामिल हों",
-                "reward": "10 से 100 $ZNS जीतें"
+                "reward": "10 $ZNS जीतें"
             },
             "join_x": {
                 "title": "X पर हमें फॉलो करें",
-                "reward": "10 से 100 $ZNS जीतें"
+                "reward": "10 $ZNS जीतें"
             }
         },
         "alreadyClaimedToday": "आपने आज का दैनिक इनाम पहले ही प्राप्त कर लिया है!",
